@@ -1,0 +1,12 @@
+[run]
+
+omit =
+    django_settings.py,
+    manage.py,
+    .gitignore,
+    .coverage
+    *.git/*,
+    *htmlcov/*,
+    *config/*,
+    *docs/*,
+    *utils/*

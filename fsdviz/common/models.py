@@ -1,14 +1,4 @@
-'''=============================================================
-~/fsdviz/fsdviz/common/models.py
- Created: 12 Dec 2018 10:19:09
-
- DESCRIPTION:
-
- The models in this file will be used accross all applications and
- include things like agencies, lakes, management units and species.
-
- A. Cottrill
-=============================================================
+'''
 
 '''
 
@@ -17,7 +7,9 @@ from django.template.defaultfilters import slugify
 
 
 class BuildDate(models.Model):
-    '''A database to hold the date that the database was last refreshed.'''
+    '''
+    A database to hold the date that the database was last refreshed.
+    '''
     build_date =  models.DateField(editable=False)
 
     def __str__(self):
@@ -25,9 +17,11 @@ class BuildDate(models.Model):
 
 
 class Readme(models.Model):
-    #a table to hold all of the information regarding last FSIS
-    #download and FS_Master rebuild (it appear as a footer on every
-    #page)
+    '''
+    a table to hold all of the information regarding last FSIS
+    download and FS_Master rebuild (it appear as a footer on every
+    page)
+    '''
     date = models.DateField(editable=False)
     comment = models.TextField()
     initials = models.CharField(max_length=4)
@@ -40,7 +34,8 @@ class Readme(models.Model):
 
 
 class Agency(models.Model):
-    '''A lookup table for agencies that either stock fish or recovery cwts.
+    '''
+    A lookup table for agencies that either stock fish or recovery cwts.
 
     This table should probably be extended to include office/hatchery
     so that we can differentiate offices for agencies that have more
@@ -61,12 +56,14 @@ class Agency(models.Model):
 
 
 class Lake(models.Model):
-    '''A lookup table for lakes where fish were stocked, cwts either
+    '''
+    A lookup table for lakes where fish were stocked, cwts either
     deployed or recovered, or where management/spatial units are located.
 
     We could add a geometry here for the shoreline some day.
 
     '''
+
     abbrev = models.CharField(max_length=2, unique=True)
     lake_name = models.CharField(max_length=30, unique=True)
     shoreline = models.MultiPolygonField(srid=4326, blank=True, null=True)
@@ -81,9 +78,11 @@ class Lake(models.Model):
 
 
 class StateProvince(models.Model):
-    '''A lookup table for states or provinces where fish were stocked,
+    '''
+    A lookup table for states or provinces where fish were stocked,
     cwts either deployed or recovered, or where management/spatial
     units are located.
+
     '''
 
     COUNTRIES = (
@@ -106,13 +105,15 @@ class StateProvince(models.Model):
 
 
 class ManagementUnit(models.Model):
-    '''a class to hold geometries associated with arbirary ManagementUnits
+    '''
+    a class to hold geometries associated with arbirary ManagementUnits
     that can be represented as polygons.  Examples include quota
     management units and lake trout rehabilitation zones.  Used to find
     stocking events, cwts, and cwt recoveries occurred in (or
     potentially near) specific management Units.
 
     '''
+
     label = models.CharField(max_length=25)
     slug = models.SlugField(blank=True, unique=True, editable=False)
     description = models.CharField(max_length=300)
@@ -136,8 +137,11 @@ class ManagementUnit(models.Model):
         ordering = ['lake__abbrev','mu_type','label']
 
     def get_slug(self):
-        '''the name is a concatenation of lake abbreviation, the managemnet unit
-        type and and the management unit label'''
+        '''
+        the name is a concatenation of lake abbreviation, the managemnet unit
+        type and and the management unit label.
+        '''
+
         lake = str(self.lake.abbrev)
 
         return slugify('_'.join([lake, self.mu_type, self.label]))
@@ -158,10 +162,13 @@ class ManagementUnit(models.Model):
 
 
 class Grid10(models.Model):
-    ''''A lookup table for 10-minute grids within lakes.  Used to verify
+    ''''
+
+    A lookup table for 10-minute grids within lakes.  Used to verify
     stocking and recovery data before being inserted.
 
     '''
+
     grid = models.CharField(max_length=4)
     centroid = models.PointField(srid=4326)
     lake = models.ForeignKey(Lake, default=1, on_delete=models.CASCADE)
@@ -175,8 +182,10 @@ class Grid10(models.Model):
 
 
 class Species(models.Model):
-    '''A lookup table for species.  Note that both backcross and splake
+    '''
+    A lookup table for species.  Note that both backcross and splake
     are considered species and not lake trout strains.
+
     '''
 
     abbrev = models.CharField(max_length=5, unique=True)
@@ -205,7 +214,9 @@ class Species(models.Model):
 
 
 class Strain(models.Model):
-    '''This table contains the 'nominal' names for each strain.  Allows
+    '''
+
+    This table contains the 'nominal' names for each strain.  Allows
     "SEN(86)", "SEN(87)", "SEN(88)", "SEN(89)", "SEND", "SN", "SNHW",
     "SNNM", "SLD", "SLDSLW", "SLW" to all be referred to as Seneca (SN)
     lake trout.
@@ -230,7 +241,9 @@ class Strain(models.Model):
 
 
 class StrainRaw(models.Model):
-    '''The raw strain codes will represent the information returned in the
+    '''
+
+    The raw strain codes will represent the information returned in the
     GLFC look-up table where strain has too much information - eg -
     origins and rearing hatchery.  Essentially, this is an association
     table between the :model:`common.Species` and the

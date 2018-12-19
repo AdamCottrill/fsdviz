@@ -1,3 +1,6 @@
 .dir-locals.el
+.coverage
+htmlcov/*
+docs/build/*
 *.pyc
 __pycache__
