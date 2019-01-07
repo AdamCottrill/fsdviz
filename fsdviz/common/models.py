@@ -1,4 +1,6 @@
 '''
+This file contains all of the django orm models for entities that will
+be shared across both the stocking and cwt recovery applications.
 
 '''
 
@@ -10,7 +12,7 @@ class BuildDate(models.Model):
     '''
     A database to hold the date that the database was last refreshed.
     '''
-    build_date =  models.DateField(editable=False)
+    build_date = models.DateField(editable=False)
 
     def __str__(self):
         return self.build_date.strftime("%d-%b-%Y")
@@ -94,7 +96,7 @@ class StateProvince(models.Model):
     abbrev = models.CharField(max_length=5, unique=True)
     name = models.CharField(max_length=30, unique=True)
     description = models.CharField(max_length=300)
-    country =  models.CharField(max_length=3, choices=COUNTRIES)
+    country = models.CharField(max_length=3, choices=COUNTRIES)
 
     class Meta:
         ordering = ['abbrev']
@@ -127,14 +129,14 @@ class ManagementUnit(models.Model):
         ('qma', 'Quota Management Area'),
         ('aa', 'Assessment Area'),
         ('stat_dist', 'Statistical District'),
-       )
+    )
 
-    mu_type =  models.CharField(max_length=10,
-                                choices=MU_TYPE_CHOICES,
-                                default='mu')
+    mu_type = models.CharField(max_length=10,
+                               choices=MU_TYPE_CHOICES,
+                               default='mu')
 
     class Meta:
-        ordering = ['lake__abbrev','mu_type','label']
+        ordering = ['lake__abbrev', 'mu_type', 'label']
 
     def get_slug(self):
         '''
@@ -147,9 +149,14 @@ class ManagementUnit(models.Model):
         return slugify('_'.join([lake, self.mu_type, self.label]))
 
     def name(self):
+        '''
+        returns the name of the managment unit including the lake it
+        is associated with, the management unit type and the label
+
+        '''
         return ' '.join([str(self.lake), self.mu_type.upper(), self.label])
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name()
 
     def save(self, *args, **kwargs):
@@ -158,12 +165,11 @@ class ManagementUnit(models.Model):
         """
         #if not self.slug:
         self.slug = self.get_slug()
-        super(ManagementUnit, self).save( *args, **kwargs)
+        super(ManagementUnit, self).save(*args, **kwargs)
 
 
 class Grid10(models.Model):
     ''''
-
     A lookup table for 10-minute grids within lakes.  Used to verify
     stocking and recovery data before being inserted.
 
@@ -204,7 +210,7 @@ class Species(models.Model):
         ordering = ['abbrev']
 
     def __str__(self):
-        """ String representation for a State."""
+        """ String representation for a Species."""
         return '{} ({})'.format(self.common_name, self.abbrev)
 
 
@@ -215,7 +221,6 @@ class Species(models.Model):
 
 class Strain(models.Model):
     '''
-
     This table contains the 'nominal' names for each strain.  Allows
     "SEN(86)", "SEN(87)", "SEN(88)", "SEN(89)", "SEND", "SN", "SNHW",
     "SNNM", "SLD", "SLDSLW", "SLW" to all be referred to as Seneca (SN)
@@ -233,7 +238,7 @@ class Strain(models.Model):
         unique_together = ('strain_species', 'strain_code')
 
     def __str__(self):
-        species_name = self.strain_species.common_name.title(),
+        species_name = self.strain_species.common_name.title()
         return "{} Strain {} ({})".format(self.strain_label,
                                           species_name,
                                           self.strain_code)
@@ -246,8 +251,8 @@ class StrainRaw(models.Model):
     The raw strain codes will represent the information returned in the
     GLFC look-up table where strain has too much information - eg -
     origins and rearing hatchery.  Essentially, this is an association
-    table between the :model:`common.Species` and the
-    :model:`common.Strain` tables. This table is rarely used
+    table between the :model:`common.Species` and
+    the :model:`common.Strain` tables. This table is rarely used
     directly. Generally :model:`common.Strain` is the table you want.
 
     '''
@@ -267,5 +272,5 @@ class StrainRaw(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.description,
-                                  self.raw_strain)
+                                self.raw_strain)
     #                              self.species.common_name.title())
