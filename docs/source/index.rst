@@ -7,11 +7,17 @@ Welcome to Great Lakes Fishstocking Data Vizualization's documentation!
 =======================================================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
+   about.rst
+   howToContribute.rst
+   tickettracker.rst
    installation.rst
+   processingsubmissions.rst
+   usingtheAPI.rst
    common/models.rst
+
 
 Indices and tables
 ==================
