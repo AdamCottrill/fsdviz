@@ -8,7 +8,8 @@ import pytest
 
 from .factories import (LakeFactory, AgencyFactory, StateProvinceFactory,
                         ManagementUnitFactory, Grid10Factory, SpeciesFactory,
-                        StrainFactory, StrainRawFactory)
+                        StrainFactory, StrainRawFactory, MarkFactory,
+                        LatLonFlagFactory)
 
 @pytest.mark.django_db
 def test_lake_str():
@@ -156,3 +157,43 @@ def test_strainraw_str():
 
     shouldbe = '{} ({})'.format(description, strain_code)
     assert str(rawstrain) == shouldbe
+
+
+@pytest.mark.django_db
+def test_mark_str():
+    """
+    Verify that the string representation of a mark object
+    is the description followed by the mark_code in parenthesis.
+
+    'Adipose Clip (AD)'
+
+    """
+
+    mark_code = 'AD'
+    description = 'Adipose Fin'
+
+    mark = MarkFactory(mark_code=mark_code,
+                       description=description)
+
+    shouldbe = '{} ({})'.format(description, mark_code)
+    assert str(mark) == shouldbe
+
+
+@pytest.mark.django_db
+def test_latlonflag_str():
+    """
+    Verify that the string representation of a latlonflag object
+    is the code followed by the description.
+
+    '1 - Reported'
+
+    """
+
+    value = '1'
+    description = 'reported'
+
+    latlonflag = LatLonFlagFactory(value=value,
+                             description=description)
+
+    shouldbe = '{} - {}'.format(value, description)
+    assert str(latlonflag) == shouldbe

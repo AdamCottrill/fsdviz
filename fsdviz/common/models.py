@@ -214,9 +214,6 @@ class Species(models.Model):
         return '{} ({})'.format(self.common_name, self.abbrev)
 
 
-#STRAINS
-#RAW_STRAINS
-#MARKS
 
 
 class Strain(models.Model):
@@ -242,12 +239,10 @@ class Strain(models.Model):
         return "{} Strain {} ({})".format(self.strain_label,
                                           species_name,
                                           self.strain_code)
-#                                     self.species.common_name.title())
 
 
 class StrainRaw(models.Model):
     '''
-
     The raw strain codes will represent the information returned in the
     GLFC look-up table where strain has too much information - eg -
     origins and rearing hatchery.  Essentially, this is an association
@@ -274,3 +269,55 @@ class StrainRaw(models.Model):
         return "{} ({})".format(self.description,
                                 self.raw_strain)
     #                              self.species.common_name.title())
+
+
+
+# LatLonFlag
+
+class Mark(models.Model):
+    '''
+    Stores a single mark applied to fish when they are stocked and
+    reported when they are recaptured.  Includes fin clips, the
+    presence of a cwt, and chemical marks.  Multiple marks can
+    be applied to a single fish.  Combinations of marks most often
+    serve to indicate year-class.
+    '''
+
+    MARK_TYPE_CHOICES = [
+        ('chemical', 'Chemical'),
+        ('finclip', 'Fin Clip'),
+        ('tag', 'Tag'),]
+
+    clip_code = models.CharField(max_length=2)
+    mark_code = models.CharField(max_length=4, unique=True)
+    mark_type = models.CharField(max_length=8,
+                                 choices=MARK_TYPE_CHOICES,
+                                 default='finclip')
+
+    description = models.CharField(max_length=100)
+
+
+    class Meta:
+        ordering = ['mark_code']
+
+    def __str__(self):
+        return "{} ({})".format(self.description, self.mark_code)
+
+
+
+class LatLonFlag(models.Model):
+    '''
+
+    Inicates the level of spatial precision associated with a stocking
+    event or recovery effort.  Lower numbers indicate higher precision.
+
+    '''
+
+    value = models.IntegerField(unique=True)
+    description = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ['value']
+
+    def __str__(self):
+        return "{} - {}".format(self.value, self.description)

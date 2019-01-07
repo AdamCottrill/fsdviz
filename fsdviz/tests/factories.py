@@ -9,7 +9,8 @@ from django.contrib.gis.geos import GEOSGeometry
 
 #import common.models as common
 from ..common.models import (Lake, Agency, StateProvince, ManagementUnit,
-                             Grid10, Species, Strain, StrainRaw)
+                             Grid10, Species, Strain, StrainRaw, Mark,
+                             LatLonFlag)
 
 
 class LakeFactory(factory.DjangoModelFactory):
@@ -122,3 +123,29 @@ class StrainRawFactory(factory.DjangoModelFactory):
     description = 'extra special Lake trout orignally from Seneca Lake'
     species = factory.SubFactory(SpeciesFactory)
     strain = factory.SubFactory(StrainFactory)
+
+
+class MarkFactory(factory.DjangoModelFactory):
+    """
+    A factory for Mark objects (fin clips, cwts and chemical tags)
+    """
+
+    class Meta:
+        model = Mark
+
+    mark_code = 'AD'
+    mark_type = 'finclip'
+    clip_code = '5'
+    description = 'Adipose Fin'
+
+
+class LatLonFlagFactory(factory.DjangoModelFactory):
+    """
+    A factory for LatLonFlag objects.
+    """
+
+    class Meta:
+        model = LatLonFlag
+
+    value = 1
+    description = 'Reported'
