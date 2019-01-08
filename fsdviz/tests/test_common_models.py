@@ -9,7 +9,7 @@ import pytest
 from .factories import (LakeFactory, AgencyFactory, StateProvinceFactory,
                         ManagementUnitFactory, Grid10Factory, SpeciesFactory,
                         StrainFactory, StrainRawFactory, MarkFactory,
-                        LatLonFlagFactory)
+                        LatLonFlagFactory, CWTFactory, CWTsequenceFactory)
 
 @pytest.mark.django_db
 def test_lake_str():
@@ -193,7 +193,66 @@ def test_latlonflag_str():
     description = 'reported'
 
     latlonflag = LatLonFlagFactory(value=value,
-                             description=description)
+                                   description=description)
 
     shouldbe = '{} - {}'.format(value, description)
     assert str(latlonflag) == shouldbe
+
+
+@pytest.mark.django_db
+def test_cwt_str():
+    """
+    Verify that the string representation of a cwt object is the cwt number
+    formatted with dashes followed by the agency abbreviation in parentheses.
+
+    '12-34-56 (USFWS)'
+
+    """
+
+    abbrev = 'USFWS'
+    cwt_number = '123456'
+
+    agency = AgencyFactory(abbrev=abbrev)
+
+    cwt = CWTFactory(cwt_number=cwt_number,
+                     agency=agency)
+
+    shouldbe = '{}-{}-{} ({})'.format(cwt_number[:2],
+                                      cwt_number[2:4],
+                                      cwt_number[4:],
+                                      agency.abbrev)
+
+    assert str(cwt) == shouldbe
+
+
+@pytest.mark.django_db
+def test_cwt_sequence_str():
+    """
+    Verify that the string representation of a seq object is the cwt number,
+    followed by the seqence start and end in square brackets.
+
+    '12-34-56 (USFWS) [1-5555]'
+
+    """
+
+    abbrev = 'USFWS'
+    cwt_number = '123456'
+    seq_start = 1
+    seq_end = 5555
+
+    agency = AgencyFactory(abbrev=abbrev)
+
+    cwt = CWTFactory(cwt_number=cwt_number,
+                     agency=agency)
+
+    cwt_sequence = CWTsequenceFactory(cwt=cwt, seq_start=seq_start,
+                                      seq_end=seq_end)
+
+    shouldbe = '{}-{}-{} ({}) [{}-{}]'.format(cwt_number[:2],
+                                              cwt_number[2:4],
+                                              cwt_number[4:],
+                                              agency.abbrev,
+                                              seq_start,
+                                              seq_end)
+
+    assert str(cwt_sequence) == shouldbe

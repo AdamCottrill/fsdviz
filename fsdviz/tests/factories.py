@@ -10,8 +10,7 @@ from django.contrib.gis.geos import GEOSGeometry
 #import common.models as common
 from ..common.models import (Lake, Agency, StateProvince, ManagementUnit,
                              Grid10, Species, Strain, StrainRaw, Mark,
-                             LatLonFlag)
-
+                             LatLonFlag, CWT, CWTsequence)
 
 class LakeFactory(factory.DjangoModelFactory):
     """
@@ -149,3 +148,30 @@ class LatLonFlagFactory(factory.DjangoModelFactory):
 
     value = 1
     description = 'Reported'
+
+
+class CWTFactory(factory.DjangoModelFactory):
+    """
+    A factory for CWT objects.
+    """
+
+    class Meta:
+        model = CWT
+
+    cwt_number = '123456'
+    tag_count = 10000
+    agency = factory.SubFactory(AgencyFactory)
+
+
+class CWTsequenceFactory(factory.DjangoModelFactory):
+    """
+    A factory for CWTsequence objects.
+    """
+
+    class Meta:
+        model = CWTsequence
+
+    seq_start = 1
+    seq_start = 100
+
+    cwt = factory.SubFactory(CWTFactory)

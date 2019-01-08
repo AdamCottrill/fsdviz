@@ -268,11 +268,7 @@ class StrainRaw(models.Model):
     def __str__(self):
         return "{} ({})".format(self.description,
                                 self.raw_strain)
-    #                              self.species.common_name.title())
 
-
-
-# LatLonFlag
 
 class Mark(models.Model):
     '''
@@ -304,10 +300,8 @@ class Mark(models.Model):
         return "{} ({})".format(self.description, self.mark_code)
 
 
-
 class LatLonFlag(models.Model):
     '''
-
     Inicates the level of spatial precision associated with a stocking
     event or recovery effort.  Lower numbers indicate higher precision.
 
@@ -323,5 +317,73 @@ class LatLonFlag(models.Model):
         return "{} - {}".format(self.value, self.description)
 
 
-# CWT
-# CWT_sequence
+class CWT(models.Model):
+    '''
+    A model representing a single CWT object.  CWT has a foreign key back to
+    :model:`common.Agency` and current a single cwt_number and cwt manufacturer
+    must be unique.  Several boolean fields indicate if a cwt has been
+    compromised in some way.
+    '''
+
+    TAG_TYPE_CHOICES = [
+        ('cwt', 'Coded Wire Tag'),
+        ('sequential', 'Sequential Coded Wire Tag'),]
+
+    TAG_MANUFACTURER_CHOICES = [
+        ('mm', 'Micro Mark'),
+        ('nmt', 'Northwest Marine Technology'),]
+
+    cwt_number = models.CharField(max_length=6)
+    tag_type = models.CharField(max_length=10,
+                                choices=TAG_TYPE_CHOICES,
+                                default='cwt')
+
+    manufacturer = models.CharField(max_length=10,
+                                    choices=TAG_MANUFACTURER_CHOICES,
+                                    default='nmt')
+
+    tag_count = models.IntegerField()
+    tag_reused = models.BooleanField(default=False, db_index=True)
+
+    multiple_species = models.BooleanField(default=False, db_index=True)
+    multiple_strains = models.BooleanField(default=False, db_index=True)
+    multiple_yearclasses = models.BooleanField(default=False, db_index=True)
+    multiple_makers = models.BooleanField(default=False, db_index=True)
+    multiple_agencies = models.BooleanField(default=False, db_index=True)
+    multiple_lakes = models.BooleanField(default=False, db_index=True)
+    multiple_grid10s = models.BooleanField(default=False, db_index=True)
+
+    agency = models.ForeignKey('Agency', on_delete=models.CASCADE,
+                               related_name='cwts')
+
+    class Meta:
+        ordering = ['cwt_number']
+        unique_together = ('cwt_number', 'manufacturer')
+
+    def __str__(self):
+        cwt_number = self.cwt_number
+        cwt_string = '{}-{}-{} ({})'.format(cwt_number[:2],
+                                            cwt_number[2:4],
+                                            cwt_number[4:],
+                                            self.agency.abbrev)
+        return cwt_string
+
+
+class CWTsequence(models.Model):
+    '''
+    A model representing a sequence for a CWT object. Most CWTs are not
+    sequential and will have a single record in this table with
+    seq_start and seq_end both set to 1.  For truly sequential tags,
+    seq_start and seq_end will reflect the start and end of the
+    sequence deployed in the associated stocking event(s).
+    '''
+
+    cwt = models.ForeignKey('CWT', on_delete=models.CASCADE,
+                            related_name='cwt_series')
+    seq_start = models.IntegerField(default=1)
+    seq_end = models.IntegerField(default=1)
+
+    def __str__(self):
+        return "{} [{}-{}]".format(str(self.cwt),
+                                   self.seq_start,
+                                   self.seq_end)
