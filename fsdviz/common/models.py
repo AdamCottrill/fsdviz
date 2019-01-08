@@ -321,3 +321,7 @@ class LatLonFlag(models.Model):
 
     def __str__(self):
         return "{} - {}".format(self.value, self.description)
+
+
+# CWT
+# CWT_sequence

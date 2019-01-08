@@ -17,6 +17,7 @@ Welcome to Great Lakes Fishstocking Data Vizualization's documentation!
    processingsubmissions.rst
    usingtheAPI.rst
    common/models.rst
+   stocking/models.rst
 
 
 Indices and tables
