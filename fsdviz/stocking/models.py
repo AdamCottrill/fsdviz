@@ -41,6 +41,11 @@ class StockingMethod(models.Model):
     A model to capture the method used to the stock the fish.
     '''
 
+
+
+
+
+
     stk_meth = models.CharField(max_length=25, unique=True)
     description = models.CharField(max_length=100)
 
@@ -60,6 +65,21 @@ class StockingEvent(models.Model):
     '''
     A model to capture actual stocking events - 'a pipe in the water'.
     '''
+
+
+    VALIDATION_CODE_CHOICES = [
+        (0, 'level 0, entered at hatchery, unknown verification status'),
+        (1, 'level 1, entered at hatchery and not verified'),
+        (2, 'level 2, entered and verified at hatchery'),
+        (3, 'level 3, entered at hatchery and verified by GBFRO'),
+        (4, 'level 4, entered and verified at hatchery and verified at GBFRO'),
+        (5, 'level 5, entered and verified at GLFC'),
+        (6, 'level 6, entered and verified at GBFRO'),
+        (7, 'entered by Dept. FW, MSU., not avail. from GLFC'),
+        (8, 'entered by COTFMA'),
+        (9, 'assumed to be validated by state prior to receipt'),
+        (10, 'level 10, data entered and verified at OMNR'),
+    ]
 
     species = models.ForeignKey(Species, on_delete=models.CASCADE,
                                 related_name='stocking_events')
@@ -101,32 +121,45 @@ class StockingEvent(models.Model):
     stock_id = models.CharField('unique event identifier provided by agency',
                                 max_length=100, unique=True)
 
-    date = models.DateField(blank=True, null=True)
+    date = models.DateField('Stocking event date', blank=True, null=True)
 
-    day = models.IntegerField(blank=True, null=True)
-    month = models.IntegerField(db_index=True, blank=True, null=True)
-    year = models.IntegerField(db_index=True)
+    day = models.IntegerField('Day of the month', blank=True, null=True)
+    month = models.IntegerField('Month of stokcing event as an integer',
+                                db_index=True, blank=True, null=True)
+    year = models.IntegerField('year of the stocking event as an integer >1900',
+                               db_index=True)
 
     site = models.CharField(max_length=100, blank=True, null=True)
     st_site = models.CharField(max_length=100, blank=True, null=True)
 
-    dd_lat = models.FloatField(blank=True, null=True)
-    dd_lon = models.FloatField(blank=True, null=True)
+    dd_lat = models.FloatField('Latitude in decimal degrees',
+                               blank=True, null=True)
+    dd_lon = models.FloatField('Longitude in decimal degrees',
+                               blank=True, null=True)
 
-    geom = models.PointField(srid=4326, blank=True, null=True)
+    geom = models.PointField('GeoDjango spatial point field',
+                             srid=4326, blank=True, null=True)
 
     latlong_flag = models.ForeignKey(LatLonFlag, on_delete=models.CASCADE,
                                      related_name='stocking_events')
 
     grid_5 = models.CharField(max_length=4, blank=True, null=True)
 
-    no_stocked = models.IntegerField()
-    year_class = models.IntegerField(db_index=True)
-    agemonth = models.IntegerField(blank=True, null=True)
-    length = models.IntegerField(blank=True, null=True)
-    weight = models.IntegerField(blank=True, null=True)
+    no_stocked = models.IntegerField('Number of fish stocked')
+    yreq_stocked = models.IntegerField(
+        'Number of fish stocked as yearling equivalents')
+    year_class = models.IntegerField('Year class of stocked fish',
+                                     db_index=True)
+    agemonth = models.IntegerField('age of stocked fish in months',
+                                   blank=True, null=True)
+    length = models.IntegerField('length of stocked fish in mm',
+                                 blank=True, null=True)
+    weight = models.IntegerField('weight of stocked fish in grams',
+                                 blank=True, null=True)
 
-    lotcode = models.CharField(max_length=100, blank=True, null=True)
+    lotcode = models.CharField(
+        'Hatchery Lot code indicating source of stocked fish',
+        max_length=100, blank=True, null=True)
 
     tag_no = models.CharField(max_length=100, blank=True, null=True,
                               db_index=True)
@@ -134,14 +167,18 @@ class StockingEvent(models.Model):
     clipa = models.CharField(max_length=10, blank=True, null=True,
                              db_index=True)
 
-    mark = models.CharField(max_length=15, blank=True, null=True,
+    mark = models.CharField('Chemical, tag, or finclip mark applied to fish',
+                            max_length=15, blank=True, null=True,
                             db_index=True)
 
-    mark_eff = models.FloatField(blank=True, null=True)
-    tag_ret = models.FloatField(blank=True, null=True)
-    validation = models.IntegerField(blank=True, null=True)
+    mark_eff = models.FloatField('Marking efficency as a percentage',
+                                 blank=True, null=True)
+    tag_ret = models.FloatField('Tag retention as a percentage',
+                                blank=True, null=True)
+    validation = models.IntegerField('Event Data Validation Code 0-10.',
+                                     choices=VALIDATION_CODE_CHOICES,
+                                     blank=True, null=True)
     notes = models.CharField(max_length=500, blank=True, null=True)
-
 
     class Meta:
         ordering = ['-year', 'stock_id']

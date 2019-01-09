@@ -91,6 +91,7 @@ class StockingEventFactory(factory.DjangoModelFactory):
     geom = GEOSGeometry('POINT(-81.25 45.5)', srid=4326)
 
     no_stocked = 15000
+    yreq_stocked = 15000
     year_class = 2015
     agemonth = 16
 

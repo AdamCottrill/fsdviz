@@ -343,15 +343,31 @@ class CWT(models.Model):
                                     default='nmt')
 
     tag_count = models.IntegerField()
-    tag_reused = models.BooleanField(default=False, db_index=True)
+    tag_reused = models.BooleanField(
+        'True if this cwt has been stocked by more than one species, strain, or yearclass',
+        default=False, db_index=True)
 
-    multiple_species = models.BooleanField(default=False, db_index=True)
-    multiple_strains = models.BooleanField(default=False, db_index=True)
-    multiple_yearclasses = models.BooleanField(default=False, db_index=True)
-    multiple_makers = models.BooleanField(default=False, db_index=True)
-    multiple_agencies = models.BooleanField(default=False, db_index=True)
-    multiple_lakes = models.BooleanField(default=False, db_index=True)
-    multiple_grid10s = models.BooleanField(default=False, db_index=True)
+    multiple_species = models.BooleanField(
+        'True if this cwt has been stocked in more than one species',
+        default=False, db_index=True)
+    multiple_strains = models.BooleanField(
+        'True if this cwt has been stocked in more than one strain',
+        default=False, db_index=True)
+    multiple_yearclasses = models.BooleanField(
+        'True if this cwt has been stocked in more than one year class',
+        default=False, db_index=True)
+    multiple_makers = models.BooleanField(
+        'True if this cwt has been made by more than one tag manufacturer',
+        default=False, db_index=True)
+    multiple_agencies = models.BooleanField(
+        'True if this cwt has been stocked by more than one agency',
+        default=False, db_index=True)
+    multiple_lakes = models.BooleanField(
+        'True if this cwt has been stocked in more than one lake',
+        default=False, db_index=True)
+    multiple_grid10s = models.BooleanField(
+        'True if this cwt has been stocked by more than one 10-minute grid',
+        default=False, db_index=True)
 
     agency = models.ForeignKey('Agency', on_delete=models.CASCADE,
                                related_name='cwts')
