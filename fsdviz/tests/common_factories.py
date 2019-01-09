@@ -18,6 +18,7 @@ class LakeFactory(factory.DjangoModelFactory):
     """
     class Meta:
         model = Lake
+        django_get_or_create = ('abbrev',)
 
     abbrev = "HU"
     lake_name = "Huron"
@@ -31,6 +32,7 @@ class AgencyFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Agency
+        django_get_or_create = ('abbrev',)
 
     abbrev = "OMNRF"
     agency_name = "Ontario Ministry of Natural Resources and Forestry"
@@ -87,6 +89,7 @@ class SpeciesFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Species
+        django_get_or_create = ('abbrev',)
 
     abbrev = 'LAT'
     common_name = 'Lake Trout'

@@ -6,10 +6,11 @@ species, ect.
 
 import pytest
 
-from .factories import (LakeFactory, AgencyFactory, StateProvinceFactory,
-                        ManagementUnitFactory, Grid10Factory, SpeciesFactory,
-                        StrainFactory, StrainRawFactory, MarkFactory,
-                        LatLonFlagFactory, CWTFactory, CWTsequenceFactory)
+from .common_factories import (LakeFactory, AgencyFactory, StateProvinceFactory,
+                               ManagementUnitFactory, Grid10Factory,
+                               SpeciesFactory, StrainFactory, StrainRawFactory,
+                               MarkFactory, LatLonFlagFactory, CWTFactory,
+                               CWTsequenceFactory)
 
 @pytest.mark.django_db
 def test_lake_str():

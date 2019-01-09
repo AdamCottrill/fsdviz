@@ -6,8 +6,10 @@ species, ect.
 
 import pytest
 
+from .common_factories import AgencyFactory, SpeciesFactory
+
 from .stocking_factories import (LifeStageFactory, ConditionFactory,
-                                StockingMethodFactory)
+                                 StockingMethodFactory, StockingEventFactory)
 
 
 @pytest.mark.django_db
@@ -73,3 +75,35 @@ def test_stockingmethod_str():
 
     shouldbe = '{} ({})'.format(description, stk_meth)
     assert str(stockingmethod) == shouldbe
+
+
+
+
+@pytest.mark.django_db
+def test_stockingevent_str():
+    """
+    Verify that the string representation of a StockingEvent object is the
+    stocking id, agency, species and site name
+
+    "id:USFWS-12345 (The Reef-USFWS-LT)"
+
+    """
+
+    event_id = 'USFWS-12345'
+    site_name = 'The Reef'
+    agency_abbrev = 'USFWS'
+    spc_abbrev = 'LAT'
+
+    agency = AgencyFactory(abbrev=agency_abbrev)
+    species = SpeciesFactory(abbrev=spc_abbrev)
+
+    #                         species_code=80,
+    #                         common_name='LakeTrout')
+
+    stocking_event = StockingEventFactory(
+        agency=agency, species=species, stock_id=event_id, site=site_name
+    )
+
+    shouldbe = 'id:{} ({}-{}-{})'.format(event_id, site_name,
+                                         agency_abbrev, spc_abbrev)
+    assert str(stocking_event) == shouldbe

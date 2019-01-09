@@ -252,9 +252,9 @@ class StrainRaw(models.Model):
 
     '''
 
-    species = models.ForeignKey('Species', on_delete=models.CASCADE,
+    species = models.ForeignKey(Species, on_delete=models.CASCADE,
                                 related_name='rawstrain')
-    strain = models.ForeignKey('Strain', on_delete=models.CASCADE,
+    strain = models.ForeignKey(Strain, on_delete=models.CASCADE,
                                related_name='rawstrain')
 
     #raw_strain_code = models.CharField(max_length=10)
@@ -294,7 +294,7 @@ class Mark(models.Model):
 
 
     class Meta:
-        ordering = ['mark_code']
+        ordering = ['mark_type', 'mark_code']
 
     def __str__(self):
         return "{} ({})".format(self.description, self.mark_code)
@@ -375,7 +375,7 @@ class CWTsequence(models.Model):
     sequential and will have a single record in this table with
     seq_start and seq_end both set to 1.  For truly sequential tags,
     seq_start and seq_end will reflect the start and end of the
-    sequence deployed in the associated stocking event(s).
+    series deployed in the associated stocking event(s).
     '''
 
     cwt = models.ForeignKey('CWT', on_delete=models.CASCADE,
