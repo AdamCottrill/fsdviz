@@ -282,7 +282,8 @@ class Mark(models.Model):
     MARK_TYPE_CHOICES = [
         ('chemical', 'Chemical'),
         ('finclip', 'Fin Clip'),
-        ('tag', 'Tag'),]
+        ('tag', 'Tag'),
+        ('unknown', 'Unknown')]
 
     clip_code = models.CharField(max_length=2)
     mark_code = models.CharField(max_length=4, unique=True)
@@ -374,7 +375,7 @@ class CWT(models.Model):
 
     class Meta:
         ordering = ['cwt_number']
-        unique_together = ('cwt_number', 'manufacturer')
+        unique_together = ('cwt_number', 'manufacturer', 'agency')
 
     def __str__(self):
         cwt_number = self.cwt_number
@@ -383,6 +384,10 @@ class CWT(models.Model):
                                             cwt_number[4:],
                                             self.agency.abbrev)
         return cwt_string
+
+
+
+
 
 
 class CWTsequence(models.Model):
@@ -396,6 +401,11 @@ class CWTsequence(models.Model):
 
     cwt = models.ForeignKey('CWT', on_delete=models.CASCADE,
                             related_name='cwt_series')
+
+    events = models.ManyToManyField('stocking.StockingEvent',
+                                    related_name='cwt_series')
+
+
     seq_start = models.IntegerField(default=1)
     seq_end = models.IntegerField(default=1)
 

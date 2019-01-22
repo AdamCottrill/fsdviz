@@ -15,6 +15,55 @@ from collections import namedtuple
 
 Centroid = namedtuple('Centroid', 'ddlat, ddlon')
 
+
+#TODO check for cwt marks without cwt number!
+MARKS = [
+    # mark_code, clip_code, description, mark_type
+         ('XX', '', 'No Data', 'unknown'),
+         ('NO', '0', 'No Clip', 'finclip'),
+         ('RP', '1', 'Right Pectoral Fin Clip', 'finclip'),
+         ('LP', '2', 'Left Pectoral Fin Clip', 'finclip'),
+         ('RV', '3', 'Right Ventral Fin Clip', 'finclip'),
+         ('LV', '4', 'Left Ventral Fin Clip', 'finclip'),
+         ('RM', 'E', 'Right Maxilla Fin Clip', 'finclip'),
+         ('LM', 'F', 'Left Maxilla Fin Clip', 'finclip'),
+         ('AD', '5', 'Adipose Fin Clip', 'finclip'),
+         ('DO', '7', 'Anterior Dorsal Fin Clip', 'finclip'),
+         ('CWT', 'C', 'Coded Wire Tag', 'tag'),
+         ('PT', 'P', 'PIT (Passive Integrated Transponder) Tag', 'tag'),
+         ('OX', 'X', 'Oxytetracyclene', 'chemical'),
+         ('FT', 'T', 'Floy Tag', 'tag'),
+]
+
+
+MARK_SHOULDBE = {
+    'NONE':'NO',
+    'BP':'LPRP',
+    'BV':'LVRV',
+    'FTG':'FT',
+    'PIT':'PT',
+    'OXOX':'OX',
+    'ADOX':'OXAD'
+}
+
+CLIP2MARK = {
+    #ontario clip codes to US MARKS:
+    '0': 'NO',
+    '1': 'RP',
+    '2': 'LP',
+    '3': 'RV',
+    '4': 'LV',
+    '5': 'AD',
+    '7': 'DO',
+    'E': 'RM',
+    'F': 'LM'
+}
+
+
+
+
+
+
 AGENCIES = [
     ('CORA', 'Chippewa-Ottawa Resource Authority, includes ITFAP'),
     ('GLIFWC', 'Great Lakes Indian Fish and Wildlife Commission'),

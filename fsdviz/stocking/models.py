@@ -41,12 +41,7 @@ class StockingMethod(models.Model):
     A model to capture the method used to the stock the fish.
     '''
 
-
-
-
-
-
-    stk_meth = models.CharField(max_length=25, unique=True)
+    stk_meth = models.CharField("Stocking Method", max_length=25, unique=True)
     description = models.CharField(max_length=100)
 
     class Meta:
@@ -187,3 +182,91 @@ class StockingEvent(models.Model):
         return 'id:{} ({}-{}-{})'.format(self.stock_id, self.site,
                                          self.agency.abbrev,
                                          self.species.abbrev)
+
+    def save(self, *args, **kwargs):
+        """
+
+        A custom save method that updates the mark, clipa and eventually
+        tag_no fields when the instance is saved.  These fields are
+        composistes of related fields and are stored in the database
+        for convenience.
+
+        Arguments:
+        - `self`:
+        - `*args`:
+        - `**kwargs`:
+
+        """
+
+        if self.id:
+            if self.marks.all():
+                self.mark = self.get_mark_code()
+                self.clipa = self.get_clipa()
+
+        super(StockingEvent, self).save(*args, **kwargs)
+
+
+
+    def get_mark_code(self):
+        """Return a string containing the Mark codes associated with this
+        stocking event sorted in ascending order and then concatenated together.
+
+        Arguments:
+        - `self`:
+        """
+        tmp = []
+        if self.id:
+            for mark in self.marks.all():
+                tmp.append(mark.mark_code)
+
+        tmp.sort()
+        if tmp:
+            mark_code = ''.join(tmp)
+            return mark_code
+        else:
+            return None
+
+
+    def get_clipa(self):
+        """Return a string containing the OMNR clip codes associated
+        with this stocking event sorted in ascending order and then
+        concatenated together.
+
+        Arguments:
+        - `self`:
+
+        """
+
+        tmp = []
+        if self.id:
+            for mark in self.marks.filter(mark_type='finclip'):
+                tmp.append(mark.clip_code)
+        tmp.sort()
+        if tmp:
+            clips = ''.join(tmp)
+            return clips
+        else:
+            return None
+
+
+#     def get_cwt_csv(self):
+#         """return a string containing a comma seperated list of cwt numbers
+#         associated with this stocking event.  Used to create views
+#         that match the format of the GLFC data submission.  Not to be
+#         used for any serious analysis!
+#
+#         Arguments:
+#         - `self`:
+#
+#         """
+#         tmp =[]
+#         for tag in self.cwt_sequences:
+#             tmp.append(tag.cwt.cwt_number)
+#         tags = list(set(tmp))
+#         tags.sort()
+#         if tags:
+#             cwt_csv = ','.join(tags)
+#             return cwt_csv
+#         else:
+#             return None
+#
