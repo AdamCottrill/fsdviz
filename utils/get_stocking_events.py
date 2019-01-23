@@ -47,18 +47,6 @@ from utils.lwdb_utils import (int_or_None,
                               get_latlon)
 
 
-
-
-
-
-
-
-
-
-#from lookups import *
-#from lwdb_utils import *
-
-
 pyodbc.lowercase = True
 
 REPORT_WIDTH = 80
