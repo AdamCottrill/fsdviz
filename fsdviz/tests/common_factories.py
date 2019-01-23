@@ -163,7 +163,7 @@ class CWTFactory(factory.DjangoModelFactory):
 
     cwt_number = '123456'
     tag_count = 10000
-    agency = factory.SubFactory(AgencyFactory)
+    #agency = factory.SubFactory(AgencyFactory)
 
 
 class CWTsequenceFactory(factory.DjangoModelFactory):

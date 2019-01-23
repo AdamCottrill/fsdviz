@@ -370,19 +370,15 @@ class CWT(models.Model):
         'True if this cwt has been stocked by more than one 10-minute grid',
         default=False, db_index=True)
 
-    agency = models.ForeignKey('Agency', on_delete=models.CASCADE,
-                               related_name='cwts')
-
     class Meta:
         ordering = ['cwt_number']
-        unique_together = ('cwt_number', 'manufacturer', 'agency')
+        unique_together = ('cwt_number', 'manufacturer')
 
     def __str__(self):
         cwt_number = self.cwt_number
-        cwt_string = '{}-{}-{} ({})'.format(cwt_number[:2],
+        cwt_string = '{}-{}-{}'.format(cwt_number[:2],
                                             cwt_number[2:4],
-                                            cwt_number[4:],
-                                            self.agency.abbrev)
+                                            cwt_number[4:])
         return cwt_string
 
 

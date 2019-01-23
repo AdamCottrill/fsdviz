@@ -314,7 +314,6 @@ def associate_cwt(event, cwt_number, seq_start=1, seq_end=1,
 
     cwt_obj,x = CWT.objects.get_or_create(
         cwt_number=cwt_number.strip(),
-        agency=event.agency,
         tag_count=tag_count,
         manufacturer=cwt_maker,
         tag_type=tag_type)

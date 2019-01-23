@@ -1,5 +1,7 @@
 from django.contrib.gis.db import models
 
+from django.contrib.gis.geos import Point
+
 from fsdviz.common.models import (Species, Strain, StrainRaw, Agency,
                                   Lake, StateProvince,
                                   Grid10, LatLonFlag, Mark)
@@ -197,6 +199,8 @@ class StockingEvent(models.Model):
         - `**kwargs`:
 
         """
+
+        self.geom = Point(self.dd_lon, self.dd_lat)
 
         if self.id:
             if self.marks.all():

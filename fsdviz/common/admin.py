@@ -1,8 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
-
-
 from .models import (Agency, Lake, StateProvince, ManagementUnit, Species,
                      Strain, StrainRaw, Mark, LatLonFlag, CWT)
 
@@ -11,7 +8,7 @@ admin.site.empty_value_display = '(None)'
 @admin.register(Agency)
 class AgencyModelAdmin(admin.ModelAdmin):
     list_display = ('abbrev', 'agency_name')
-
+    search_fields = ['agency_name']
 
 @admin.register(Lake)
 class LakeModelAdmin(admin.ModelAdmin):
@@ -37,9 +34,9 @@ class SpeciesModelAdmin(admin.ModelAdmin):
 @admin.register(Strain)
 class StrainModelAdmin(admin.ModelAdmin):
     list_display = ('strain_code', 'strain_species', 'strain_label')
-    list_select_related = ('strain_species',)
+    #list_select_related = ('strain_species',)
     list_filter = ('strain_species', 'strain_code')
-
+    search_fields = ['strain_label']
 
 @admin.register(StrainRaw)
 class StrainRawModelAdmin(admin.ModelAdmin):
@@ -63,7 +60,8 @@ class LatLonFlagModelAdmin(admin.ModelAdmin):
 
 @admin.register(CWT)
 class CWTModelAdmin(admin.ModelAdmin):
-    list_display = ('cwt_number', 'tag_type', 'agency', 'manufacturer',
-                    'tag_count', 'tag_reused')
-    list_select_related = ('agency',)
-    list_filter = ('tag_type', 'agency', 'manufacturer',)
+    #consider adding filters for foreign keys - lake, agency and species.
+    list_display = ('cwt_number', 'tag_type', 'manufacturer',
+                    'tag_reused')
+    search_fields = ['cwt_number']
+    list_filter = ('tag_type', 'manufacturer',)

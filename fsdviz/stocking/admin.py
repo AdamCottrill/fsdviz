@@ -1,9 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
-
-
 from .models import LifeStage, Condition, StockingMethod, StockingEvent
+
 
 admin.site.empty_value_display = '(None)'
 
@@ -28,5 +26,5 @@ class StockingEventModelAdmin(admin.ModelAdmin):
                     'agemonth', 'lifestage',
                     'date', 'site', 'no_stocked')
     list_select_related = ('species','agency', 'lake', 'stocking_method')
-    list_filter = ('species','agency', 'lake', 'lifestage')
+    list_filter = ('lake', 'lifestage', 'species','agency')
     search_fields = ['site']
