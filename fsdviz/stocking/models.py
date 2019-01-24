@@ -121,7 +121,7 @@ class StockingEvent(models.Model):
     date = models.DateField('Stocking event date', blank=True, null=True)
 
     day = models.IntegerField('Day of the month', blank=True, null=True)
-    month = models.IntegerField('Month of stokcing event as an integer',
+    month = models.IntegerField('Month of stocking event as an integer',
                                 db_index=True, blank=True, null=True)
     year = models.IntegerField('year of the stocking event as an integer >1900',
                                db_index=True)

@@ -1,6 +1,6 @@
 """
-Tests for the models in the common application - agency, lake,
-species, ect.
+Tests for the models in the stocking application - stocking
+events, stocking methods, ect.
 
 """
 

@@ -34,8 +34,8 @@ class AgencyFactory(factory.DjangoModelFactory):
         model = Agency
         django_get_or_create = ('abbrev',)
 
-    abbrev = "OMNRF"
-    agency_name = "Ontario Ministry of Natural Resources and Forestry"
+    abbrev = factory.Sequence(lambda n: "MA-%03d" % n)
+    agency_name = factory.Sequence(lambda n: "MyAgency-%03d" % n)
 
 
 class StateProvinceFactory(factory.DjangoModelFactory):
