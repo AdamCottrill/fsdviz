@@ -19,7 +19,6 @@ import re
 import django_settings
 
 
-
 import utils.common_lookups as common
 
 from fsdviz.common.models import (Agency,
