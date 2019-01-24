@@ -10,3 +10,4 @@ omit =
     *config/*,
     *docs/*,
     *utils/*
+    *fsdviz/tests/*

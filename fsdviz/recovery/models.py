@@ -191,9 +191,6 @@ class Recovery(models.Model):
     tagid = models.CharField(max_length=20, blank=True, null=True)
     tagdoc = models.CharField(max_length=20, blank=True, null=True)
 
-    def __str__(self):
-        return '{} - {}'.format(self.cwt_number, self.fish_identifier_key)
-
     class Meta:
         ordering = ['-recovery_event__year',
                     'recovery_event__agengy__abbrev',
@@ -202,6 +199,7 @@ class Recovery(models.Model):
         unique_together = ['recovery_event', 'fish_identifier_key']
 
     def __str__(self):
+
         formatted_cwt = "{}-{}-{}".format(self.cwt_number[:2],
                                 self.cwt_number[2:4],
                                 self.cwt_number[4:])

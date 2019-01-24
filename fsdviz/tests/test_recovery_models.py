@@ -6,6 +6,8 @@ events, recovery methods, ect.
 
 import pytest
 
+from django.contrib.gis.geos import GEOSGeometry
+
 from .common_factories import (AgencyFactory, SpeciesFactory,
                                LakeFactory)
 
@@ -38,6 +40,25 @@ def test_recovery_event_str():
 
     shouldbe = '{} ({}-{})'.format(lift_identifier, agency_abbrev, lake_abbrev)
     assert str(recovery_event) == shouldbe
+
+
+@pytest.mark.django_db
+def test_recovery_event_save():
+    """
+    When a recovery event is saved, a point geometry should be created
+    from the latitude and longitude.
+    """
+
+    dd_lat = 44.4
+    dd_lon = -81.132
+
+    #create a recovery at our coordinates
+    recovery_event = RecoveryEventFactory(dd_lat=dd_lat, dd_lon=dd_lon)
+
+    #calculate what the geom should be using our coordinates
+    shouldbe = GEOSGeometry('POINT({} {})'.format(dd_lon, dd_lat), srid=4326)
+
+    assert recovery_event.geom == shouldbe
 
 
 
