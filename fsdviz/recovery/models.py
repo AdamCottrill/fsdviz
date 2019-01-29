@@ -24,6 +24,9 @@ class RecoveryEvent(models.Model):
     NET_MATERIAL_CHOICES = [
         ('M', 'Monofilament'),
         ('N', 'Nylon'),
+        ('O', 'Other'),
+        ('U', 'Unknown'),
+
     ]
 
     lift_identifier = models.CharField(max_length=100, unique=True)
@@ -133,6 +136,12 @@ class Recovery(models.Model):
         ('U', 'Unknown')
     ]
 
+    WEIGHT_FORM_CHOICES = [
+        ('R', 'Round'),
+        ('D', 'Dressed'),
+        ('U', 'Unknown')
+    ]
+
     MATURITY_CHOICES = [
         ('I', 'Immature'),
         ('M', 'Mature'),
@@ -147,6 +156,8 @@ class Recovery(models.Model):
     species = models.ForeignKey(Species, on_delete=models.CASCADE,
                                 related_name='recovered_tag')
 
+    marks = models.ManyToManyField(Mark)
+
     cwt_number = models.CharField(max_length=6, db_index=True)
 
     manufacturer = models.CharField(max_length=3,
@@ -158,6 +169,11 @@ class Recovery(models.Model):
     mesh_size = models.FloatField(blank=True, null=True)
     length = models.IntegerField(blank=True, null=True)
     weight = models.IntegerField(blank=True, null=True)
+    weight_form = models.CharField(max_length=1,
+                           blank=True, null=True,
+                           choices=WEIGHT_FORM_CHOICES,
+                           default='U')
+
     age = models.IntegerField(blank=True, null=True)
     agestructure = models.CharField(max_length=20, blank=True, null=True)
 
@@ -201,6 +217,70 @@ class Recovery(models.Model):
     def __str__(self):
 
         formatted_cwt = "{}-{}-{}".format(self.cwt_number[:2],
-                                self.cwt_number[2:4],
-                                self.cwt_number[4:])
+                                          self.cwt_number[2:4],
+                                          self.cwt_number[4:])
         return "{} - {}".format(formatted_cwt, self.fish_identifier_key)
+
+
+    def save(self, *args, **kwargs):
+        """
+        A custom save method that updates the mark and clipc fields
+        when the instance is saved.  These fields are composistes of
+        related fields and are stored in the database for convenience.
+
+        Arguments:
+        - `self`:
+        - `*args`:
+        - `**kwargs`:
+
+        """
+
+        if self.id:
+            if self.marks.all():
+                self.mark = self.get_mark_code()
+                self.clipc = self.get_clipc()
+
+        super(Recovery, self).save(*args, **kwargs)
+
+
+
+    def get_mark_code(self):
+        """Return a string containing the Mark codes associated with this
+        stocking event sorted in ascending order and then concatenated together.
+
+        Arguments:
+        - `self`:
+        """
+        tmp = []
+        if self.id:
+            for mark in self.marks.all():
+                tmp.append(mark.mark_code)
+
+        tmp.sort()
+        if tmp:
+            mark_code = ''.join(tmp)
+            return mark_code
+        else:
+            return None
+
+
+    def get_clipc(self):
+        """Return a string containing the OMNR clip codes associated
+        with this recovery event sorted in ascending order and then
+        concatenated together.
+
+        Arguments:
+        - `self`:
+
+        """
+
+        tmp = []
+        if self.id:
+            for mark in self.marks.filter(mark_type='finclip'):
+                tmp.append(mark.clip_code)
+                tmp.sort()
+        if tmp:
+            clips = ''.join(tmp)
+            return clips
+        else:
+            return None

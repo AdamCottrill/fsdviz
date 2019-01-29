@@ -27,32 +27,34 @@ more details).
 
 Once the environment has been setup, you should be able to run the
 scripts in order to rebuild the entire application. Typically, the
-entire migraion takes less than 10 mintues.  The Django website will
-contiue to operate, but results returned by some views may be
-incomplete during the migratin phase. (TODO - add a flag to warn
-people that a migration is currently underway and perhaps dissable API
+entire migraine takes less than 10 minutes.  The Django website will
+contour to operate, but results returned by some views may be
+incomplete during the migrating phase. (TODO - add a flag to warn
+people that a migration is currently underway and perhaps disable API
 requests).
 
 After the stocking and recovery data has been scrubbed (ie - all of
 the errors corrected or removed from the dataset), it is time to
 update the data in the PostGIS database used to power the FSDViz
 application.  It is highly recommended that a the migration be tested
-on a copy of the database before appling them to the production
+on a copy of the database before applying them to the production
 database.
 
-To refshesh the data in the PostGIS database with teh data in the
+To refresh the data in the PostGIS database with the data in the
 scrubbed GLFC database, follow these steps (details below):
 
 1. Activate the virtual environment and test your connection to the
     database:
 
-    workon fsdviz
-    python manage.py shell
+.. code-block:: bash
 
-    from fsdivz.common.models import *
+    > workon fsdviz
+    > python manage.py shell
 
-    Lake.objects.all()
-    exit()
+    >>> from fsdivz.common.models import *
+
+    >>> Lake.objects.all()
+    >>> exit()
 
 
 2. Purge stocking data - complete or partial
@@ -65,4 +67,8 @@ scrubbed GLFC database, follow these steps (details below):
 
 6. utils/update_ontario_huron_stocking.py
 
-7. utils/get_cwt_recoveries.py
+7. utils/update_cwt_flags.py
+
+8. utils/get_cwt_recoveries.py
+
+9. utils/update_ontario_huron_recoveries.py

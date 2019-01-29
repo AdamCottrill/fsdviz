@@ -28,7 +28,26 @@ from fsdviz.stocking.models import (Condition,
                                     StockingMethod)
 
 
-from fsdviz.common.models import CWT, CWTsequence
+from fsdviz.common.models import CWT, CWTsequence, Grid10
+
+
+
+
+def grid_or_None(lake, grid):
+    """
+    """
+    mygrid = int_or_None(grid)
+    if mygrid:
+        try:
+            grid10 = Grid10.objects.get(lake=lake, grid=mygrid)
+            return grid10
+        except ObjectDoesNotExist:
+            if val is not None:
+                msg = "Could not find Grid={} in {}."
+                print(msg.format(grid, lake))
+            return None
+    else:
+        return None
 
 
 

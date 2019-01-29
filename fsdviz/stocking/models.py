@@ -86,7 +86,6 @@ class StockingEvent(models.Model):
     strain_raw = models.ForeignKey(StrainRaw, on_delete=models.CASCADE,
                                    related_name='stocking_events')
 
-    ## Marks ??
     marks = models.ManyToManyField(Mark)
 
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE,

@@ -1245,7 +1245,7 @@ MI_GRIDS = {1001: Centroid(ddlon=-87.89581, ddlat=44.60581),
 }
 
 
-mu_centroids = {x[0]: Centroid(x[4],x[3]) for x in MANAGEMENT_UNITS}
+mu_centroids = {x[0]: Centroid(x[5],x[4]) for x in MANAGEMENT_UNITS}
 
 
 #need to add lakes ontario and erie here too

@@ -197,6 +197,8 @@ above. the ``(venv)`` at the begining of the line indicates that the
 virtual environment is active.  You can deactivate a virutal
 environment by issuing this command:
 
+.. code-block:: bash
+
     (env)> .\venv\Scripts\deactivate
     >
 
@@ -248,7 +250,7 @@ issuing:
 
 .. code-block:: bash
 
-    > py.test
+    (env)> py.test
 
 The tests should all run (and pass) without issue. There are currently 173
 passing tests for this application and a coverage report should be
@@ -260,7 +262,7 @@ following command:
 
 .. code-block:: bash
 
-    > python manage.py runserver
+    (env)> python manage.py runserver
 
 The application should be available at ``127.0.0.1:8000`` in your
 webrowser.
