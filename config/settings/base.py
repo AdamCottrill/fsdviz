@@ -68,6 +68,7 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django.contrib.admindocs',
+    'django.contrib.humanize'
 ]
 
 THIRD_PARTY_APPS = []
@@ -98,7 +99,9 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(PROJECT_ROOT, 'fsdviz/templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

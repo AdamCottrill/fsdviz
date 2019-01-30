@@ -1,0 +1,139 @@
+{% extends 'fsdviz_base.html' %}
+
+{% load humanize %}
+
+
+{% block content %}
+
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div id="selectors" class="col-sm-2">
+
+            <h4>Refine By</h4>
+
+            <div class="accordion" id="accordionExample">
+
+                <div class="card">
+                    <div class="card-header" id="heading0">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse0" aria-expanded="true" aria-controls="collapse0">
+                                Year
+                            </button>
+                        </h5>
+                    </div>
+
+                    <div id="collapse0" class="collapse" aria-labelledby="heading0" data-parent="#accordionExample">
+                        <div class="card-body">
+                            <ul>
+                                {% for yr in years %}
+                                {% if yr == year %}
+                                <li>{{ yr }}</li>
+                                {% else %}
+                                <li><a href="{% url 'stocking:stocking-event-list-lake-year' lake.abbrev yr %}">{{ yr }}</a></li>
+                                {% endif  %}
+                                {% endfor %}
+                            </ul>
+
+
+                        </div>
+                    </div>
+
+
+                <div class="card">
+                    <div class="card-header" id="headingOne">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Agency
+                            </button>
+                        </h5>
+                    </div>
+
+                    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+                        <div class="card-body">
+                            Agencies
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingTwo">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Species
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+                        <div class="card-body">
+                            Species
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingThree">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Strain
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+                        <div class="card-body">
+                            Strains
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+
+    <div class="col-sm-10">
+
+        <h3>Stocking Events {% if lake %} for {{lake.lake_name}} {%endif%} {% if year %}{{ year }}{% endif %}</h3>
+
+        {% include '_paginator.html '%}
+
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Agency</th>
+                    <th scope="col">Lake</th>
+                    <th scope="col">Site</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Species</th>
+                    <th scope="col">Strain</th>
+                    <th scope="col">Life Stage</th>
+                    <th scope="col">Yr.Eq.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for object in object_list %}
+
+                <tr>
+                    <td> {{ object.agency.abbrev }}</td>
+                    <td> {{ object.lake.lake_name }}</td>
+                    <td> {{ object.site }}</td>
+                    <td> {{ object.date }}</td>
+                    <td> {{ object.species.common_name | title }}</td>
+                    <td> {{ object.strain_raw.strain.strain_label }}</td>
+                    <td> {{ object.lifestage.description | title }}</td>
+                    <td> {{ object.yreq_stocked | intcomma }}</td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+</div>
+
+
+
+{% endblock %}
