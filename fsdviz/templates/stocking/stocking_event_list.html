@@ -1,7 +1,7 @@
 {% extends 'fsdviz_base.html' %}
 
 {% load humanize %}
-
+{% load fsdviz_tags %}
 
 {% block content %}
 
@@ -11,7 +11,7 @@
     <div class="row">
         <div id="selectors" class="col-sm-2">
 
-            <h4>Refine By</h4>
+            <h5>Refine By</h5>
 
             <div class="accordion" id="accordionExample">
 
@@ -52,7 +52,11 @@
 
                     <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
                         <div class="card-body">
-                            Agencies
+                            <ul>
+                            {% for object in agency_list %}
+                                <li><a href="{% query_transform agency=object.0 %}">{{object.0}}({{object.1}})</a></li>
+                            {% endfor %}
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -66,28 +70,115 @@
                     </div>
                     <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
                         <div class="card-body">
-                            Species
+      <ul>
+                            {% for object in species_list %}
+                                <li><a href="{% query_transform species=object.0 %}">{{object.1}}({{object.2}})</a></li>
+                            {% endfor %}
+                            </ul>
+
+
                         </div>
                     </div>
                 </div>
+
                 <div class="card">
-                    <div class="card-header" id="headingThree">
+                    <div class="card-header" id="headingStrain">
                         <h5 class="mb-0">
-                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseStrain" aria-expanded="false" aria-controls="collapseStrain">
                                 Strain
                             </button>
                         </h5>
                     </div>
-                    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+                    <div id="collapseStrain" class="collapse" aria-labelledby="headingStrain" data-parent="#accordionExample">
                         <div class="card-body">
-                            Strains
+                            {% for object in strain_list %}
+                                <li><a href="{% query_transform strain=object.0 %}">{{object.1}}({{object.2}})</a></li>
+                            {% endfor %}
+
                         </div>
                     </div>
                 </div>
+
+
+
+
+
+                <div class="card">
+                    <div class="card-header" id="headingLifestage">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseLifestage" aria-expanded="false" aria-controls="collapseLifestage">
+                                Life Stage
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="collapseLifestage" class="collapse" aria-labelledby="headingLifestage" data-parent="#accordionExample">
+                        <div class="card-body">
+      <ul>
+                            {% for object in lifestage_list %}
+                                <li><a href="{% query_transform lifestage=object.0 %}">{{object.1}}({{object.2}})</a></li>
+                            {% endfor %}
+                            </ul>
+
+
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+                <div class="card">
+                    <div class="card-header" id="headingMark">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseMark" aria-expanded="false" aria-controls="collapseMark">
+                                Mark
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="collapseMark" class="collapse" aria-labelledby="headingMark" data-parent="#accordionExample">
+                        <div class="card-body">
+      <ul>
+                            {% for object in mark_list %}
+                                <li><a href="{% query_transform mark=object.0 %}">{{object.0}}({{object.1}})</a></li>
+                            {% endfor %}
+                            </ul>
+
+
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class="card">
+                    <div class="card-header" id="headingStocking_method">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseStocking_method" aria-expanded="false" aria-controls="collapseStocking_method">
+                                Stocking Method
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="collapseStocking_method" class="collapse" aria-labelledby="headingStocking_method" data-parent="#accordionExample">
+                        <div class="card-body">
+      <ul>
+                            {% for object in stocking_method_list %}
+                                <li><a href="{% query_transform stocking_method=object.0 %}">{{object.1}}({{object.2}})</a></li>
+                            {% endfor %}
+                            </ul>
+
+
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
             </div>
-
-
-
         </div>
     </div>
 
@@ -107,7 +198,10 @@
                     <th scope="col">Date</th>
                     <th scope="col">Species</th>
                     <th scope="col">Strain</th>
+                    <th scope="col">Year Class</th>
                     <th scope="col">Life Stage</th>
+                    <th scope="col">Stocking Methd</th>
+                    <th scope="col">Mark</th>
                     <th scope="col">Yr.Eq.</th>
                 </tr>
             </thead>
@@ -121,7 +215,9 @@
                     <td> {{ object.date }}</td>
                     <td> {{ object.species.common_name | title }}</td>
                     <td> {{ object.strain_raw.strain.strain_label }}</td>
+                    <td>{{ object.year_class }}</td>
                     <td> {{ object.lifestage.description | title }}</td>
+                    <td> {{ object.stocking_method.description | title }}</td>                    <td>{{object.mark}}</td>
                     <td> {{ object.yreq_stocked | intcomma }}</td>
 
                 </tr>

@@ -5,9 +5,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <!-- Bootstrap CSS -->
+        <!-- Bootstrap CSS
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-
+        -->
+        <!-- Bootswatch css - spacelab theme -->
+        <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.2.1/spacelab/bootstrap.min.css" rel="stylesheet" integrity="sha384-dN0bQBvJ8wEUUKo/xICRDCg194KyqLX7p96/aqHs/bDlswiRc3IxSIjSNfvO9rgD" crossorigin="anonymous">
 
         {% block extra_head %}
 
@@ -37,11 +39,20 @@
                             <a class="dropdown-item" href="#">Event List</a>
                             <a class="dropdown-item" href="#">Region Of Interest</a>
                             <div class="dropdown-divider"></div>
+                            {% if year %}
                             <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake-year' 'SU' year %}">Lake Superior</a>
                             <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake-year' 'MI' year %}">Lake Michigan</a>
                             <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake-year' 'HU' year %}">Lake Huron</a>
                             <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake-year' 'ER' year %}">Lake Erie</a>
                             <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake-year' 'ON' year %}">Lake Ontario</a>
+                            {% else %}
+                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake' 'SU' %}">Lake Superior</a>
+                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake' 'MI' %}">Lake Michigan</a>
+                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake' 'HU' %}">Lake Huron</a>
+                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake' 'ER' %}">Lake Erie</a>
+                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake' 'ON' %}">Lake Ontario</a>
+
+                            {%endif%}
                         </div>
                     </li>
                     <li class="nav-item dropdown">

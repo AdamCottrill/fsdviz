@@ -1,7 +1,8 @@
 """
+This file contains custom template tags used by the fsdviz
+application.
 
 """
-
 
 from django import template
 
@@ -9,11 +10,19 @@ register = template.Library()
 
 @register.filter(name='times')
 def times(number):
+    '''provides a range() like template filter to iterate over integer
+    values.
+
+    from :https://stackoverflow.com/questions/1107737
+
+    '''
+
     return range(1, number+1)
 
 @register.simple_tag(takes_context=True)
 def query_transform(context, include_page=False, **kwargs):
-    '''Returns the URL-encoded querystring for the current page,
+    '''
+    Returns the URL-encoded querystring for the current page,
     updating the params with the key/value pairs passed to the tag.
 
     E.g: given the querystring ?foo=1&bar=2
