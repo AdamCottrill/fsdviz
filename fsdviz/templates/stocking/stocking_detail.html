@@ -1,0 +1,248 @@
+{% extends 'fsdviz_base.html' %}
+
+{% load humanize %}
+{% load fsdviz_tags %}
+
+{% block content %}
+
+<div  class="container" >
+    <div  class="row mt-3" >
+        <div  class="col-md-5" >
+            <div class="card">
+                <div class="card-header">
+                    <h5>Event Details</h5>
+                    <a class="float-right" href="#details" id="toggle-details">More Detail</a>
+                </div>
+                <div class="card-body">
+
+                    <table class="table" id="details-table">
+                        <tr>
+                            <td><strong>Stock Id:</strong></td>
+                            <td>{{ object.stock_id}}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Species:</strong></td>
+                            <td>{{ object.species.common_name|title}}
+                                ({{ object.species.abbrev }})</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>Strain:</strong></td>
+                            <td>{{ object.strain_raw.strain.strain_label}}
+                                ({{ object.strain_raw.strain.strain_code}})</td>
+                        </tr>
+
+                        <tr class="secondary">
+                            <td><strong>Reported Strain:</strong></td>
+                            <td>{{ object.strain_raw.description}}(
+                                {{ object.strain_raw.raw_strain}}
+                                )</td>
+                        </tr>
+
+
+                        <tr>
+                            <td><strong>Agency:</strong></td>
+                            <td>{{ object.agency }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Lake:</strong></td>
+                            <td>{{ object.lake }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>State/Prov:</strong></td>
+                            <td>{{ object.stateprov }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Site:</strong></td>
+                            <td>{{ object.site|title }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>10-Min. Grid:</strong></td>
+                            <td>{{ object.grid_10 }}</td>
+                        </tr>
+                        <tr class="secondary">
+                            <td><strong>LatLon Flag:</strong></td>
+                            <td>{{ object.latlong_flag }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Date:</strong></td>
+                            <td>{{ object.date }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Method:</strong></td>
+                            <td>{{ object.stocking_method }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Life Stage:</strong></td>
+                            <td>{{ object.lifestage }}</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>Age(months):</strong></td>
+                            <td>{{ object.agemonth }}</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>Year Class:</strong></td>
+                            <td>{{ object.year_class }}</td>
+                        </tr>
+
+                        <tr class="secondary">
+                            <td><strong>Length(mm):</strong></td>
+                            <td>{{ object.length|default_if_none:'Not Reported' }}</td>
+                        </tr>
+
+                        <tr class="secondary">
+                            <td><strong>Weight(g):</strong></td>
+                            <td>{{ object.weight|default_if_none:'Not Reported' }}</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>Mark:</strong></td>
+                            <td>{{ object.mark }} ({{object.clipa}})</td>
+                        </tr>
+
+
+                        <tr class="secondary">
+                            <td><strong>Mark Eff:</strong></td>
+                            <td>{{ object.mark_eff|default_if_none:'Not Reported' }}</td>
+                        </tr>
+
+                        <tr class="secondary">
+                            <td><strong>Tag Reten.:</strong></td>
+                            <td>{{ object.tag_ret|default_if_none:'Not Reported' }}</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>Condition:</strong></td>
+                            <td>{{ object.condition }}</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>Number Stocked:</strong></td>
+                            <td>{{ object.no_stocked|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Yearling Equiv.:</strong></td>
+                            <td>{{ object.yreq_stocked|intcomma }}</td>
+                        </tr>
+
+
+                        <tr class="secondary">
+                            <td><strong>Lot Code:</strong></td>
+                            <td>{{ object.lotcode|default_if_none:'Not Reported' }}</td>
+                        </tr>
+
+                        <tr class="secondary">
+                            <td><strong>Validation:</strong></td>
+                            <td>{{ object.get_validation_display|default_if_none:'Not Reported' }}</td>
+                        </tr>
+
+
+
+
+
+                    </table>
+
+                    {% if object.notes %}
+                    <h6>Additional Notes:</h6>
+                    <div class="card">
+                        <div class="card-body">
+                            {{ object.notes }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div>
+        <div  class="col-md-7" >
+
+            <div class="card">
+                <div class="card-body">
+                    <h5>map</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if object.cwt_series.all %}
+    <div  class="row mt-3" >
+        <div  class="col-md-12" >
+            <div class="card">
+                <div class="card-header">
+                    <h5>Coded Wire Tags</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>CWT Number</td>
+                                <td>Tag Type</td>
+                                {% if object.has_sequential_cwts %}
+                                <td>Seq. Start</td>
+                                <td>Seq. End</td>
+                                {% endif%}
+                                <td>Manufacturer</td>
+                                <td>Event Count</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cwt in object.cwt_series.all %}
+                            <tr>
+                                <td><a href="#">{{ cwt.cwt.cwt_number|format_cwt }}</a></td>
+                                <td>{{ cwt.cwt.get_tag_type_display }}</td>
+
+                                {% if object.has_sequential_cwts %}
+                                <td>{{ cwt.seq_start}}</td>
+                                <td>{{ cwt.seq_end }}</td>
+                                {% endif%}
+
+                                <td>{{ cwt.cwt.get_manufacturer_display }}</td>
+                                <td>{{ cwt.events.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+
+<script type="text/javascript">
+
+ $(document).ready(function(){
+     $("#details-table");
+     $('.secondary').hide();
+ }
+ );
+
+ $(function() {
+     $('a#toggle-details').click(function(){
+
+         var text = $(this).text();
+         if (text == 'More Detail') {
+             $(this).text('Less Detail');
+         }
+         else  {
+             $(this).text('More Detail');
+         }
+
+         $('.secondary').toggle();
+         return false;
+     });
+ });
+
+
+</script>
+
+{% endblock %}

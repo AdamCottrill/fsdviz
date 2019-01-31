@@ -405,6 +405,10 @@ class CWTsequence(models.Model):
     seq_start = models.IntegerField(default=1)
     seq_end = models.IntegerField(default=1)
 
+    class Meta:
+        ordering = ['cwt__cwt_number', 'seq_start']
+
+
     def __str__(self):
         return "{} [{}-{}]".format(str(self.cwt),
                                    self.seq_start,

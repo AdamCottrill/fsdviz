@@ -251,6 +251,27 @@ class StockingEvent(models.Model):
         else:
             return None
 
+    @property
+    def has_sequential_cwts(self):
+        """
+        Return true if one of the of the tags associated with this stocking
+        event is sequential. If so, we will need to account for start and
+        sequence end in some views and templates.
+
+
+        Arguments:
+        - `self`:
+
+        """
+
+        has_sequential = self.cwt_series.filter(cwt__tag_type='sequential')
+
+        if has_sequential:
+            return True
+        else:
+            return False
+
+
 
 #     def get_cwt_csv(self):
 #         """return a string containing a comma seperated list of cwt numbers

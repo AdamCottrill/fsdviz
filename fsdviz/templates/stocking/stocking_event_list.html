@@ -189,9 +189,10 @@
         {% include '_paginator.html '%}
 
 
-        <table class="table table-striped">
+        <table class="table table-striped table-sm">
             <thead>
                 <tr>
+                    <th scope="col">Stock ID</th>
                     <th scope="col">Agency</th>
                     <th scope="col">Lake</th>
                     <th scope="col">Site</th>
@@ -209,6 +210,7 @@
                 {% for object in object_list %}
 
                 <tr>
+                    <td> <a href="{% url 'stocking:stocking-event-detail' object.stock_id %}">{{ object.stock_id }}</a></td>
                     <td> {{ object.agency.abbrev }}</td>
                     <td> {{ object.lake.lake_name }}</td>
                     <td> {{ object.site }}</td>

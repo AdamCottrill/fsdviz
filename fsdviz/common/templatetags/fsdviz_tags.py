@@ -8,6 +8,20 @@ from django import template
 
 register = template.Library()
 
+
+
+@register.filter(name='format_cwt')
+def format_cwt(x):
+    '''
+    format cwts as 63-03-99
+    '''
+    x = str(x)
+    cwt = "-".join([x[:2], x[2:4], x[4:6]])
+    return cwt
+
+
+
+
 @register.filter(name='times')
 def times(number):
     '''provides a range() like template filter to iterate over integer
