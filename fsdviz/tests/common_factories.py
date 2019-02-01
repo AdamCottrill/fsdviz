@@ -8,9 +8,10 @@ import factory
 from django.contrib.gis.geos import GEOSGeometry
 
 #import common.models as common
-from ..common.models import (Lake, Agency, StateProvince, ManagementUnit,
-                             Grid10, Species, Strain, StrainRaw, Mark,
-                             LatLonFlag, CWT, CWTsequence)
+from ..common.models import (Lake, Agency, StateProvince, Jurisdiction,
+                             ManagementUnit, Grid10, Species, Strain,
+                             StrainRaw, Mark, LatLonFlag, CWT,
+                             CWTsequence)
 
 class LakeFactory(factory.DjangoModelFactory):
     """
@@ -50,6 +51,20 @@ class StateProvinceFactory(factory.DjangoModelFactory):
     name = "Ontario"
     description = "The Province of Ontario"
     country = "CAN"
+
+
+class JurisdictionFactory(factory.DjangoModelFactory):
+    """
+    A factory for Jurisdiction objects.
+    """
+
+    class Meta:
+        model = Jurisdiction
+
+    lake = factory.SubFactory(LakeFactory)
+    stateprov = factory.SubFactory(StateProvinceFactory)
+    name = "Ontario"
+    description = "The waters of some entity"
 
 
 class ManagementUnitFactory(factory.DjangoModelFactory):

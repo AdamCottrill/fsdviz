@@ -3,12 +3,23 @@
 {% load humanize %}
 {% load fsdviz_tags %}
 
+
+{% block navbar_search %}
+<form class="form-inline my-2 my-lg-0">
+    <input class="form-control mr-sm-2" type="search" name="q" placeholder="Search by Event Id" aria-label="Search">
+    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+</form>
+
+{% endblock navbar_search%}
+
+
+
 {% block content %}
 
 
 <div class="container-fluid">
 
-    <div class="row">
+    <div class="row mt-3">
         <div id="selectors" class="col-sm-2">
 
             <h5>Refine By</h5>
@@ -27,11 +38,15 @@
                     <div id="collapse0" class="collapse" aria-labelledby="heading0" data-parent="#accordionExample">
                         <div class="card-body">
                             <ul>
-                                {% for yr in years %}
-                                {% if yr == year %}
-                                <li>{{ yr }}</li>
+                                {% for yr in year_list %}
+                                {% if yr.0 == year %}
+                                <li>{{ yr.0 }}({{yr.1}})</li>
                                 {% else %}
-                                <li><a href="{% url 'stocking:stocking-event-list-lake-year' lake.abbrev yr %}">{{ yr }}</a></li>
+                                {% if lake %}
+                                <li><a href="{% url 'stocking:stocking-event-list-lake-year' lake.abbrev yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
+                                {%else%}
+                                <li><a href="{% url 'stocking:stocking-event-list-year' yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
+                                {% endif %}
                                 {% endif  %}
                                 {% endfor %}
                             </ul>

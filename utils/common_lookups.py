@@ -119,6 +119,31 @@ STATEPROV = [
 ]
 
 
+#we will need to get shape files for each of these:
+JURISDICTIONS = [
+    ('Illinois waters of Lake Michigan.', 'Michigan-Illinois'),
+    ('Indiana waters of Lake Michigan.', 'Michigan-Indiana'),
+    ('Michigan waters of Lake Michigan.', 'Michigan-Michigan'),
+    ('Michigan waters of Lake Superior.', 'Superior-Michigan'),
+    ('Michigan waters of Lake Huron.', 'Huron-Michigan'),
+    ('Michigan waters of Lake Erie.', 'Erie-Michigan'),
+    ('Michigan waters of Lake St. Clair.', 'St. Clair-Michigan'),
+    ('Minnesota waters of Lake Superior.', 'Superior-Minnesota'),
+    ('New York waters of Lake Ontario.', 'Ontario-New York'),
+    ('Ohio waters of Lake Erie.', 'Erie-Ohio'),
+    ('Ontario waters of Lake Ontario.', 'Ontario-Ontario'),
+    ('Ontario waters of Lake Huron.', 'Huron-Ontario'),
+    ('Ontario waters of Lake Erie.', 'Erie-Ontario'),
+    ('Ontario waters of Lake Superior.', 'Superior-Ontario'),
+    ('Ontario waters of Lake St. Clair.', 'St. Clair-Ontario'),
+    ('Pennsylvania waters of Lake Erir.', 'Erie-Pennsylvania'),
+    ('Wisconsin waters of Lake Superior.', 'Superior-Wisconsin'),
+    ('Wisconsin waters of Lake Michigan.', 'Michigan-Wisconsin')
+]
+
+
+
+
 
 LATLON_FLAG = [
     (1,'Reported'),

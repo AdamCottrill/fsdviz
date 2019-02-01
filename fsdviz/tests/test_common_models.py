@@ -7,10 +7,10 @@ species, ect.
 import pytest
 
 from .common_factories import (LakeFactory, AgencyFactory, StateProvinceFactory,
-                               ManagementUnitFactory, Grid10Factory,
-                               SpeciesFactory, StrainFactory, StrainRawFactory,
-                               MarkFactory, LatLonFlagFactory, CWTFactory,
-                               CWTsequenceFactory)
+                               JurisdictionFactory, ManagementUnitFactory,
+                               Grid10Factory, SpeciesFactory, StrainFactory,
+                               StrainRawFactory, MarkFactory, LatLonFlagFactory,
+                               CWTFactory, CWTsequenceFactory)
 
 @pytest.mark.django_db
 def test_lake_str():
@@ -50,6 +50,27 @@ def test_state_province_str():
     obj = StateProvinceFactory(name=full_name,
                                abbrev='ON')
     assert str(obj) == 'Ontario (ON)'
+
+
+@pytest.mark.django_db
+def test_jurisdiction_str():
+    """
+    Verify that the string representation of a jurisdiction object
+    is the lake name followed by the state/Province name
+
+    """
+
+    full_name = 'Ontario'
+    stateprov  = StateProvinceFactory(name=full_name,
+                               abbrev='ON')
+    lake_name = 'Lake Huron'
+    lake = LakeFactory(lake_name=lake_name)
+
+    obj = JurisdictionFactory(stateprov=stateprov,
+                                 lake=lake)
+
+    shouldbe = '{} - {} waters'.format(lake_name, full_name)
+    assert str(obj) == shouldbe
 
 
 @pytest.mark.django_db

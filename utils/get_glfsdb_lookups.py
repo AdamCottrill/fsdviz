@@ -37,6 +37,7 @@ from fsdviz.common.models import (Agency,
                                   Species,
                                   Strain, StrainRaw,
                                   StateProvince,
+                                  Jurisdiction,
                                   ManagementUnit,
                                   Mark,
                                   LatLonFlag,
@@ -57,12 +58,6 @@ from utils.lwdb_utils import (int_or_None,
                               get_mark_codes,
                               associate_cwt,
                               get_latlon)
-
-
-
-
-
-
 
 
 
@@ -107,6 +102,28 @@ for item in common.STATEPROV:
 
 StateProvince.objects.bulk_create(my_list, batch_size=10000)
 print('\tDone adding {} records (n={:,})'.format(what, len(my_list)))
+
+
+
+
+
+what = 'Jurisdiction'
+
+for item in common.JURISDICTIONS:
+    lake = Lake.objects.get(lake_name__contains=item[1].split('-')[0])
+    stateprov = StateProvince.objects.get(name__contains=item[1].split('-')[1])
+
+    jurisdiction = Jurisdiction(lake=lake,
+                                stateprov=stateprov,
+                                name=item[1],
+                                description=item[0]
+    )
+    #use save to create our slug:
+    jurisdiction.save()
+
+print('\tDone adding {} records (n={:,})'.\
+      format(what, len(common.JURISDICTIONS)))
+
 
 
 what = 'Management Units'

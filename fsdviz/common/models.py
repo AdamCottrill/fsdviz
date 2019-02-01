@@ -106,6 +106,63 @@ class StateProvince(models.Model):
         return '{} ({})'.format(self.name, self.abbrev)
 
 
+
+
+class Jurisdiction(models.Model):
+    '''A lookup table for geographic extents of a state or province
+    within a lake.  This will be important for managers to find the
+    waters that they are responsible for.
+
+    For many states, there will only be a single juristiction
+    (e.g. the Illinois waters of Lake Michigan), Michigan and Ontaio
+    will have multiple juristictions (one for each lake they have in
+    their pervue(??))
+
+    A geom will be used to capture the outline of the juristiction
+    within the great lake shoreline, but extends will be updated to
+    include stocking events in tributatries so that map widgets can be
+    appropriately zoomed so that events aren't clipped.
+
+    '''
+
+    lake = models.ForeignKey(Lake, default=1, on_delete=models.CASCADE)
+    stateprov = models.ForeignKey(StateProvince, default=1,
+                                  on_delete=models.CASCADE)
+
+    slug = models.CharField(max_length=5, unique=True)
+    name = models.CharField(max_length=30, unique=True)
+    description = models.CharField(max_length=300)
+
+    # complete geometry of shoreline and state/province boundaries
+    shoreline = models.MultiPolygonField(srid=4326, blank=True, null=True)
+
+    #bounding box of all stocking events - including tributaries and
+    #self.shoreline
+    extents = models.MultiPolygonField(srid=4326, blank=True, null=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        """ String representation for a State."""
+        return '{} - {} waters'.format(self.lake.lake_name,
+                                       self.stateprov.name)
+
+    def save(self, *args, **kwargs):
+        """
+        Populate slug when we save the object.
+        """
+        #if not self.slug:
+        self.slug = slugify('_'.join([self.lake.abbrev,
+                                      self.stateprov.abbrev]))
+
+        super(Jurisdiction, self).save(*args, **kwargs)
+
+
+
+
+
+
 class ManagementUnit(models.Model):
     '''
     a class to hold geometries associated with arbirary ManagementUnits
