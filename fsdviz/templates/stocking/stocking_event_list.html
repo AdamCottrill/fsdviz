@@ -57,6 +57,30 @@
 
 
                 <div class="card">
+                    <div class="card-header" id="heading-jurisdiction">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-jurisdiction" aria-expanded="true" aria-controls="collapse-jurisdiction">
+                                Jurisdiction
+                            </button>
+                        </h5>
+                    </div>
+
+                    <div id="collapse-jurisdiction" class="collapse" aria-labelledby="heading-jurisdiction" data-parent="#accordionExample">
+                        <div class="card-body">
+                            <ul>
+                                {% for obj in jurisdiction_list %}
+                                {% if year %}
+                                <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' obj.0 year %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
+                                {%else%}
+                                <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' obj.0 %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
+                                {% endif  %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
                     <div class="card-header" id="headingOne">
                         <h5 class="mb-0">
                             <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
@@ -199,7 +223,7 @@
 
     <div class="col-sm-10">
 
-        <h3>Stocking Events {% if lake %} for {{lake.lake_name}} {%endif%} {% if year %}{{ year }}{% endif %}</h3>
+        <h3>Stocking Events {% if lake %} for {{lake.lake_name}} {% elif jurisdiction %} in the {{ jurisdiction.description }}{%endif%} {% if year %}{{ year }}{% endif %}</h3>
 
         {% include '_paginator.html '%}
 

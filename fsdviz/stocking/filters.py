@@ -30,6 +30,10 @@ class StockingEventFilter(django_filters.FilterSet):
         field_name='stocking_method__stk_meth',
         lookup_expr='iexact')
 
+    jurisdiction = django_filters.CharFilter(
+        field_name='jurisdiction__slug',
+        lookup_expr='exact')
+
     # contains??
     mark = django_filters.CharFilter(
         field_name='mark',
@@ -43,6 +47,7 @@ class StockingEventFilter(django_filters.FilterSet):
         fields = ['agency__abbrev', 'year', 'species__abbrev',
                   'strain_raw__strain__strain_label',
                   'lifestage__abbrev',
+                  'jurisdiction__slug',
                   'stocking_method__stk_meth',
                   'mark'
         ]

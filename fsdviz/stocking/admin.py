@@ -22,9 +22,11 @@ class StockingMethodModelAdmin(admin.ModelAdmin):
 
 @admin.register(StockingEvent)
 class StockingEventModelAdmin(admin.ModelAdmin):
-    list_display = ('species', 'agency', 'lake', 'year_class',
+    list_display = ('species', 'agency', 'lake',
+                    'stateprov', 'year_class',
                     'agemonth', 'lifestage',
                     'date', 'site', 'no_stocked')
-    list_select_related = ('species','agency', 'lake', 'stocking_method')
-    list_filter = ('lake', 'lifestage', 'species','agency')
+    list_select_related = ('species','agency', 'jurisdiction__lake',
+                           'stocking_method')
+    list_filter = ('jurisdiction__lake', 'lifestage', 'species','agency')
     search_fields = ['site']

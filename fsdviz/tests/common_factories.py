@@ -46,6 +46,7 @@ class StateProvinceFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = StateProvince
+        django_get_or_create = ('abbrev',)
 
     abbrev = "ON"
     name = "Ontario"
@@ -55,15 +56,19 @@ class StateProvinceFactory(factory.DjangoModelFactory):
 
 class JurisdictionFactory(factory.DjangoModelFactory):
     """
-    A factory for Jurisdiction objects.
+    A factory for Jurisdiction objects.  This is effectively a
+    many-to-many table between states and lakes.
+
     """
 
     class Meta:
         model = Jurisdiction
+        django_get_or_create = ('slug',)
 
     lake = factory.SubFactory(LakeFactory)
     stateprov = factory.SubFactory(StateProvinceFactory)
     name = "Ontario"
+    slug = "tempslug"
     description = "The waters of some entity"
 
 

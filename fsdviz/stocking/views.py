@@ -1,10 +1,15 @@
+'''
+Views associated with our stocking application.
+'''
+
 from django.shortcuts import render
-from django.db.models import Count
+from django.db.models import Count, Q
+
 
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
-from ..common.models import Lake
+from ..common.models import Lake, Jurisdiction
 from .models import StockingEvent
 from .filters import StockingEventFilter
 
@@ -23,7 +28,7 @@ class StockingEventListView(ListView):
         satifity the lake and year parameters from the url and the
         current filter as speficied in query string (e.g. ?species=LAT).
 
-    ``years``
+    ``year_list``
         A list of unique years available in the database - used to
         populate hyperlinks to pages presenting data for the specified
         year.
@@ -70,23 +75,35 @@ class StockingEventListView(ListView):
         context = super(StockingEventListView,
                         self).get_context_data(**kwargs)
 
+        context['search_criteria'] = self.request.GET.get('q')
+
         lake_name = self.kwargs.get('lake_name')
         if lake_name:
             lake = Lake.objects.get(abbrev=lake_name)
             context['lake'] = lake
 
-            years = StockingEvent.objects.\
-                    filter(lake=lake).values_list('year').\
-                    distinct().order_by('-year')
-            context['years'] = [x[0] for x in years]
-
         year = self.kwargs.get('year')
         if year:
             context['year'] = int(year)
 
+        jurisdiction_slug = self.kwargs.get('jurisdiction')
+        if jurisdiction_slug:
+            jurisdiction = Jurisdiction.objects.get(slug=jurisdiction_slug)
+            context['jurisdiction'] = jurisdiction
+
+        context['year_list'] = self.object_list.\
+                               values_list('year').\
+                               annotate(n=Count('id')).order_by('-year')
+
         context['agency_list'] = self.object_list.\
                                    values_list('agency__abbrev').\
                                    annotate(n=Count('id')).order_by()
+
+        context['jurisdiction_list'] = self.object_list.\
+                                       values_list('jurisdiction__slug',
+                                                   'jurisdiction__name').\
+                                                   annotate(n=Count('id')).\
+                                                   order_by()
 
         context['species_list'] = self.object_list.\
                                    values_list('species__abbrev',
@@ -114,7 +131,6 @@ class StockingEventListView(ListView):
                                                       'stocking_method__description').\
                                                       annotate(n=Count('id')).\
                                                       order_by()
-
         return context
 
 
@@ -122,20 +138,34 @@ class StockingEventListView(ListView):
 
         lake_name = self.kwargs.get('lake_name')
         year = self.kwargs.get('year')
+        jurisdiction = self.kwargs.get('jurisdiction')
+
+        #get the value of q from the request kwargs
+        search_q = self.request.GET.get('q')
 
         queryset = StockingEvent.objects.all()
-        queryset = queryset.select_related('agency', 'lake',
+        queryset = queryset.select_related('agency',
+                                           'jurisdiction',
+                                           'jurisdiction__lake',
                                            'species', 'lifestage',
                                            'strain_raw__strain',
                                            'stocking_method')
 
         if lake_name:
             # Return a filtered queryset
-            queryset = queryset.filter(lake__abbrev=lake_name)
+            queryset = queryset.filter(jurisdiction__lake__abbrev=lake_name)
 
         if year:
             queryset = queryset.filter(year=year)
 
+        if jurisdiction:
+            queryset = queryset.filter(jurisdiction__slug=jurisdiction)
+
+        if search_q:
+            queryset = queryset.filter(Q(stock_id__icontains=search_q) |
+                                       Q(notes__icontains=search_q))
+
+        #import pdb; pdb.set_trace()
         #finally django-filter
         filtered_list = StockingEventFilter(self.request.GET,
                                             queryset=queryset)

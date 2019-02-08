@@ -3,7 +3,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
 
 from fsdviz.common.models import (Species, Strain, StrainRaw, Agency,
-                                  Lake, StateProvince,
+                                  Lake, StateProvince, Jurisdiction,
                                   Grid10, LatLonFlag, Mark)
 
 
@@ -91,11 +91,11 @@ class StockingEvent(models.Model):
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE,
                                related_name='stocking_events')
 
-    lake = models.ForeignKey(Lake, on_delete=models.CASCADE,
-                             related_name='stocking_events')
+    #lake = models.ForeignKey(Lake, on_delete=models.CASCADE,
+    #                         related_name='stocking_events')
 
-    stateprov = models.ForeignKey(StateProvince, on_delete=models.CASCADE,
-                                  related_name='stocking_events')
+    #stateprov = models.ForeignKey(StateProvince, on_delete=models.CASCADE,
+    #                              related_name='stocking_events')
 
     # stat_dist = models.ForeignKey(StatDistrict, on_delete=models.CASCADE,
     #                               related_name='stocking_events')
@@ -125,8 +125,13 @@ class StockingEvent(models.Model):
     year = models.IntegerField('year of the stocking event as an integer >1900',
                                db_index=True)
 
+
+    #  Spatial Attributes
     site = models.CharField(max_length=100, blank=True, null=True)
     st_site = models.CharField(max_length=100, blank=True, null=True)
+
+    jurisdiction = models.ForeignKey(Jurisdiction, on_delete=models.CASCADE,
+                                     related_name='stocking_events')
 
     dd_lat = models.FloatField('Latitude in decimal degrees',
                                blank=True, null=True)
@@ -201,6 +206,9 @@ class StockingEvent(models.Model):
 
         self.geom = Point(self.dd_lon, self.dd_lat)
 
+        # figure out what juristiction this event occured in depending
+        # on state/province and lake.
+
         if self.id:
             if self.marks.all():
                 self.mark = self.get_mark_code()
@@ -208,6 +216,21 @@ class StockingEvent(models.Model):
 
         super(StockingEvent, self).save(*args, **kwargs)
 
+
+
+    @property
+    def lake(self):
+        """
+
+        """
+        return self.jurisdiction.lake
+
+    @property
+    def stateprov(self):
+        """
+
+        """
+        return self.jurisdiction.stateprov
 
 
     def get_mark_code(self):

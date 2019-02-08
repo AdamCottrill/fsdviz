@@ -13,7 +13,8 @@ from django.contrib.gis.geos import GEOSGeometry
 from ..stocking.models import (LifeStage, Condition, StockingMethod,
                                StockingEvent)
 
-from .common_factories import (LakeFactory, AgencyFactory, SpeciesFactory,
+from .common_factories import (LakeFactory, JurisdictionFactory,
+                               AgencyFactory, SpeciesFactory,
                                StrainRawFactory, StateProvinceFactory,
                                Grid10Factory, LatLonFlagFactory)
 
@@ -67,9 +68,10 @@ class StockingEventFactory(factory.DjangoModelFactory):
     species = factory.SubFactory(SpeciesFactory)
     strain_raw = factory.SubFactory(StrainRawFactory)
     agency = factory.SubFactory(AgencyFactory)
-    lake = factory.SubFactory(LakeFactory)
+    jurisdiction = factory.SubFactory(JurisdictionFactory)
+    #lake = factory.SubFactory(LakeFactory)
     grid_10 = factory.SubFactory(Grid10Factory)
-    stateprov = factory.SubFactory(StateProvinceFactory)
+    #stateprov = factory.SubFactory(StateProvinceFactory)
     stocking_method = factory.SubFactory(StockingMethodFactory)
     lifestage = factory.SubFactory(LifeStageFactory)
     condition = factory.SubFactory(ConditionFactory)

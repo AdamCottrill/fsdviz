@@ -36,7 +36,7 @@
                             Stocking
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="#">Event List</a>
+                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list' %}">Event List</a>
                             <a class="dropdown-item" href="#">Region Of Interest</a>
                             <div class="dropdown-divider"></div>
                             {% if year %}
@@ -70,11 +70,44 @@
                             <a class="dropdown-item" href="#">Lake Ontario</a>
                         </div>
                     </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Recoveries
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="#">Recovery List</a>
+                            <a class="dropdown-item" href="#">Region Of Interest</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Lake Superior</a>
+                            <a class="dropdown-item" href="#">Lake Michigan</a>
+                            <a class="dropdown-item" href="#">Lake Huron</a>
+                            <a class="dropdown-item" href="#">Lake Erie</a>
+                            <a class="dropdown-item" href="#">Lake Ontario</a>
+                        </div>
+                    </li>
+
+<li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Resources
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="#">Documentation</a>
+                            <a class="dropdown-item" href="#">Tutorials</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">About</a>
+                            <a class="dropdown-item" href="#">Report a Problem</a>
+                        </div>
+                    </li>
+
+
+
+
                 </ul>
-                <form class="form-inline my-2 my-lg-0">
-                    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-                </form>
+
+                {% block navbar_search %}
+
+                {% endblock navbar_search %}
             </div>
         </nav>
 
