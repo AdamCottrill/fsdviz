@@ -20,8 +20,6 @@ def format_cwt(x):
     return cwt
 
 
-
-
 @register.filter(name='times')
 def times(number):
     '''provides a range() like template filter to iterate over integer
@@ -56,10 +54,81 @@ def query_transform(context, include_page=False, **kwargs):
     page that doesn't exist after the new filter has been applied.
 
     '''
+
     query = context['request'].GET.copy()
     for k, v in kwargs.items():
             query[k] = v
 
     if query.get('page') and not include_page:
         query.pop('page')
-    return '?' + query.urlencode()
+    return query.urlencode()
+
+
+@register.simple_tag(takes_context=True)
+def strip_parameter(context, param):
+    '''
+    A template tag to remove the specified parameter from the url
+    string.  If there are no parameter left, it returns the bare
+    url (without any parameters or ?-mark)
+    '''
+
+    query = context['request'].GET.copy()
+    query.pop(param)
+
+    if len(query):
+        return '?' + query.urlencode()
+    else:
+        return context['request'].path
+
+
+@register.simple_tag(takes_context=True)
+def next_year(context, year):
+    '''Used to incrcrement urls that contain year with the value for the
+    next year.  Parameters that are pass in are preserved and passed
+    through to the destination url.  This tag is used in the event
+    list templates.
+
+    /stocking/events/HU/2008/?species=LAT
+
+    becomes:
+
+    /stocking/events/HU/2009/?species=LAT
+
+    '''
+
+    query = context['request'].GET.copy()
+
+    # conert to strings with leading slash
+    this_year = '/{}'.format(year)
+    next_year = '/{}'.format(year + 1)
+    mypath = context['request'].path.replace(this_year, next_year)
+    if query:
+        mypath += '?' + query.urlencode()
+    return mypath
+
+
+@register.simple_tag(takes_context=True)
+def last_year(context, year):
+    '''Used to increment urls that contain year with the previous year
+    value. Parameters that are pass in are preserved and passed
+    through to the destination url.  This tag is used in the event
+    list templates.
+
+    /stocking/events/HU/2008/?species=LAT
+
+    becomes:
+
+    /stocking/events/HU/2007/?species=LAT
+
+    '''
+
+    query = context['request'].GET.copy()
+
+    # conert to strings with leading slash
+    this_year = '/{}'.format(year)
+    last_year = '/{}'.format(year - 1)
+    mypath = context['request'].path.replace(this_year, last_year)
+
+    if query:
+        mypath += '?' + query.urlencode()
+    return mypath

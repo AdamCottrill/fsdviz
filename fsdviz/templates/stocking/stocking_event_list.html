@@ -13,7 +13,6 @@
 {% endblock navbar_search%}
 
 
-
 {% block content %}
 
 
@@ -38,12 +37,25 @@
                     <div id="collapse0" class="collapse" aria-labelledby="heading0" data-parent="#accordionExample">
                         <div class="card-body">
                             <ul>
+                                {% if year %}
+                                {% if lake %}
+                                <li><a href="{% url 'stocking:stocking-event-list-lake' lake.abbrev %}">All Years</a></li>
+                                {% elif jurisdiction %}
+                                <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' jurisdiction.slug %}">All Years</a></li>
+                                {% else %}
+                                <li><a href="{% url 'stocking:stocking-event-list' %}">All Years</a></li>
+                                {% endif %}
+
+
+                                {% endif %}
                                 {% for yr in year_list %}
                                 {% if yr.0 == year %}
                                 <li>{{ yr.0 }}({{yr.1}})</li>
                                 {% else %}
                                 {% if lake %}
                                 <li><a href="{% url 'stocking:stocking-event-list-lake-year' lake.abbrev yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
+                                {% elif jurisdiction %}
+                                <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' jurisdiction.slug yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
                                 {%else%}
                                 <li><a href="{% url 'stocking:stocking-event-list-year' yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
                                 {% endif %}
@@ -68,6 +80,15 @@
                     <div id="collapse-jurisdiction" class="collapse" aria-labelledby="heading-jurisdiction" data-parent="#accordionExample">
                         <div class="card-body">
                             <ul>
+                                {% if jurisdiction %}
+                                {% if year %}
+                                <li><a href="{% url 'stocking:stocking-event-list-lake-year' jurisdiction.lake.abbrev year %}">{{ jurisdiction.lake.lake_name }}</a></li>
+                                {% else %}
+                                <li><a href="{% url 'stocking:stocking-event-list-lake' jurisdiction.lake.abbrev %}">{{ jurisdiction.lake.lake_name }}</a></li>
+
+                                {% endif %}
+                                {% endif %}
+
                                 {% for obj in jurisdiction_list %}
                                 {% if year %}
                                 <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' obj.0 year %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
@@ -92,8 +113,12 @@
                     <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
                         <div class="card-body">
                             <ul>
+                                {% if 'agency' in request.GET %}
+                                <li><a href="{% strip_parameter 'agency' %}">All Agencies</a></li>
+                                {% endif %}
+
                             {% for object in agency_list %}
-                                <li><a href="{% query_transform agency=object.0 %}">{{object.0}}({{object.1}})</a></li>
+                                <li><a href="?{% query_transform agency=object.0 %}">{{object.0}}({{object.1}})</a></li>
                             {% endfor %}
                             </ul>
                         </div>
@@ -109,9 +134,13 @@
                     </div>
                     <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
                         <div class="card-body">
-      <ul>
+                            <ul>
+                                {% if 'species' in request.GET %}
+                                <li><a href="{% strip_parameter 'species' %}">All Species</a></li>
+                                {% endif %}
+
                             {% for object in species_list %}
-                                <li><a href="{% query_transform species=object.0 %}">{{object.1}}({{object.2}})</a></li>
+                                <li><a href="?{% query_transform species=object.0 %}">{{object.1}}({{object.2}})</a></li>
                             {% endfor %}
                             </ul>
 
@@ -130,17 +159,16 @@
                     </div>
                     <div id="collapseStrain" class="collapse" aria-labelledby="headingStrain" data-parent="#accordionExample">
                         <div class="card-body">
+                                {% if 'strain' in request.GET %}
+                                <li><a href="{% strip_parameter 'strain' %}">All Strains</a></li>
+                                {% endif %}
                             {% for object in strain_list %}
-                                <li><a href="{% query_transform strain=object.0 %}">{{object.1}}({{object.2}})</a></li>
+                                <li><a href="?{% query_transform strain=object.0 %}">{{object.1}}({{object.2}})</a></li>
                             {% endfor %}
 
                         </div>
                     </div>
                 </div>
-
-
-
-
 
                 <div class="card">
                     <div class="card-header" id="headingLifestage">
@@ -152,19 +180,18 @@
                     </div>
                     <div id="collapseLifestage" class="collapse" aria-labelledby="headingLifestage" data-parent="#accordionExample">
                         <div class="card-body">
-      <ul>
-                            {% for object in lifestage_list %}
-                                <li><a href="{% query_transform lifestage=object.0 %}">{{object.1}}({{object.2}})</a></li>
-                            {% endfor %}
+                            <ul>
+                                {% if 'lifestage' in request.GET %}
+                                <li><a href="{% strip_parameter 'lifestage' %}">All Life Stages</a></li>
+                                {% endif %}
+
+                                {% for object in lifestage_list %}
+                                <li><a href="?{% query_transform lifestage=object.0 %}">{{object.1}}({{object.2}})</a></li>
+                                {% endfor %}
                             </ul>
-
-
                         </div>
                     </div>
                 </div>
-
-
-
 
                 <div class="card">
                     <div class="card-header" id="headingMark">
@@ -176,18 +203,18 @@
                     </div>
                     <div id="collapseMark" class="collapse" aria-labelledby="headingMark" data-parent="#accordionExample">
                         <div class="card-body">
-      <ul>
-                            {% for object in mark_list %}
-                                <li><a href="{% query_transform mark=object.0 %}">{{object.0}}({{object.1}})</a></li>
-                            {% endfor %}
+                            <ul>
+                                {% if 'mark' in request.GET %}
+                                <li><a href="{% strip_parameter 'mark' %}">All Marks</a></li>
+                                {% endif %}
+
+                                {% for object in mark_list %}
+                                <li><a href="?{% query_transform mark=object.0 %}">{{object.0}}({{object.1}})</a></li>
+                                {% endfor %}
                             </ul>
-
-
                         </div>
                     </div>
                 </div>
-
-
 
                 <div class="card">
                     <div class="card-header" id="headingStocking_method">
@@ -199,24 +226,17 @@
                     </div>
                     <div id="collapseStocking_method" class="collapse" aria-labelledby="headingStocking_method" data-parent="#accordionExample">
                         <div class="card-body">
-      <ul>
+                            <ul>
+                                {% if 'stocking_mehtod' in request.GET %}
+                                <li><a href="{% strip_parameter 'stocking_mehtod' %}">All Stockng Methods</a></li>
+                                {% endif %}
                             {% for object in stocking_method_list %}
-                                <li><a href="{% query_transform stocking_method=object.0 %}">{{object.1}}({{object.2}})</a></li>
+                                <li><a href="?{% query_transform stocking_method=object.0 %}">{{object.1}}({{object.2}})</a></li>
                             {% endfor %}
                             </ul>
-
-
                         </div>
                     </div>
                 </div>
-
-
-
-
-
-
-
-
             </div>
         </div>
     </div>
@@ -224,6 +244,11 @@
     <div class="col-sm-10">
 
         <h3>Stocking Events {% if lake %} for {{lake.lake_name}} {% elif jurisdiction %} in the {{ jurisdiction.description }}{%endif%} {% if year %}{{ year }}{% endif %}</h3>
+
+        {% if year%}
+        <a href="{% last_year year%}" class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Prev Year</a>
+        <a href="{% next_year year%}" class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Next Year</a>
+        {% endif %}
 
         {% include '_paginator.html '%}
 
