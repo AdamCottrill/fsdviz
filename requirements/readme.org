@@ -1,0 +1,40 @@
+* Pip-compile
+
+This project uses pip-tools to manage its requirements and their
+dependancies;
+
+** requirements_base.txt
+
+This file contains all of the packages that are needed to run the
+application in production mode. Only those packages required for the
+application are included, tools for testing, development, or
+documentation are not included.
+
+This file is created by pip-tools based on the contents of `base.in`.
+If new packages are added to the application, or existing application
+are upgraded, base.in should be edited and pip-compile re-run.
+
+#+BEGIN_SRC shell
+
+> pip-compile --output-file=requirements_base.txt base.in
+> pip install --upgrade -r requirements/requirements_base.txt
+
+#+END_SRC
+
+** requirements_local.txt
+
+This file contains all of the packages that are needed to run the
+application in production mode as well as several packages that are
+used during development for testing, documentation, or code checking.
+
+This file is created by pip-tools based on the contents of both
+`base.in` and `local.in`.  If new packages are required for the
+development, testing, or development of the application, or existing
+packages upgraded, local.in should be edited and pip-compile re-run.
+
+#+BEGIN_SRC shell
+
+> pip-compile --output-file=requirements_local.txt base.in local.in
+> pip install --upgrade -r requirements/requirements_local.txt
+
+#+END_SRC

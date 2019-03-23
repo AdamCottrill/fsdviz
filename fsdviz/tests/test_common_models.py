@@ -6,11 +6,22 @@ species, ect.
 
 import pytest
 
-from .common_factories import (LakeFactory, AgencyFactory, StateProvinceFactory,
-                               JurisdictionFactory, ManagementUnitFactory,
-                               Grid10Factory, SpeciesFactory, StrainFactory,
-                               StrainRawFactory, MarkFactory, LatLonFlagFactory,
-                               CWTFactory, CWTsequenceFactory)
+from .common_factories import (
+    LakeFactory,
+    AgencyFactory,
+    StateProvinceFactory,
+    JurisdictionFactory,
+    ManagementUnitFactory,
+    Grid10Factory,
+    SpeciesFactory,
+    StrainFactory,
+    StrainRawFactory,
+    MarkFactory,
+    LatLonFlagFactory,
+    CWTFactory,
+    CWTsequenceFactory,
+)
+
 
 @pytest.mark.django_db
 def test_lake_str():
@@ -19,9 +30,8 @@ def test_lake_str():
     name followed by the lake abbreviation in brackets.
     """
 
-    obj = LakeFactory(lake_name='Huron', abbrev='HU')
+    obj = LakeFactory(lake_name="Huron", abbrev="HU")
     assert str(obj) == "Huron (HU)"
-
 
 
 @pytest.mark.django_db
@@ -31,10 +41,9 @@ def test_agency_str():
     name followed by the agency abbreviation in brackets.
     """
 
-    agency_name = 'Ontario Ministry of Natural Resources'
-    obj = AgencyFactory(agency_name=agency_name,
-                        abbrev='OMNR')
-    assert str(obj) == 'Ontario Ministry of Natural Resources (OMNR)'
+    agency_name = "Ontario Ministry of Natural Resources"
+    obj = AgencyFactory(agency_name=agency_name, abbrev="OMNR")
+    assert str(obj) == "Ontario Ministry of Natural Resources (OMNR)"
 
 
 @pytest.mark.django_db
@@ -46,10 +55,9 @@ def test_state_province_str():
 
     """
 
-    full_name = 'Ontario'
-    obj = StateProvinceFactory(name=full_name,
-                               abbrev='ON')
-    assert str(obj) == 'Ontario (ON)'
+    full_name = "Ontario"
+    obj = StateProvinceFactory(name=full_name, abbrev="ON")
+    assert str(obj) == "Ontario (ON)"
 
 
 @pytest.mark.django_db
@@ -60,16 +68,14 @@ def test_jurisdiction_str():
 
     """
 
-    full_name = 'Ontario'
-    stateprov  = StateProvinceFactory(name=full_name,
-                               abbrev='ON')
-    lake_name = 'Lake Huron'
+    full_name = "Ontario"
+    stateprov = StateProvinceFactory(name=full_name, abbrev="ON")
+    lake_name = "Lake Huron"
     lake = LakeFactory(lake_name=lake_name)
 
-    obj = JurisdictionFactory(stateprov=stateprov,
-                                 lake=lake)
+    obj = JurisdictionFactory(stateprov=stateprov, lake=lake)
 
-    shouldbe = '{} - {} waters'.format(lake_name, full_name)
+    shouldbe = "{} - {} waters".format(lake_name, full_name)
     assert str(obj) == shouldbe
 
 
@@ -81,14 +87,12 @@ def test_management_unit_str():
 
     """
 
-    mu_type = 'MU'
-    label = 'A Management Unit'
+    mu_type = "MU"
+    label = "A Management Unit"
 
-    lake = LakeFactory(lake_name='Huron', abbrev='HU')
-    management_unit = ManagementUnitFactory(label=label,
-                                            mu_type=mu_type,
-                                            lake=lake)
-    shouldbe = '{} {} {}'.format(str(lake), mu_type.upper(), label)
+    lake = LakeFactory(lake_name="Huron", abbrev="HU")
+    management_unit = ManagementUnitFactory(label=label, mu_type=mu_type, lake=lake)
+    shouldbe = "{} {} {}".format(str(lake), mu_type.upper(), label)
     assert str(management_unit) == shouldbe
 
 
@@ -99,11 +103,11 @@ def test_grid10_str():
     is the grid number, followed by the lake abbreviation in brackets.
     """
 
-    lake_abbrev = 'HU'
-    grid_number = '1234'
-    lake = LakeFactory(lake_name='Huron', abbrev=lake_abbrev)
+    lake_abbrev = "HU"
+    grid_number = "1234"
+    lake = LakeFactory(lake_name="Huron", abbrev=lake_abbrev)
     grid10 = Grid10Factory(grid=grid_number, lake=lake)
-    shouldbe = '{} ({})'.format(grid_number, lake_abbrev)
+    shouldbe = "{} ({})".format(grid_number, lake_abbrev)
     assert str(grid10) == shouldbe
 
 
@@ -117,12 +121,11 @@ def test_species_str():
 
     """
 
-    abbrev = 'WAE'
-    common_name = 'Walleye'
+    abbrev = "WAE"
+    common_name = "Walleye"
     species = SpeciesFactory(common_name=common_name, abbrev=abbrev)
-    shouldbe = '{} ({})'.format(common_name, abbrev)
+    shouldbe = "{} ({})".format(common_name, abbrev)
     assert str(species) == shouldbe
-
 
 
 @pytest.mark.django_db
@@ -136,23 +139,19 @@ def test_strain_str():
 
     """
 
+    strain_code = "SEN"
+    strain_label = "Seneca"
 
-    strain_code = 'SEN'
-    strain_label = 'Seneca'
+    species_abbrev = "LAT"
+    common_name = "Lake Trout"
 
-    species_abbrev = 'LAT'
-    common_name = 'Lake Trout'
+    species = SpeciesFactory(common_name=common_name, abbrev=species_abbrev)
+    strain = StrainFactory(
+        strain_code=strain_code, strain_label=strain_label, strain_species=species
+    )
 
-    species = SpeciesFactory(common_name=common_name,
-                             abbrev=species_abbrev)
-    strain = StrainFactory(strain_code=strain_code,
-                           strain_label=strain_label,
-                           strain_species=species)
-
-    shouldbe = '{} Strain {} ({})'.format(strain_label, common_name,
-                                          strain_code)
+    shouldbe = "{} Strain {} ({})".format(strain_label, common_name, strain_code)
     assert str(strain) == shouldbe
-
 
 
 @pytest.mark.django_db
@@ -171,13 +170,10 @@ def test_strainraw_str():
     strain = StrainFactory(strain_species=species)
 
     rawstrain = StrainRawFactory(
-        strain=strain, species=species,
-        raw_strain=strain_code,
-        description=description
+        strain=strain, species=species, raw_strain=strain_code, description=description
     )
 
-
-    shouldbe = '{} ({})'.format(description, strain_code)
+    shouldbe = "{} ({})".format(description, strain_code)
     assert str(rawstrain) == shouldbe
 
 
@@ -191,13 +187,12 @@ def test_mark_str():
 
     """
 
-    mark_code = 'AD'
-    description = 'Adipose Fin'
+    mark_code = "AD"
+    description = "Adipose Fin"
 
-    mark = MarkFactory(mark_code=mark_code,
-                       description=description)
+    mark = MarkFactory(mark_code=mark_code, description=description)
 
-    shouldbe = '{} ({})'.format(description, mark_code)
+    shouldbe = "{} ({})".format(description, mark_code)
     assert str(mark) == shouldbe
 
 
@@ -211,13 +206,12 @@ def test_latlonflag_str():
 
     """
 
-    value = '1'
-    description = 'reported'
+    value = "1"
+    description = "reported"
 
-    latlonflag = LatLonFlagFactory(value=value,
-                                   description=description)
+    latlonflag = LatLonFlagFactory(value=value, description=description)
 
-    shouldbe = '{} - {}'.format(value, description)
+    shouldbe = "{} - {}".format(value, description)
     assert str(latlonflag) == shouldbe
 
 
@@ -231,11 +225,9 @@ def test_cwt_str():
 
     """
 
-    cwt_number = '123456'
+    cwt_number = "123456"
     cwt = CWTFactory(cwt_number=cwt_number)
-    shouldbe = '{}-{}-{}'.format(cwt_number[:2],
-                                      cwt_number[2:4],
-                                      cwt_number[4:])
+    shouldbe = "{}-{}-{}".format(cwt_number[:2], cwt_number[2:4], cwt_number[4:])
     assert str(cwt) == shouldbe
 
 
@@ -249,19 +241,16 @@ def test_cwt_sequence_str():
 
     """
 
-    cwt_number = '123456'
+    cwt_number = "123456"
     seq_start = 1
     seq_end = 5555
 
     cwt = CWTFactory(cwt_number=cwt_number)
 
-    cwt_sequence = CWTsequenceFactory(cwt=cwt, seq_start=seq_start,
-                                      seq_end=seq_end)
+    cwt_sequence = CWTsequenceFactory(cwt=cwt, seq_start=seq_start, seq_end=seq_end)
 
-    shouldbe = '{}-{}-{} [{}-{}]'.format(cwt_number[:2],
-                                              cwt_number[2:4],
-                                              cwt_number[4:],
-                                              seq_start,
-                                              seq_end)
+    shouldbe = "{}-{}-{} [{}-{}]".format(
+        cwt_number[:2], cwt_number[2:4], cwt_number[4:], seq_start, seq_end
+    )
 
     assert str(cwt_sequence) == shouldbe

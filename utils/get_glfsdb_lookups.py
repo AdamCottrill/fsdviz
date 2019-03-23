@@ -1,4 +1,4 @@
-'''
+"""
 =============================================================
 ~/FSDViz/utils/get_glfsdb_lookups.py
  Created: 12 Dec 2018 10:49:19
@@ -15,7 +15,7 @@ in the database is edited in the future.
 
  A. Cottrill
 =============================================================
-'''
+"""
 
 import datetime
 import pyodbc
@@ -27,58 +27,54 @@ import django_settings
 
 from django.contrib.gis.geos import Point
 
-
 import utils.common_lookups as common
 import utils.lookups_stocking as stocking
 
-from fsdviz.common.models import (Agency,
-                                  Lake,
-                                  Grid10,
-                                  Species,
-                                  Strain, StrainRaw,
-                                  StateProvince,
-                                  Jurisdiction,
-                                  ManagementUnit,
-                                  Mark,
-                                  LatLonFlag,
-                                  CWT, CWTsequence
+from fsdviz.common.models import (
+    Agency,
+    Lake,
+    Grid10,
+    Species,
+    Strain,
+    StrainRaw,
+    StateProvince,
+    Jurisdiction,
+    ManagementUnit,
+    Mark,
+    LatLonFlag,
+    CWT,
+    CWTsequence,
 )
 
-from fsdviz.stocking.models import (LifeStage,
-                                    Condition,
-                                    StockingEvent,
-                                    StockingMethod)
+from fsdviz.stocking.models import LifeStage, Condition, StockingEvent, StockingMethod
 
-from utils.lwdb_utils import (int_or_None,
-                              float_or_None,
-                              get_stocking_method,
-                              get_condition,
-                              pprint_dict,
-                              clean_title,
-                              get_mark_codes,
-                              associate_cwt,
-                              get_latlon)
-
-
-
+from utils.lwdb_utils import (
+    int_or_None,
+    float_or_None,
+    get_stocking_method,
+    get_condition,
+    pprint_dict,
+    clean_title,
+    get_mark_codes,
+    associate_cwt,
+    get_latlon,
+)
 
 START = datetime.datetime.now()
 
-what = 'Lakes'
+what = "Lakes"
 my_list = []
 
 for item in common.LAKE:
-    obj = Lake(abbrev=item[0],
-               lake_name=item[1],
-               centroid = Point(item[2].ddlon, item[2].ddlat)
-    )
+    obj = Lake(
+        abbrev=item[0],
+        lake_name=item[1],
+        centroid=Point(item[2].ddlon, item[2].ddlat))
     my_list.append(obj)
-
 Lake.objects.bulk_create(my_list, batch_size=10000)
-print('\tDone adding {} records (n={:,})'.format(what, len(my_list)))
+print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
 
-
-what = 'Agencies'
+what = "Agencies"
 my_list = []
 
 for item in common.AGENCIES:
@@ -86,197 +82,154 @@ for item in common.AGENCIES:
     my_list.append(obj)
 
 Agency.objects.bulk_create(my_list, batch_size=10000)
-print('\tDone adding {} records (n={:,})'.format(what, len(my_list)))
+print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
 
-
-
-what = 'StateProvince'
+what = "StateProvince"
 my_list = []
 
 for item in common.STATEPROV:
     obj = StateProvince(
-        abbrev = item[0],
-        name = item[1],
-        country = 'CAN' if item[2]=='Canada' else 'USA')
+        abbrev=item[0],
+        name=item[1],
+        country="CAN" if item[2] == "Canada" else "USA")
     my_list.append(obj)
 
 StateProvince.objects.bulk_create(my_list, batch_size=10000)
-print('\tDone adding {} records (n={:,})'.format(what, len(my_list)))
+print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
 
-
-
-
-
-what = 'Jurisdiction'
+what = "Jurisdiction"
 
 for item in common.JURISDICTIONS:
-    lake = Lake.objects.get(lake_name__contains=item[1].split('-')[0])
-    stateprov = StateProvince.objects.get(name__contains=item[1].split('-')[1])
+    lake = Lake.objects.get(lake_name__contains=item[1].split("-")[0])
+    stateprov = StateProvince.objects.get(name__contains=item[1].split("-")[1])
 
-    jurisdiction = Jurisdiction(lake=lake,
-                                stateprov=stateprov,
-                                name=item[1],
-                                description=item[0]
-    )
-    #use save to create our slug:
+    jurisdiction = Jurisdiction(
+        lake=lake, stateprov=stateprov, name=item[1], description=item[0])
+    # use save to create our slug:
     jurisdiction.save()
 
-print('\tDone adding {} records (n={:,})'.\
-      format(what, len(common.JURISDICTIONS)))
+print("\tDone adding {} records (n={:,})".format(what,
+                                                 len(common.JURISDICTIONS)))
 
-
-
-what = 'Management Units'
+what = "Management Units"
 
 for item in common.MANAGEMENT_UNITS:
     obj = ManagementUnit(
-        label = item[0],
-        mu_type = item[1],
-        lake = Lake.objects.get(lake_name='Lake ' + item[2]),
-        description = item[3],
-        centroid = Point(item[4], item[5])
-        )
+        label=item[0],
+        mu_type=item[1],
+        lake=Lake.objects.get(lake_name="Lake " + item[2]),
+        description=item[3],
+        centroid=Point(item[4], item[5]),
+    )
     obj.save()
 
-    #my_list.append(obj)
-#StateProvince.objects.bulk_create(my_list, batch_size=10000)
+    # my_list.append(obj)
+# StateProvince.objects.bulk_create(my_list, batch_size=10000)
 n = len(common.MANAGEMENT_UNITS)
-print('\tDone adding {} records (n={:,})'.format(what,n))
+print("\tDone adding {} records (n={:,})".format(what, n))
 
-
-what = 'Grid10'
+what = "Grid10"
 my_list = []
 
-for lake_abbrev, grids  in common.grid_centroids.items():
+for lake_abbrev, grids in common.grid_centroids.items():
     lake = Lake.objects.get(abbrev=lake_abbrev)
     for grid, pt in grids.items():
-        obj = Grid10(grid=grid,
-                     centroid=Point(pt.ddlon, pt.ddlat),
-                     lake=lake)
+        obj = Grid10(grid=grid, centroid=Point(pt.ddlon, pt.ddlat), lake=lake)
         my_list.append(obj)
 
 Grid10.objects.bulk_create(my_list, batch_size=10000)
-print('\tDone adding {} records (n={:,})'.format(what, len(my_list)))
+print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
 
-
-what = 'Species'
+what = "Species"
 my_list = []
 
 for item in common.SPECIES:
     obj = Species(
-        species_code = item[0],
-        abbrev = item[1],
-        scientific_name = item[3],
-        common_name = item[2],
-        speciescommon = item[4])
+        species_code=item[0],
+        abbrev=item[1],
+        scientific_name=item[3],
+        common_name=item[2],
+        speciescommon=item[4],
+    )
     my_list.append(obj)
 
 Species.objects.bulk_create(my_list, batch_size=10000)
-print('\tDone adding {} records (n={:,})'.format(what, len(my_list)))
-
+print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
 
 # Strains are our larger groups that collapse the noisy raw strain values into
 # categories we can use - strains will be unique to species so that
 # 'wild walleye' will be different than 'wild chinook'
 
-what = 'Strains'
+what = "Strains"
 my_list = []
 
 for item in common.STRAINS:
     species = Species.objects.get(abbrev=item[0])
     obj = Strain(
-        strain_species= species,
-        strain_code = item[1],
-        strain_label = item[2]
-    )
+        strain_species=species, strain_code=item[1], strain_label=item[2])
     my_list.append(obj)
 
 Strain.objects.bulk_create(my_list, batch_size=10000)
-print('\tDone adding {} records (n={:,})'.format(what, len(my_list)))
+print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
 
-
-what = 'Raw Strains'
+what = "Raw Strains"
 my_list = []
 
 for item in common.RAW_STRAINS:
     species = Species.objects.get(abbrev=item[0])
-    strain = Strain.objects.get(strain_code=item[1],
-                                strain_species=species)
+    strain = Strain.objects.get(strain_code=item[1], strain_species=species)
     obj = StrainRaw(
-        species = species,
-        strain = strain,
-        raw_strain = item[2],
-        description = item[3]
-    )
+        species=species,
+        strain=strain,
+        raw_strain=item[2],
+        description=item[3])
     my_list.append(obj)
 
 StrainRaw.objects.bulk_create(my_list, batch_size=10000)
-print('\tDone adding {} records (n={:,})'.format(what, len(my_list)))
+print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
 
-
-what = 'LAT-LON FLAGS'
+what = "LAT-LON FLAGS"
 my_list = []
 
 for item in common.LATLON_FLAG:
-    obj = LatLonFlag(
-        value=item[0],
-        description=item[1],
-    )
+    obj = LatLonFlag(value=item[0], description=item[1])
     my_list.append(obj)
 
 LatLonFlag.objects.bulk_create(my_list)
-print('\tDone adding {} records (n={:,})'.format(what, len(my_list)))
-
-
-
-
+print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
 
 # CONDITION
 
-what = 'Condition'
+what = "Condition"
 for item in stocking.CONDITION:
-    obj = Condition(
-        condition=item[0],
-        description=item[1]
-        )
+    obj = Condition(condition=item[0], description=item[1])
     obj.save()
 n = len(stocking.CONDITION)
-print('\tDone adding {} records (n={:,})'.format(what,n))
+print("\tDone adding {} records (n={:,})".format(what, n))
 
-
-what = 'StockingMethod'
+what = "StockingMethod"
 for item in stocking.STOCKING_METHOD:
-    obj = StockingMethod(
-        stk_meth=item[0],
-        description=item[1]
-        )
+    obj = StockingMethod(stk_meth=item[0], description=item[1])
     obj.save()
 n = len(stocking.STOCKING_METHOD)
-print('\tDone adding {} records (n={:,})'.format(what,n))
+print("\tDone adding {} records (n={:,})".format(what, n))
 
-
-what = 'LifeStage'
+what = "LifeStage"
 for item in stocking.LIFESTAGE:
-    obj = LifeStage(
-        abbrev=item[0],
-        description=item[1]
-        )
+    obj = LifeStage(abbrev=item[0], description=item[1])
     obj.save()
 n = len(stocking.LIFESTAGE)
-print('\tDone adding {} records (n={:,})'.format(what,n))
+print("\tDone adding {} records (n={:,})".format(what, n))
 
-
-what = 'Marks'
+what = "Marks"
 for item in common.MARKS:
     obj = Mark(
         mark_code=item[0],
         clip_code=item[1],
         description=item[2],
-        mark_type=item[3],
-        )
+        mark_type=item[3])
     obj.save()
 n = len(common.MARKS)
-print('\tDone adding {} records (n={:,})'.format(what,n))
-
+print("\tDone adding {} records (n={:,})".format(what, n))
 
 DONE = datetime.datetime.now()
