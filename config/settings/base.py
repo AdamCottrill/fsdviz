@@ -71,7 +71,9 @@ DJANGO_APPS = [
     'django.contrib.humanize'
 ]
 
-THIRD_PARTY_APPS = []
+THIRD_PARTY_APPS = [
+    'rest_framework',
+]
 
 MY_APPS = [
     'fsdviz.common',
@@ -154,3 +156,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ]
+}

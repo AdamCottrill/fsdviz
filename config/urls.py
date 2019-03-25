@@ -27,6 +27,8 @@ urlpatterns = [
     #path('cwt/', include('cwt.urls')),
 
     #someday soon:
+
+    path('api/1.0/common/', include('fsdviz.common.api.urls')),
     #path('api/1.0/stocking/', include('stocking.api.urls')),
     #path('api/1.0/cwt/', include('cwt.api.urls')),
 
