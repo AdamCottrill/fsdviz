@@ -1,8 +1,10 @@
 """Views for the api for our common models
 
+The veiws in this file should all be publicly available as readonly.
+
 """
 
-from rest_framework import generics
+from rest_framework import viewsets
 from fsdviz.common.models import (Agency, Species, Lake, CWT, Jurisdiction,
                                   StateProvince, ManagementUnit)
 from .serializers import (AgencySerializer, SpeciesSerializer, LakeSerializer,
@@ -10,36 +12,43 @@ from .serializers import (AgencySerializer, SpeciesSerializer, LakeSerializer,
                           CWTSerializer, ManagementUnitSerializer)
 
 
-class AgencyAPI(generics.ListAPIView):
+class AgencyViewSet(viewsets.ModelViewSet):
+
     queryset = Agency.objects.all()
     serializer_class = AgencySerializer
 
 
-class LakeAPI(generics.ListAPIView):
+class LakeViewSet(viewsets.ModelViewSet):
+
     queryset = Lake.objects.all()
     serializer_class = LakeSerializer
 
 
-class JurisdictionAPI(generics.ListAPIView):
+class JurisdictionViewSet(viewsets.ModelViewSet):
+
     queryset = Jurisdiction.objects.all()
     serializer_class = JurisdictionSerializer
 
 
-class StateProvinceAPI(generics.ListAPIView):
+class StateProvinceViewSet(viewsets.ModelViewSet):
+
     queryset = StateProvince.objects.all()
     serializer_class = StateProvinceSerializer
 
 
-class ManagementUnitAPI(generics.ListAPIView):
+class ManagementUnitViewSet(viewsets.ModelViewSet):
+
     queryset = ManagementUnit.objects.all()
     serializer_class = ManagementUnitSerializer
 
 
-class SpeciesAPI(generics.ListAPIView):
+class SpeciesViewSet(viewsets.ModelViewSet):
+
     queryset = Species.objects.all()
     serializer_class = SpeciesSerializer
 
 
-class CwtAPI(generics.ListAPIView):
+class CwtViewSet(viewsets.ModelViewSet):
+
     queryset = CWT.objects.all()
     serializer_class = CWTSerializer

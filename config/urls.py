@@ -18,23 +18,34 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 
+from rest_framework.documentation import include_docs_urls
+from rest_framework.schemas import get_schema_view
+from rest_framework_swagger.views import get_swagger_view
+
+
+API_TITLE = 'Fish Stocking DataViz API'
+API_DESCRIPTION = 'A web API for Great Lakes Fish Stocking and Recovery Data'
+
+schema_view = get_swagger_view(title=API_TITLE)
+
 urlpatterns = [
     path('coregonusclupeaformis/doc/',
          include('django.contrib.admindocs.urls')),
     path('coregonusclupeaformis/', admin.site.urls),
-
     path('stocking/', include('fsdviz.stocking.urls', namespace='stocking')),
     #path('cwt/', include('cwt.urls')),
 
     #someday soon:
-
-    path('api/1.0/common/', include('fsdviz.common.api.urls')),
+    path('api-auth/', include('rest_framework.urls')),
+    path('api/v1/rest-auth/', include('rest_auth.urls')),
+    path('api/v1/common/', include('fsdviz.common.api.urls')),
     #path('api/1.0/stocking/', include('stocking.api.urls')),
     #path('api/1.0/cwt/', include('cwt.api.urls')),
-
+    path('docs/',
+         include_docs_urls(title=API_TITLE, description=API_DESCRIPTION)),
+    path('schema/', schema_view),
 
 ]
-
 
 if settings.DEBUG:
     import debug_toolbar
@@ -43,5 +54,4 @@ if settings.DEBUG:
 
         # For django versions before 2.0:
         # url(r'^__debug__/', include(debug_toolbar.urls)),
-
     ] + urlpatterns
