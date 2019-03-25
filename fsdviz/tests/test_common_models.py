@@ -35,6 +35,18 @@ def test_lake_str():
 
 
 @pytest.mark.django_db
+def test_lake_short_name():
+    """Verify that the short_name method of our lake model returns just
+    the lake name withouth the 'Lake '
+
+    """
+
+    lake = LakeFactory(lake_name="Lake Huron", abbrev="HU")
+    assert lake.short_name() == "Huron"
+
+
+
+@pytest.mark.django_db
 def test_agency_str():
     """
     Verify that the string representation of an Agency object is the agency

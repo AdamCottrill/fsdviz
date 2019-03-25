@@ -80,6 +80,17 @@ class Lake(models.Model):
         """ String representation for a lake."""
         return "{} ({})".format(self.lake_name, self.abbrev)
 
+    def short_name(self):
+        """The name of the lake without 'Lake ..'.
+
+        A shorter verson of the lake name to save spave when
+        needed. THis may need to be turned into a property at some
+        point.
+
+        """
+
+        return self.lake_name.replace('Lake ', '')
+
 
 class StateProvince(models.Model):
     """
