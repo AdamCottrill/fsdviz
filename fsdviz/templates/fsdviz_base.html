@@ -5,8 +5,16 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" integrity="sha256-9mbkOfVho3ZPXfM7W8sV2SndrGDuh7wuyLjtsWeTI1Q=" crossorigin="anonymous" />
+
+
+        <style type="text/css" media="screen">
+
+         .ui.grid {
+             margin-top: 1rem;
+         }
+
+        </style>
 
 
 
@@ -22,94 +30,136 @@
 
         {% block navbar %}
 
-
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="#">Great Lakes Fish Stocking</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Stocking
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list' %}">Event List</a>
-                            <a class="dropdown-item" href="#">Region Of Interest</a>
-                            <div class="dropdown-divider"></div>
-                            {% if year %}
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake-year' 'SU' year %}">Lake Superior</a>
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake-year' 'MI' year %}">Lake Michigan</a>
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake-year' 'HU' year %}">Lake Huron</a>
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake-year' 'ER' year %}">Lake Erie</a>
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake-year' 'ON' year %}">Lake Ontario</a>
-                            {% else %}
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake' 'SU' %}">Lake Superior</a>
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake' 'MI' %}">Lake Michigan</a>
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake' 'HU' %}">Lake Huron</a>
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake' 'ER' %}">Lake Erie</a>
-                            <a class="dropdown-item" href="{% url 'stocking:stocking-event-list-lake' 'ON' %}">Lake Ontario</a>
-
-                            {%endif%}
+            <div class="ui top attached menu">
+                <a class="item">
+                    <h3>Great Lakes Fish Stocking</h3>
+                </a>
+                <div class="ui dropdown icon item">
+                    Stocking
+                    <div class="menu">
+                        <div class="item">
+                            <span class="text">Event List</span>
                         </div>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            CWTs
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="#">CWT List</a>
-                            <a class="dropdown-item" href="#">Region Of Interest</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">Lake Superior</a>
-                            <a class="dropdown-item" href="#">Lake Michigan</a>
-                            <a class="dropdown-item" href="#">Lake Huron</a>
-                            <a class="dropdown-item" href="#">Lake Erie</a>
-                            <a class="dropdown-item" href="#">Lake Ontario</a>
+                        <div class="item">
+                            <span class="text">Region of Interest</span>
                         </div>
-                    </li>
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Recoveries
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="#">Recovery List</a>
-                            <a class="dropdown-item" href="#">Region Of Interest</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">Lake Superior</a>
-                            <a class="dropdown-item" href="#">Lake Michigan</a>
-                            <a class="dropdown-item" href="#">Lake Huron</a>
-                            <a class="dropdown-item" href="#">Lake Erie</a>
-                            <a class="dropdown-item" href="#">Lake Ontario</a>
+                        <div class="item">
+                            <i class="dropdown icon"></i>
+                            <span class="text">Lake</span>
+                            <div class="menu">
+                                {% if year %}
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'SU' year %}">Lake Superior</a></div>
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'MI' year %}">Lake Michigan</a></div>
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'HU' year %}">Lake Huron</a></div>
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'ER' year %}">Lake Erie</a></div>
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'ON' year %}">Lake Ontario</a></div>
+                                {% else %}
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'SU' %}">Lake Superior</a></div>
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'MI' %}">Lake Michigan</a></div>
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'HU' %}">Lake Huron</a></div>
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'ER' %}">Lake Erie</a></div>
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'ON' %}">Lake Ontario</a></div>
+                                {%endif%}
+
+                            </div>
                         </div>
-                    </li>
-
-<li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Resources
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="#">Documentation</a>
-                            <a class="dropdown-item" href="#">Tutorials</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">About</a>
-                            <a class="dropdown-item" href="#">Report a Problem</a>
+                    </div>
+                </div>
+                <div class="ui dropdown icon item">
+                    CWT
+                    <div class="menu">
+                        <div class="item">
+                            <span class="text">CWT List</span>
                         </div>
-                    </li>
+                        <div class="item">
+                            <span class="text">Region of Interest</span>
+                        </div>
+                        <div class="item">
+                            <i class="dropdown icon"></i>
+                            <span class="text">Lake</span>
+                            <div class="menu">
+                                <div class="item"><a href="#" %}">Lake Superior</a></div>
+                                <div class="item"><a href="#" %}">Lake Michigan</a></div>
+                                <div class="item"><a href="#" %}">Lake Huron</a></div>
+                                <div class="item"><a href="#" %}">Lake Erie</a></div>
+                                <div class="item"><a href="#" %}">Lake Ontario</a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui dropdown icon item">
+                    CWT Recoveries
+                    <div class="menu">
+                        <div class="item">
+                            <span class="text">Region of Interest</span>
+                        </div>
+                        <div class="item">
+                            <i class="dropdown icon"></i>
+                            <span class="text">Lake</span>
+                            <div class="menu">
+                                <div class="item"><a href="#" %}">Lake Superior</a></div>
+                                <div class="item"><a href="#" %}">Lake Michigan</a></div>
+                                <div class="item"><a href="#" %}">Lake Huron</a></div>
+                                <div class="item"><a href="#" %}">Lake Erie</a></div>
+                                <div class="item"><a href="#" %}">Lake Ontario</a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
 
 
+                <div class="ui dropdown icon item">
+                    Resources
+                    <div class="menu">
+                        <div class="item">
+                            <span class="text">Documentation</span>
+                        </div>
+                        <div class="item">
+                            <span class="text">Tutorials</span>
+                        </div>
+                        <div class="item">
+                            <span class="text">About</span>
+                        </div>
+                        <div class="item">
+                            <span class="text">Report A problem</span>
+                        </div>
+                    </div>
+                </div>
 
-                </ul>
+                <div class="ui dropdown icon item">
+                    Admin
+                    <div class="menu">
+                        <div class="item">
+                            <span class="text">Change Your Password</span>
+                        </div>
+                        <div class="item">
+                            <span class="text">Django Admin</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="item text">
+                    Welcome Adam!
+                </p>
 
                 {% block navbar_search %}
 
+                    <div class="right menu">
+                        <div class="ui right aligned category search item">
+                            <div class="ui transparent icon input">
+                                <input class="prompt" type="text" placeholder="Search By Event id..." name="q">
+                                <i class="search link icon"></i>
+                            </div>
+                            <div class="results"></div>
+                        </div>
+                    </div>
+
                 {% endblock navbar_search %}
+
             </div>
-        </nav>
 
 
         {% endblock navbar%}
@@ -125,13 +175,35 @@
         {% endblock footer %}
 
 
-        <!-- Optional JavaScript -->
-        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+
+        <script
+            src="http://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"
+                integrity="sha256-t8GepnyPmw9t+foMh3mKNvcorqNHamSKtKRxxpUEgFI=" crossorigin="anonymous"></script>
+
+
+        <script type="text/javascript">
+
+         $(document).ready(function() {
+
+             $('.ui.accordion')
+                 .accordion();
+
+             $('.ui.dropdown')
+                 .dropdown();
+
+         });
+
+        </script>
 
         {% block extra_js %}
+
+
+
 
         {% endblock extra_js%}
 

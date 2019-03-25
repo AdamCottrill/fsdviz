@@ -5,296 +5,269 @@
 
 
 {% block navbar_search %}
-<form class="form-inline my-2 my-lg-0">
-    <input class="form-control mr-sm-2" type="search" name="q" placeholder="Search by Event Id" aria-label="Search">
-    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-</form>
+
+    <div class="right menu">
+        <form class="item">
+            <div class="ui right aligned category search item">
+                <div class="ui transparent icon input">
+                    <input class="prompt" type="text" placeholder="Search By Event id..." name="q">
+                    <i class="search link icon"></i>
+                </div>
+            </div>
+        </form>
+    </div>
 
 {% endblock navbar_search%}
+
+
+
+
 
 
 {% block content %}
 
 
-<div class="container-fluid">
+    <div class="ui container fluid">
 
-    <div class="row mt-3">
-        <div id="selectors" class="col-sm-2">
+        <div class="ui grid">
+            <div class="two wide column">
+                <h5>Refine By</h5>
 
-            <h5>Refine By</h5>
+                <div class="ui styled fluid accordion">
 
-            <div class="accordion" id="accordionExample">
-
-                <div class="card">
-                    <div class="card-header" id="heading0">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse0" aria-expanded="true" aria-controls="collapse0">
-                                Year
-                            </button>
-                        </h5>
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Year
                     </div>
-
-                    <div id="collapse0" class="collapse" aria-labelledby="heading0" data-parent="#accordionExample">
-                        <div class="card-body">
-                            <ul>
-                                {% if year %}
+                    <div class="content">
+                        <ul>
+                            {% if year %}
                                 {% if lake %}
-                                <li><a href="{% url 'stocking:stocking-event-list-lake' lake.abbrev %}">All Years</a></li>
+                                    <li><a href="{% url 'stocking:stocking-event-list-lake' lake.abbrev %}">All Years</a></li>
                                 {% elif jurisdiction %}
-                                <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' jurisdiction.slug %}">All Years</a></li>
+                                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' jurisdiction.slug %}">All Years</a></li>
                                 {% else %}
-                                <li><a href="{% url 'stocking:stocking-event-list' %}">All Years</a></li>
+                                    <li><a href="{% url 'stocking:stocking-event-list' %}">All Years</a></li>
                                 {% endif %}
 
 
-                                {% endif %}
-                                {% for yr in year_list %}
+                            {% endif %}
+                            {% for yr in year_list %}
                                 {% if yr.0 == year %}
-                                <li>{{ yr.0 }}({{yr.1}})</li>
+                                    <li>{{ yr.0 }}({{yr.1}})</li>
                                 {% else %}
-                                {% if lake %}
-                                <li><a href="{% url 'stocking:stocking-event-list-lake-year' lake.abbrev yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
-                                {% elif jurisdiction %}
-                                <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' jurisdiction.slug yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
-                                {%else%}
-                                <li><a href="{% url 'stocking:stocking-event-list-year' yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
-                                {% endif %}
+                                    {% if lake %}
+                                        <li><a href="{% url 'stocking:stocking-event-list-lake-year' lake.abbrev yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
+                                    {% elif jurisdiction %}
+                                        <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' jurisdiction.slug yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
+                                    {%else%}
+                                        <li><a href="{% url 'stocking:stocking-event-list-year' yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
+                                    {% endif %}
                                 {% endif  %}
-                                {% endfor %}
-                            </ul>
+                            {% endfor %}
+                        </ul>
 
 
-                        </div>
                     </div>
 
-
-                <div class="card">
-                    <div class="card-header" id="heading-jurisdiction">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-jurisdiction" aria-expanded="true" aria-controls="collapse-jurisdiction">
-                                Jurisdiction
-                            </button>
-                        </h5>
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Jurisdiction
                     </div>
-
-                    <div id="collapse-jurisdiction" class="collapse" aria-labelledby="heading-jurisdiction" data-parent="#accordionExample">
-                        <div class="card-body">
-                            <ul>
-                                {% if jurisdiction %}
+                    <div class="content">
+                        <ul>
+                            {% if jurisdiction %}
                                 {% if year %}
-                                <li><a href="{% url 'stocking:stocking-event-list-lake-year' jurisdiction.lake.abbrev year %}">{{ jurisdiction.lake.lake_name }}</a></li>
+                                    <li><a href="{% url 'stocking:stocking-event-list-lake-year' jurisdiction.lake.abbrev year %}">{{ jurisdiction.lake.lake_name }}</a></li>
                                 {% else %}
-                                <li><a href="{% url 'stocking:stocking-event-list-lake' jurisdiction.lake.abbrev %}">{{ jurisdiction.lake.lake_name }}</a></li>
+                                    <li><a href="{% url 'stocking:stocking-event-list-lake' jurisdiction.lake.abbrev %}">{{ jurisdiction.lake.lake_name }}</a></li>
 
                                 {% endif %}
-                                {% endif %}
+                            {% endif %}
 
-                                {% for obj in jurisdiction_list %}
+                            {% for obj in jurisdiction_list %}
                                 {% if year %}
-                                <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' obj.0 year %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
+                                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' obj.0 year %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
                                 {%else%}
-                                <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' obj.0 %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
+                                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' obj.0 %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
                                 {% endif  %}
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header" id="headingOne">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                Agency
-                            </button>
-                        </h5>
+                            {% endfor %}
+                        </ul>
                     </div>
 
-                    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
-                        <div class="card-body">
-                            <ul>
-                                {% if 'agency' in request.GET %}
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Agency
+                    </div>
+                    <div class="content">
+                        <ul>
+                            {% if 'agency' in request.GET %}
                                 <li><a href="{% strip_parameter 'agency' %}">All Agencies</a></li>
-                                {% endif %}
+                            {% endif %}
 
                             {% for object in agency_list %}
                                 <li><a href="?{% query_transform agency=object.0 %}">{{object.0}}({{object.1}})</a></li>
                             {% endfor %}
-                            </ul>
-                        </div>
+                        </ul>
                     </div>
-                </div>
-                <div class="card">
-                    <div class="card-header" id="headingTwo">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                Species
-                            </button>
-                        </h5>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Species
                     </div>
-                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
-                        <div class="card-body">
-                            <ul>
-                                {% if 'species' in request.GET %}
+                    <div class="content">
+                        <ul>
+                            {% if 'species' in request.GET %}
                                 <li><a href="{% strip_parameter 'species' %}">All Species</a></li>
-                                {% endif %}
+                            {% endif %}
 
                             {% for object in species_list %}
                                 <li><a href="?{% query_transform species=object.0 %}">{{object.1}}({{object.2}})</a></li>
                             {% endfor %}
-                            </ul>
-
-
-                        </div>
+                        </ul>
                     </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-header" id="headingStrain">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseStrain" aria-expanded="false" aria-controls="collapseStrain">
-                                Strain
-                            </button>
-                        </h5>
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Strain
                     </div>
-                    <div id="collapseStrain" class="collapse" aria-labelledby="headingStrain" data-parent="#accordionExample">
-                        <div class="card-body">
-                                {% if 'strain' in request.GET %}
+                    <div class="content">
+                        <ul>
+                            {% if 'strain' in request.GET %}
                                 <li><a href="{% strip_parameter 'strain' %}">All Strains</a></li>
-                                {% endif %}
+                            {% endif %}
                             {% for object in strain_list %}
                                 <li><a href="?{% query_transform strain=object.0 %}">{{object.1}}({{object.2}})</a></li>
                             {% endfor %}
+                        </ul>
 
-                        </div>
                     </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-header" id="headingLifestage">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseLifestage" aria-expanded="false" aria-controls="collapseLifestage">
-                                Life Stage
-                            </button>
-                        </h5>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Life Stage
                     </div>
-                    <div id="collapseLifestage" class="collapse" aria-labelledby="headingLifestage" data-parent="#accordionExample">
-                        <div class="card-body">
-                            <ul>
-                                {% if 'lifestage' in request.GET %}
+                    <div class="content">
+                        <ul>
+                            {% if 'lifestage' in request.GET %}
                                 <li><a href="{% strip_parameter 'lifestage' %}">All Life Stages</a></li>
-                                {% endif %}
+                            {% endif %}
 
-                                {% for object in lifestage_list %}
+                            {% for object in lifestage_list %}
                                 <li><a href="?{% query_transform lifestage=object.0 %}">{{object.1}}({{object.2}})</a></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
+                            {% endfor %}
+                        </ul>
                     </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-header" id="headingMark">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseMark" aria-expanded="false" aria-controls="collapseMark">
-                                Mark
-                            </button>
-                        </h5>
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Mark
                     </div>
-                    <div id="collapseMark" class="collapse" aria-labelledby="headingMark" data-parent="#accordionExample">
-                        <div class="card-body">
-                            <ul>
-                                {% if 'mark' in request.GET %}
+                    <div class="content">
+                        <ul>
+                            {% if 'mark' in request.GET %}
                                 <li><a href="{% strip_parameter 'mark' %}">All Marks</a></li>
-                                {% endif %}
+                            {% endif %}
 
-                                {% for object in mark_list %}
+                            {% for object in mark_list %}
                                 <li><a href="?{% query_transform mark=object.0 %}">{{object.0}}({{object.1}})</a></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
+                            {% endfor %}
+                        </ul>
                     </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-header" id="headingStocking_method">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseStocking_method" aria-expanded="false" aria-controls="collapseStocking_method">
-                                Stocking Method
-                            </button>
-                        </h5>
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Stocking Method
                     </div>
-                    <div id="collapseStocking_method" class="collapse" aria-labelledby="headingStocking_method" data-parent="#accordionExample">
-                        <div class="card-body">
-                            <ul>
-                                {% if 'stocking_mehtod' in request.GET %}
-                                <li><a href="{% strip_parameter 'stocking_mehtod' %}">All Stockng Methods</a></li>
-                                {% endif %}
+                    <div class="content">
+                        <ul>
+                            {% if 'stocking_method' in request.GET %}
+                                <li><a href="{% strip_parameter 'stocking_method' %}">All Stocking Methods</a></li>
+                            {% endif %}
                             {% for object in stocking_method_list %}
                                 <li><a href="?{% query_transform stocking_method=object.0 %}">{{object.1}}({{object.2}})</a></li>
                             {% endfor %}
-                            </ul>
-                        </div>
+                        </ul>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="fourteen wide column">
+
+
+                <div class="ui grid">
+                    <div class="twelve wide column">
+
+                        <h3>Stocking Events {% if lake %} for {{lake.lake_name}} {% elif jurisdiction %} in the {{ jurisdiction.description }}{%endif%} {% if year %}{{ year }}{% endif %}
+                        </h3>
+                    </div>
+                    <div class="four wide right aligned column">
+
+                        {% if year%}
+
+                            <a class="ui left labeled icon mini blue compact button" href="{% last_year year%}"><i class="left arrow icon"></i>Previous Year</a>
+
+                            <a class="ui right labeled icon mini blue compact button"href="{% next_year year%}"><i class="right arrow icon"></i>Next Year</a>
+
+                        {% endif %}
                     </div>
                 </div>
+
+                {% include '_paginator.html '%}
+
+
+                <table class="ui celled table tablesorter" style="font-size: 0.9em">
+                    <thead>
+                        <tr>
+                            <th scope="col">Stock ID</th>
+                            <th scope="col">Agency</th>
+                            <th scope="col">Lake</th>
+                            <th scope="col">Site</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Species</th>
+                            <th scope="col">Strain</th>
+                            <th scope="col">Year Class</th>
+                            <th scope="col">Life Stage</th>
+                            <th scope="col">Stocking Methd</th>
+                            <th scope="col">Mark</th>
+                            <th scope="col">Yr.Eq.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for object in object_list %}
+
+                            <tr>
+                                <td> <a href="{% url 'stocking:stocking-event-detail' object.stock_id %}">{{ object.stock_id }}</a></td>
+                                <td> {{ object.agency.abbrev }}</td>
+                                <td> {{ object.lake.short_name }}</td>
+                                <td title="{{ object.site }}"> {{ object.site }}</td>
+                                <td> {{ object.date|date:"M-d-y" }}</td>
+                                <td> {{ object.species.common_name | title }}</td>
+                                <td> {{ object.strain_raw.strain.strain_label }}</td>
+                                <td>{{ object.year_class }}</td>
+                                <td> {{ object.lifestage.description | title }}</td>
+                                <td> {{ object.stocking_method.description | title }}</td>                    <td>{{object.mark}}</td>
+                                <td> {{ object.yreq_stocked | intcomma }}</td>
+
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% include '_paginator.html '%}
+
             </div>
+
+
         </div>
-    </div>
-
-    <div class="col-sm-10">
-
-        <h3>Stocking Events {% if lake %} for {{lake.lake_name}} {% elif jurisdiction %} in the {{ jurisdiction.description }}{%endif%} {% if year %}{{ year }}{% endif %}</h3>
-
-        {% if year%}
-        <a href="{% last_year year%}" class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Prev Year</a>
-        <a href="{% next_year year%}" class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Next Year</a>
-        {% endif %}
-
-        {% include '_paginator.html '%}
-
-
-        <table class="table table-striped table-sm tablesorter">
-            <thead>
-                <tr>
-                    <th scope="col">Stock ID</th>
-                    <th scope="col">Agency</th>
-                    <th scope="col">Lake</th>
-                    <th scope="col">Site</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Species</th>
-                    <th scope="col">Strain</th>
-                    <th scope="col">Year Class</th>
-                    <th scope="col">Life Stage</th>
-                    <th scope="col">Stocking Methd</th>
-                    <th scope="col">Mark</th>
-                    <th scope="col">Yr.Eq.</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for object in object_list %}
-
-                <tr>
-                    <td> <a href="{% url 'stocking:stocking-event-detail' object.stock_id %}">{{ object.stock_id }}</a></td>
-                    <td> {{ object.agency.abbrev }}</td>
-                    <td> {{ object.lake.lake_name }}</td>
-                    <td> {{ object.site }}</td>
-                    <td> {{ object.date }}</td>
-                    <td> {{ object.species.common_name | title }}</td>
-                    <td> {{ object.strain_raw.strain.strain_label }}</td>
-                    <td>{{ object.year_class }}</td>
-                    <td> {{ object.lifestage.description | title }}</td>
-                    <td> {{ object.stocking_method.description | title }}</td>                    <td>{{object.mark}}</td>
-                    <td> {{ object.yreq_stocked | intcomma }}</td>
-
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
 
     </div>
 
-</div>
-</div>
+
+
 
 
 
@@ -304,29 +277,30 @@
 {% block extra_js%}
 
 
-<!-- tablesorter plugin-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js"></script>
+    <!-- tablesorter plugin-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js"></script>
 
-<!-- tablesorter widget file - loaded after the plugin -->
-<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
+    <!-- tablesorter widget file - loaded after the plugin -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
 
 
-<script type="text/javascript">
+    <script type="text/javascript">
 
-  $(".tablesorter").tablesorter({
-  theme: 'bootstrap',
-  widthFixed: true,
-  showProcessing: true,
-  headerTemplate: '{content} {icon}',
-  widgets: ['zebra', 'uitheme', 'scroller'],
-  widgetOptions: {
-  scroller_height: 300,
-  scroller_barWidth: 17,
-  scroller_jumpToHeader: true,
-  scroller_idPrefix: 's_'
-  }
-  });
 
-</script>
+     $(".tablesorter").tablesorter({
+         theme: 'bootstrap',
+         widthFixed: true,
+         showProcessing: true,
+         headerTemplate: '{content} {icon}',
+         widgets: ['zebra', 'uitheme', 'scroller'],
+         widgetOptions: {
+             scroller_height: 300,
+             scroller_barWidth: 17,
+             scroller_jumpToHeader: true,
+             scroller_idPrefix: 's_'
+         }
+     });
+
+    </script>
 
 {% endblock %}
