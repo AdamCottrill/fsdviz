@@ -1,3 +1,4 @@
+
 """urls for the api for our common models"""
 
 from django.urls import path
@@ -5,20 +6,25 @@ from rest_framework.routers import SimpleRouter
 
 from .views import (AgencyViewSet, SpeciesViewSet, JurisdictionViewSet,
                     CwtViewSet, StateProvinceViewSet, LakeViewSet,
-                    ManagementUnitViewSet)
+                    ManagementUnitViewSet, StrainViewSet, StrainRawViewSet,
+                    Grid10ViewSet, LatLonFlagViewSet, MarkViewSet)
+
+app_name = "common"
 
 router = SimpleRouter()
 
-router.register('species', SpeciesViewSet, basename='species')
-router.register('agency', AgencyViewSet, basename='agencies')
-router.register('jurisdiction', JurisdictionViewSet, basename='jurisdictions')
-router.register('lake', LakeViewSet, basename='lakes')
-router.register(
-    'state_province', StateProvinceViewSet, basename='state_provinces')
-router.register('cwt', CwtViewSet, basename='cwts')
-router.register(
-    'management_unit', ManagementUnitViewSet, basename='management_units')
-
+router.register('lake', LakeViewSet)
+router.register('agency', AgencyViewSet)
+router.register('jurisdiction', JurisdictionViewSet)
+router.register('management_unit', ManagementUnitViewSet)
+router.register('state_province', StateProvinceViewSet)
+router.register('grid10', Grid10ViewSet)
+router.register('latlonflag', LatLonFlagViewSet)
+router.register('mark', MarkViewSet)
+router.register('species', SpeciesViewSet)
+router.register('strain', StrainViewSet)
+router.register('strainraw', StrainRawViewSet)
+router.register('cwt', CwtViewSet)
 
 urlpatterns = router.urls
 
