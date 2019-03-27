@@ -42,7 +42,10 @@ urlpatterns = [
 
     path('api/v1/common/', include('fsdviz.common.api.urls',
                                    namespace='common_api')),
-    #path('api/1.0/stocking/', include('stocking.api.urls')),
+
+    path('api/v1/stocking/', include('fsdviz.stocking.api.urls',
+                                      namespace='stocking_api')),
+
     #path('api/1.0/cwt/', include('cwt.api.urls')),
 
     path('api/docs/',
