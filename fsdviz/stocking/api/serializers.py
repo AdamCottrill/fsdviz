@@ -7,7 +7,11 @@ needed).
 
 from rest_framework import serializers
 from fsdviz.stocking.models import (LifeStage, Condition, StockingMethod,
-                                  StockingEvent)
+                                    StockingEvent)
+
+from fsdviz.common.api.serializers import (
+    AgencySerializer, JurisdictionSerializer, LakeSerializer,
+    SpeciesSerializer, Grid10Serializer, LatLonFlagSerializer)
 
 
 class LifeStageSerializer(serializers.ModelSerializer):
@@ -37,9 +41,34 @@ class StockingEventSerializer(serializers.ModelSerializer):
 
     """
 
-    #could add other serializers here for lifestage, condition,
-    #agency, species, etc.
+    # could add other serializers here for lifestage, condition,
+    # agency, species, etc.
 
+    lifestage = LifeStageSerializer()
+    condition = ConditionSerializer()
+    stocking_method = StockingMethodSerializer()
+    agency = AgencySerializer()
+
+    jurisdiction = JurisdictionSerializer()
+    grid_10 = Grid10Serializer()
+    species = SpeciesSerializer()
+    latlong_flag = LatLonFlagSerializer()
+
+    # lake = LakeSerializer()
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """ Perform necessary eager loading of data. """
+        queryset = queryset.prefetch_related('species', 'agency', 'condition',
+                                             'stocking_method',
+                                             'grid_10',
+                                             'grid_10__lake',
+                                             'jurisdiction',
+                                             'jurisdiction__lake',
+                                             'jurisdiction__stateprov',
+                                             'latlong_flag',
+                                             'lifestage')
+        return queryset
 
     class Meta:
         model = StockingEvent

@@ -144,12 +144,28 @@ class StockingEventListView(ListView):
         search_q = self.request.GET.get('q')
 
         queryset = StockingEvent.objects.all()
+
         queryset = queryset.select_related('agency',
                                            'jurisdiction',
+                                           'jurisdiction__stateprov',
                                            'jurisdiction__lake',
                                            'species', 'lifestage',
+                                           'grid_10', 'grid_10__lake',
+                                           'latlong_flag',
                                            'strain_raw__strain',
                                            'stocking_method')
+
+        queryset = queryset.prefetch_related('species', 'agency', 'condition',
+                                             'stocking_method',
+                                             'grid_10',
+                                             'grid_10__lake',
+                                             'jurisdiction',
+                                             'jurisdiction__lake',
+                                             'jurisdiction__stateprov',
+                                             'latlong_flag',
+                                             'lifestage')
+
+
 
         if lake_name:
             # Return a filtered queryset
