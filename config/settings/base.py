@@ -156,6 +156,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATICFILES_DIRS = [
+    os.path.join(PROJECT_ROOT, "fsdviz/static"),
+]
+
 ## urls here as needed for cors:
 CORS_ORIGIN_WHITELIST = []
 
