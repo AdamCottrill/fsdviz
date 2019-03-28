@@ -1,0 +1,164 @@
+
+{% load fsdviz_tags %}
+
+<h5>Refine By</h5>
+
+<div class="ui styled fluid accordion">
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Year
+    </div>
+    <div class="content">
+        <ul>
+            {% if year %}
+                {% if lake %}
+                    <li><a href="{% url 'stocking:stocking-event-list-lake' lake.abbrev %}">All Years</a></li>
+                {% elif jurisdiction %}
+                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' jurisdiction.slug %}">All Years</a></li>
+                {% else %}
+                    <li><a href="{% url 'stocking:stocking-event-list' %}">All Years</a></li>
+                {% endif %}
+
+
+            {% endif %}
+            {% for yr in year_list %}
+                {% if yr.0 == year %}
+                    <li>{{ yr.0 }}({{yr.1}})</li>
+                {% else %}
+                    {% if lake %}
+                        <li><a href="{% url 'stocking:stocking-event-list-lake-year' lake.abbrev yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
+                    {% elif jurisdiction %}
+                        <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' jurisdiction.slug yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
+                    {%else%}
+                        <li><a href="{% url 'stocking:stocking-event-list-year' yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
+                    {% endif %}
+                {% endif  %}
+            {% endfor %}
+        </ul>
+
+
+    </div>
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Jurisdiction
+    </div>
+    <div class="content">
+        <ul>
+            {% if jurisdiction %}
+                {% if year %}
+                    <li><a href="{% url 'stocking:stocking-event-list-lake-year' jurisdiction.lake.abbrev year %}">{{ jurisdiction.lake.lake_name }}</a></li>
+                {% else %}
+                    <li><a href="{% url 'stocking:stocking-event-list-lake' jurisdiction.lake.abbrev %}">{{ jurisdiction.lake.lake_name }}</a></li>
+
+                {% endif %}
+            {% endif %}
+
+            {% for obj in jurisdiction_list %}
+                {% if year %}
+                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' obj.0 year %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
+                {%else%}
+                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' obj.0 %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
+                {% endif  %}
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Agency
+    </div>
+    <div class="content">
+        <ul>
+            {% if 'agency' in request.GET %}
+                <li><a href="{% strip_parameter 'agency' %}">All Agencies</a></li>
+            {% endif %}
+
+            {% for object in agency_list %}
+                <li><a href="?{% query_transform agency=object.0 %}">{{object.0}}({{object.1}})</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Species
+    </div>
+    <div class="content">
+        <ul>
+            {% if 'species' in request.GET %}
+                <li><a href="{% strip_parameter 'species' %}">All Species</a></li>
+            {% endif %}
+
+            {% for object in species_list %}
+                <li><a href="?{% query_transform species=object.0 %}">{{object.1}}({{object.2}})</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Strain
+    </div>
+    <div class="content">
+        <ul>
+            {% if 'strain' in request.GET %}
+                <li><a href="{% strip_parameter 'strain' %}">All Strains</a></li>
+            {% endif %}
+            {% for object in strain_list %}
+                <li><a href="?{% query_transform strain=object.0 %}">{{object.1}}({{object.2}})</a></li>
+            {% endfor %}
+        </ul>
+
+    </div>
+
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Life Stage
+    </div>
+    <div class="content">
+        <ul>
+            {% if 'lifestage' in request.GET %}
+                <li><a href="{% strip_parameter 'lifestage' %}">All Life Stages</a></li>
+            {% endif %}
+
+            {% for object in lifestage_list %}
+                <li><a href="?{% query_transform lifestage=object.0 %}">{{object.1}}({{object.2}})</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Mark
+    </div>
+    <div class="content">
+        <ul>
+            {% if 'mark' in request.GET %}
+                <li><a href="{% strip_parameter 'mark' %}">All Marks</a></li>
+            {% endif %}
+
+            {% for object in mark_list %}
+                <li><a href="?{% query_transform mark=object.0 %}">{{object.0}}({{object.1}})</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Stocking Method
+    </div>
+    <div class="content">
+        <ul>
+            {% if 'stocking_method' in request.GET %}
+                <li><a href="{% strip_parameter 'stocking_method' %}">All Stocking Methods</a></li>
+            {% endif %}
+            {% for object in stocking_method_list %}
+                <li><a href="?{% query_transform stocking_method=object.0 %}">{{object.1}}({{object.2}})</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>

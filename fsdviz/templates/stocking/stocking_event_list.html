@@ -19,7 +19,41 @@
 
 {% endblock navbar_search%}
 
+{% block extra_head  %}
 
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />
+
+    <style>
+     /* body { margin:0;
+        position:fixed;
+        top:0;
+        right:0;
+        bottom:0;
+        left:0;
+        }
+      */
+
+     #content{
+         padding-left: 10px;
+         padding-right: 10px;
+     }
+
+
+     #map {
+         position:realtive;
+         width: 100%;
+         height: 700px;
+     }
+     svg {
+         position: absolute;
+         width: 100%;
+         height: 100%;
+     }
+    </style>
+
+{% endblock %}
 
 
 
@@ -27,240 +61,108 @@
 {% block content %}
 
 
-    <div class="ui container fluid">
+    <div class="ui container fluid" id="content">
 
         <div class="ui grid">
             <div class="two wide column">
-                <h5>Refine By</h5>
 
-                <div class="ui styled fluid accordion">
-
-                    <div class="title">
-                        <i class="dropdown icon"></i>
-                        Year
-                    </div>
-                    <div class="content">
-                        <ul>
-                            {% if year %}
-                                {% if lake %}
-                                    <li><a href="{% url 'stocking:stocking-event-list-lake' lake.abbrev %}">All Years</a></li>
-                                {% elif jurisdiction %}
-                                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' jurisdiction.slug %}">All Years</a></li>
-                                {% else %}
-                                    <li><a href="{% url 'stocking:stocking-event-list' %}">All Years</a></li>
-                                {% endif %}
-
-
-                            {% endif %}
-                            {% for yr in year_list %}
-                                {% if yr.0 == year %}
-                                    <li>{{ yr.0 }}({{yr.1}})</li>
-                                {% else %}
-                                    {% if lake %}
-                                        <li><a href="{% url 'stocking:stocking-event-list-lake-year' lake.abbrev yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
-                                    {% elif jurisdiction %}
-                                        <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' jurisdiction.slug yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
-                                    {%else%}
-                                        <li><a href="{% url 'stocking:stocking-event-list-year' yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
-                                    {% endif %}
-                                {% endif  %}
-                            {% endfor %}
-                        </ul>
-
-
-                    </div>
-
-                    <div class="title">
-                        <i class="dropdown icon"></i>
-                        Jurisdiction
-                    </div>
-                    <div class="content">
-                        <ul>
-                            {% if jurisdiction %}
-                                {% if year %}
-                                    <li><a href="{% url 'stocking:stocking-event-list-lake-year' jurisdiction.lake.abbrev year %}">{{ jurisdiction.lake.lake_name }}</a></li>
-                                {% else %}
-                                    <li><a href="{% url 'stocking:stocking-event-list-lake' jurisdiction.lake.abbrev %}">{{ jurisdiction.lake.lake_name }}</a></li>
-
-                                {% endif %}
-                            {% endif %}
-
-                            {% for obj in jurisdiction_list %}
-                                {% if year %}
-                                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' obj.0 year %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
-                                {%else%}
-                                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' obj.0 %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
-                                {% endif  %}
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <div class="title">
-                        <i class="dropdown icon"></i>
-                        Agency
-                    </div>
-                    <div class="content">
-                        <ul>
-                            {% if 'agency' in request.GET %}
-                                <li><a href="{% strip_parameter 'agency' %}">All Agencies</a></li>
-                            {% endif %}
-
-                            {% for object in agency_list %}
-                                <li><a href="?{% query_transform agency=object.0 %}">{{object.0}}({{object.1}})</a></li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <div class="title">
-                        <i class="dropdown icon"></i>
-                        Species
-                    </div>
-                    <div class="content">
-                        <ul>
-                            {% if 'species' in request.GET %}
-                                <li><a href="{% strip_parameter 'species' %}">All Species</a></li>
-                            {% endif %}
-
-                            {% for object in species_list %}
-                                <li><a href="?{% query_transform species=object.0 %}">{{object.1}}({{object.2}})</a></li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <div class="title">
-                        <i class="dropdown icon"></i>
-                        Strain
-                    </div>
-                    <div class="content">
-                        <ul>
-                            {% if 'strain' in request.GET %}
-                                <li><a href="{% strip_parameter 'strain' %}">All Strains</a></li>
-                            {% endif %}
-                            {% for object in strain_list %}
-                                <li><a href="?{% query_transform strain=object.0 %}">{{object.1}}({{object.2}})</a></li>
-                            {% endfor %}
-                        </ul>
-
-                    </div>
-
-
-                    <div class="title">
-                        <i class="dropdown icon"></i>
-                        Life Stage
-                    </div>
-                    <div class="content">
-                        <ul>
-                            {% if 'lifestage' in request.GET %}
-                                <li><a href="{% strip_parameter 'lifestage' %}">All Life Stages</a></li>
-                            {% endif %}
-
-                            {% for object in lifestage_list %}
-                                <li><a href="?{% query_transform lifestage=object.0 %}">{{object.1}}({{object.2}})</a></li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <div class="title">
-                        <i class="dropdown icon"></i>
-                        Mark
-                    </div>
-                    <div class="content">
-                        <ul>
-                            {% if 'mark' in request.GET %}
-                                <li><a href="{% strip_parameter 'mark' %}">All Marks</a></li>
-                            {% endif %}
-
-                            {% for object in mark_list %}
-                                <li><a href="?{% query_transform mark=object.0 %}">{{object.0}}({{object.1}})</a></li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <div class="title">
-                        <i class="dropdown icon"></i>
-                        Stocking Method
-                    </div>
-                    <div class="content">
-                        <ul>
-                            {% if 'stocking_method' in request.GET %}
-                                <li><a href="{% strip_parameter 'stocking_method' %}">All Stocking Methods</a></li>
-                            {% endif %}
-                            {% for object in stocking_method_list %}
-                                <li><a href="?{% query_transform stocking_method=object.0 %}">{{object.1}}({{object.2}})</a></li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                </div>
+                {% include 'stocking/_refine_events_sidebar.html' %}
 
             </div>
-
             <div class="fourteen wide column">
-
-
                 <div class="ui grid">
-                    <div class="twelve wide column">
 
-                        <h3>Stocking Events {% if lake %} for {{lake.lake_name}} {% elif jurisdiction %} in the {{ jurisdiction.description }}{%endif%} {% if year %}{{ year }}{% endif %}
-                        </h3>
+
+                    <div class="row">
+                        <div class="twelve wide column">
+                            <h3>Stocking Events {% if lake %} for {{lake.lake_name}} {% elif jurisdiction %} in the {{ jurisdiction.description }}{%endif%} {% if year %}{{ year }}{% endif %}
+                            </h3>
+                        </div>
+                        <div class="four wide right aligned column">
+
+                            {% if year%}
+
+                                <a class="ui left labeled icon mini blue compact button" href="{% last_year year%}"><i class="left arrow icon"></i>Previous Year</a>
+
+                                <a class="ui right labeled icon mini blue compact button"href="{% next_year year%}"><i class="right arrow icon"></i>Next Year</a>
+
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="four wide right aligned column">
 
-                        {% if year%}
+                    <div class="row">
 
-                            <a class="ui left labeled icon mini blue compact button" href="{% last_year year%}"><i class="left arrow icon"></i>Previous Year</a>
+                        <div class="twelve wide column">
+                            <div id="map"></div>
+                        </div>
+                        <div class="four wide column">
 
-                            <a class="ui right labeled icon mini blue compact button"href="{% next_year year%}"><i class="right arrow icon"></i>Next Year</a>
+                            <div class="ui fluid card">
+                                <div class="content">
+                                    <div class="header">Stats Panel</div>
+                                </div>
+                                <div class="content">
+                                    <p>Interesting stats here.</p>
+                                </div>
+                            </div>
 
-                        {% endif %}
+                        </div>
+
+
                     </div>
+                    <div class="row">
+
+                        <div class="ui column">
+
+                            {% include '_paginator.html '%}
+
+
+                            <table class="ui celled table tablesorter" style="font-size: 0.9em">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Stock ID</th>
+                                        <th scope="col">Agency</th>
+                                        <th scope="col">Lake</th>
+                                        <th scope="col">Site</th>
+                                        <th scope="col">Date</th>
+                                        <th scope="col">Species</th>
+                                        <th scope="col">Strain</th>
+                                        <th scope="col">Year Class</th>
+                                        <th scope="col">Life Stage</th>
+                                        <th scope="col">Stocking Methd</th>
+                                        <th scope="col">Mark</th>
+                                        <th scope="col">Yr.Eq.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for object in object_list %}
+
+                                        <tr>
+                                            <td> <a href="{% url 'stocking:stocking-event-detail' object.stock_id %}">{{ object.stock_id }}</a></td>
+                                            <td> {{ object.agency.abbrev }}</td>
+                                            <td> {{ object.lake.short_name }}</td>
+                                            <td title="{{ object.site }}"> {{ object.site }}</td>
+                                            <td> {{ object.date|date:"M-d-y" }}</td>
+                                            <td> {{ object.species.common_name | title }}</td>
+                                            <td> {{ object.strain_raw.strain.strain_label }}</td>
+                                            <td>{{ object.year_class }}</td>
+                                            <td> {{ object.lifestage.description | title }}</td>
+                                            <td> {{ object.stocking_method.description | title }}</td>                    <td>{{object.mark}}</td>
+                                            <td> {{ object.yreq_stocked | intcomma }}</td>
+
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+
+                            {% include '_paginator.html '%}
+
+                        </div>
+
+                    </div>
+
                 </div>
-
-                {% include '_paginator.html '%}
-
-
-                <table class="ui celled table tablesorter" style="font-size: 0.9em">
-                    <thead>
-                        <tr>
-                            <th scope="col">Stock ID</th>
-                            <th scope="col">Agency</th>
-                            <th scope="col">Lake</th>
-                            <th scope="col">Site</th>
-                            <th scope="col">Date</th>
-                            <th scope="col">Species</th>
-                            <th scope="col">Strain</th>
-                            <th scope="col">Year Class</th>
-                            <th scope="col">Life Stage</th>
-                            <th scope="col">Stocking Methd</th>
-                            <th scope="col">Mark</th>
-                            <th scope="col">Yr.Eq.</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for object in object_list %}
-
-                            <tr>
-                                <td> <a href="{% url 'stocking:stocking-event-detail' object.stock_id %}">{{ object.stock_id }}</a></td>
-                                <td> {{ object.agency.abbrev }}</td>
-                                <td> {{ object.lake.short_name }}</td>
-                                <td title="{{ object.site }}"> {{ object.site }}</td>
-                                <td> {{ object.date|date:"M-d-y" }}</td>
-                                <td> {{ object.species.common_name | title }}</td>
-                                <td> {{ object.strain_raw.strain.strain_label }}</td>
-                                <td>{{ object.year_class }}</td>
-                                <td> {{ object.lifestage.description | title }}</td>
-                                <td> {{ object.stocking_method.description | title }}</td>                    <td>{{object.mark}}</td>
-                                <td> {{ object.yreq_stocked | intcomma }}</td>
-
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                {% include '_paginator.html '%}
-
             </div>
-
 
         </div>
 
@@ -284,6 +186,11 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
 
 
+
+    <script src="//d3js.org/topojson.v1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+
+
     <script type="text/javascript">
 
 
@@ -302,5 +209,101 @@
      });
 
     </script>
+
+    <script type="text/javascript">
+
+     mapboxgl.accessToken = "pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ"
+
+
+
+     //Setup mapbox-gl map
+     var map = new mapboxgl.Map({
+         container: 'map', // container id
+         //style: 'mapbox://styles/enjalot/cihmvv7kg004v91kn22zjptsc',
+         style: 'mapbox://styles/mapbox/streets-v11',
+         center: [-81.857221, 45.194331],
+         //center: [-0.1,51.5119112],
+         zoom: 7,
+
+     })
+     //map.scrollZoom.disable()
+     //map.addControl(new mapboxgl.Navigation());
+
+     // Setup our svg layer that we can manipulate with d3
+     //     var container = map.getCanvasContainer()
+     //     var svg = d3.select(container).append("svg")
+     //
+     //     // we calculate the scale given mapbox state (derived from viewport-mercator-project's code)
+     //     // to define a d3 projection
+     //     function getD3() {
+     //         var bbox = document.body.getBoundingClientRect();
+     //         var center = map.getCenter();
+     //         var zoom = map.getZoom();
+     //         // 512 is hardcoded tile size, might need to be 256 or changed to suit your map config
+     //         var scale = (512) * 0.5 / Math.PI * Math.pow(2, zoom);
+     //
+     //         var d3projection = d3.geo.mercator()
+     //                              .center([center.lng, center.lat])
+     //                              .translate([bbox.width/2, bbox.height/2])
+     //                              .scale(scale);
+     //
+     //         return d3projection;
+     //     }
+     //     // calculate the original d3 projection
+     //     var d3Projection = getD3();
+     //
+     //     var path = d3.geo.path()
+     //
+     //     var url = "http://enjalot.github.io/wwsd/data/UK/london_stations.topojson";
+     //     d3.json(url, function(err, data) {
+     //         var points = topojson.feature(data, data.objects.london_stations)
+     //         //console.log(data[0], getLL(data[0]), project(data[0]))
+     //         var dots = svg.selectAll("circle.dot")
+     //                       .data(points.features)
+     //
+     //         dots.enter().append("circle").classed("dot", true)
+     //                       .attr("r", 1)
+     //                       .style({
+     //                           fill: "#0082a3",
+     //                           "fill-opacity": 0.6,
+     //                           stroke: "#004d60",
+     //                           "stroke-width": 1
+     //                       })
+     //                       .transition().duration(1000)
+     //                       .attr("r", 6)
+     //
+     //         function render() {
+     //             d3Projection = getD3();
+     //             path.projection(d3Projection)
+     //
+     //             dots
+     //                 .attr({
+     //                     cx: function(d) {
+     //                         var x = d3Projection(d.geometry.coordinates)[0];
+     //                         return x
+     //                     },
+     //                     cy: function(d) {
+     //                         var y = d3Projection(d.geometry.coordinates)[1];
+     //                         return y
+     //                     },
+     //                 })
+     //         }
+     //
+     //         // re-render our visualization whenever the view changes
+     //         map.on("viewreset", function() {
+     //             render()
+     //         })
+     //         map.on("move", function() {
+     //             render()
+     //         })
+     //
+     //         // render our initial visualization
+     //         render()
+     //     })
+
+    </script>
+
+
+
 
 {% endblock %}
