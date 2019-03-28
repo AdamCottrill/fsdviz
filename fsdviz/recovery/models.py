@@ -209,7 +209,7 @@ class Recovery(models.Model):
 
     class Meta:
         ordering = ['-recovery_event__year',
-                    'recovery_event__agengy__abbrev',
+                    'recovery_event__agency__abbrev',
                     'fish_identifier_key']
 
         unique_together = ['recovery_event', 'fish_identifier_key']

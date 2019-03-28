@@ -40,7 +40,7 @@ os.chdir(os.path.split(os.getcwd())[0])
 import sys
 import os
 
-SETTINGS_FILE = 'config.settings.local'
+SETTINGS_FILE = 'config.settings.ipython'
 
 #add the current directory to path so that we can find our settings files:
 sys.path.append(os.path.dirname(__file__))
