@@ -32,6 +32,37 @@ class StockingMethodSerializer(serializers.ModelSerializer):
         fields = ('stk_meth', 'description')
 
 
+class StockingEventMapSerializer(serializers.ModelSerializer):
+    """This is a paired down version of the stocking event serializer that
+    includes just those values need to create our maps.  The default
+    serializer contains a lot of extra incormation that is expensive to
+    calculate and not needed to put apoints on the make.
+
+    """
+
+    species = serializers.CharField(source='species.common_name',
+                                    read_only=True)
+    lifestage = serializers.CharField(source='lifestage.abbrev',
+                                      read_only=True)
+    events = serializers.IntegerField()
+    total_yreq_stocked = serializers.IntegerField()
+
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """ Perform necessary eager loading of data. """
+        queryset = queryset.prefetch_related('species',
+                                             'lifestage')
+        return queryset
+
+    class Meta:
+        model = StockingEvent
+        fields = ('geom', 'yreq_stocked', 'species', 'lifestage', 'events',
+                  'total_yreq_stocked')
+
+
+
+
 class StockingEventSerializer(serializers.ModelSerializer):
     """This is going it be one of the work-horses of our applicaiton.
     Todo - add Strain.

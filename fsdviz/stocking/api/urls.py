@@ -4,7 +4,7 @@ from django.urls import path
 from rest_framework.routers import SimpleRouter
 
 from .views import (LifeStageViewSet, ConditionViewSet, StockingMethodViewSet,
-                    StockingEventViewSet)
+                    StockingEventViewSet, StockingEventMapListView)
 
 app_name = "stocking"
 
@@ -52,6 +52,39 @@ urlpatterns += [
         'stocking_event/<stock_id>/',
         StockingEventViewSet.as_view({'get': 'retrieve'}),
         name='api-stocking-event-detail'),
+
+    #========================================
+    # simplified map serializers:
+    path(
+        'events/mapdata/',
+        StockingEventMapListView.as_view(),
+        name='api-stocking-event-map-list'),
+    path(
+        'events/mapdata/<int:year>/',
+        StockingEventMapListView.as_view(),
+        name='api-stocking-event-map-list-year'),
+    path(
+        'events/mapdata/<lake_name>/',
+        StockingEventMapListView.as_view(),
+        name='api-stocking-event-map-list-lake'),
+    path(
+        'events/mapdata/<lake_name>/<int:year>/',
+        StockingEventMapListView.as_view(),
+        name='api-stocking-event-map-list-lake-year'),
+    path(
+        'events/mapdata/jurisdiction/<jurisdiction>/',
+        StockingEventMapListView.as_view(),
+        name='api-stocking-event-map-list-jurisdiction'),
+    path(
+        'events/mapdata/jurisdiction/<jurisdiction>/<int:year>',
+        StockingEventMapListView.as_view(),
+        name='api-stocking-event-map-list-jurisdiction-year'),
+    path(
+        'events/mapdata/<lake_name>/<int:year>/',
+        StockingEventMapListView.as_view(),
+        name='api-stocking-event-map-list-lake-year'),
+
+
 ]
 
 # urlpatterns = [

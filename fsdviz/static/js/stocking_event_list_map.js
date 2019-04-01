@@ -18,27 +18,14 @@ const pgbbox_corners = (pgbbox) => {
     return [sw_corner, ne_corner];
 }
 
+// extract the coordinates from our point and return them in
+// numerical form as a two element array [lon, lat]:
 
-let mapBounds = pgbbox_corners(pgbbox);
-
-mapboxgl.accessToken = "pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ";
-
-//Setup mapbox-gl map
-let map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v11',
-    //center: [-81.857221, 45.194331],
-    //zoom: 7,
-    bounds: mapBounds
-
-});
-
-map.addControl(new mapboxgl.NavigationControl());
-
-
-//Setup our svg layer that we can manipulate with d3
-let  container = map.getCanvasContainer();
-let  svg = d3.select(container).append("svg");
+const get_coordinates = pt => {
+    let coords = pt.slice(pt.indexOf('(') + 1 ,pt.indexOf(')'))
+        .split(' ');
+    return [parseFloat(coords[0]), parseFloat(coords[1])];
+};
 
 
 // we calculate the scale given mapbox state (derived from viewport-mercator-project's code)
@@ -58,14 +45,6 @@ const getD3 = (mapid) => {
     return d3projection;
 }
 
-// extract the coordinates from our point and return them in
-// numerical form as a two element array [lon, lat]:
-
-const get_coordinates = pt => {
-    let coords = pt.slice(pt.indexOf('(') + 1 ,pt.indexOf(')'))
-        .split(' ');
-    return [parseFloat(coords[0]), parseFloat(coords[1])];
-};
 
 // we can project a lonlat coordinate pair using mapbox's built in projection function
 // takes an array of lon-lat and returns pixel corrdinates
@@ -75,31 +54,27 @@ const mapboxProjection = (lonlat) => {
 };
 
 
-// calculate the original d3 projection
-let  d3Projection = getD3('map');
-
-
 
 const update_map_bounds = (pts) => {
     //get the extends of our points and make sure reset the zoom of
     //our map to ensure that no points are missed at the orginal zoom:
-    const max_lon = d3.max(pts, d=>d.value.coordinates[0]);
-    const max_lat = d3.max(pts, d=>d.value.coordinates[1]);
-    const min_lon = d3.min(pts, d=>d.value.coordinates[0]);
-    const min_lat = d3.min(pts, d=>d.value.coordinates[1]);
+    const max_lon = d3.max(pts, d=>d.coordinates[0]);
+    const max_lat = d3.max(pts, d=>d.coordinates[1]);
+    const min_lon = d3.min(pts, d=>d.coordinates[0]);
+    const min_lat = d3.min(pts, d=>d.coordinates[1]);
 
     let sw_corner = mapBounds[0];
     let ne_corner = mapBounds[1];
 
-    sw_corner[0]  = sw_corner[0] < min_lon ? min_lon : sw_corner[0];
-    sw_corner[1]  = sw_corner[1] < min_lat ? min_lat : sw_corner[1];
+    sw_corner[0]  = sw_corner[0] > min_lon ? min_lon : sw_corner[0];
+    sw_corner[1]  = sw_corner[1] > min_lat ? min_lat : sw_corner[1];
 
-    ne_corner[0]  = ne_corner[0] > max_lon ? max_lon : ne_corner[0];
-    ne_corner[1]  = ne_corner[1] > max_lat ? max_lat : ne_corner[1];
+    ne_corner[0]  = ne_corner[0] < max_lon ? max_lon : ne_corner[0];
+    ne_corner[1]  = ne_corner[1] < max_lat ? max_lat : ne_corner[1];
 
     map.fitBounds([sw_corner, ne_corner]);
 
-}
+};
 
 
 
@@ -107,7 +82,7 @@ const update_summary_table = data => {
     // generate the html for rows of our summary table body.  for each species in data
     // we want to generate html that looks like this:
     //   <tr>
-    //       <td>${ row.common_name.title }</td>
+    //       <td>${ row.species }</td>
     //       <td>${ row.event_count }</td>
     //       <td>${ commaFormat(row.total_stocked) }</td>
     //   </tr>
@@ -129,13 +104,14 @@ const update_summary_table = data => {
 }
 
 
-
 const update_stats_panel = data =>{
+    // this function calculates the total number of fish stocked and
+    // the number of events by species and then updates the stat panel.
 
     let byspecies = d3.nest()
-        .key(d =>  d.species.common_name )
+        .key(d =>  d.species )
         .rollup(values => { return {
-            total: d3.sum(values, d => +d.yreq_stocked ),
+            total: d3.sum(values, d => +d.total_yreq_stocked ),
             events: values.length,
         };
                           })
@@ -159,13 +135,73 @@ const update_stats_panel = data =>{
 
 }
 
+// a generalized group by function for our points. It uses d3.nest to calculate the total number of events and fish stocked at each point.  'groupby' provides a second level of grouping. it returns an array of obj - one for each pt-group by combination (pt-species, pt-lifestage ect.). Each object contains a geom label, coordinates, value, and stat element.
+const group_pts = (data, groupby, value) => {
+
+   let pts = d3.nest()
+        .key(d =>  d.geom )
+        .key( d => d[groupby] )
+        .rollup(values => { return {
+            total: d3.sum(values, d => +d[value] ),
+            events: values.length,
+        };
+                          })
+        .entries(data);
+
+    let flat =[];
+
+    pts.forEach(pt=>{
+        pt.values.forEach(x=> {
+            flat.push({
+                geom:pt.key,
+                coordinates:get_coordinates(pt.key),
+                value:x.key,
+                stats:x.value});
+        });
+    });
+
+    //finally - sort our aggregated data from largest to smallest so
+    // that smaller points plot on top of larger ones and we can click
+    // or hover over them.
+    flat.sort((a,b) => b.stats.total - a.stats.total);
+
+    return flat;
+}
+
+
+
+let mapBounds = pgbbox_corners(pgbbox);
+
+mapboxgl.accessToken = "pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ";
+
+//Setup mapbox-gl map
+let map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11',
+    //center: [-81.857221, 45.194331],
+    //zoom: 7,
+    bounds: mapBounds
+
+});
+
+map.addControl(new mapboxgl.NavigationControl());
+
+
+//Setup our svg layer that we can manipulate with d3
+let  container = map.getCanvasContainer();
+let  svg = d3.select(container).append("svg");
 
 
 // by convention - our api urls will be the same as our view urls
 // except they will include the api and version number
 
+
+
 let api_url = window.location.href
-    .replace(window.location.host, window.location.host + '/api/v1');
+    .replace(window.location.host, window.location.host + '/api/v1')
+    // this is uglyl, but works for now:
+    .replace('/events/', '/events/mapdata/');
+
 
 d3.json(api_url).then((data) => {
 
@@ -173,52 +209,45 @@ d3.json(api_url).then((data) => {
 
     // now aggregate by point and species - how many events, now many fish.
 
-    // this will abstracted out to a function or series of
-    //functions that we can used to caluclate values using
-    //different levels of aggregation, or different agregators
-    //(species, strain, lifestage.)
-    let pts = d3.nest()
-        .key(d =>  d.geom )
-    //.key(d => d.species.common_name )
-        .rollup(values => { return {
-            total: d3.sum(values, d => +d.yreq_stocked ),
-            events: values.length,
-        };
-                          })
-        .entries(data);
-
-    pts.forEach(d=> d.value.coordinates=get_coordinates(d.key));
+    let pts = group_pts(data, 'species', 'total_yreq_stocked');
 
     update_map_bounds(pts);
 
+    const radiusAccessor = d => d.stats.total;
+    const fillAccessor = d => d.value;
 
+    const maxCircleSize = 50;
+    const radiusScale = d3.scaleSqrt()
+          .range([0, maxCircleSize])
+          .domain([0, d3.max(pts, radiusAccessor)]);
 
-    let  dots = svg.selectAll("circle.dot")
-        .data(pts);
+    const fillcategories = [...new Set(pts.map(x => fillAccessor(x)))];
 
-    dots.enter().append("circle").classed("dot", true)
-        .attr('cx', d => mapboxProjection(d.value.coordinates)[0])
-        .attr('cy', d => mapboxProjection(d.value.coordinates)[1])
-        .attr("r", 6)
-        .style({
-            fill: "#0082a3",
-            "fill-opacity": 0.6,
-            stroke: "#004d60",
-            "stroke-width": 1
-        });
+    let fillScale = d3.scaleOrdinal(d3.schemeCategory10)
+        .domain(fillcategories);
 
-
-    //debugger;
 
     function render() {
         d3Projection = getD3('map');
         //path.projection(d3Projection);
 
-        //select the dots again
-        let  dots = svg.selectAll("circle.dot");
+        let  dots = svg.selectAll("circle")
+            .data(pts, d => d.geom);
 
-        dots.attr('cx', d => mapboxProjection(d.value.coordinates)[0])
-            .attr('cy', d => mapboxProjection(d.value.coordinates)[1]);
+        dots.exit().remove();
+
+        const dotsEnter = dots.enter().append("circle")
+              .attr('class', 'stockingEvent')
+              .attr( 'r', d => radiusScale(radiusAccessor(d)))
+              .attr( 'fill', d => fillScale(fillAccessor(d)));
+
+        //select the dots again
+        //let  dots = svg.selectAll("circle.stockingEvent");
+        dots.merge(dotsEnter)
+            .attr('cx', d => mapboxProjection(d.coordinates)[0])
+            .attr('cy', d => mapboxProjection(d.coordinates)[1]);
+
+
 
     }
 
