@@ -7,6 +7,10 @@
 
 pgbbox = "POLYGON((-84.8052136556106 42.9479243183533,-84.8052136556106 46.5789677934838,-79.6071771544244 46.5789677934838,-79.6071771544244 42.9479243183533,-84.8052136556106 42.9479243183533))";
 
+
+// UTILITY FUNCTIONS:
+
+
 const pgbbox_corners = (pgbbox) => {
     // get the coordinates of each corner from the string:
     const corners = pgbbox.slice(pgbbox.indexOf('((') + 2, pgbbox.indexOf('))')).split(',');
@@ -27,54 +31,6 @@ const get_coordinates = pt => {
     return [parseFloat(coords[0]), parseFloat(coords[1])];
 };
 
-
-// we calculate the scale given mapbox state (derived from viewport-mercator-project's code)
-// to define a d3 projection
-const getD3 = (mapid) => {
-    let mapElement = document.getElementById(mapid);
-    var bbox = mapElement.getBoundingClientRect();
-
-    var center = map.getCenter();
-    var zoom = map.getZoom();
-    // 512 is hardcoded tile size, might need to be 256 or changed to suit your map config
-    var scale = (512) * 0.5 / Math.PI * Math.pow(2, zoom);
-    var d3projection = d3.geoMercator()
-        .center([center.lng, center.lat])
-        .translate([bbox.width/2, bbox.height/2])
-        .scale(scale);
-    return d3projection;
-}
-
-
-// we can project a lonlat coordinate pair using mapbox's built in projection function
-// takes an array of lon-lat and returns pixel corrdinates
-const mapboxProjection = (lonlat) => {
-    let pt = map.project(new mapboxgl.LngLat(lonlat[0], lonlat[1]));
-    return [pt.x, pt.y];
-};
-
-
-
-const update_map_bounds = (pts) => {
-    //get the extends of our points and make sure reset the zoom of
-    //our map to ensure that no points are missed at the orginal zoom:
-    const max_lon = d3.max(pts, d=>d.coordinates[0]);
-    const max_lat = d3.max(pts, d=>d.coordinates[1]);
-    const min_lon = d3.min(pts, d=>d.coordinates[0]);
-    const min_lat = d3.min(pts, d=>d.coordinates[1]);
-
-    let sw_corner = mapBounds[0];
-    let ne_corner = mapBounds[1];
-
-    sw_corner[0]  = sw_corner[0] > min_lon ? min_lon : sw_corner[0];
-    sw_corner[1]  = sw_corner[1] > min_lat ? min_lat : sw_corner[1];
-
-    ne_corner[0]  = ne_corner[0] < max_lon ? max_lon : ne_corner[0];
-    ne_corner[1]  = ne_corner[1] < max_lat ? max_lat : ne_corner[1];
-
-    map.fitBounds([sw_corner, ne_corner]);
-
-};
 
 
 
@@ -170,8 +126,33 @@ const group_pts = (data, groupby, value) => {
 
 
 
-let mapBounds = pgbbox_corners(pgbbox);
+const update_map_bounds = (pts) => {
+    //get the extends of our points and make sure reset the zoom of
+    //our map to ensure that no points are missed at the orginal zoom:
+    const max_lon = d3.max(pts, d=>d.coordinates[0]);
+    const max_lat = d3.max(pts, d=>d.coordinates[1]);
+    const min_lon = d3.min(pts, d=>d.coordinates[0]);
+    const min_lat = d3.min(pts, d=>d.coordinates[1]);
 
+    let sw_corner = mapBounds[0];
+    let ne_corner = mapBounds[1];
+
+    sw_corner[0]  = sw_corner[0] > min_lon ? min_lon : sw_corner[0];
+    sw_corner[1]  = sw_corner[1] > min_lat ? min_lat : sw_corner[1];
+
+    ne_corner[0]  = ne_corner[0] < max_lon ? max_lon : ne_corner[0];
+    ne_corner[1]  = ne_corner[1] < max_lat ? max_lat : ne_corner[1];
+
+    map.fitBounds([sw_corner, ne_corner]);
+
+};
+
+
+
+/// ACTUAL CODE
+
+
+let mapBounds = pgbbox_corners(pgbbox);
 mapboxgl.accessToken = "pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ";
 
 //Setup mapbox-gl map
@@ -186,7 +167,6 @@ let map = new mapboxgl.Map({
 
 map.addControl(new mapboxgl.NavigationControl());
 
-
 //Setup our svg layer that we can manipulate with d3
 let  container = map.getCanvasContainer();
 let  svg = d3.select(container).append("svg");
@@ -194,7 +174,6 @@ let  svg = d3.select(container).append("svg");
 
 // by convention - our api urls will be the same as our view urls
 // except they will include the api and version number
-
 
 
 let api_url = window.location.href
@@ -208,58 +187,19 @@ d3.json(api_url).then((data) => {
     update_stats_panel(data);
 
     // now aggregate by point and species - how many events, now many fish.
-
     let pts = group_pts(data, 'species', 'total_yreq_stocked');
 
     update_map_bounds(pts);
 
-    const radiusAccessor = d => d.stats.total;
-    const fillAccessor = d => d.value;
+    let overlay =  mapbox_overlay();
+    svg.data([pts]).call(overlay);
 
-    const maxCircleSize = 50;
-    const radiusScale = d3.scaleSqrt()
-          .range([0, maxCircleSize])
-          .domain([0, d3.max(pts, radiusAccessor)]);
-
-    const fillcategories = [...new Set(pts.map(x => fillAccessor(x)))];
-
-    let fillScale = d3.scaleOrdinal(d3.schemeCategory10)
-        .domain(fillcategories);
-
-
-    function render() {
-        d3Projection = getD3('map');
-        //path.projection(d3Projection);
-
-        let  dots = svg.selectAll("circle")
-            .data(pts, d => d.geom);
-
-        dots.exit().remove();
-
-        const dotsEnter = dots.enter().append("circle")
-              .attr('class', 'stockingEvent')
-              .attr( 'r', d => radiusScale(radiusAccessor(d)))
-              .attr( 'fill', d => fillScale(fillAccessor(d)));
-
-        //select the dots again
-        //let  dots = svg.selectAll("circle.stockingEvent");
-        dots.merge(dotsEnter)
-            .attr('cx', d => mapboxProjection(d.coordinates)[0])
-            .attr('cy', d => mapboxProjection(d.coordinates)[1]);
-
-
-
-    }
-
-    // re-render our visualization whenever the view changes
-    map.on("viewreset", function() {
-        render();
-    });
+   // re-render our visualization whenever the view changes
+   map.on("viewreset", function() {
+       svg.call(overlay);
+   });
     map.on("move", function() {
-        render();
-    });
-
-    // render our initial visualization
-    render();
+       svg.call(overlay);
+   });
 
 });
