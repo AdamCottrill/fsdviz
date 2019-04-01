@@ -11,6 +11,11 @@ const mapbox_overlay = () => {
     let maxCircleSize = 50;
     let fillColours = d3.schemeCategory10;
 
+    // the name of the field that uniquely identifies each point:
+    let keyfield = 'geom';
+
+    let pointInfoSelector = '#point-info';
+
     // we can project a lonlat coordinate pair using mapbox's built in projection function
     // takes an array of lon-lat and returns pixel corrdinates
 
@@ -19,6 +24,35 @@ const mapbox_overlay = () => {
     const mapboxProjection = (lonlat) => {
         let pt = map.project(new mapboxgl.LngLat(lonlat[0], lonlat[1]));
         return [pt.x, pt.y];
+    };
+
+
+    let get_pointInfo = d => {
+
+        let commaFormat = d3.format(',d');
+
+        let fish = commaFormat(d.stats.total);
+        let events = commaFormat(d.stats.events);
+
+
+        let html  =`<div class="ui card">
+        <div class="content">
+            <div class="header">${d.value}</div>
+        </div>
+        <div class="content">
+            <div class="ui small feed">
+                <div class="event">
+                    <div class="content">
+                        <ul>
+                            <li>${fish} Fish</li>
+                            <li>${events} Events</li>
+                        </ul>
+              </div>
+                      </div>
+                  </div>
+          </div>`;
+
+        return html;
     };
 
 
@@ -45,7 +79,28 @@ const mapbox_overlay = () => {
             const dotsEnter = dots.enter().append("circle")
                   .attr('class', 'stockingEvent')
                   .attr( 'r', d => radiusScale(radiusAccessor(d)))
-                  .attr( 'fill', d => fillScale(fillAccessor(d)));
+                  .attr( 'fill', d => fillScale(fillAccessor(d)))
+                  .on( 'click', function (d) {
+                     if (selected_event && selected_event === d[keyfield]){
+                         // second click on same circle, turn off selected and make point info empty:
+                         selected_event = null;
+                         d3.select(pointInfoSelector).html('');
+                         d3.selectAll('.selected').classed('selected', false);
+                     } else {
+                         // set selected, fill in map info and highlight our selected pie
+
+                         selected_event = d[keyfield];
+                         d3.select(pointInfoSelector).html(get_pointInfo(d));
+                         d3.selectAll('.selected').classed('selected', false);
+                         d3.select(this).classed('selected', true);
+                     }
+                  })
+                  .on( 'mouseover', function (d) {
+                      d3.select(this).classed('hover', true);
+                  })
+                  .on( 'mouseout', function (d) {
+                      d3.select(this).classed('hover', false);
+                  });
 
             dots.merge(dotsEnter)
                 .attr('cx', d => mapboxProjection(d.coordinates)[0])
@@ -93,6 +148,23 @@ const mapbox_overlay = () => {
         maxCircleSize = value;
         return chart;
     };
+
+
+    chart.pointInfoSelector = function(value) {
+        if (!arguments.length) return pointInfoSelector;
+        pointInfoSelector = value;
+        return chart;
+    };
+
+    // the function that populates point infor div with information
+    // about the selected point
+    chart.get_pointInfo = function(value) {
+        if (!arguments.length) return get_pointInfo;
+        get_pointInfo = value;
+        return chart;
+    };
+
+
 
 
 

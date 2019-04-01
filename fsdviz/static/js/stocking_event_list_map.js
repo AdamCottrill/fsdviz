@@ -91,7 +91,13 @@ const update_stats_panel = data =>{
 
 }
 
-// a generalized group by function for our points. It uses d3.nest to calculate the total number of events and fish stocked at each point.  'groupby' provides a second level of grouping. it returns an array of obj - one for each pt-group by combination (pt-species, pt-lifestage ect.). Each object contains a geom label, coordinates, value, and stat element.
+// a generalized group by function for our points. It uses d3.nest to
+// calculate the total number of events and fish stocked at each
+// point.  'groupby' provides a second level of grouping. it returns
+// an array of obj - one for each pt-group by combination (pt-species,
+// pt-lifestage ect.). Each object contains a geom label, coordinates,
+// value, and stat element.
+
 const group_pts = (data, groupby, value) => {
 
    let pts = d3.nest()
@@ -171,6 +177,7 @@ map.addControl(new mapboxgl.NavigationControl());
 let  container = map.getCanvasContainer();
 let  svg = d3.select(container).append("svg");
 
+let selected_event;
 
 // by convention - our api urls will be the same as our view urls
 // except they will include the api and version number
