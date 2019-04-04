@@ -131,6 +131,7 @@ LATLON_FLAG = [
     (5, "Derived from centroid management unit"),
     (6, "Derived from centroid of lake"),
 ]
+
 MANAGEMENT_UNITS = [
     # label, type, lake name, description, centroid_ddlon, centroid_ddlat
     (
@@ -239,7 +240,8 @@ MANAGEMENT_UNITS = [
     ("OS6", "mu", "Superior", "Ontario waters", -85.29175429, 47.82656857),
     ("OS7", "mu", "Superior", "Ontario waters", -84.68768692, 47.01007923),
     ("PENN", "mu", "Erie", "Pennsylvania waters", -80.180969, 42.147926),
-    ("SC", "mu", "St. Clair", "entire", -83.91625, 45.91737),
+    ("SC_MI", "mu", "St. Clair", "Michigan waters Lake St Clair", -83.91625, 45.91737),
+    ("SC_ON", "mu", "St. Clair", "Ontario waters Lake St Clair", -83.91625, 45.91737),
     ("WISC", "mu", "Superior", "Wisconsin waters", -90.506665, 47.072651),
     ("WM1", "mu", "Michigan", "Wisconsin waters", -87.54758889, 44.93516556),
     ("WM2", "mu", "Michigan", "Wisconsin waters", -87.17271, 45.22359167),
@@ -394,12 +396,11 @@ MANAGEMENT_UNITS = [
     ),
 ]
 
-#these are TOTALLY made up - add real values
+#these are the centroids of the SC-Michigan and SC-Ontario polygons
 SC_GRIDS = {
-    305: Centroid(ddlon=-82.876668, ddlat=42.373183),
-    306: Centroid(ddlon=-82.743458, ddlat=42.587899),
+    305: Centroid(ddlon=-82.76303, ddlat=42.536963),
+    306: Centroid(ddlon=-82.621351, ddlat=42.4005935)
 }
-
 
 HU_GRIDS = {
     #added for St mary's River

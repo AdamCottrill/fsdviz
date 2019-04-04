@@ -1,27 +1,32 @@
-from django.contrib import admin
+from django.contrib.gis import admin
 
 from .models import (Agency, Lake, StateProvince, ManagementUnit, Species,
-                     Strain, StrainRaw, Mark, LatLonFlag, CWT)
+                     Strain, StrainRaw, Mark, LatLonFlag, CWT, Jurisdiction)
 
 admin.site.empty_value_display = '(None)'
 
 @admin.register(Agency)
 class AgencyModelAdmin(admin.ModelAdmin):
-    list_display = ('abbrev', 'agency_name')
+    list_display = ('agency_name', 'abbrev')
     search_fields = ['agency_name']
 
 @admin.register(Lake)
-class LakeModelAdmin(admin.ModelAdmin):
-    list_display = ('abbrev', 'lake_name')
+class LakeModelAdmin(admin.OSMGeoAdmin):
+    list_display = ('lake_name', 'abbrev')
 
 
 @admin.register(StateProvince)
-class StateProvinceModelAdmin(admin.ModelAdmin):
-    list_display = ('abbrev', 'name', 'country')
+class StateProvinceModelAdmin(admin.OSMGeoAdmin):
+    list_display = ( 'name', 'abbrev', 'country')
 
+
+@admin.register(Jurisdiction)
+class JurisdictionModelAdmin(admin.OSMGeoAdmin):
+    list_display = ('name', 'lake', 'stateprov', 'description')
+    list_filter =  ('lake', 'stateprov')
 
 @admin.register(ManagementUnit)
-class ManagementUnitModelAdmin(admin.ModelAdmin):
+class ManagementUnitModelAdmin(admin.OSMGeoAdmin):
     list_display = ('label', 'lake', 'mu_type', 'description')
     list_filter =  ('lake', 'mu_type')
 
