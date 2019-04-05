@@ -30,7 +30,7 @@
         {% block navbar %}
 
             <div class="ui top attached menu">
-                <a class="item">
+                <a class="item" href="{% url 'home' %}" \>
                     <h3>Great Lakes Fish Stocking</h3>
                 </a>
                 <div class="ui dropdown icon item">
@@ -51,12 +51,14 @@
                                     <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'SU' year %}">Lake Superior</a></div>
                                     <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'MI' year %}">Lake Michigan</a></div>
                                     <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'HU' year %}">Lake Huron</a></div>
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'SC' year %}">St Clair</a></div>
                                     <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'ER' year %}">Lake Erie</a></div>
                                     <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'ON' year %}">Lake Ontario</a></div>
                                 {% else %}
                                     <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'SU' %}">Lake Superior</a></div>
                                     <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'MI' %}">Lake Michigan</a></div>
                                     <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'HU' %}">Lake Huron</a></div>
+                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'SC' %}">St Clair</a></div>
                                     <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'ER' %}">Lake Erie</a></div>
                                     <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'ON' %}">Lake Ontario</a></div>
                                 {%endif%}

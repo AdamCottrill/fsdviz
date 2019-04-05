@@ -70,7 +70,6 @@ const mapbox_overlay = () => {
             let fillScale = d3.scaleOrdinal(fillColours)
                 .domain(fillcategories);
 
-
             let  dots = selection.selectAll("circle")
                 .data(data, d => d.geom);
 

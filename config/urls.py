@@ -22,6 +22,9 @@ from rest_framework.documentation import include_docs_urls
 from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.views import get_swagger_view
 
+#our homepage:
+from fsdviz.stocking.views import StockingEventListLatestYear
+
 
 API_TITLE = 'Fish Stocking DataViz API'
 API_DESCRIPTION = 'A web API for Great Lakes Fish Stocking and Recovery Data'
@@ -51,6 +54,11 @@ urlpatterns = [
     path('api/docs/',
          include_docs_urls(title=API_TITLE, description=API_DESCRIPTION)),
     path('api/schema/', schema_view),
+
+
+    path('', StockingEventListLatestYear,
+         name='home'),
+
 
 ]
 

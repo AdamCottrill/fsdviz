@@ -5,6 +5,8 @@ The veiws in this file should all be publicly available as readonly.
 """
 from django.db.models import Count, Q, Sum
 from rest_framework import generics, viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
 
 from fsdviz.stocking.models import (LifeStage, Condition, StockingMethod,
                                     StockingEvent)
@@ -34,15 +36,13 @@ class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = StockingMethodSerializer
 
 
-
-
-
 class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
-
 
     serializer_class = StockingEventSerializer
     filterset_class = StockingEventFilter
     lookup_field = "stock_id"
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
 
     def get_queryset(self):
 
@@ -50,20 +50,15 @@ class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
         year = self.kwargs.get('year')
         jurisdiction = self.kwargs.get('jurisdiction')
 
-        #get the value of q from the request kwargs
+        # get the value of q from the request kwargs
         search_q = self.request.GET.get('q')
 
         queryset = StockingEvent.objects.all()
-        queryset = queryset.select_related('agency',
-                                           'jurisdiction',
-                                           'jurisdiction__stateprov',
-                                           'jurisdiction__lake',
-                                           'species', 'lifestage',
-                                           'grid_10', 'grid_10__lake',
-                                           'latlong_flag',
-                                           'strain_raw__strain',
-                                           'stocking_method')
-
+        queryset = queryset.select_related(
+            'agency', 'jurisdiction', 'jurisdiction__stateprov',
+            'jurisdiction__lake', 'species', 'lifestage', 'grid_10',
+            'grid_10__lake', 'latlong_flag', 'strain_raw__strain',
+            'stocking_method')
 
         if lake_name:
             # Return a filtered queryset
@@ -76,29 +71,31 @@ class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(jurisdiction__slug=jurisdiction)
 
         if search_q:
-            queryset = queryset.filter(Q(stock_id__icontains=search_q) |
-                                       Q(notes__icontains=search_q))
+            queryset = queryset.filter(
+                Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q))
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         #finally django-filter
-        filtered_list = StockingEventFilter(self.request.GET,
-                                            queryset=queryset)
+        filtered_list = StockingEventFilter(
+            self.request.GET, queryset=queryset)
 
         return filtered_list.qs
 
 
-
 class StockingEventMapListView(generics.ListAPIView):
     """A list view of stocking events. Events are aggregated to minimize
-    the number of recoreds returned.  Only filelds needed to create maps
+    the number of recoreds returned.  Only fields needed to create maps
     are included.
+
+    NOTE: we should consider changing the level of aggregation
+    depending on the spatial scale of the map this is called from. -
+    No need for lat-lon at the basin level.
 
     """
 
     serializer_class = StockingEventMapSerializer
-
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filterset_class = StockingEventFilter
-
 
     def get_queryset(self):
 
@@ -113,8 +110,10 @@ class StockingEventMapListView(generics.ListAPIView):
         queryset = queryset.select_related('species', 'lifestage')
 
         # count our events and sum the yreq_stocked
-        metrics = {'events': Count('id'), 'total_yreq_stocked':
-                   Sum('yreq_stocked')}
+        metrics = {
+            'events': Count('id'),
+            'total_yreq_stocked': Sum('yreq_stocked')
+        }
         queryset = queryset.annotate(**metrics)
 
         if lake_name:
@@ -128,16 +127,12 @@ class StockingEventMapListView(generics.ListAPIView):
             queryset = queryset.filter(jurisdiction__slug=jurisdiction)
 
         if search_q:
-            queryset = queryset.filter(Q(stock_id__icontains=search_q) |
-                                       Q(notes__icontains=search_q))
+            queryset = queryset.filter(
+                Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q))
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         #finally django-filter
-        filtered_list = StockingEventFilter(self.request.GET,
-                                            queryset=queryset)
-
-
-
-
+        filtered_list = StockingEventFilter(
+            self.request.GET, queryset=queryset)
 
         return filtered_list.qs

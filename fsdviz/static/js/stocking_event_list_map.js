@@ -22,6 +22,8 @@ const pgbbox_corners = (pgbbox) => {
     return [sw_corner, ne_corner];
 }
 
+console.log('pgbbox_corners(pgbbox) = ', pgbbox_corners(pgbbox));
+
 // extract the coordinates from our point and return them in
 // numerical form as a two element array [lon, lat]:
 
@@ -158,7 +160,9 @@ const update_map_bounds = (pts) => {
 /// ACTUAL CODE
 
 
-let mapBounds = pgbbox_corners(pgbbox);
+//let mapBounds = pgbbox_corners(pgbbox);
+let mapBounds = [bbox.slice(0,2), bbox.slice(2)];
+console.log('mapBounds = ', mapBounds);
 mapboxgl.accessToken = "pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ";
 
 //Setup mapbox-gl map
@@ -186,8 +190,7 @@ let selected_event;
 let api_url = window.location.href
     .replace(window.location.host, window.location.host + '/api/v1')
     // this is uglyl, but works for now:
-    .replace('/events/', '/events/mapdata/');
-
+    .replace('/events/', '/mapdata/events/');
 
 d3.json(api_url).then((data) => {
 

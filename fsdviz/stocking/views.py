@@ -2,9 +2,10 @@
 Views associated with our stocking application.
 '''
 
-from django.shortcuts import render
-from django.db.models import Count, Q
-
+from django.shortcuts import redirect
+from django.db.models import Count, Q, Max
+from django.urls import reverse
+import json
 
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
@@ -14,6 +15,20 @@ from .models import StockingEvent
 from .filters import StockingEventFilter
 
 from django.shortcuts import get_object_or_404
+
+
+def StockingEventListLatestYear(request):
+    """Get the most recent year of stockin and
+    pass the information onto our annual_events view.
+    """
+
+    latest_year = StockingEvent.objects.all().aggregate(Max('year'))
+    url = reverse(
+        'stocking:stocking-event-list-year',
+        kwargs={'year': latest_year.get('year__max')})
+
+    return redirect(url)
+
 
 class StockingEventListView(ListView):
     '''
@@ -67,19 +82,20 @@ class StockingEventListView(ListView):
     '''
 
     model = StockingEvent
-    paginate_by = 200
+    paginate_by = 50
     template_name = 'stocking\stocking_event_list.html'
     filter_class = StockingEventFilter
 
     def get_context_data(self, **kwargs):
-        context = super(StockingEventListView,
-                        self).get_context_data(**kwargs)
+        context = super(StockingEventListView, self).get_context_data(**kwargs)
 
         context['search_criteria'] = self.request.GET.get('q')
 
         lake_name = self.kwargs.get('lake_name')
         if lake_name:
             lake = Lake.objects.get(abbrev=lake_name)
+            extent = lake.shoreline.extent
+            context['extent'] = json.dumps(extent)
             context['lake'] = lake
 
         year = self.kwargs.get('year')
@@ -89,7 +105,8 @@ class StockingEventListView(ListView):
         jurisdiction_slug = self.kwargs.get('jurisdiction')
         if jurisdiction_slug:
             jurisdiction = Jurisdiction.objects.get(slug=jurisdiction_slug)
-            context['jurisdiction'] = jurisdiction
+            extent = jurisdiction.shoreline.extent
+            context['extent'] = json.dumps(extent)
 
         context['year_list'] = self.object_list.\
                                values_list('year').\
@@ -133,7 +150,6 @@ class StockingEventListView(ListView):
                                                       order_by()
         return context
 
-
     def get_queryset(self):
 
         lake_name = self.kwargs.get('lake_name')
@@ -145,27 +161,16 @@ class StockingEventListView(ListView):
 
         queryset = StockingEvent.objects.all()
 
-        queryset = queryset.select_related('agency',
-                                           'jurisdiction',
-                                           'jurisdiction__stateprov',
-                                           'jurisdiction__lake',
-                                           'species', 'lifestage',
-                                           'grid_10', 'grid_10__lake',
-                                           'latlong_flag',
-                                           'strain_raw__strain',
-                                           'stocking_method')
+        queryset = queryset.select_related(
+            'agency', 'jurisdiction', 'jurisdiction__stateprov',
+            'jurisdiction__lake', 'species', 'lifestage', 'grid_10',
+            'grid_10__lake', 'latlong_flag', 'strain_raw__strain',
+            'stocking_method')
 
-        queryset = queryset.prefetch_related('species', 'agency', 'condition',
-                                             'stocking_method',
-                                             'grid_10',
-                                             'grid_10__lake',
-                                             'jurisdiction',
-                                             'jurisdiction__lake',
-                                             'jurisdiction__stateprov',
-                                             'latlong_flag',
-                                             'lifestage')
-
-
+        queryset = queryset.prefetch_related(
+            'species', 'agency', 'condition', 'stocking_method', 'grid_10',
+            'grid_10__lake', 'jurisdiction', 'jurisdiction__lake',
+            'jurisdiction__stateprov', 'latlong_flag', 'lifestage')
 
         if lake_name:
             # Return a filtered queryset
@@ -178,16 +183,15 @@ class StockingEventListView(ListView):
             queryset = queryset.filter(jurisdiction__slug=jurisdiction)
 
         if search_q:
-            queryset = queryset.filter(Q(stock_id__icontains=search_q) |
-                                       Q(notes__icontains=search_q))
+            queryset = queryset.filter(
+                Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q))
 
         #import pdb; pdb.set_trace()
         #finally django-filter
-        filtered_list = StockingEventFilter(self.request.GET,
-                                            queryset=queryset)
+        filtered_list = StockingEventFilter(
+            self.request.GET, queryset=queryset)
 
         return filtered_list.qs
-
 
 
 class StockingEventDetailView(DetailView):
@@ -203,7 +207,6 @@ class StockingEventDetailView(DetailView):
     :template:`stocking/stocking_detail.html`
 
     '''
-
 
     model = StockingEvent
     template_name = 'stocking\stocking_detail.html'

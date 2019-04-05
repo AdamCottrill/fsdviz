@@ -1,7 +1,8 @@
 from django.urls import path
 
 from .views import (StockingEventListView,
-                    StockingEventDetailView)
+                    StockingEventDetailView,
+                    StockingEventListLatestYear)
 
 app_name = 'stocking'
 
@@ -28,7 +29,8 @@ urlpatterns = [
     path('events/<lake_name>/<int:year>/', StockingEventListView.as_view(),
          name='stocking-event-list-lake-year'),
 
-
+    path('events/', StockingEventListLatestYear,
+         name='stocking-event-latest-year'),
 
     path('event_detail/<stock_id>/', StockingEventDetailView.as_view(),
          name='stocking-event-detail'),

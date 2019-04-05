@@ -56,31 +56,31 @@ urlpatterns += [
     #========================================
     # simplified map serializers:
     path(
-        'events/mapdata/',
+        'mapdata/events/',
         StockingEventMapListView.as_view(),
         name='api-stocking-event-map-list'),
     path(
-        'events/mapdata/<int:year>/',
+        'mapdata/events/<int:year>/',
         StockingEventMapListView.as_view(),
         name='api-stocking-event-map-list-year'),
     path(
-        'events/mapdata/<lake_name>/',
+        'mapdata/events/<lake_name>/',
         StockingEventMapListView.as_view(),
         name='api-stocking-event-map-list-lake'),
     path(
-        'events/mapdata/<lake_name>/<int:year>/',
+        'mapdata/events/<lake_name>/<int:year>/',
         StockingEventMapListView.as_view(),
         name='api-stocking-event-map-list-lake-year'),
     path(
-        'events/mapdata/jurisdiction/<jurisdiction>/',
+        'mapdata/events/jurisdiction/<jurisdiction>/',
         StockingEventMapListView.as_view(),
         name='api-stocking-event-map-list-jurisdiction'),
     path(
-        'events/mapdata/jurisdiction/<jurisdiction>/<int:year>',
+        'mapdata/events/jurisdiction/<jurisdiction>/<int:year>',
         StockingEventMapListView.as_view(),
         name='api-stocking-event-map-list-jurisdiction-year'),
     path(
-        'events/mapdata/<lake_name>/<int:year>/',
+        'mapdata/events/<lake_name>/<int:year>/',
         StockingEventMapListView.as_view(),
         name='api-stocking-event-map-list-lake-year'),
 
