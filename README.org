@@ -1,0 +1,37 @@
+* Great Lakes Fish Stocking Data Visualization
+
+The objective of this project is to develop an interactive tool for
+Great Lakes fishery managers to visualize fish stocking events and
+recoveries.
+
+Fish stocking is an important tool used by resource management
+agencies for fishery rehabilitation and supplementation in support of
+the Fish Community Objectives (FCOs). Over 400 million fish have been
+stocked into the Great Lakes and their tributaries in the past 10
+years alone.  While these stocking events are reported to the GLFC and
+available in a fish stocking database maintained by the U.S. Fish and
+Wildlife Service (USFWS), the database has a limited interface and no
+interactivity.
+
+This project will leverage existing tools and data to produce an
+interactive, web based visualization of stocking events in the Great
+Lakes.  Once completed, managers, agency staff, and the public will be
+able to visualize and interact with data on stocking events and
+subsequent recoveries.
+
+Stocking is a high profile fisheries management activity that garners
+a lot of public interest.  The Great Lakes Fish Stocking Database
+(GLFSD), available at the GLFC website, inventories all agency
+stocking events and allows users to download raw stocking data.
+However, the database has a limited user interface and no
+interactivity, thus limiting its utility by managers and the general
+public.  At present, users must download the database and create their
+own summaries and graphics, or search for specific stocking events
+based on some characteristic of interest (year, grid, tag code, fin
+clip, etc.).
+
+A visualization tool summarizing the dynamics of stocked fish in the
+Great Lakes would put scientific information at managers' fingertips
+and allow for improved stocking program design and decisions.  The
+application will also be a valuable communication tool that managers
+can use with the public.
