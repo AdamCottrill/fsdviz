@@ -182,10 +182,8 @@
 
             <div  class="ten wide column" >
                 <div class="ui segment">
-                    <h5>map</h5>
-                    {{ object.lake.shoreline.extent|json_script:"map-bounds" }}
 
-                    <div id="map" style='width: 800px; height: 600px;'></div>
+                    <div id="map" style='width: 650px; height: 600px;'></div>
 
                 </div>
             </div>
@@ -252,6 +250,8 @@
 
 {% block extra_js %}
 
+
+    {{ object.lake.shoreline.extent|json_script:"map-bounds" }}
 
     <script type="text/javascript">
 
