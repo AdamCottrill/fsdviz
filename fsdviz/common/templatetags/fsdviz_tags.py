@@ -9,7 +9,6 @@ from django import template
 register = template.Library()
 
 
-
 @register.filter(name='format_cwt')
 def format_cwt(x):
     '''

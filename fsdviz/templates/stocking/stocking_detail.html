@@ -11,6 +11,9 @@
      }
     </style>
 
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.css' rel='stylesheet' />
+
 {% endblock %}
 
 {% block content %}
@@ -180,6 +183,10 @@
             <div  class="ten wide column" >
                 <div class="ui segment">
                     <h5>map</h5>
+                    {{ object.lake.shoreline.extent|json_script:"map-bounds" }}
+
+                    <div id="map" style='width: 800px; height: 600px;'></div>
+
                 </div>
             </div>
         </div>
@@ -270,6 +277,45 @@
          });
      });
 
+
+     let bbox = JSON.parse(document.getElementById('map-bounds').textContent);
+     let mapBounds = [bbox.slice(0,2), bbox.slice(2)];
+
+     mapboxgl.accessToken = 'pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ';
+     let map = new mapboxgl.Map({
+         container: 'map',
+         style: 'mapbox://styles/mapbox/streets-v9',
+         bounds: mapBounds
+     });
+
+
+     // add our stocking event loction as a circle (rather than a stylized marker.)
+     map.on('load', function () {
+
+         map.addSource('point', {
+             "type": "geojson",
+             "data": {
+                 "type": "Point",
+                 "coordinates": [
+                     {{ object.geom.x }}, {{ object.geom.y }}
+                 ]
+             }
+         });
+
+         map.addLayer({
+             "id": "point",
+             "source": "point",
+             "type": "circle",
+             "paint": {
+                 "circle-radius": 6,
+                 "circle-color": "#f00b0b",
+                 "circle-stroke-color": "#8C0202",
+                 "circle-stroke-width": 1,
+                 "circle-opacity": 0.6
+             }
+         });
+
+     })
 
     </script>
 
