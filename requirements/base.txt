@@ -14,7 +14,7 @@ django-cors-headers==2.5.2
 django-filter==2.0.0
 django-rest-auth==0.9.3
 django-rest-swagger==2.2.0
-django==2.1.4
+django==2.2
 djangorestframework==3.9.0
 idna==2.8                 # via requests
 itypes==1.1.0             # via coreapi
@@ -27,5 +27,6 @@ pyyaml==5.1
 requests==2.21.0          # via coreapi
 simplejson==3.16.0        # via django-rest-swagger
 six==1.12.0               # via django-rest-auth
+sqlparse==0.3.0           # via django
 uritemplate==3.0.0        # via coreapi
 urllib3==1.24.1           # via requests
