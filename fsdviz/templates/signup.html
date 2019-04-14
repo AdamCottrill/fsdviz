@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Sign Up
+{% endblock %}
+
+
+{% block extra_head %}
+    <style type="text/css" media="screen">
+
+
+     body > .grid {
+         height: 80%;
+     }
+
+     .column {
+         max-width: 550px;
+     }
+
+    </style>
+{% endblock %}
+
+
+{% block content %}
+
+
+    <div class="ui middle aligned center aligned grid">
+        <div class="column">
+
+            <div class="ui centered card fluid" >
+                <div class="content">
+                    <div class="header">Sign-Up</div>
+                </div>
+                <div class="content">
+
+                    <form class="ui form" method="post">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                            <div class="ui negative message">
+                                <div class="header">
+                                    Please fix the errors in the form below.
+                                </div>
+                                {% if form.errors %}
+                                    <ul class="list">
+                                        {% for field in form %}
+                                            {% for error in field.errors %}
+                                                <li class="error">{{ error|escape }}</li>
+                                            {% endfor %}
+                                        {% endfor %}
+                                        {% for error in form.non_field_errors %}
+                                            <li class="error">{{ error|escape }}</li>
+                                        {% endfor %}
+                                {% endif %}                                
+                                    </ul>
+                            </div>
+                        {% endif %}
+
+                        {% if msg %}
+                            <div class="ui negative message">
+                                {{ msg }}
+                            </div>
+                        {% endif %}
+
+
+                        <div  class="ui grid" >
+                            <div  class="eight wide column" >
+                                <!-- first_name -->
+                                <div class="field {% if form.first_name.errors %} error{% endif %}">
+                                    {{ form.first_name.label_tag }}
+                                    {{ form.first_name }}
+                                    <small>{{ form.first_name.help_text}}</small>
+
+                                </div>
+                                {% if form.first_name.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.first_name.errors %}
+                                                <li>{{ error|escape }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div> 
+
+                            <div  class="eight wide column" >
+                                <!-- last_name -->
+                                <div class="field {% if form.last_name.errors %} error{% endif %}">
+                                    {{ form.last_name.label_tag }}
+                                    {{ form.last_name }}
+                                    <small>{{ form.last_name.help_text}}</small>
+
+                                </div>
+                                {% if form.last_name.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.last_name.errors %}
+                                                <li>{{ error|escape }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div> 
+
+                        <!-- Email -->
+                        <div class="field {% if form.email.errors %} error{% endif %}">
+                            {{ form.email.label_tag }}
+                            {{ form.email }}
+
+                        </div>
+                        {% if form.email.errors %}
+                            <div class="ui warning message">
+                                <ul class="list">
+                                    {% for error in form.email.errors %}
+                                        <li>{{ error|escape }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+
+                        <!-- password1 -->
+                        <div class="field {% if form.password1.errors %} error{% endif %}">
+                            {{ form.password1.label_tag }}
+                            {{ form.password1 }}
+
+                            <div class="ui accordion">
+                                <div class="title active">
+                                    <i class="dropdown icon"></i>
+                                </div>
+                                <div class="content">
+                                    <p class="transition visible" style="display: block !important;">
+                                        
+                                        <div class="ui segment">
+                                            <small>{{ form.password1.help_text }}</small>
+                                        </div>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if form.password1.errors %}
+                            <div class="ui warning message">
+                                <ul class="list">
+                                    {% for error in form.password1.errors %}
+                                        <li>{{ error|escape }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+
+                        <!-- password2 -->
+                        <div class="field {% if form.password2.errors %} error{% endif %}">
+                            {{ form.password2.label_tag }}
+                            {{ form.password2 }}
+                            <small>{{ form.password2.help_text}}</small>
+                        </div>
+
+                        {% if form.password2.errors %}
+                            <div class="ui warning message">
+                                <ul class="list">
+                                    {% for error in form.password2.errors %}
+                                        <li>{{ error|escape }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+
+
+                        <button class="ui right floated small primary button" type="submit">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+    <script type="text/javascript">
+
+     $('.ui.accordion')
+         .accordion()
+     ;
+
+    </script>
+
+{% endblock %}

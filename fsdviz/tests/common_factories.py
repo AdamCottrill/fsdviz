@@ -23,7 +23,7 @@ class LakeFactory(factory.DjangoModelFactory):
 
     abbrev = "HU"
     lake_name = "Huron"
-    centroid = GEOSGeometry('POINT(-81.0 45.0)', srid=4326)
+
 
 
 class AgencyFactory(factory.DjangoModelFactory):
@@ -82,7 +82,6 @@ class ManagementUnitFactory(factory.DjangoModelFactory):
 
     label = 'MH-1'
     description = 'A management unit in Lake Huron'
-    centroid = GEOSGeometry('POINT(-81.0 45.0)', srid=4326)
     lake = factory.SubFactory(LakeFactory)
     mu_type = 'mu'
 

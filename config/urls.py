@@ -34,8 +34,11 @@ schema_view = get_swagger_view(title=API_TITLE)
 urlpatterns = [
     path('coregonusclupeaformis/doc/',
          include('django.contrib.admindocs.urls')),
-    path('coregonusclupeaformis/', admin.site.urls)
-    ,
+    path('coregonusclupeaformis/', admin.site.urls),
+
+    path('users/', include('fsdviz.myusers.urls')),
+    path('users/', include('django.contrib.auth.urls')),
+
     path('stocking/', include('fsdviz.stocking.urls', namespace='stocking')),
     #path('cwt/', include('cwt.urls')),
 

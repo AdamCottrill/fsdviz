@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Login
+{% endblock %}
+
+
+{% block extra_head %}
+    <style type="text/css" media="screen">
+
+
+     body > .grid {
+         height: 80%;
+     }
+
+     .column {
+         max-width: 450px;
+     }
+
+    </style>
+{% endblock %}
+
+
+
+
+{% block content %}
+
+    
+    <div class="ui middle aligned center aligned grid">
+        <div class="column">
+
+            <div class="ui centered card fluid">
+                <div class="content">
+                    <div class="header">Login</div>
+                </div>
+                <div class="content">
+
+                    <form class="ui form" method="post">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                            <div class="ui negative message">
+                                <div class="header">
+                                    Please fix the errors in the form below.
+                                </div>
+                                {% if form.errors %}
+                                    <ul class="list">
+                                        {% for field in form %}
+                                            {% for error in field.errors %}
+                                                <li class="error">{{ error|escape }}</li>
+                                            {% endfor %}
+                                        {% endfor %}
+                                        {% for error in form.non_field_errors %}
+                                            <li class="error">{{ error|escape }}</li>
+                                        {% endfor %}
+                                {% endif %}                                
+                                    </ul>
+                            </div>
+                        {% endif %}
+
+                        
+                        {% if msg %}
+                            <div class="ui negative message">
+                                {{ msg }}
+                            </div>
+                        {% endif %}
+
+                        <!-- email -->
+                        <div class="field {% if form.username.errors %} error{% endif %}">
+                            {{ form.username.label_tag }}
+                            {{ form.username }}
+                        </div>
+                        {% if form.username.errors %}
+                            <div class="ui warning message">
+                                <ul class="list">
+                                    {% for error in form.username.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <!-- password -->                        
+                        <div class="field {% if form.password.errors %} error{% endif %}">
+                            {{ form.password.label_tag }}
+                            {{ form.password }}
+                        </div>
+
+                        {% if form.password.errors %}
+                            <div class="ui warning message">
+                                <ul class="list">
+                                    {% for error in form.password.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+
+
+
+
+                        <button class="ui right floated small primary button" type="submit">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+{% endblock %}

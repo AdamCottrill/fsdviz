@@ -71,7 +71,7 @@ class Lake(models.Model):
     abbrev = models.CharField(max_length=2, unique=True)
     lake_name = models.CharField(max_length=30, unique=True)
     shoreline = models.MultiPolygonField(srid=4326, blank=True, null=True)
-    centroid = models.PointField(srid=4326)
+    #centroid = models.PointField(srid=4326)
 
     class Meta:
         ordering = ["abbrev"]
@@ -145,7 +145,7 @@ class Jurisdiction(models.Model):
 
     # bounding box of all stocking events - including tributaries and
     # self.shoreline
-    extents = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    # extents = models.MultiPolygonField(srid=4326, blank=True, null=True)
 
     class Meta:
         ordering = ["name"]
@@ -180,8 +180,14 @@ class ManagementUnit(models.Model):
     slug = models.SlugField(blank=True, unique=True, editable=False)
     description = models.CharField(max_length=300)
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
-    centroid = models.PointField(srid=4326)
+    #centroid = models.PointField(srid=4326)
     lake = models.ForeignKey(Lake, default=1, on_delete=models.CASCADE)
+
+    primary = models.BooleanField(
+        "Primary management unit type for this jurisdiciton.",
+        default=False,
+        db_index=True,
+    )
 
     MU_TYPE_CHOICES = (
         ("mu", "Management Unit"),
