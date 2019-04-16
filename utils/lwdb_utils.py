@@ -77,6 +77,9 @@ def get_stocking_method(val, default):
     - `val`:
     - `default`:
     """
+    if val is None:
+        return default
+
     try:
         item = StockingMethod.objects.get(stk_meth=val.lower())
         return item
@@ -345,26 +348,91 @@ def associate_cwt(event, cwt_number, seq_start=1, seq_end=1,
 
     event.cwt_series.add(cwt_seq)
 
-#
-#    session.add_all([event, cwt_obj, cwt_seq])
-#    if commit:
-#        session.commit()
-#    return session
+
+def recode_mark(mark, mark_shouldbe, no_mark='XX'):
+    """A little helper function to remap clips to standard values that can
+    then be parsed.
+
+    Replaces BP with LPRP so ADBP becomes ADLPRP.
+
+    Arguments:
+    - `mark`: A mark string returned by the glfc database.
+
+    - `mark_shouldbe`: a dictionary mapping values that are known to
+      be ambiguous to their unambiguous counterpart
+
+    - `no_mark`: the string to be used to represent records without
+    any marking information.
+
+    """
+    mark = no_mark if (mark is None or mark is '') else mark
+    for key, val in mark_shouldbe.items():
+        mark = mark.replace(key,val)
+    tmp = mark_shouldbe.get(mark)
+    if tmp:
+        return tmp
+    else:
+        return mark
+
+
+def check_null_records(field, table, cursor, record_count, report_width):
+    """for for null records in the field <field> in the table <table>.
+    Used by the script "check_stocking_data.py"
+
+    Arguments:
+    - `field`:
+    - `table`:
+    - `cursor`:
+    - `record_count`:
+
+    """
+
+    sql = "select stock_id from [{}] where [{}] is null or [{}]='';"
+
+    mdbcur.execute(sql.format(table, field, field))
+    rs = mdbcur.fetchall()
+
+    if len(rs):
+        missing = [str(x[0]) for x in rs[:record_count]]
+        msg = "Oh-oh! Found records where {} is null or empty(n={}) for example:\n\t"
+        msg = msg.format(field, len(rs)) + ',\n\t'.join(missing)
+
+    else:
+        msg = "Checking for records with null or empty {}".format(field)
+        msg = '{msg:.<{width}}OK'.format(width=report_width, msg=msg)
+    print(msg)
 
 
 
 
 
 
+def get_or_create_rawStrain(species, raw_strain):
+    """The strain values that are provided to the glfc, are free-form
+    text, which means that there is almost infinite number
+    possibilities.  This function tries to get the associated strain,
+    given the speceis and strain string. If it does not exist, it will
+    get or greate an unknown/undocumented strain object and use that
+    as the strain for this instance.
 
+    Arguments:
+    - `species`:
+    - `rawstrain`:
 
+    """
 
+    raw_strain = raw_strain if raw_strain else 'UNKN'
 
+    try:
+        mystrain =  StrainRaw.objects.get(species=species, raw_strain=raw_strain)
+    except StrainRaw.DoesNotExist:
+        unknown_strain, created = Strain.objects.get_or_create(
+            strain_species=species, strain_code='UNKN', strain_label='Unknown')
+        mystrain = StrainRaw(species=species, strain=unknown_strain, raw_strain=raw_strain)
+        unknown_strain.save()
+        mystrain.save()
 
-
-
-
-
+    return mystrain
 
 
 
@@ -379,31 +447,6 @@ def associate_cwt(event, cwt_number, seq_start=1, seq_end=1,
 #  #get_mark_codes('AD', clips)
 #  #get_mark_codes('RPAD', clips)
 #
-#
-#  def recode_mark(mark, mark_shouldbe, no_mark='XX'):
-#      """A little helper function to remap clips to standard values that can
-#      then be parsed.
-#
-#      Replaces BP with LPRP so ADBP becomes ADLPRP.
-#
-#      Arguments:
-#      - `mark`: A mark string returned by the glfc database.
-#
-#      - `mark_shouldbe`: a dictionary mapping values that are known to
-#        be ambiguous to their unambiguous counterpart
-#
-#      - `no_mark`: the string to be used to represent records without
-#      any marking information.
-#
-#      """
-#      mark = no_mark if (mark is None or mark is '') else mark
-#      for key, val in mark_shouldbe.items():
-#          mark = mark.replace(key,val)
-#      tmp = mark_shouldbe.get(mark)
-#      if tmp:
-#          return tmp
-#      else:
-#          return mark
 #
 #
 #  def clip_to_mark(clipc, clip_dict):

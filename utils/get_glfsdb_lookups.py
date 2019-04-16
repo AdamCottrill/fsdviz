@@ -68,8 +68,7 @@ my_list = []
 for item in common.LAKE:
     obj = Lake(
         abbrev=item[0],
-        lake_name=item[1],
-        centroid=Point(item[2].ddlon, item[2].ddlat))
+        lake_name=item[1])
     my_list.append(obj)
 Lake.objects.bulk_create(my_list, batch_size=10000)
 print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
@@ -118,8 +117,8 @@ for item in common.MANAGEMENT_UNITS:
         label=item[0],
         mu_type=item[1],
         lake=Lake.objects.get(lake_name="Lake " + item[2]),
-        description=item[3],
-        centroid=Point(item[4], item[5]),
+        description=item[3]
+        #centroid=Point(item[4], item[5]),
     )
     obj.save()
 

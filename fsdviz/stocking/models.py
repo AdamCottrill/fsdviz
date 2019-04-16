@@ -169,7 +169,7 @@ class StockingEvent(models.Model):
                              db_index=True)
 
     mark = models.CharField('Chemical, tag, or finclip mark applied to fish',
-                            max_length=15, blank=True, null=True,
+                            max_length=50, blank=True, null=True,
                             db_index=True)
 
     mark_eff = models.FloatField('Marking efficency as a percentage',

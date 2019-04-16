@@ -17,8 +17,12 @@ import shapefile
 
 #the location of our source shapefiles and associated output
 
-SHP_SRC = './shapefiles'
-SHP_TRG = './output'
+
+
+SHP_DIR = "C:/Users/COTTRILLAD/Documents/1work/Python/geopy"
+
+SHP_SRC = os.path.join(SHP_DIR, 'shapefiles')
+SHP_TRG = os.path.join(SHP_DIR, 'output')
 
 #pg connections parameters
 con_pars = {
