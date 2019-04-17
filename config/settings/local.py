@@ -1,5 +1,8 @@
 from config.settings.base import *
 
+#GEOS_LIBRARY_PATH = '/usr/local/lib/libgeos_c.so'
+GDAL_LIBRARY_PATH = '/usr/local/lib/libgdal.so'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

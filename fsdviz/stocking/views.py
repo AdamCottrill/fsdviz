@@ -83,7 +83,7 @@ class StockingEventListView(ListView):
 
     model = StockingEvent
     paginate_by = 50
-    template_name = 'stocking\stocking_event_list.html'
+    template_name = 'stocking/stocking_event_list.html'
     filter_class = StockingEventFilter
 
     def get_context_data(self, **kwargs):
@@ -209,7 +209,7 @@ class StockingEventDetailView(DetailView):
     '''
 
     model = StockingEvent
-    template_name = 'stocking\stocking_detail.html'
+    template_name = 'stocking/stocking_detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
