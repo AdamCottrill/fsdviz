@@ -17,20 +17,14 @@ A. Cottrill
 
 '''
 
-
 import re
 
 from collections import OrderedDict
 from django.core.exceptions import ObjectDoesNotExist
 
+from fsdviz.stocking.models import (Condition, StockingMethod)
 
-from fsdviz.stocking.models import (Condition,
-                                    StockingMethod)
-
-
-from fsdviz.common.models import CWT, CWTsequence, Grid10
-
-
+from fsdviz.common.models import CWT, CWTsequence, Grid10, ManagementUnit
 
 
 def grid_or_None(lake, grid):
@@ -50,8 +44,6 @@ def grid_or_None(lake, grid):
         return None
 
 
-
-
 def get_condition(val, default):
     """
 
@@ -67,7 +59,6 @@ def get_condition(val, default):
             msg = "Could not find condition={}. Using default: '{}'."
             print(msg.format(val, default))
         return default
-
 
 
 def get_stocking_method(val, default):
@@ -88,7 +79,6 @@ def get_stocking_method(val, default):
             msg = "Could not find stk_meth={}. Using default: '{}'."
             print(msg.format(val, default))
         return default
-
 
 
 def clean_title(text):
@@ -127,6 +117,7 @@ def int_or_None(x):
         except:
             return None
 
+
 def float_or_None(x):
     """
     A little helper function to return an float from our record or
@@ -145,8 +136,6 @@ def float_or_None(x):
             return float(x)
         except:
             return None
-
-
 
 
 def get_mark_codes(mark_string, valid_marks):
@@ -176,14 +165,16 @@ def get_mark_codes(mark_string, valid_marks):
     - `valid_marks`: a list of valid marks to check mark_string against
 
     """
-    problem=False
+    problem = False
     return_dict = {}
 
-    if mark_string is None or mark_string=='':
+    if mark_string is None or mark_string == '':
         return return_dict
 
-    matches = [re.search(x, mark_string)  for x in valid_marks
-               if re.search(x, mark_string)]
+    matches = [
+        re.search(x, mark_string) for x in valid_marks
+        if re.search(x, mark_string)
+    ]
     if matches:
         codes = [x.group() for x in matches]
         return_dict['codes'] = codes
@@ -194,16 +185,16 @@ def get_mark_codes(mark_string, valid_marks):
         problem = True if first_match is not 0 else False
         problem = True if last_match is not len(mark_string) else False
         if len(codes) > 2 and problem is False:
-            for n,m in enumerate(spans[-1]):
+            for n, m in enumerate(spans[-1]):
                 if problem:
                     break
                 else:
-                    problem = True if spans[n][1]!=spans[n+1][0] else False
+                    problem = True if spans[n][1] != spans[n + 1][0] else False
 
     #if there is problem - try and figure out what it is:
         if problem:
             for k in valid_marks:
-                mark_string = mark_string.replace(k, '-'*len(k))
+                mark_string = mark_string.replace(k, '-' * len(k))
             return_dict['unmatched'] = mark_string
     return return_dict
 
@@ -219,8 +210,8 @@ def pprint_dict(record):
     - `recory`: a dictionary
 
     """
-    for col,val in record.items():
-        print('{}: {}'.format(col,val))
+    for col, val in record.items():
+        print('{}: {}'.format(col, val))
 
 
 def get_lake_abbrev(record):
@@ -240,8 +231,7 @@ def get_lake_abbrev(record):
         return None
 
 
-def get_latlon(record, grid_pts=None, mu_pts=None,
-               lake_pts=None):
+def get_latlon(record, grid_pts=None, mu_pts=None, lake_pts=None):
     """
     Given a stocking event, generate a reasonable lat-lon using the
     following hierarchy:
@@ -264,10 +254,11 @@ def get_latlon(record, grid_pts=None, mu_pts=None,
     pt = None
 
     if record['latitude'] and record['longitude']:
-        pt = OrderedDict(ddlat=record['latitude'],
-                         ddlon= record['longitude'],
-                         method='reported',
-                         value=1)
+        pt = OrderedDict(
+            ddlat=record['latitude'],
+            ddlon=record['longitude'],
+            method='reported',
+            value=1)
     if record['lake'] and record['grid'] and grid_pts and pt is None:
         #lake = record['lake'].strip()
         lake = get_lake_abbrev(record)
@@ -302,8 +293,12 @@ def get_latlon(record, grid_pts=None, mu_pts=None,
     return pt
 
 
-def associate_cwt(event, cwt_number, seq_start=1, seq_end=1,
-                  cwt_maker='nmt', tag_count=0):
+def associate_cwt(event,
+                  cwt_number,
+                  seq_start=1,
+                  seq_end=1,
+                  cwt_maker='nmt',
+                  tag_count=0):
     """Given a stocking event, get or create an associated cwt and
     cwt_sequence object and save them to the database.
 
@@ -328,23 +323,19 @@ def associate_cwt(event, cwt_number, seq_start=1, seq_end=1,
 
     """
 
-
-    if seq_start==1 and seq_end==1:
+    if seq_start == 1 and seq_end == 1:
         tag_type = 'cwt'
     else:
         tag_type = 'sequential'
 
-    cwt_obj,x = CWT.objects.get_or_create(
+    cwt_obj, x = CWT.objects.get_or_create(
         cwt_number=cwt_number.strip(),
         tag_count=tag_count,
         manufacturer=cwt_maker,
         tag_type=tag_type)
 
-
-    cwt_seq,x = CWTsequence.objects.get_or_create(
-        cwt=cwt_obj,
-        seq_start=seq_start,
-        seq_end=seq_end)
+    cwt_seq, x = CWTsequence.objects.get_or_create(
+        cwt=cwt_obj, seq_start=seq_start, seq_end=seq_end)
 
     event.cwt_series.add(cwt_seq)
 
@@ -367,7 +358,7 @@ def recode_mark(mark, mark_shouldbe, no_mark='XX'):
     """
     mark = no_mark if (mark is None or mark is '') else mark
     for key, val in mark_shouldbe.items():
-        mark = mark.replace(key,val)
+        mark = mark.replace(key, val)
     tmp = mark_shouldbe.get(mark)
     if tmp:
         return tmp
@@ -403,10 +394,6 @@ def check_null_records(field, table, cursor, record_count, report_width):
     print(msg)
 
 
-
-
-
-
 def get_or_create_rawStrain(species, raw_strain):
     """The strain values that are provided to the glfc, are free-form
     text, which means that there is almost infinite number
@@ -424,16 +411,61 @@ def get_or_create_rawStrain(species, raw_strain):
     raw_strain = raw_strain if raw_strain else 'UNKN'
 
     try:
-        mystrain =  StrainRaw.objects.get(species=species, raw_strain=raw_strain)
+        mystrain = StrainRaw.objects.get(
+            species=species, raw_strain=raw_strain)
     except StrainRaw.DoesNotExist:
         unknown_strain, created = Strain.objects.get_or_create(
             strain_species=species, strain_code='UNKN', strain_label='Unknown')
-        mystrain = StrainRaw(species=species, strain=unknown_strain, raw_strain=raw_strain)
+        mystrain = StrainRaw(
+            species=species, strain=unknown_strain, raw_strain=raw_strain)
         unknown_strain.save()
         mystrain.save()
 
     return mystrain
 
+
+def get_closest_ManagementUnit(event):
+    """This funtion can be used to get the closest primary management unit
+    for each stocking event.  It to find the management unit, it steps
+    through a heuristic - if there is a lat-long, it is used if it
+    intersects a management geomemtry, if not, it uses the centriod of
+    the associated 10-minute grid, finally it uses the closest
+    management unit. This last case is for those event that occur
+    outside of a lake shoreline (e.g. - up tributaries).  There could
+    be edge cases were this is not appropriate.
+
+    This function should be called after all of the stocking events
+    have been added to the database and the shapefiles have been
+    uploaded to each of the grids and management units.
+
+    This funciton is woefully inefficient - it should only run once
+    after all of the management unit geometries have been uploaded and
+    the stocking events appended.
+
+    Arguments:
+    - `event`:
+
+    """
+
+    # find management unit for points that fall within mu geometry
+
+    mu = ManagementUnit.objects.filter(
+        geom__contains=event.geom, primary=True).first()
+
+    if mu is None:
+        mu = ManagementUnit.objects.filter(
+            geom__contains=event.grid_10.centroid, primary=True).first()
+
+    if mu is None:
+        mus = ManagementUnit.objects.filter(lake=event.lake, primary=True).\
+            exclude(geom__isnull=True)
+        mu_dist = []
+        for mu in mus:
+            mu_dist.append((mu.slug, event.geom.distance(mu.geom)))
+        closest = min(mu_dist, key=lambda d: d[1])
+        mu = ManagementUnit.objects.filter(slug=closest[0]).first()
+
+    return mu
 
 
 #  #=====================================================

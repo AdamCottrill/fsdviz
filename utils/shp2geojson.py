@@ -17,8 +17,6 @@ import shapefile
 
 #the location of our source shapefiles and associated output
 
-
-
 SHP_DIR = "C:/Users/COTTRILLAD/Documents/1work/Python/geopy"
 
 SHP_SRC = os.path.join(SHP_DIR, 'shapefiles')
@@ -162,4 +160,25 @@ with open(fname, 'r') as sql_file:
     pg_cur.execute(sql_file.read())
 pg_conn.commit()
 pg_conn.close()
+
+# ==========================================================================
+#
+# this block of code can be used to update the primary field for the
+# primary mangement units on each lake.  Primary managements should
+# completely cover each jurisdiction, but must not overlap.  They are
+# used as the 'primary' management unit assicated with stocking events.
+#
+#  #update the management units primary:
+#  mus = ManagementUnit.objects.filter(lake__abbrev__in=('MI', 'SC', 'SU', 'ER','ON')).\
+#                                      exclude(label='MM123')
+#  for mu in mus:
+#      mu.primary = True
+#      mu.save()
+#  #huron:
+#  mus = ManagementUnit.objects.filter(lake__abbrev='HU').\
+#                                      exclude(mu_type='qma')
+#  for mu in mus:
+#      mu.primary = True
+#      mu.save()
+
 print("Done updating all spatial geometries.")

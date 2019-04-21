@@ -241,6 +241,7 @@ class Grid10(models.Model):
     """
 
     grid = models.CharField(max_length=4)
+    slug = models.SlugField(blank=False, unique=True, editable=False)
     centroid = models.PointField(srid=4326)
     lake = models.ForeignKey(Lake, default=1, on_delete=models.CASCADE)
 
@@ -250,6 +251,25 @@ class Grid10(models.Model):
     def __str__(self):
         """ String representation for a State."""
         return "{} ({})".format(self.grid, self.lake.abbrev)
+
+    def get_slug(self):
+        """
+        the name is a concatenation of lake abbreviation, the managemnet unit
+        type and and the management unit label.
+        """
+        lake = str(self.lake.abbrev)
+
+        return slugify("_".join([lake, self.grid]))
+
+
+    def save(self, *args, **kwargs):
+        """
+        Populate slug when we save the object.
+        """
+        # if not self.slug:
+        self.slug = self.get_slug()
+        super(Grid10, self).save(*args, **kwargs)
+
 
 
 class Species(models.Model):

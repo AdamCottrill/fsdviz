@@ -234,3 +234,23 @@ for yr in years:
 print("Done adding all stocking events!")
 
 #mdbcon.close()
+
+
+
+years = StockingEvent.objects.order_by('-year').values_list('year').distinct()
+years = [x[0] for x in years if x[0] <= 2014]
+problems = []
+
+for yr in years:
+    events = StockingEvent.objects.filter(year=yr)
+    print("Updating events from {}".format(yr))
+
+    for event in events:
+        mu = get_closest_ManagementUnit(event)
+        if mu:
+            event.management_unit = mu
+            event.save()
+        else:
+            problems.push(event.stock_id)
+print('Done!')
+print("Found {} problems.".format(len(problems)))

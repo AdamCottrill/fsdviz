@@ -4,8 +4,7 @@ from django.contrib.gis.geos import Point
 
 from fsdviz.common.models import (Species, Strain, StrainRaw, Agency,
                                   Lake, StateProvince, Jurisdiction,
-                                  Grid10, LatLonFlag, Mark)
-
+                                  ManagementUnit, Grid10, LatLonFlag, Mark)
 
 class LifeStage(models.Model):
     '''
@@ -63,7 +62,6 @@ class StockingEvent(models.Model):
     A model to capture actual stocking events - 'a pipe in the water'.
     '''
 
-
     VALIDATION_CODE_CHOICES = [
         (0, 'level 0, entered at hatchery, unknown verification status'),
         (1, 'level 1, entered at hatchery and not verified'),
@@ -91,14 +89,10 @@ class StockingEvent(models.Model):
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE,
                                related_name='stocking_events')
 
-    #lake = models.ForeignKey(Lake, on_delete=models.CASCADE,
-    #                         related_name='stocking_events')
-
-    #stateprov = models.ForeignKey(StateProvince, on_delete=models.CASCADE,
-    #                              related_name='stocking_events')
-
-    # stat_dist = models.ForeignKey(StatDistrict, on_delete=models.CASCADE,
-    #                               related_name='stocking_events')
+    #primary management unit for this event - other can be found with queries.
+    management_unit = models.ForeignKey(ManagementUnit,
+                                        on_delete=models.CASCADE,
+                                        related_name='stocking_events')
 
     grid_10 = models.ForeignKey(Grid10, on_delete=models.CASCADE,
                                 related_name='stocking_events')
@@ -215,7 +209,6 @@ class StockingEvent(models.Model):
                 self.clipa = self.get_clipa()
 
         super(StockingEvent, self).save(*args, **kwargs)
-
 
 
     @property
