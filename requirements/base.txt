@@ -29,4 +29,4 @@ simplejson==3.16.0        # via django-rest-swagger
 six==1.12.0               # via django-rest-auth
 sqlparse==0.3.0           # via django
 uritemplate==3.0.0        # via coreapi
-urllib3==1.24.1           # via requests
+urllib3==1.24.2           # via requests
