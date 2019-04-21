@@ -32,35 +32,35 @@ class StockingMethodSerializer(serializers.ModelSerializer):
         fields = ('stk_meth', 'description')
 
 
-class StockingEventMapSerializer(serializers.ModelSerializer):
+
+
+class StockingEventFastSerializer(serializers.Serializer):
     """This is a paired down version of the stocking event serializer that
-    includes just those values need to create our maps.  The default
-    serializer contains a lot of extra incormation that is expensive to
-    calculate and not needed to put apoints on the make.
+    includes just those values need to create our maps or the
+    associated filter widgets.  The default serializer contains a lot
+    of extra information that is expensive to calculate and not needed
+    to put apoints on the map.  This serializer is intented to quickly
+    provide a readonly list of json objects representing aggregations
+    of stocking events.
 
     """
 
-    species = serializers.CharField(source='species.common_name',
-                                    read_only=True)
-    lifestage = serializers.CharField(source='lifestage.abbrev',
-                                      read_only=True)
+    stateprov = serializers.CharField()
+    lake = serializers.CharField()
+    jurisdiction_slug = serializers.CharField()
+    man_unit = serializers.CharField()
+    grid10 = serializers.CharField()
+    stk_method = serializers.CharField()
+    life_stage = serializers.CharField()
+    agency_abbrev = serializers.CharField()
+    species_name = serializers.CharField()
+    strain = serializers.CharField()
     events = serializers.IntegerField()
-    total_yreq_stocked = serializers.IntegerField()
+    yreq = serializers.IntegerField()
+    total_stocked = serializers.IntegerField()
 
-
-    @staticmethod
-    def setup_eager_loading(queryset):
-        """ Perform necessary eager loading of data. """
-        queryset = queryset.prefetch_related('species',
-                                             'lifestage')
-        return queryset
-
-    class Meta:
-        model = StockingEvent
-        fields = ('geom', 'yreq_stocked', 'species', 'lifestage', 'events',
-                  'total_yreq_stocked')
-
-
+    dd_lat = serializers.CharField()
+    dd_lon = serializers.CharField()
 
 
 class StockingEventSerializer(serializers.ModelSerializer):
@@ -90,15 +90,10 @@ class StockingEventSerializer(serializers.ModelSerializer):
     @staticmethod
     def setup_eager_loading(queryset):
         """ Perform necessary eager loading of data. """
-        queryset = queryset.prefetch_related('species', 'agency', 'condition',
-                                             'stocking_method',
-                                             'grid_10',
-                                             'grid_10__lake',
-                                             'jurisdiction',
-                                             'jurisdiction__lake',
-                                             'jurisdiction__stateprov',
-                                             'latlong_flag',
-                                             'lifestage')
+        queryset = queryset.prefetch_related(
+            'species', 'agency', 'condition', 'stocking_method', 'grid_10',
+            'grid_10__lake', 'jurisdiction', 'jurisdiction__lake',
+            'jurisdiction__stateprov', 'latlong_flag', 'lifestage')
         return queryset
 
     class Meta:

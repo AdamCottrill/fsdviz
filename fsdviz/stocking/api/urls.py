@@ -6,6 +6,7 @@ from rest_framework.routers import SimpleRouter
 from .views import (LifeStageViewSet, ConditionViewSet, StockingMethodViewSet,
                     StockingEventViewSet, StockingEventMapListView)
 
+
 app_name = "stocking"
 
 router = SimpleRouter()
@@ -55,6 +56,7 @@ urlpatterns += [
 
     #========================================
     # simplified map serializers:
+
     path(
         'mapdata/events/',
         StockingEventMapListView.as_view(),
@@ -79,10 +81,6 @@ urlpatterns += [
         'mapdata/events/jurisdiction/<jurisdiction>/<int:year>',
         StockingEventMapListView.as_view(),
         name='api-stocking-event-map-list-jurisdiction-year'),
-    path(
-        'mapdata/events/<lake_name>/<int:year>/',
-        StockingEventMapListView.as_view(),
-        name='api-stocking-event-map-list-lake-year'),
 
 
 ]
