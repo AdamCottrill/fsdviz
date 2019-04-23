@@ -110,6 +110,7 @@ const mapbox_overlay = () => {
     // update our data
     chart.data = function(value) {
         if (!arguments.length) return data;
+        console.log('data[0] = ', data[0]);
         data = value;
         return chart;
     };

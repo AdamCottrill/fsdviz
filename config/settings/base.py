@@ -176,7 +176,11 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_mails')
 
 
 ## urls here as needed for cors:
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = []
+CORS_ORIGIN_REGEX_WHITELIST = []
+
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
