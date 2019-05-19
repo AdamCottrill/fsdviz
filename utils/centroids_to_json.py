@@ -3,7 +3,7 @@
 Our main mapping widget will need a series of points corresponding to
 different levels of spatial aggregation. This script creates a nested
 dictionary of centroids for each lake, jurisdiction, management unit,
-and grid. Each centroid is in the form of key:value pairs were the key
+and grid. Each centroid is in the form of key:value pairs where the key
 is the object slug and the value is a two element list containing the
 corresponding longitude and latitude.
 
@@ -43,15 +43,15 @@ lake_centroids = {
 # group by stateProv.abbrev;
 
 stateProv_centroids = {
-    "ON":[-82.9606550651988, 45.551894260147],
-    "PA":[-80.1674417325768, 42.2504290507293],
-    "MN":[-90.6065206592845, 47.4112705234505],
-    "WI":[-88.0793594812394, 44.6647832673324],
-    "IL":[-87.4225840531038, 42.1730338231603],
-    "OH":[-81.8004228548325, 41.8173495381424],
-    "IN":[-87.2235997953882, 41.7045942515556],
-    "NY":[-77.7328778327672, 43.4016339592902],
-    "MI":[-86.1636805592578, 45.6436132988473]
+    "ON":[-82.960, 45.551],
+    "PA":[-80.167, 42.250],
+    "MN":[-90.606, 47.411],
+    "WI":[-88.079, 44.664],
+    "IL":[-87.422, 42.173],
+    "OH":[-81.800, 41.817],
+    "IN":[-87.223, 41.704],
+    "NY":[-77.732, 43.401],
+    "MI":[-86.163, 45.643]
 }
 
 
@@ -74,7 +74,7 @@ centroids = {
     'lake': lake_centroids,
     'stateProv': stateProv_centroids,
     'jurisdiction': jurisdiction_centroids,
-    'mu': mus_centroids,
+    'manUnit': mus_centroids,
     'grid10': grid_centroids
 }
 

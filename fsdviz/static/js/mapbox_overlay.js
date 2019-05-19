@@ -1,7 +1,6 @@
 // a re-usabel chart component that will overlay points a map.
 
 
-
 const mapbox_overlay = () => {
 
     // default values:

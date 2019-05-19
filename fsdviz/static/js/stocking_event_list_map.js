@@ -194,6 +194,15 @@ let api_url = window.location.href
 
 d3.json(api_url).then((data) => {
 
+    console.log('data[0] = ', data[0]);
+    // total hack to get things working today:
+    data.forEach(d=> {
+        d['geom'] = 'POINT(' + d.dd_lon + ' ' + d.dd_lat  + ' )';
+        d['species'] = d.species_name;
+        d['total_yreq_stocked'] = d.yreq;
+        return d;
+    });
+
     update_stats_panel(data);
 
     // now aggregate by point and species - how many events, now many fish.
