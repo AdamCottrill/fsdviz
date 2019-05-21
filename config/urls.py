@@ -23,7 +23,7 @@ from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.views import get_swagger_view
 
 #our homepage:
-from fsdviz.stocking.views import StockingEventListLatestYear
+from fsdviz.stocking.views import PieChartMapViewLatestYear
 
 
 API_TITLE = 'Fish Stocking DataViz API'
@@ -59,9 +59,8 @@ urlpatterns = [
     path('api/schema/', schema_view),
 
 
-    path('', StockingEventListLatestYear,
+    path('', PieChartMapViewLatestYear,
          name='home'),
-
 
 ]
 

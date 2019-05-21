@@ -8,6 +8,7 @@ app_name = 'stocking'
 
 urlpatterns = [
     path('', PieChartMapViewLatestYear, name='stocking-events'),
+
     path(
         'events/<int:year>/',
         PieChartMapView.as_view(),
@@ -32,10 +33,16 @@ urlpatterns = [
         'events/<lake_name>/<int:year>/',
         PieChartMapView.as_view(),
         name='stocking-events-lake-year'),
+
+    # the default events view will be to return the most recent year
+    # for all lakes:
     path(
         'events/',
         PieChartMapViewLatestYear,
-        name='stocking-event-latest-year'),
+        name='stocking-events-latest-year'),
+
+
+    #stocking event lists
     path(
         'events_list/<int:year>/',
         StockingEventListView.as_view(),
@@ -56,14 +63,13 @@ urlpatterns = [
         'events_list/jurisdiction/<jurisdiction>/<int:year>',
         StockingEventListView.as_view(),
         name='stocking-event-list-jurisdiction-year'),
-    path(
-        'events_list/<lake_name>/<int:year>/',
-        StockingEventListView.as_view(),
-        name='stocking-event-list-lake-year'),
+
     path(
         'events_list/',
-        StockingEventListLatestYear,
-        name='stocking-event-latest-year'),
+        #StockingEventListLatestYear,
+        StockingEventListView.as_view(),
+        name='stocking-event-list'),
+
     path(
         'event_detail/<stock_id>/',
         StockingEventDetailView.as_view(),

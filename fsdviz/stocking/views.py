@@ -35,7 +35,6 @@ def PieChartMapViewLatestYear(request):
     """Get the most recent year of stockind and
     pass the information onto our pie chart map view.
     """
-
     latest_year = StockingEvent.objects.all().aggregate(Max('year'))
     url = reverse(
         'stocking:stocking-events-year',
@@ -170,8 +169,8 @@ class StockingEventListView(ListView):
     '''
 
     model = StockingEvent
-    paginate_by = 50
-    template_name = 'stocking/event_piechart_map.html'
+    paginate_by = 200
+    template_name = 'stocking/stocking_event_list.html'
     filter_class = StockingEventFilter
 
     def get_context_data(self, **kwargs):
