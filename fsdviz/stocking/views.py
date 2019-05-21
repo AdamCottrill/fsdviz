@@ -7,6 +7,7 @@ from django.db.models import Count, Q, Max
 from django.urls import reverse
 import json
 
+from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
@@ -28,6 +29,93 @@ def StockingEventListLatestYear(request):
         kwargs={'year': latest_year.get('year__max')})
 
     return redirect(url)
+
+
+def PieChartMapViewLatestYear(request):
+    """Get the most recent year of stockind and
+    pass the information onto our pie chart map view.
+    """
+
+    latest_year = StockingEvent.objects.all().aggregate(Max('year'))
+    url = reverse(
+        'stocking:stocking-events-year',
+        kwargs={'year': latest_year.get('year__max')})
+
+    return redirect(url)
+
+
+class PieChartMapView(TemplateView):
+
+
+    """This is going to be the ront page of out application.  Most of the
+    work will done by the javascript libraries, but we will need to pass
+    in serveral variables to set things up:
+
+   ``dataurl``
+
+      the api url corresponding the spatial and temporal filters
+      speficied in the url.  Passed to the javascript libraries.
+
+   ``year``
+
+      the year of the stocking event
+
+   ``spatialunit``
+
+    defaults to 'basin' if not provided in the url,
+    otherwize it must be one of 'lake', 'jurisdition', 'manUnit'
+
+   ``slug`` - the slug selected lake, jurisdiction, or management unit
+
+   ``label - the slug selected lake, jurisdiction, or management unit
+
+    """
+
+    template_name = 'stocking/event_piechart_map.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(PieChartMapView, self).get_context_data(**kwargs)
+
+        spatialUnit = 'basin'
+        obj = None
+
+        year = self.kwargs.get('year')
+        if year:
+            view_name = 'stocking_api:api-stocking-event-map-list-year'
+            dataUrl = reverse(view_name, kwargs={'year': year})
+            context['year'] = int(year)
+
+        lake_name = self.kwargs.get('lake_name')
+        if lake_name:
+            dataUrl = reverse('stocking_api:api-stocking-event-map-list-lake-year',
+                              kwargs={'year': year, 'lake_name': lake_name})
+            spatialUnit = 'lake'
+            obj = Lake.objects.get(abbrev=lake_name)
+
+        jurisdiction_slug = self.kwargs.get('jurisdiction')
+        if jurisdiction_slug:
+            dataUrl = reverse('stocking_api:api-stocking-event-map-list-jurisdiction-year',
+                              kwargs={'year': year,
+                                      'jurisdiction': jurisdiction_slug})
+            spatialUnit = 'jurisdiction'
+            obj = Jurisdiction.objects.get(slug=jurisdiction_slug)
+
+#        slug = self.kwargs.get('management_unit')
+#        if manUnit_slug:
+#            spatialUnit = 'manUnit'
+#            obj = ManagementUnit.objects.get(slug=slug)
+
+
+        context['dataUrl'] = dataUrl
+        context['spatialUnit'] = spatialUnit
+
+        if obj:
+            context['slug'] = obj.slug
+            context['label'] = obj.label
+
+        return context
+
+
 
 
 class StockingEventListView(ListView):
@@ -77,13 +165,13 @@ class StockingEventListView(ListView):
 
     **Template:**
 
-    :template:`stocking/stocking_event_list.html`
+    :template:`stocking/event_piechart_map.html`
 
     '''
 
     model = StockingEvent
     paginate_by = 50
-    template_name = 'stocking/stocking_event_list.html'
+    template_name = 'stocking/event_piechart_map.html'
     filter_class = StockingEventFilter
 
     def get_context_data(self, **kwargs):

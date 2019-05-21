@@ -1,6 +1,10 @@
 .dir-locals.el
 .coverage
 htmlcov/*
+node_modules/*
 docs/build/*
 *.pyc
 __pycache__
+fsdviz/static/js/accessToken.js
+.tern-port
+*.accdb

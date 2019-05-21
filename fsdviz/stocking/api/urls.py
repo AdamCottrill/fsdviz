@@ -7,7 +7,7 @@ from .views import (LifeStageViewSet, ConditionViewSet, StockingMethodViewSet,
                     StockingEventViewSet, StockingEventMapListView)
 
 
-app_name = "stocking"
+app_name = "api"
 
 router = SimpleRouter()
 

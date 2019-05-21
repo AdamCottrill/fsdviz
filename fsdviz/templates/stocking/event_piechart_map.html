@@ -1,0 +1,287 @@
+{% extends 'fsdviz_base.html' %}
+
+{% load static %}
+{% load humanize %}
+{% load fsdviz_tags %}
+
+
+{% block extra_head  %}
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="{% static "style.css" %}" type="text/css" media="screen" />
+
+{% endblock %}
+
+
+
+{% block navbar_search %}
+
+    <div class="right menu">
+        <form class="item">
+            <div class="ui right aligned category search item">
+                <div class="ui transparent icon input">
+                    <input class="prompt" type="text" placeholder="Search By Event id..." name="q">
+                    <i class="search link icon"></i>
+                </div>
+            </div>
+        </form>
+    </div>
+
+{% endblock navbar_search%}
+
+
+
+
+{% block content %}
+
+
+    <div class="ui container fluid" id="content">
+
+        <div class="ui grid">
+            <div class="two wide column">
+                <h3>Refine by:</h3>
+                <div class="ui styled fluid accordion">
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Lake
+                    </div>
+                    <div class="content">
+                        <div id="lake-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        State or Province
+                    </div>
+                    <div class="content">
+                        <div id="state-prov-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Jurisdiction
+                    </div>
+                    <div class="content">
+                        <div id="jurisdiction-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Management Unit
+                    </div>
+                    <div class="content">
+                        <div id="manUnit-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Agency
+                    </div>
+                    <div class="content">
+                        <div id="agency-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Species
+                    </div>
+                    <div class="content">
+                        <div id="species-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Strain
+                    </div>
+                    <div class="content">
+                        <div id="strain-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Year Class
+                    </div>
+                    <div class="content">
+                        <div id="year-class-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Mark
+                    </div>
+                    <div class="content">
+                        <div id="mark-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Life Stage
+                    </div>
+                    <div class="content">
+                        <div id="life-stage-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Stocking Method
+                    </div>
+                    <div class="content">
+                        <div id="stocking-method-filter"></div>
+                    </div>
+
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Stocking Month
+                    </div>
+                    <div class="content">
+                        <div id="stocking-month-filter"></div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <div class="fourteen wide column">
+                <div class="ui grid">
+
+                    <div class="row">
+                        <div class="twelve wide column">
+                            <h3>Stocking Events {% if lake %} for {{lake.lake_name}} {% elif jurisdiction %} in the {{ jurisdiction.description }}{%endif%} {% if year %}{{ year }}{% endif %}
+                            </h3>
+                        </div>
+                        <div class="four wide right aligned column">
+
+                            {% if year%}
+
+                                <a class="ui left labeled icon mini blue compact button" href="{% last_year year%}"><i class="left arrow icon"></i>Previous Year</a>
+
+                                <a class="ui right labeled icon mini blue compact button"href="{% next_year year%}"><i class="right arrow icon"></i>Next Year</a>
+
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="twelve wide column">
+
+                            <div class="ui row">
+                                <div class="ui large breadcrumb">
+                                    <a class="section" id="basin-breadcrumb-link">All Lakes</a>
+
+                                    <span id="lake-breadcrumb"></span>
+                                    <span id="jurisdiction-breadcrumb"></span>
+                                    <span id="manunit-breadcrumb"></span>
+                                    <span id="next-unit"></span>
+
+                                </div>
+                            </div>
+                            <div class="ui row">
+                                <div id="mapid" style="width: 100%; height: 700px"></div>
+                            </div>
+
+
+                        </div>
+                        <div class="four wide column">
+
+
+
+
+                            <div class="ui tabular menu">
+                                <a class="item active" data-tab="statistics">
+                                    Statistics
+                                </a>
+                                <a class="item" data-tab="settings">
+                                    Settings
+                                </a>
+                            </div>
+
+                            <div
+                                class="ui bottom attached tab segment active"
+                                data-tab="statistics" >
+                                <div class="ui fluid card">
+                                    <div class="content">
+                                        <div class="header">Stats Panel</div>
+                                    </div>
+                                    <div class="content">
+                                        <p>Summary Statstics:</p>
+                                        <ul>
+                                            <li><span id="total-stocked"></span> Fish</li>
+                                            <li><span id="yreq-stocked"></span> Yearling Equiv.</li>
+                                            <li><span id="event-count"></span> Events</li>
+                                            <li><span id="species-count"></span> Species</li>
+                                        </ul>
+
+                                        <div id="stocked-summary-table">
+                                            <table
+                                                class="ui celled compact table tablesorter"
+                                                style="font-size: 0.7em"
+                                            >
+                                                <thead>
+                                                    <tr>
+                                                        <th>Species</th>
+                                                        <th class="center aligned">Events</th>
+                                                        <th class="center aligned">Yr.Eq.</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="stocked-summary-table-tbody"></tbody>
+                                            </table>
+                                        </div>
+                                        <br />
+                                        <div class="ui row">
+                                            <div id="point-info"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ui bottom attached tab segment" data-tab="settings">
+                                <h3>Spatial Resolution</h3>
+                                <div id="strata-selector"></div>
+                            </div>
+
+
+                        </div>
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+{% endblock %}
+
+
+{% block extra_js%}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+
+    <script type="text/javascript">
+     const dataURL =
+         "/api/v1/stocking/mapdata/events/{{ year }}/";
+
+     const topoURL = "{% static "data/fsdviz.geojson" %}";
+     const centroidsURL = "{% static "data/centroids.json" %}";
+
+     let spatialUnit = "jurisdiction";
+     let what = "species_name";
+    </script>
+
+    <script type="text/javascript" src="{% static "js/accessToken.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/mainPieChartMap.js" %}"></script>
+
+    <script type="text/javascript">
+     $(".ui.checkbox").checkbox();
+     $(".ui.accordion").accordion();
+     $(".menu .item").tab();
+    </script>
+
+
+
+
+{% endblock %}

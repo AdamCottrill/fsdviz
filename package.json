@@ -1,10 +1,11 @@
 {
-  "name": "CrossfilterCheckboxes",
+  "name": "FishStockingDataViz",
   "version": "0.0.1",
-  "description": "Dynamically create checkboxes with d3 based on crossfilter dimensions",
+  "description": "Great Lakes Fish Stocking Data Visualization",
   "main": "index.js",
   "scripts": {
     "dev": "rollup -c --watch",
+    "rollup": "rollup -c",
     "reload": "live-server --port=8111",
     "watch": "npm-run-all --parallel reload dev",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,6 +14,7 @@
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.4.3",
+    "concurrently": "^4.1.0",
     "debug": "^4.1.1",
     "eslint-config-prettier": "^4.3.0",
     "eslint-plugin-prettier": "^3.0.1",
