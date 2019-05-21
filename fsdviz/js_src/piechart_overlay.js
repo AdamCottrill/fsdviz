@@ -11,21 +11,20 @@ import {
   sum,
   scaleSqrt,
   scaleOrdinal,
-  format,
-  schemeCategory10
+  format
 } from "d3";
 
 export const piechart_overlay = () => {
   // default values:
 
+  let selectedPie;
+  let data;
+
   let radiusAccessor = d => d.total;
   let fillAccessor = d => d.value;
   let responseVar = "yreq";
 
-  let selectedPie;
-  let data;
-
-  let maxCircleSize = 70;
+  let maxCircleSize = 140;
   let fillScale = scaleOrdinal();
 
   let myArc = arc().innerRadius(0);
@@ -99,9 +98,11 @@ export const piechart_overlay = () => {
       // sort our pies so small pies plot on top of large pies
       data.sort((a, b) => descending(a.total, b.total));
 
+      // the circles will be scaled as though there is a single large pie chart
+      // (recognizing that there almost never will be)
       const radiusScale = scaleSqrt()
         .range([1, maxCircleSize])
-        .domain([0, max(data, radiusAccessor)]);
+        .domain([0, sum(data, radiusAccessor)]);
 
       let pies = selection.selectAll(".pie").data(data, d => d.key);
 
@@ -119,12 +120,12 @@ export const piechart_overlay = () => {
           if (selectedPie && selectedPie === d.key) {
             // second click on same circle, turn off selectedPie and make point info empty:
             selectedPie = null;
-            select("#point-info").html("");
+            select(pointInfoSelector).html("");
             selectAll(".selected-pie").classed("selected-pie", false);
           } else {
             // set selectedPie, fill in map info and highlight our selectedPie pie
             selectedPie = d.key;
-            select("#point-info").html(get_pointInfo(d));
+            select(pointInfoSelector).html(get_pointInfo(d));
             selectAll(".selected-pie").classed("selected-pie", false);
             select(this).classed("selected-pie", true);
           }
@@ -194,6 +195,10 @@ export const piechart_overlay = () => {
     });
   };
 
+  chart.clear_pointInfo = () => {
+    select(pointInfoSelector).html("");
+  };
+
   // update our data
   chart.data = function(value) {
     if (!arguments.length) return data;
@@ -243,7 +248,13 @@ export const piechart_overlay = () => {
     return chart;
   };
 
-  // the function that populates point infor div with information
+  chart.selectedPie = function(value) {
+    if (!arguments.length) return selectedPie;
+    selectedPie = value;
+    return chart;
+  };
+
+  // the function that populates point info div with information
   // about the selectedPie point
   chart.get_pointInfo = function(value) {
     if (!arguments.length) return get_pointInfo;

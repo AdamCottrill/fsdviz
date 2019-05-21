@@ -353,7 +353,7 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
 
     const get_coordinates = pt => {
       let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
-      return [parseFloat(coords[1]), parseFloat(coords[0])];
+      return [parseFloat(coords[0]), parseFloat(coords[1])];
     };
 
     // a helper function to get the data in the correct format for plotting on the map.
@@ -394,10 +394,10 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
     // we need to create a function to update the crossfilter based on
     // the current state of our map.  it needs to take two arguments:
     // dimension and value; note - we may need to update the spatial
-    // ressolution to be limited to only those below the currently
+    // resolution to be limited to only those below the currently
     // selected spatial unit:
     const updateCrossfilter = (dimension, value) => {
-      // when we update our cross filter dimension, we also want
+      // when we update our cross filter dimension, we also
       // need to remove any existing filters from lower levels.  If
       // we go back to Lake from a management unit, we all
       // management units to be included in the results.
@@ -436,6 +436,7 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
     pieg.data([pts]).call(piecharts);
 
     const update_spatialUnit = value => {
+      piecharts.selectedPie(null).clear_pointInfo();
       spatialUnit = value;
       spatialSelector.checked(spatialUnit).refresh();
       pts = get_pts(value, centroids, ptAccessor);
