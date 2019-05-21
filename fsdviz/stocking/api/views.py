@@ -119,7 +119,10 @@ class StockingEventMapListView(generics.ListAPIView):
             'life_stage': F('lifestage__description'),
             'agency_abbrev': F('agency__abbrev'),
             'species_name': F('species__common_name'),
-            'strain': F('strain_raw__strain__strain_label'),
+            'strain': F('strain_raw__strain__strain_label')
+        }
+
+        aggregation_metrics = {
             'events': Count('id'),
             'yreq': Sum('yreq_stocked'),
             'total_stocked': Sum('no_stocked')
@@ -143,6 +146,17 @@ class StockingEventMapListView(generics.ListAPIView):
             )
 
 
+        # filter by lake, year and jurisdiction if they were included in the url
+        if lake_name:
+            # Return a filtered queryset
+            queryset = queryset.filter(jurisdiction__lake__abbrev=lake_name)
+
+        if year:
+            queryset = queryset.filter(year=year)
+
+        if jurisdiction:
+            queryset = queryset.filter(jurisdiction__slug=jurisdiction)
+
         queryset= queryset.annotate(**metrics).\
             values('dd_lat', 'dd_lon', 'month',
                    'lake',
@@ -156,21 +170,7 @@ class StockingEventMapListView(generics.ListAPIView):
                    'species_name',
                    'strain',
                    'year_class',
-                   'mark',
-                   'events',
-                   'total_stocked',
-                   'yreq'
-            )
+                   'mark'
+            ).order_by().annotate(**aggregation_metrics)
 
-        # filter by lake, year and jurisdiction if they were included in the url
-        if lake_name:
-            # Return a filtered queryset
-            queryset = queryset.filter(jurisdiction__lake__abbrev=lake_name)
-
-        if year:
-            queryset = queryset.filter(year=year)
-
-        if jurisdiction:
-            queryset = queryset.filter(jurisdiction__slug=jurisdiction)
-
-        return queryset.order_by()
+        return queryset
