@@ -135,23 +135,35 @@
                     </div>
                 </div>
 
-                <div class="ui dropdown icon item">
-                    Admin
-                    <div class="menu">
-                        <div class="item">
-                            <span class="text">Change Your Password</span>
-                        </div>
-                        <div class="item">
-                            <span class="text">Django Admin</span>
-                        </div>
+                {% if user.is_authenticated %}
+
+                    <div class="ui dropdown icon item">
+                        Admin
+                        <div class="menu">
+                            <div class="item"><a href="{% url 'password_change' %}">Change Your Password</a></div>
+                            <div class="item"><a href="{% url 'admin:index' %}" >Django Admin</a></div>
+                            <div class="item"><a href="{% url 'logout' %}">Logout</a></div>
+
                     </div>
                 </div>
 
                 <div class="ui dropdown icon item" id="welcome">
 
-                    Welcome Adam!
+                    Welcome {{ user.first_name }}!
 
                 </div>
+
+                {% else %}
+
+                <div class="ui item" id="login">
+
+                    <a href="{% url 'login' %}">Login</a>
+
+                </div>
+
+
+                {% endif %}
+
 
                 {% block navbar_search %}
 
@@ -171,6 +183,24 @@
 
 
         {% endblock navbar%}
+
+
+        {% block messages %}
+
+            <div class="ui negative icon message">
+                <i class="exclamation circle icon"></i>
+                <i class="close icon"></i>
+                <div class="content">
+                    <div class="header">
+                        For Demonstration Purposes Only.
+                    </div>
+                    <p>This application is currently under active development and is known to be incomplete.</p></div>
+            </div>
+            </div>
+
+
+
+        {% endblock %}
 
 
         {% block content %}
@@ -203,6 +233,16 @@
 
              $('.ui.dropdown')
                  .dropdown();
+
+
+             $('.message .close')
+                 .on('click', function() {
+                     $(this)
+                         .closest('.message')
+                         .transition('fade')
+                     ;
+                 })
+             ;
 
          });
 
