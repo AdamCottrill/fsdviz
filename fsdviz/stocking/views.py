@@ -114,9 +114,6 @@ class PieChartMapView(TemplateView):
 
         return context
 
-
-
-
 class StockingEventListView(ListView):
     '''
     A generic list view that is used to display a list of stocking
@@ -177,60 +174,62 @@ class StockingEventListView(ListView):
         context = super(StockingEventListView, self).get_context_data(**kwargs)
 
         context['search_criteria'] = self.request.GET.get('q')
-
+        jurisdiction_slug = self.kwargs.get('jurisdiction')
         lake_name = self.kwargs.get('lake_name')
+
+        basequery = StockingEventFilter(self.request.GET,
+                                        StockingEvent.objects.all()).qs
+
         if lake_name:
+            basequery = basequery.filter(jurisdiction__lake__abbrev=lake_name)
             lake = Lake.objects.get(abbrev=lake_name)
-            extent = lake.shoreline.extent
-            context['extent'] = json.dumps(extent)
             context['lake'] = lake
 
         year = self.kwargs.get('year')
         if year:
             context['year'] = int(year)
+            basequery = basequery.filter(year=year)
 
-        jurisdiction_slug = self.kwargs.get('jurisdiction')
         if jurisdiction_slug:
+            basequery = basequery.filter(jurisdiction__slug=jurisdiction_slug)
             jurisdiction = Jurisdiction.objects.get(slug=jurisdiction_slug)
-            extent = jurisdiction.shoreline.extent
-            context['extent'] = json.dumps(extent)
 
-        context['year_list'] = self.object_list.\
+        context['year_list'] = basequery.\
                                values_list('year').\
                                annotate(n=Count('id')).order_by('-year')
 
-        context['agency_list'] = self.object_list.\
+        context['agency_list'] = basequery.\
                                    values_list('agency__abbrev').\
                                    annotate(n=Count('id')).order_by()
 
-        context['jurisdiction_list'] = self.object_list.\
+        context['jurisdiction_list'] = basequery.\
                                        values_list('jurisdiction__slug',
                                                    'jurisdiction__name').\
                                                    annotate(n=Count('id')).\
                                                    order_by()
 
-        context['species_list'] = self.object_list.\
+        context['species_list'] = basequery.\
                                    values_list('species__abbrev',
                                                'species__common_name').\
                                    annotate(n=Count('id')).order_by()
 
-        context['strain_list'] = self.object_list.\
+        context['strain_list'] = basequery.\
                                  values_list(
                                      'strain_raw__strain__strain_code',
                                      'strain_raw__strain__strain_label').\
                                      annotate(n=Count('id')).order_by()
 
-        context['lifestage_list'] = self.object_list.\
+        context['lifestage_list'] = basequery.\
                                     values_list('lifestage__abbrev',
                                                 'lifestage__description').\
                                                 annotate(n=Count('id')).\
                                                 order_by()
 
-        context['mark_list'] = self.object_list.values_list('mark').\
+        context['mark_list'] = basequery.values_list('mark').\
                                annotate(n=Count('id')).\
                                order_by()
 
-        context['stocking_method_list'] = self.object_list.\
+        context['stocking_method_list'] = basequery.\
                                           values_list('stocking_method__stk_meth',
                                                       'stocking_method__description').\
                                                       annotate(n=Count('id')).\
@@ -250,14 +249,8 @@ class StockingEventListView(ListView):
 
         queryset = queryset.select_related(
             'agency', 'jurisdiction', 'jurisdiction__stateprov',
-            'jurisdiction__lake', 'species', 'lifestage', 'grid_10',
-            'grid_10__lake', 'latlong_flag', 'strain_raw__strain',
+            'jurisdiction__lake', 'species', 'lifestage', 'strain_raw__strain',
             'stocking_method')
-
-        queryset = queryset.prefetch_related(
-            'species', 'agency', 'condition', 'stocking_method', 'grid_10',
-            'grid_10__lake', 'jurisdiction', 'jurisdiction__lake',
-            'jurisdiction__stateprov', 'latlong_flag', 'lifestage')
 
         if lake_name:
             # Return a filtered queryset
@@ -273,12 +266,16 @@ class StockingEventListView(ListView):
             queryset = queryset.filter(
                 Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q))
 
-        #import pdb; pdb.set_trace()
-        #finally django-filter
         filtered_list = StockingEventFilter(
             self.request.GET, queryset=queryset)
 
-        return filtered_list.qs
+        qs = filtered_list.qs.values(
+            'stock_id', 'agency__abbrev', 'jurisdiction__lake__lake_name', 'site', 'date',
+            'species__common_name', 'strain_raw__strain__strain_label',
+            'year_class', 'lifestage__description',
+            'stocking_method__description', 'mark', 'yreq_stocked')
+
+        return qs
 
 
 class StockingEventDetailView(DetailView):
