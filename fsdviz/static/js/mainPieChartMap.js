@@ -24818,7 +24818,7 @@
 	//# sourceMappingURL=leaflet-src.js.map
 	});
 
-	const checkBoxes = (selection, props) => {
+	const checkBoxes = (selection$$1, props) => {
 	  const {
 	    filterkey,
 	    xfdim,
@@ -24833,24 +24833,29 @@
 	  //  </div>`
 
 	  let myfilters = filters[filterkey];
-	  let keys = xfgroup.top("Infinity").filter(d => d.value > 0);
-	  keys.sort((a, b) => a.key - b.key); // an object to contain the checkbox status for each checkbox
+	  let keys$$1 = xfgroup.top("Infinity").filter(d => d.value > 0);
+	  keys$$1.sort((a, b) => a.key - b.key); // an object to contain the checkbox status for each checkbox
 
 	  let checkbox_map = {};
-	  keys.forEach(d => checkbox_map[d.key] = myfilters.indexOf(d.key) > -1 ? true : false); // use d3 to create our checkboxes:
+	  keys$$1.forEach(d => checkbox_map[d.key] = myfilters.indexOf(d.key) > -1 ? true : false);
+	  let filtered = !Object.values(checkbox_map).every((val, i, arr) => val === arr[0]); // if this dimension is filtered, add the class filtered to the title
+	  // so we can style it differently to indicate that:
 
-	  let cbarray = selection.enter().append("div").merge(selection);
+	  let selector$$1 = selection$$1.attr("id");
+	  let titleclass = select(`#${selector$$1}-title`).classed("filtered", filtered); // use d3 to create our checkboxes:
+
+	  let cbarray = selection$$1.enter().append("div").merge(selection$$1);
 	  let clearAll = cbarray.selectAll(".clear-link").data([null]).enter().append("a").attr("class", "clear-link").attr("href", "#").text("Clear All").on("click", function () {
 	    let checkboxes = cbarray.selectAll("input[type=checkbox]").property("checked", false);
 	    filters[filterkey] = [];
 	    xfdim.filter();
 	  });
-	  let selectAll = cbarray.selectAll(".select-link").data([null]).enter().append("a").attr("class", "select-link").attr("href", "#").classed("ui right floated", true).text("Select All").on("click", function () {
+	  let selectAll$$1 = cbarray.selectAll(".select-link").data([null]).enter().append("a").attr("class", "select-link").attr("href", "#").classed("ui right floated", true).text("Select All").on("click", function () {
 	    let checkboxes = cbarray.selectAll("input[type=checkbox]").property("checked", true);
-	    filters[filterkey] = keys.map(d => d.key);
+	    filters[filterkey] = keys$$1.map(d => d.key);
 	    xfdim.filter(val => myfilters.indexOf(val) > -1);
 	  });
-	  let boxes = cbarray.selectAll("div").data(keys, d => d.key);
+	  let boxes = cbarray.selectAll("div").data(keys$$1, d => d.key);
 	  boxes.exit().remove();
 	  let boxesEnter = boxes.enter().append("div").attr("class", "inline field");
 	  boxesEnter = boxesEnter.merge(boxes);

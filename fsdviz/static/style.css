@@ -90,3 +90,8 @@ border-radius: 5px;
 padding: 10px;
 
 }
+
+
+.ui.accordion .title.filtered {
+    color: red !important;
+}

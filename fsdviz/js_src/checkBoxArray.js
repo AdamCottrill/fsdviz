@@ -1,3 +1,5 @@
+import { select } from "d3";
+
 export const checkBoxes = (selection, props) => {
   const { filterkey, xfdim, xfgroup, filters } = props;
 
@@ -19,6 +21,15 @@ export const checkBoxes = (selection, props) => {
   keys.forEach(
     d => (checkbox_map[d.key] = myfilters.indexOf(d.key) > -1 ? true : false)
   );
+
+  let filtered = !Object.values(checkbox_map).every(
+    (val, i, arr) => val === arr[0]
+  );
+
+  // if this dimension is filtered, add the class filtered to the title
+  // so we can style it differently to indicate that:
+  let selector = selection.attr("id");
+  let titleclass = select(`#${selector}-title`).classed("filtered", filtered);
 
   // use d3 to create our checkboxes:
   let cbarray = selection
