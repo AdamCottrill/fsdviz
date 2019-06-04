@@ -236,6 +236,12 @@ export const piechart_overlay = () => {
     return chart;
   };
 
+  chart.responseVar = function(value) {
+    if (!arguments.length) return responseVar;
+    responseVar = value;
+    return chart;
+  };
+
   chart.maxCircleSize = function(value) {
     if (!arguments.length) return maxCircleSize;
     maxCircleSize = value;

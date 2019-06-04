@@ -14,7 +14,8 @@ export const spatialRadioButtons = () => {
   function buttons() {
     let strataSelector = select(selector).data([null]);
 
-    let strataForm = strataSelector.append("form").attr("id", "strata-form");
+    let formid = selector.replace("#", "") + "-form";
+    let strataForm = strataSelector.append("form").attr("id", formid);
 
     let strataButtons = strataForm
       .selectAll("span")

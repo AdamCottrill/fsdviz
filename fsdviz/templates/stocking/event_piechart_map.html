@@ -254,14 +254,18 @@
                             </div>
                             <div class="ui bottom attached tab segment" data-tab="settings">
                                 <h3>Spatial Resolution</h3>
-                                <div id="strata-selector"></div>
+                                <div class="ui mini form" id="strata-selector"></div>
+
+                                <h3>Slices Category</h3>
+                                <div class="ui mini form" id="slices-selector"></div>
+
+                                <h3>Response Variable (Circle Size)</h3>
+                                <div class="ui mini form" id="pie-size-selector"></div>
+
                             </div>
 
 
                         </div>
-
-
-
 
                     </div>
 
@@ -297,6 +301,9 @@
      $(".ui.checkbox").checkbox();
      $(".ui.accordion").accordion();
      $(".menu .item").tab();
+     $('.ui.radio.checkbox')
+         .checkbox()
+     ;
     </script>
 
 

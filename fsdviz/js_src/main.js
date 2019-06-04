@@ -15,6 +15,7 @@ import { stockingAdd, stockingRemove, stockingInitial } from "./reducers";
 import { piechart_overlay } from "./piechart_overlay";
 import { polygon_overlay } from "./polygon_overlay";
 import { spatialRadioButtons } from "./RadioButtons";
+import { RadioButtons } from "./semanticRadioButtons";
 import { update_stats_panel } from "./stats_panel";
 
 const log = debug("app:log");
@@ -134,29 +135,80 @@ let piecharts = piechart_overlay(mymap)
 const filters = {};
 
 const column = "events";
-// the name of the columnwith our response:
-const responseVar = "yreq";
+// the name of the column with our response:
+let responseVar = "yreq";
 //const responseVar = 'events';
+
+//// radio buttons
+//let strata = [
+//  { strata: "lake", label: "Lake" },
+//  { strata: "stateProv", label: "State/Province" },
+//  { strata: "jurisdiction", label: "Jurisdiction" },
+//  { strata: "manUnit", label: "Managment Unit" },
+//  { strata: "grid10", label: "10-minute Grid" },
+//  { strata: "geom", label: "Reported Point" }
+//];
+//
+//let spatialSelector = spatialRadioButtons()
+//  .selector("#strata-selector")
+//  .strata(strata)
+//  .checked(spatialUnit);
+//
+//spatialSelector();
 
 // radio buttons
 let strata = [
-  { strata: "lake", label: "Lake" },
-  { strata: "stateProv", label: "State/Province" },
-  { strata: "jurisdiction", label: "Jurisdiction" },
-  { strata: "manUnit", label: "Managment Unit" },
-  { strata: "grid10", label: "10-minute Grid" },
-  { strata: "geom", label: "Reported Point" }
+  { name: "lake", label: "Lake" },
+  { name: "stateProv", label: "State/Province" },
+  { name: "jurisdiction", label: "Jurisdiction" },
+  { name: "manUnit", label: "Managment Unit" },
+  { name: "grid10", label: "10-minute Grid" },
+  { name: "geom", label: "Reported Point" }
 ];
 
-let spatialSelector = spatialRadioButtons()
+let spatialSelector = RadioButtons()
   .selector("#strata-selector")
-  .strata(strata)
+  .options(strata)
   .checked(spatialUnit);
 
 spatialSelector();
 
 // our radio button listener
-const spatial_resolution = selectAll("#strata-form input");
+const spatial_resolution = selectAll("#strata-selector input");
+
+// slices buttons:
+let slices = [
+  { name: "agency", label: "Agency" },
+  { name: "species", label: "Species" },
+  { name: "strain", label: "Strain" },
+  { name: "mark", label: "Mark" },
+  { name: "lifestage", label: "Life Stage" },
+  { name: "stkMeth", label: "Stocking Method" }
+];
+
+let sliceSelector = RadioButtons()
+  .selector("#slices-selector")
+  .options(slices)
+  .checked("species");
+
+sliceSelector();
+const slice_selector = selectAll("#slices-selector input");
+
+// Our Response Variable buttons:
+let pieSizeVars = [
+  { name: "yreq", label: "Yearling Equivalents" },
+  { name: "total", label: "Number Stocked" },
+  { name: "events", label: "Event Count" }
+];
+
+let pieSizeVarSelector = RadioButtons()
+  .selector("#pie-size-selector")
+  .options(pieSizeVars)
+  .checked(responseVar);
+
+pieSizeVarSelector();
+
+const pie_size_selector = selectAll("#pie-size-selector input");
 
 Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
   ([data, centroids, topodata]) => {
@@ -356,7 +408,7 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    const ptAccessor = d =>
+    let ptAccessor = d =>
       Object.keys(d.value).map(x => d.value[x][responseVar]);
 
     const get_coordinates = pt => {
@@ -455,6 +507,18 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       // when the radio buttons change, we and to update the selected
       // saptial strata and refesh the map
       update_spatialUnit(this.value);
+    });
+
+    pie_size_selector.on("change", function() {
+      responseVar = this.value;
+      pts = get_pts(spatialUnit, centroids, ptAccessor);
+      piecharts.responseVar(responseVar);
+      pieg.data([pts]).call(piecharts);
+      piecharts.selectedPie(null).clear_pointInfo();
+    });
+
+    slice_selector.on("change", function() {
+      console.log("slices should be this.value = ", this.value);
     });
 
     // if the crossfilter changes, update our checkboxes:

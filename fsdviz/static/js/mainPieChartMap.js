@@ -25193,6 +25193,12 @@
 	    return chart;
 	  };
 
+	  chart.responseVar = function (value) {
+	    if (!arguments.length) return responseVar;
+	    responseVar = value;
+	    return chart;
+	  };
+
 	  chart.maxCircleSize = function (value) {
 	    if (!arguments.length) return maxCircleSize;
 	    maxCircleSize = value;
@@ -27396,30 +27402,42 @@
 	  return chart;
 	};
 
-	const spatialRadioButtons = () => {
-	  let strata = [{
-	    strata: "basin",
-	    label: "Basin"
-	  }, {
-	    strata: "grid10",
-	    label: "10-Minute Grid"
-	  }, {
-	    strata: "grid5",
-	    label: "5-Minute Grid"
-	  }, {
-	    strata: "site",
-	    label: "Named Site"
-	  }];
-	  let checked = strata[strata.length - 1].strata;
-	  let selector$$1 = "#strata-selector";
+	const RadioButtons = () => {
+	  let options = [];
+	  let checked = "";
+	  let selector$$1 = "";
 
 	  function buttons() {
-	    let strataSelector = select(selector$$1).data([null]);
-	    let strataForm = strataSelector.append("form").attr("id", "strata-form");
-	    let strataButtons = strataForm.selectAll("span").data(strata).enter().append("span");
-	    strataButtons.append("input").attr("type", "radio").attr("value", d => d.strata).attr("class", "strataButtons").property("checked", d => d.strata === checked);
-	    strataButtons.insert("text").text(d => d.label).append("br");
-	  }
+	    let groupedFields = select(selector$$1).append("div").data([null]).attr("class", "grouped fields");
+	    groupedFields.append("label").attr("for", selector$$1.replace("#", ""));
+	    let radioButtons = groupedFields.selectAll(".field").data(options).enter().append("div").attr("class", "field").append("div").attr("class", "ui radio checkbox").each(function (d) {
+	      select(this).append("input").attr("value", d => d.name).attr("name", selector$$1.replace("#", "")).attr("type", "radio").attr("class", "hidden").property("checked", d.name === checked).attr("tabindex", 0);
+	      select(this).append("label").text(d.label);
+	    });
+	  } //    let strataSelector = select(selector).data([null]);
+	  //
+	  //    let formid = selector.replace("#", "") + "-form";
+	  //    let strataForm = strataSelector.append("form").attr("id", formid);
+	  //
+	  //    let strataButtons = strataForm
+	  //      .selectAll("span")
+	  //      .data(strata)
+	  //      .enter()
+	  //      .append("span");
+	  //
+	  //    strataButtons
+	  //      .append("input")
+	  //      .attr("type", "radio")
+	  //      .attr("value", d => d.strata)
+	  //      .attr("class", "strataButtons")
+	  //      .property("checked", d => d.strata === checked);
+	  //
+	  //    strataButtons
+	  //      .insert("text")
+	  //      .text(d => d.label)
+	  //      .append("br");
+	  //  }
+
 
 	  buttons.checked = function (value) {
 	    if (!arguments.length) return checked;
@@ -27427,9 +27445,9 @@
 	    return buttons;
 	  };
 
-	  buttons.strata = function (value) {
-	    if (!arguments.length) return strata;
-	    strata = value;
+	  buttons.options = function (value) {
+	    if (!arguments.length) return options;
+	    options = value;
 	    return buttons;
 	  };
 
@@ -27438,11 +27456,13 @@
 	    selector$$1 = value;
 	    return buttons;
 	  }; // expose a method to update the radio buttons so we can keep them
-	  // in sync with other controls.
+	  // in sync with other controls. (this allows us to control the state
+	  // of these button if another control needs to change them)
 
 
 	  buttons.refresh = () => {
-	    let strataButtons = selectAll(".strataButtons").property("checked", d => d.strata === checked);
+	    let me = select(selector$$1);
+	    let inputOptions = me.selectAll("input").property("checked", d => d.name === checked);
 	  };
 
 	  return buttons;
@@ -27567,34 +27587,87 @@ style="fill:${fillScale(row.species)};" />
 	let piecharts = piechart_overlay(mymap).getProjection(projectPoint).fillScale(speciesColourScale); //======================================================
 
 	const filters = {};
-	const column = "events"; // the name of the columnwith our response:
+	const column = "events"; // the name of the column with our response:
 
-	const responseVar = "yreq"; //const responseVar = 'events';
+	let responseVar = "yreq"; //const responseVar = 'events';
+	//// radio buttons
+	//let strata = [
+	//  { strata: "lake", label: "Lake" },
+	//  { strata: "stateProv", label: "State/Province" },
+	//  { strata: "jurisdiction", label: "Jurisdiction" },
+	//  { strata: "manUnit", label: "Managment Unit" },
+	//  { strata: "grid10", label: "10-minute Grid" },
+	//  { strata: "geom", label: "Reported Point" }
+	//];
+	//
+	//let spatialSelector = spatialRadioButtons()
+	//  .selector("#strata-selector")
+	//  .strata(strata)
+	//  .checked(spatialUnit);
+	//
+	//spatialSelector();
 	// radio buttons
 
 	let strata = [{
-	  strata: "lake",
+	  name: "lake",
 	  label: "Lake"
 	}, {
-	  strata: "stateProv",
+	  name: "stateProv",
 	  label: "State/Province"
 	}, {
-	  strata: "jurisdiction",
+	  name: "jurisdiction",
 	  label: "Jurisdiction"
 	}, {
-	  strata: "manUnit",
+	  name: "manUnit",
 	  label: "Managment Unit"
 	}, {
-	  strata: "grid10",
+	  name: "grid10",
 	  label: "10-minute Grid"
 	}, {
-	  strata: "geom",
+	  name: "geom",
 	  label: "Reported Point"
 	}];
-	let spatialSelector = spatialRadioButtons().selector("#strata-selector").strata(strata).checked(spatialUnit);
+	let spatialSelector = RadioButtons().selector("#strata-selector").options(strata).checked(spatialUnit);
 	spatialSelector(); // our radio button listener
 
-	const spatial_resolution = selectAll("#strata-form input");
+	const spatial_resolution = selectAll("#strata-selector input"); // slices buttons:
+
+	let slices = [{
+	  name: "agency",
+	  label: "Agency"
+	}, {
+	  name: "species",
+	  label: "Species"
+	}, {
+	  name: "strain",
+	  label: "Strain"
+	}, {
+	  name: "mark",
+	  label: "Mark"
+	}, {
+	  name: "lifestage",
+	  label: "Life Stage"
+	}, {
+	  name: "stkMeth",
+	  label: "Stocking Method"
+	}];
+	let sliceSelector = RadioButtons().selector("#slices-selector").options(slices).checked("species");
+	sliceSelector();
+	const slice_selector = selectAll("#slices-selector input"); // Our Response Variable buttons:
+
+	let pieSizeVars = [{
+	  name: "yreq",
+	  label: "Yearling Equivalents"
+	}, {
+	  name: "total",
+	  label: "Number Stocked"
+	}, {
+	  name: "events",
+	  label: "Event Count"
+	}];
+	let pieSizeVarSelector = RadioButtons().selector("#pie-size-selector").options(pieSizeVars).checked(responseVar);
+	pieSizeVarSelector();
+	const pie_size_selector = selectAll("#pie-size-selector input");
 	Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(([data, centroids, topodata]) => {
 	  // prepare our stocking data and set up our cross filters:
 	  data.forEach(d => prepare_stocking_data(d)); // load our geometries and call our polygon overlay on the geom group:
@@ -27752,7 +27825,7 @@ style="fill:${fillScale(row.species)};" />
 	    filters: filters
 	  });
 
-	  const ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]);
+	  let ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]);
 
 	  const get_coordinates = pt => {
 	    let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
@@ -27856,6 +27929,16 @@ style="fill:${fillScale(row.species)};" />
 	    // when the radio buttons change, we and to update the selected
 	    // saptial strata and refesh the map
 	    update_spatialUnit(this.value);
+	  });
+	  pie_size_selector.on("change", function () {
+	    responseVar = this.value;
+	    pts = get_pts(spatialUnit, centroids, ptAccessor);
+	    piecharts.responseVar(responseVar);
+	    pieg.data([pts]).call(piecharts);
+	    piecharts.selectedPie(null).clear_pointInfo();
+	  });
+	  slice_selector.on("change", function () {
+	    console.log("slices should be this.value = ", this.value);
 	  }); // if the crossfilter changes, update our checkboxes:
 
 	  ndx.onChange(() => {
