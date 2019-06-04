@@ -37,39 +37,6 @@ export const checkBoxes = (selection, props) => {
     .append("div")
     .merge(selection);
 
-  let clearAll = cbarray
-    .selectAll(".clear-link")
-    .data([null])
-    .enter()
-    .append("a")
-    .attr("class", "clear-link")
-    .attr("href", "#")
-    .text("Clear All")
-    .on("click", function() {
-      let checkboxes = cbarray
-        .selectAll("input[type=checkbox]")
-        .property("checked", false);
-      filters[filterkey] = [];
-      xfdim.filter();
-    });
-
-  let selectAll = cbarray
-    .selectAll(".select-link")
-    .data([null])
-    .enter()
-    .append("a")
-    .attr("class", "select-link")
-    .attr("href", "#")
-    .classed("ui right floated", true)
-    .text("Select All")
-    .on("click", function() {
-      let checkboxes = cbarray
-        .selectAll("input[type=checkbox]")
-        .property("checked", true);
-      filters[filterkey] = keys.map(d => d.key);
-      xfdim.filter(val => myfilters.indexOf(val) > -1);
-    });
-
   let boxes = cbarray.selectAll("div").data(keys, d => d.key);
 
   boxes.exit().remove();
@@ -81,7 +48,7 @@ export const checkBoxes = (selection, props) => {
 
   boxesEnter = boxesEnter.merge(boxes);
 
-  let uiCheckbox = boxesEnter.append("div").attr("class", "checkbox");
+  let uiCheckbox = boxesEnter.append("div").attr("class", "ui checkbox");
 
   uiCheckbox
     .append("input")
@@ -102,5 +69,35 @@ export const checkBoxes = (selection, props) => {
       xfdim.filter(val => myfilters.indexOf(val) > -1);
     });
 
-  uiCheckbox.append("filterkey").text(d => d.key + " (n=" + d.value + ")");
+  uiCheckbox.append("label").text(d => d.key + " (n=" + d.value + ")");
+
+  let clearAll = cbarray
+    .selectAll(".clear-link")
+    .data([null])
+    .enter()
+    .append("button")
+    .attr("class", "clear-link ui mini basic primary left floated button")
+    .text("Clear All")
+    .on("click", function() {
+      let checkboxes = cbarray
+        .selectAll("input[type=checkbox]")
+        .property("checked", false);
+      filters[filterkey] = [];
+      xfdim.filter();
+    });
+
+  let selectAll = cbarray
+    .selectAll(".select-link")
+    .data([null])
+    .enter()
+    .append("button")
+    .attr("class", "select-link ui mini basic primary right floated button")
+    .text("Select All")
+    .on("click", function() {
+      let checkboxes = cbarray
+        .selectAll("input[type=checkbox]")
+        .property("checked", true);
+      filters[filterkey] = keys.map(d => d.key);
+      xfdim.filter(val => myfilters.indexOf(val) > -1);
+    });
 };

@@ -95,3 +95,15 @@ padding: 10px;
 .ui.accordion .title.filtered {
     color: red !important;
 }
+
+
+.ui.accordion .content {
+    padding-bottom: 3.5rem !important;
+}
+
+.ui.button.clear-link {
+    margin-top: 1rem !important;
+}
+.ui.button.select-link {
+    margin-top: 1rem !important;
+}
