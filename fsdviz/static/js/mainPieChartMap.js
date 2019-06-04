@@ -24832,34 +24832,25 @@
 	  //      </label>
 	  //  </div>`
 
-	  let myfilters = filters[filterkey];
+	  let myfilters = filters[filterkey].values;
 	  let keys$$1 = xfgroup.top("Infinity").filter(d => d.value > 0);
 	  keys$$1.sort((a, b) => a.key - b.key); // an object to contain the checkbox status for each checkbox
 
 	  let checkbox_map = {};
 	  keys$$1.forEach(d => checkbox_map[d.key] = myfilters.indexOf(d.key) > -1 ? true : false);
-	  let filtered = !Object.values(checkbox_map).every((val, i, arr) => val === arr[0]); // if this dimension is filtered, add the class filtered to the title
+	  let filtered = !Object.values(checkbox_map).every((val, i, arr) => val === arr[0]);
+	  filters[filterkey].is_filtered = filtered; // if this dimension is filtered, add the class filtered to the title
 	  // so we can style it differently to indicate that:
 
 	  let selector$$1 = selection$$1.attr("id");
 	  let titleclass = select(`#${selector$$1}-title`).classed("filtered", filtered); // use d3 to create our checkboxes:
 
 	  let cbarray = selection$$1.enter().append("div").merge(selection$$1);
-	  let clearAll = cbarray.selectAll(".clear-link").data([null]).enter().append("a").attr("class", "clear-link").attr("href", "#").text("Clear All").on("click", function () {
-	    let checkboxes = cbarray.selectAll("input[type=checkbox]").property("checked", false);
-	    filters[filterkey] = [];
-	    xfdim.filter();
-	  });
-	  let selectAll$$1 = cbarray.selectAll(".select-link").data([null]).enter().append("a").attr("class", "select-link").attr("href", "#").classed("ui right floated", true).text("Select All").on("click", function () {
-	    let checkboxes = cbarray.selectAll("input[type=checkbox]").property("checked", true);
-	    filters[filterkey] = keys$$1.map(d => d.key);
-	    xfdim.filter(val => myfilters.indexOf(val) > -1);
-	  });
 	  let boxes = cbarray.selectAll("div").data(keys$$1, d => d.key);
 	  boxes.exit().remove();
 	  let boxesEnter = boxes.enter().append("div").attr("class", "inline field");
 	  boxesEnter = boxesEnter.merge(boxes);
-	  let uiCheckbox = boxesEnter.append("div").attr("class", "checkbox");
+	  let uiCheckbox = boxesEnter.append("div").attr("class", "ui checkbox");
 	  uiCheckbox.append("input").attr("type", "checkbox").property("checked", d => {
 	    return checkbox_map[d.key];
 	  }).attr("value", d => d.key).on("click", function () {
@@ -24871,10 +24862,20 @@
 	      myfilters = myfilters.filter(val => val !== this.value);
 	    }
 
-	    filters[filterkey] = myfilters;
+	    filters[filterkey].values = myfilters;
 	    xfdim.filter(val => myfilters.indexOf(val) > -1);
 	  });
-	  uiCheckbox.append("filterkey").text(d => d.key + " (n=" + d.value + ")");
+	  uiCheckbox.append("label").text(d => d.key + " (n=" + d.value + ")");
+	  let clearAll = cbarray.selectAll(".clear-link").data([null]).enter().append("button").attr("class", "clear-link ui mini basic primary left floated button").text("Clear All").on("click", function () {
+	    let checkboxes = cbarray.selectAll("input[type=checkbox]").property("checked", false);
+	    filters[filterkey].values = [];
+	    xfdim.filter();
+	  });
+	  let selectAll$$1 = cbarray.selectAll(".select-link").data([null]).enter().append("button").attr("class", "select-link ui mini basic primary right floated button").text("Select All").on("click", function () {
+	    let checkboxes = cbarray.selectAll("input[type=checkbox]").property("checked", true);
+	    filters[filterkey].values = keys$$1.map(d => d.key);
+	    xfdim.filter(val => myfilters.indexOf(val) > -1);
+	  });
 	};
 
 	// a function to prepare the json stocking data for use in our map
@@ -24891,8 +24892,12 @@
 	// (all boxes will be checked to start)
 
 	const initialize_filter = (filters, key, dim) => {
-	  filters[key] = dim.group().all().map(d => d.key);
-	  dim.filter(val => filters[key].indexOf(val) > -1);
+	  let values = dim.group().all().map(d => d.key);
+	  filters[key] = {
+	    values: values,
+	    is_filtered: false
+	  };
+	  dim.filter(val => filters[key].values.indexOf(val) > -1);
 	}; //
 	//export const update_summary_table = data => {
 	//    // generate the html for rows of our summary table body.  for each species in data
@@ -27640,20 +27645,28 @@ style="fill:${fillScale(row.species)};" />
 	  let geomMapGroup = geomDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
 	  update_stats_panel(all, {
 	    fillScale: speciesColourScale
-	  }); //ininitialize our filters - all checked at first
+	  }); //A function to set all of the filters to checked - called when
+	  //the page loads of if the reset button is clicked.
 
-	  initialize_filter(filters, "lake", lakeDim);
-	  initialize_filter(filters, "stateProv", stateProvDim);
-	  initialize_filter(filters, "jurisdiction", jurisdictionDim);
-	  initialize_filter(filters, "manUnit", manUnitDim);
-	  initialize_filter(filters, "agency", agencyDim);
-	  initialize_filter(filters, "species", speciesDim);
-	  initialize_filter(filters, "strain", strainDim);
-	  initialize_filter(filters, "yearClass", yearClassDim);
-	  initialize_filter(filters, "lifeStage", lifeStageDim);
-	  initialize_filter(filters, "mark", markDim);
-	  initialize_filter(filters, "stockingMonth", monthDim);
-	  initialize_filter(filters, "stkMeth", stkMethDim);
+	  const set_or_reset_filters = () => {
+	    initialize_filter(filters, "lake", lakeDim);
+	    initialize_filter(filters, "stateProv", stateProvDim);
+	    initialize_filter(filters, "jurisdiction", jurisdictionDim);
+	    initialize_filter(filters, "manUnit", manUnitDim);
+	    initialize_filter(filters, "agency", agencyDim);
+	    initialize_filter(filters, "species", speciesDim);
+	    initialize_filter(filters, "strain", strainDim);
+	    initialize_filter(filters, "yearClass", yearClassDim);
+	    initialize_filter(filters, "lifeStage", lifeStageDim);
+	    initialize_filter(filters, "mark", markDim);
+	    initialize_filter(filters, "stockingMonth", monthDim);
+	    initialize_filter(filters, "stkMeth", stkMethDim);
+	  }; // initialize our filters when everything loads
+
+
+	  set_or_reset_filters();
+	  let reset_button = select("#reset-button");
+	  reset_button.on("click", set_or_reset_filters);
 	  let lakeSelection = select("#lake-filter");
 	  checkBoxes(lakeSelection, {
 	    filterkey: "lake",
@@ -27920,7 +27933,12 @@ style="fill:${fillScale(row.species)};" />
 	      xfdim: lifeStageDim,
 	      xfgroup: lifeStageGroup,
 	      filters: filters
-	    }); //update our map too:
+	    }); // see fi there are any check box filters:
+
+	    let filter_states = Object.values(filters).map(d => d.is_filtered);
+	    let filtered = !filter_states.every(d => d === false);
+	    let reset_button = select("#reset-button");
+	    reset_button.classed("disabled", !filtered); //update our map too:
 
 	    let pts = get_pts(spatialUnit, centroids, ptAccessor);
 	    pieg.data([pts]).call(piecharts);

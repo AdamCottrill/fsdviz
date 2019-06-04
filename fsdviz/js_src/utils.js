@@ -13,11 +13,14 @@ export const prepare_stocking_data = data => {
 // and set the filter to include all of the values in that dimension
 // (all boxes will be checked to start)
 export const initialize_filter = (filters, key, dim) => {
-  filters[key] = dim
+  let values = dim
     .group()
     .all()
     .map(d => d.key);
-  dim.filter(val => filters[key].indexOf(val) > -1);
+
+  filters[key] = { values: values, is_filtered: false };
+
+  dim.filter(val => filters[key].values.indexOf(val) > -1);
 };
 
 //

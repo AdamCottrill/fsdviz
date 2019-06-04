@@ -11,7 +11,7 @@ export const checkBoxes = (selection, props) => {
   //      </label>
   //  </div>`
 
-  let myfilters = filters[filterkey];
+  let myfilters = filters[filterkey].values;
 
   let keys = xfgroup.top("Infinity").filter(d => d.value > 0);
   keys.sort((a, b) => a.key - b.key);
@@ -25,6 +25,8 @@ export const checkBoxes = (selection, props) => {
   let filtered = !Object.values(checkbox_map).every(
     (val, i, arr) => val === arr[0]
   );
+
+  filters[filterkey].is_filtered = filtered;
 
   // if this dimension is filtered, add the class filtered to the title
   // so we can style it differently to indicate that:
@@ -65,7 +67,7 @@ export const checkBoxes = (selection, props) => {
         // remove the value of the box that was just unchecked
         myfilters = myfilters.filter(val => val !== this.value);
       }
-      filters[filterkey] = myfilters;
+      filters[filterkey].values = myfilters;
       xfdim.filter(val => myfilters.indexOf(val) > -1);
     });
 
@@ -82,7 +84,7 @@ export const checkBoxes = (selection, props) => {
       let checkboxes = cbarray
         .selectAll("input[type=checkbox]")
         .property("checked", false);
-      filters[filterkey] = [];
+      filters[filterkey].values = [];
       xfdim.filter();
     });
 
@@ -97,7 +99,7 @@ export const checkBoxes = (selection, props) => {
       let checkboxes = cbarray
         .selectAll("input[type=checkbox]")
         .property("checked", true);
-      filters[filterkey] = keys.map(d => d.key);
+      filters[filterkey].values = keys.map(d => d.key);
       xfdim.filter(val => myfilters.indexOf(val) > -1);
     });
 };

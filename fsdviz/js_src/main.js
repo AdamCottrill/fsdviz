@@ -237,19 +237,27 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
 
     update_stats_panel(all, { fillScale: speciesColourScale });
 
-    //ininitialize our filters - all checked at first
-    initialize_filter(filters, "lake", lakeDim);
-    initialize_filter(filters, "stateProv", stateProvDim);
-    initialize_filter(filters, "jurisdiction", jurisdictionDim);
-    initialize_filter(filters, "manUnit", manUnitDim);
-    initialize_filter(filters, "agency", agencyDim);
-    initialize_filter(filters, "species", speciesDim);
-    initialize_filter(filters, "strain", strainDim);
-    initialize_filter(filters, "yearClass", yearClassDim);
-    initialize_filter(filters, "lifeStage", lifeStageDim);
-    initialize_filter(filters, "mark", markDim);
-    initialize_filter(filters, "stockingMonth", monthDim);
-    initialize_filter(filters, "stkMeth", stkMethDim);
+    //A function to set all of the filters to checked - called when
+    //the page loads of if the reset button is clicked.
+    const set_or_reset_filters = () => {
+      initialize_filter(filters, "lake", lakeDim);
+      initialize_filter(filters, "stateProv", stateProvDim);
+      initialize_filter(filters, "jurisdiction", jurisdictionDim);
+      initialize_filter(filters, "manUnit", manUnitDim);
+      initialize_filter(filters, "agency", agencyDim);
+      initialize_filter(filters, "species", speciesDim);
+      initialize_filter(filters, "strain", strainDim);
+      initialize_filter(filters, "yearClass", yearClassDim);
+      initialize_filter(filters, "lifeStage", lifeStageDim);
+      initialize_filter(filters, "mark", markDim);
+      initialize_filter(filters, "stockingMonth", monthDim);
+      initialize_filter(filters, "stkMeth", stkMethDim);
+    };
+    // initialize our filters when everything loads
+    set_or_reset_filters();
+
+    let reset_button = select("#reset-button");
+    reset_button.on("click", set_or_reset_filters);
 
     let lakeSelection = select("#lake-filter");
     checkBoxes(lakeSelection, {
@@ -536,6 +544,13 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
         xfgroup: lifeStageGroup,
         filters: filters
       });
+
+      // see fi there are any check box filters:
+      let filter_states = Object.values(filters).map(d => d.is_filtered);
+      let filtered = !filter_states.every(d => d === false);
+
+      let reset_button = select("#reset-button");
+      reset_button.classed("disabled", !filtered);
 
       //update our map too:
       let pts = get_pts(spatialUnit, centroids, ptAccessor);
