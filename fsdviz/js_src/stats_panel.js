@@ -36,7 +36,7 @@ const update_summary_table = (data, props) => {
 <svg width="${rectSize}" height="${rectSize}">
   <rect width="${rectSize}" height="${rectSize}"
 style="fill:${fillScale(row.species)};" />
-        </svg>${row.species} </td>
+        </svg>  ${row.species}</td>
            <td class="center aligned">${row.events}</td>
            <td class="right aligned">${commaFormat(row.yreq)}</td>
        </tr>`;

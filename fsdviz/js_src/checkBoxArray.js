@@ -33,7 +33,6 @@ export const checkBoxes = (selection, props) => {
   let selector = selection.attr("id");
   let titleclass = select(`#${selector}-title`).classed("filtered", filtered);
 
-  // use d3 to create our checkboxes:
   let cbarray = selection
     .enter()
     .append("div")
@@ -73,7 +72,9 @@ export const checkBoxes = (selection, props) => {
 
   uiCheckbox.append("label").text(d => d.key + " (n=" + d.value + ")");
 
-  let clearAll = cbarray
+  let buttonbar = select(`#${selector}-buttons`);
+
+  let clearAllBnt = buttonbar
     .selectAll(".clear-link")
     .data([null])
     .enter()
@@ -88,7 +89,7 @@ export const checkBoxes = (selection, props) => {
       xfdim.filter();
     });
 
-  let selectAll = cbarray
+  let selectAllBtn = buttonbar
     .selectAll(".select-link")
     .data([null])
     .enter()

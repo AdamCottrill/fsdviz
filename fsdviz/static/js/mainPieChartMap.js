@@ -24843,8 +24843,7 @@
 	  // so we can style it differently to indicate that:
 
 	  let selector$$1 = selection$$1.attr("id");
-	  let titleclass = select(`#${selector$$1}-title`).classed("filtered", filtered); // use d3 to create our checkboxes:
-
+	  let titleclass = select(`#${selector$$1}-title`).classed("filtered", filtered);
 	  let cbarray = selection$$1.enter().append("div").merge(selection$$1);
 	  let boxes = cbarray.selectAll("div").data(keys$$1, d => d.key);
 	  boxes.exit().remove();
@@ -24866,12 +24865,13 @@
 	    xfdim.filter(val => myfilters.indexOf(val) > -1);
 	  });
 	  uiCheckbox.append("label").text(d => d.key + " (n=" + d.value + ")");
-	  let clearAll = cbarray.selectAll(".clear-link").data([null]).enter().append("button").attr("class", "clear-link ui mini basic primary left floated button").text("Clear All").on("click", function () {
+	  let buttonbar = select(`#${selector$$1}-buttons`);
+	  let clearAllBnt = buttonbar.selectAll(".clear-link").data([null]).enter().append("button").attr("class", "clear-link ui mini basic primary left floated button").text("Clear All").on("click", function () {
 	    let checkboxes = cbarray.selectAll("input[type=checkbox]").property("checked", false);
 	    filters[filterkey].values = [];
 	    xfdim.filter();
 	  });
-	  let selectAll$$1 = cbarray.selectAll(".select-link").data([null]).enter().append("button").attr("class", "select-link ui mini basic primary right floated button").text("Select All").on("click", function () {
+	  let selectAllBtn = buttonbar.selectAll(".select-link").data([null]).enter().append("button").attr("class", "select-link ui mini basic primary right floated button").text("Select All").on("click", function () {
 	    let checkboxes = cbarray.selectAll("input[type=checkbox]").property("checked", true);
 	    filters[filterkey].values = keys$$1.map(d => d.key);
 	    xfdim.filter(val => myfilters.indexOf(val) > -1);
@@ -27477,7 +27477,7 @@
 <svg width="${rectSize}" height="${rectSize}">
   <rect width="${rectSize}" height="${rectSize}"
 style="fill:${fillScale(row.species)};" />
-        </svg>${row.species} </td>
+        </svg>  ${row.species}</td>
            <td class="center aligned">${row.events}</td>
            <td class="right aligned">${commaFormat(row.yreq)}</td>
        </tr>`;
