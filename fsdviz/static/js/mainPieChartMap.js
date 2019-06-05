@@ -24999,14 +24999,21 @@
 	// keep track of the number of events, yealing equivalents, and total
 	// number stocked by species - if the species exists update, if not
 	// create it, if event count is 0 delete it.
-	// for each group('what'), we want to return an object of the form:
+	// for each group('sliceVar'), we want to return an object of the form:
 	//{
 	// yreq : ,
 	// total: ,
 	// events: ,
 	//}
+	// agency_abbrev
+	// life_stage
+	// mark
+	// species_name
+	// stateprov
+	// stk_method
+	// strain
 	const stockingAdd = (p, v) => {
-	  let counts = p[v[what]] || {
+	  let counts = p[v[sliceVar]] || {
 	    yreq: 0,
 	    total: 0,
 	    events: 0
@@ -25014,18 +25021,18 @@
 	  counts.yreq += v.yreq;
 	  counts.total += v.total_stocked;
 	  counts.events += v.events;
-	  p[v[what]] = counts;
+	  p[v[sliceVar]] = counts;
 	  return p;
 	};
 	const stockingRemove = (p, v) => {
-	  let counts = p[v[what]] || {
+	  let counts = p[v[sliceVar]] || {
 	    yreq: 0,
 	    total: 0,
 	    events: 0
 	  };
 	  counts.yreq -= v.yreq;
 	  counts.total -= v.total_stocked;
-	  counts.events -= v.events; //p[v[what]] = (p[v[what]] || 0) - v.yreq;
+	  counts.events -= v.events; //p[v[sliceVar]] = (p[v[sliceVar]] || 0) - v.yreq;
 
 	  return p;
 	};
@@ -27540,9 +27547,14 @@ style="fill:${fillScale(row.species)};" />
 	  browser.enable("*");
 	  const now$$1 = new Date().toString().slice(16, -33);
 	  log$2(`Debugging is enabled! (${now$$1})`);
-	} // setup the map with rough bounds (need to get pies to plot first,
-	// this will be tweaked later):
+	}
 
+	const filters = {};
+	const column = "events"; // the name of the column with our response:
+
+	let responseVar = "yreq"; //let sliceVar = "agency_abbrev";
+	// setup the map with rough bounds (need to get pies to plot first,
+	// this will be tweaked later):
 
 	const mymap = leafletSrc.map("mapid", {
 	  zoomDelta: 0.25,
@@ -27585,28 +27597,7 @@ style="fill:${fillScale(row.species)};" />
 
 
 	let piecharts = piechart_overlay(mymap).getProjection(projectPoint).fillScale(speciesColourScale); //======================================================
-
-	const filters = {};
-	const column = "events"; // the name of the column with our response:
-
-	let responseVar = "yreq"; //const responseVar = 'events';
-	//// radio buttons
-	//let strata = [
-	//  { strata: "lake", label: "Lake" },
-	//  { strata: "stateProv", label: "State/Province" },
-	//  { strata: "jurisdiction", label: "Jurisdiction" },
-	//  { strata: "manUnit", label: "Managment Unit" },
-	//  { strata: "grid10", label: "10-minute Grid" },
-	//  { strata: "geom", label: "Reported Point" }
-	//];
-	//
-	//let spatialSelector = spatialRadioButtons()
-	//  .selector("#strata-selector")
-	//  .strata(strata)
-	//  .checked(spatialUnit);
-	//
-	//spatialSelector();
-	// radio buttons
+	//           RADIO BUTTONS
 
 	let strata = [{
 	  name: "lake",
@@ -27631,12 +27622,13 @@ style="fill:${fillScale(row.species)};" />
 	spatialSelector(); // our radio button listener
 
 	const spatial_resolution = selectAll("#strata-selector input"); // slices buttons:
+	// name must correspond to column names in our data
 
 	let slices = [{
-	  name: "agency",
+	  name: "agency_abbrev",
 	  label: "Agency"
 	}, {
-	  name: "species",
+	  name: "species_name",
 	  label: "Species"
 	}, {
 	  name: "strain",
@@ -27645,10 +27637,10 @@ style="fill:${fillScale(row.species)};" />
 	  name: "mark",
 	  label: "Mark"
 	}, {
-	  name: "lifestage",
+	  name: "life_stage",
 	  label: "Life Stage"
 	}, {
-	  name: "stkMeth",
+	  name: "stk_meth",
 	  label: "Stocking Method"
 	}];
 	let sliceSelector = RadioButtons().selector("#slices-selector").options(slices).checked("species");
@@ -27710,12 +27702,23 @@ style="fill:${fillScale(row.species)};" />
 	  // and the total number of events.  the variable 'what' determines how the
 	  // groups are calculated
 
-	  let lakeMapGroup = lakeDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
-	  let jurisdictionMapGroup = jurisdictionDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
-	  let stateProvMapGroup = stateProvDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
-	  let manUnitMapGroup = manUnitDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
-	  let grid10MapGroup = grid10Dim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
-	  let geomMapGroup = geomDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
+	  let lakeMapGroup = {};
+	  let jurisdictionMapGroup = {};
+	  let stateProvMapGroup = {};
+	  let manUnitMapGroup = {};
+	  let grid10MapGroup = {};
+	  let geomMapGroup = {};
+
+	  const calcMapGroups = () => {
+	    lakeMapGroup = lakeDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
+	    jurisdictionMapGroup = jurisdictionDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
+	    stateProvMapGroup = stateProvDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
+	    manUnitMapGroup = manUnitDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
+	    grid10MapGroup = grid10Dim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
+	    geomMapGroup = geomDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
+	  };
+
+	  calcMapGroups();
 	  update_stats_panel(all, {
 	    fillScale: speciesColourScale
 	  }); //A function to set all of the filters to checked - called when
@@ -27823,9 +27826,11 @@ style="fill:${fillScale(row.species)};" />
 	    xfdim: lifeStageDim,
 	    xfgroup: lifeStageGroup,
 	    filters: filters
-	  });
+	  }); // an accessor function to get values of our currently selected
+	  // response variable.
 
-	  let ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]);
+	  let ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]); // convert pts as wkt to array of two floats
+
 
 	  const get_coordinates = pt => {
 	    let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
@@ -27910,36 +27915,50 @@ style="fill:${fillScale(row.species)};" />
 	    }
 	  };
 
-	  polygons.updateCrossfilter(updateCrossfilter); //piecharts.radiusAccessor(d => d.total).keyfield(spatialUnit);
-	  // instantiate our map and pie charts:
+	  polygons.updateCrossfilter(updateCrossfilter);
+	  polygons.render(); //piecharts.radiusAccessor(d => d.total).keyfield(spatialUnit);
 
 	  let pts = get_pts(spatialUnit, centroids, ptAccessor);
-	  polygons.render();
-	  pieg.data([pts]).call(piecharts);
+	  pieg.data([pts]).call(piecharts); // recacalculate the points given the current spatial unit and
+	  // point accessor
+
+	  const updatePieCharts = () => {
+	    pts = get_pts(spatialUnit, centroids, ptAccessor);
+	    pieg.data([pts]).call(piecharts);
+	    piecharts.selectedPie(null).clear_pointInfo();
+	  }; // if the spatial radio buttons change, update the global variable
+	  // and update the pie charts
+
 
 	  const update_spatialUnit = value => {
-	    piecharts.selectedPie(null).clear_pointInfo();
 	    spatialUnit = value;
 	    spatialSelector.checked(spatialUnit).refresh();
-	    pts = get_pts(value, centroids, ptAccessor);
-	    pieg.data([pts]).call(piecharts);
-	  };
+	    updatePieCharts();
+	  }; // if the pie chart slice selector radio buttons changes, update
+	  // the global variable and update the pie charts
+
+
+	  const update_sliceValue = value => {
+	    sliceVar = value;
+	    calcMapGroups();
+	    updatePieCharts();
+	  }; //==================================================+
+	  //         RADIO BUTTON CHANGE LISTENERS
+
 
 	  spatial_resolution.on("change", function () {
-	    // when the radio buttons change, we and to update the selected
-	    // saptial strata and refesh the map
 	    update_spatialUnit(this.value);
+	  });
+	  slice_selector.on("change", function () {
+	    update_sliceValue(this.value);
 	  });
 	  pie_size_selector.on("change", function () {
 	    responseVar = this.value;
-	    pts = get_pts(spatialUnit, centroids, ptAccessor);
 	    piecharts.responseVar(responseVar);
-	    pieg.data([pts]).call(piecharts);
-	    piecharts.selectedPie(null).clear_pointInfo();
-	  });
-	  slice_selector.on("change", function () {
-	    console.log("slices should be this.value = ", this.value);
-	  }); // if the crossfilter changes, update our checkboxes:
+	    updatePieCharts();
+	  }); //==================================================+
+	  //         CROSSFILTER ON CHANGE
+	  // if the crossfilter changes, update our checkboxes:
 
 	  ndx.onChange(() => {
 	    update_stats_panel(all, {

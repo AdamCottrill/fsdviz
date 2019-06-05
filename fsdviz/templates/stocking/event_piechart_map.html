@@ -253,13 +253,16 @@
                                 </div>
                             </div>
                             <div class="ui bottom attached tab segment" data-tab="settings">
-                                <h3>Spatial Resolution</h3>
-                                <div class="ui mini form" id="strata-selector"></div>
+                                <h3 class="ui header">Spatial Resolution</h3>
+                                    <div class="ui mini form" id="strata-selector"></div>
 
-                                <h3>Slices Category</h3>
+                                    <h3 class="ui header"
+                                        data-tooltip="Consider applying filters before changing slice category.">
+                                        Slices Category*</h3>
+
                                 <div class="ui mini form" id="slices-selector"></div>
 
-                                <h3>Response Variable (Circle Size)</h3>
+                                <h3 class="ui header">Response Variable (Circle Size)</h3>
                                 <div class="ui mini form" id="pie-size-selector"></div>
 
                             </div>
@@ -291,7 +294,8 @@
      const centroidsURL = "{% static "data/centroids.json" %}";
 
      let spatialUnit = "jurisdiction";
-     let what = "species_name";
+     //let what = "species_name";
+     let sliceVar = "agency_abbrev";
     </script>
 
     <script type="text/javascript" src="{% static "js/accessToken.js" %}"></script>

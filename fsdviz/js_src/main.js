@@ -28,6 +28,13 @@ if (ENV !== "production") {
   debug.disable();
 }
 
+const filters = {};
+
+const column = "events";
+// the name of the column with our response:
+let responseVar = "yreq";
+//let sliceVar = "agency_abbrev";
+
 // setup the map with rough bounds (need to get pies to plot first,
 // this will be tweaked later):
 const mymap = Leaflet.map("mapid", {
@@ -131,32 +138,8 @@ let piecharts = piechart_overlay(mymap)
   .fillScale(speciesColourScale);
 
 //======================================================
+//           RADIO BUTTONS
 
-const filters = {};
-
-const column = "events";
-// the name of the column with our response:
-let responseVar = "yreq";
-//const responseVar = 'events';
-
-//// radio buttons
-//let strata = [
-//  { strata: "lake", label: "Lake" },
-//  { strata: "stateProv", label: "State/Province" },
-//  { strata: "jurisdiction", label: "Jurisdiction" },
-//  { strata: "manUnit", label: "Managment Unit" },
-//  { strata: "grid10", label: "10-minute Grid" },
-//  { strata: "geom", label: "Reported Point" }
-//];
-//
-//let spatialSelector = spatialRadioButtons()
-//  .selector("#strata-selector")
-//  .strata(strata)
-//  .checked(spatialUnit);
-//
-//spatialSelector();
-
-// radio buttons
 let strata = [
   { name: "lake", label: "Lake" },
   { name: "stateProv", label: "State/Province" },
@@ -177,13 +160,14 @@ spatialSelector();
 const spatial_resolution = selectAll("#strata-selector input");
 
 // slices buttons:
+// name must correspond to column names in our data
 let slices = [
-  { name: "agency", label: "Agency" },
-  { name: "species", label: "Species" },
+  { name: "agency_abbrev", label: "Agency" },
+  { name: "species_name", label: "Species" },
   { name: "strain", label: "Strain" },
   { name: "mark", label: "Mark" },
-  { name: "lifestage", label: "Life Stage" },
-  { name: "stkMeth", label: "Stocking Method" }
+  { name: "life_stage", label: "Life Stage" },
+  { name: "stk_meth", label: "Stocking Method" }
 ];
 
 let sliceSelector = RadioButtons()
@@ -263,29 +247,40 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
     // the total number of fish stocked, the number of yearling equivalents,
     // and the total number of events.  the variable 'what' determines how the
     // groups are calculated
-    let lakeMapGroup = lakeDim
-      .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+    let lakeMapGroup = {};
+    let jurisdictionMapGroup = {};
+    let stateProvMapGroup = {};
+    let manUnitMapGroup = {};
+    let grid10MapGroup = {};
+    let geomMapGroup = {};
 
-    let jurisdictionMapGroup = jurisdictionDim
-      .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+    const calcMapGroups = () => {
+      lakeMapGroup = lakeDim
+        .group()
+        .reduce(stockingAdd, stockingRemove, stockingInitial);
 
-    let stateProvMapGroup = stateProvDim
-      .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+      jurisdictionMapGroup = jurisdictionDim
+        .group()
+        .reduce(stockingAdd, stockingRemove, stockingInitial);
 
-    let manUnitMapGroup = manUnitDim
-      .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+      stateProvMapGroup = stateProvDim
+        .group()
+        .reduce(stockingAdd, stockingRemove, stockingInitial);
 
-    let grid10MapGroup = grid10Dim
-      .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+      manUnitMapGroup = manUnitDim
+        .group()
+        .reduce(stockingAdd, stockingRemove, stockingInitial);
 
-    let geomMapGroup = geomDim
-      .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+      grid10MapGroup = grid10Dim
+        .group()
+        .reduce(stockingAdd, stockingRemove, stockingInitial);
+
+      geomMapGroup = geomDim
+        .group()
+        .reduce(stockingAdd, stockingRemove, stockingInitial);
+    };
+
+    calcMapGroups();
 
     update_stats_panel(all, { fillScale: speciesColourScale });
 
@@ -408,9 +403,12 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
+    // an accessor function to get values of our currently selected
+    // response variable.
     let ptAccessor = d =>
       Object.keys(d.value).map(x => d.value[x][responseVar]);
 
+    // convert pts as wkt to array of two floats
     const get_coordinates = pt => {
       let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
       return [parseFloat(coords[0]), parseFloat(coords[1])];
@@ -488,38 +486,56 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
     };
 
     polygons.updateCrossfilter(updateCrossfilter);
+    polygons.render();
 
     //piecharts.radiusAccessor(d => d.total).keyfield(spatialUnit);
-    // instantiate our map and pie charts:
+
     let pts = get_pts(spatialUnit, centroids, ptAccessor);
-    polygons.render();
     pieg.data([pts]).call(piecharts);
 
-    const update_spatialUnit = value => {
-      piecharts.selectedPie(null).clear_pointInfo();
-      spatialUnit = value;
-      spatialSelector.checked(spatialUnit).refresh();
-      pts = get_pts(value, centroids, ptAccessor);
+    // recacalculate the points given the current spatial unit and
+    // point accessor
+    const updatePieCharts = () => {
+      pts = get_pts(spatialUnit, centroids, ptAccessor);
       pieg.data([pts]).call(piecharts);
+      piecharts.selectedPie(null).clear_pointInfo();
     };
 
+    // if the spatial radio buttons change, update the global variable
+    // and update the pie charts
+    const update_spatialUnit = value => {
+      spatialUnit = value;
+      spatialSelector.checked(spatialUnit).refresh();
+      updatePieCharts();
+    };
+
+    // if the pie chart slice selector radio buttons changes, update
+    // the global variable and update the pie charts
+    const update_sliceValue = value => {
+      sliceVar = value;
+      calcMapGroups();
+      updatePieCharts();
+    };
+
+    //==================================================+
+    //         RADIO BUTTON CHANGE LISTENERS
+
     spatial_resolution.on("change", function() {
-      // when the radio buttons change, we and to update the selected
-      // saptial strata and refesh the map
       update_spatialUnit(this.value);
+    });
+
+    slice_selector.on("change", function() {
+      update_sliceValue(this.value);
     });
 
     pie_size_selector.on("change", function() {
       responseVar = this.value;
-      pts = get_pts(spatialUnit, centroids, ptAccessor);
       piecharts.responseVar(responseVar);
-      pieg.data([pts]).call(piecharts);
-      piecharts.selectedPie(null).clear_pointInfo();
+      updatePieCharts();
     });
 
-    slice_selector.on("change", function() {
-      console.log("slices should be this.value = ", this.value);
-    });
+    //==================================================+
+    //         CROSSFILTER ON CHANGE
 
     // if the crossfilter changes, update our checkboxes:
     ndx.onChange(() => {
