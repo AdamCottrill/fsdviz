@@ -1,4 +1,4 @@
-/* global accessToken,  dataURL */
+/* global accessToken,  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
 
 import debug from "debug";
 
@@ -167,7 +167,7 @@ let slices = [
   { name: "strain", label: "Strain" },
   { name: "mark", label: "Mark" },
   { name: "life_stage", label: "Life Stage" },
-  { name: "stk_meth", label: "Stocking Method" }
+  { name: "stk_method", label: "Stocking Method" }
 ];
 
 let sliceSelector = RadioButtons()
@@ -204,10 +204,6 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
 
     let ndx = crossfilter(data);
 
-    let all = ndx
-      .groupAll()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
-
     // these are dimensions that will be used by the polygon overlay:
 
     let lakePolygonDim = ndx.dimension(d => d.lake);
@@ -243,10 +239,13 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
     let monthGroup = monthDim.group().reduceSum(d => d[column]);
     let stkMethGroup = stkMethDim.group().reduceSum(d => d[column]);
 
-    // set-up our spatial groups - each key will contain an object with
-    // the total number of fish stocked, the number of yearling equivalents,
-    // and the total number of events.  the variable 'what' determines how the
-    // groups are calculated
+    // set-up our spatial groups - each key will contain an object
+    // with the total number of fish stocked, the number of yearling
+    // equivalents, and the total number of events.  the variable
+    // 'sliceVar' determines how the groups are calculated -
+    // initialize them as empty objects and fill them wih a function
+    // that is called again when sliceVar is changed.
+    let all = {};
     let lakeMapGroup = {};
     let jurisdictionMapGroup = {};
     let stateProvMapGroup = {};
@@ -255,6 +254,8 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
     let geomMapGroup = {};
 
     const calcMapGroups = () => {
+      all = ndx.groupAll().reduce(stockingAdd, stockingRemove, stockingInitial);
+
       lakeMapGroup = lakeDim
         .group()
         .reduce(stockingAdd, stockingRemove, stockingInitial);
@@ -282,7 +283,11 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
 
     calcMapGroups();
 
-    update_stats_panel(all, { fillScale: speciesColourScale });
+    update_stats_panel(all, {
+      fillScale: speciesColourScale,
+      slices: slices,
+      what: sliceVar
+    });
 
     //A function to set all of the filters to checked - called when
     //the page loads of if the reset button is clicked.
@@ -499,6 +504,12 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       pts = get_pts(spatialUnit, centroids, ptAccessor);
       pieg.data([pts]).call(piecharts);
       piecharts.selectedPie(null).clear_pointInfo();
+
+      update_stats_panel(all, {
+        fillScale: speciesColourScale,
+        slices: slices,
+        what: sliceVar
+      });
     };
 
     // if the spatial radio buttons change, update the global variable
@@ -539,7 +550,11 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
 
     // if the crossfilter changes, update our checkboxes:
     ndx.onChange(() => {
-      update_stats_panel(all, { fillScale: speciesColourScale });
+      update_stats_panel(all, {
+        fillScale: speciesColourScale,
+        slices: slices,
+        what: sliceVar
+      });
 
       checkBoxes(lakeSelection, {
         filterkey: "lake",

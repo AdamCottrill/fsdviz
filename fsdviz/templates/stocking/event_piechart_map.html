@@ -227,7 +227,7 @@
                                             <li><span id="total-stocked"></span> Fish</li>
                                             <li><span id="yreq-stocked"></span> Yearling Equiv.</li>
                                             <li><span id="event-count"></span> Events</li>
-                                            <li><span id="species-count"></span> Species</li>
+                                            <li><span id="value-count"></span> <span id="slice-value-label-plural"></span></li>
                                         </ul>
 
                                         <div id="stocked-summary-table">
@@ -237,7 +237,7 @@
                                             >
                                                 <thead>
                                                     <tr>
-                                                        <th>Species</th>
+                                                        <th><span id="slice-value-label"></th>
                                                         <th class="center aligned">Events</th>
                                                         <th class="center aligned">Yr.Eq.</th>
                                                     </tr>
@@ -294,8 +294,7 @@
      const centroidsURL = "{% static "data/centroids.json" %}";
 
      let spatialUnit = "jurisdiction";
-     //let what = "species_name";
-     let sliceVar = "agency_abbrev";
+     let sliceVar = "species_name";
     </script>
 
     <script type="text/javascript" src="{% static "js/accessToken.js" %}"></script>

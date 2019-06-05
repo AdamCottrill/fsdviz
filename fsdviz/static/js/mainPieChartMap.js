@@ -27421,30 +27421,7 @@
 	      select(this).append("input").attr("value", d => d.name).attr("name", selector$$1.replace("#", "")).attr("type", "radio").attr("class", "hidden").property("checked", d.name === checked).attr("tabindex", 0);
 	      select(this).append("label").text(d.label);
 	    });
-	  } //    let strataSelector = select(selector).data([null]);
-	  //
-	  //    let formid = selector.replace("#", "") + "-form";
-	  //    let strataForm = strataSelector.append("form").attr("id", formid);
-	  //
-	  //    let strataButtons = strataForm
-	  //      .selectAll("span")
-	  //      .data(strata)
-	  //      .enter()
-	  //      .append("span");
-	  //
-	  //    strataButtons
-	  //      .append("input")
-	  //      .attr("type", "radio")
-	  //      .attr("value", d => d.strata)
-	  //      .attr("class", "strataButtons")
-	  //      .property("checked", d => d.strata === checked);
-	  //
-	  //    strataButtons
-	  //      .insert("text")
-	  //      .text(d => d.label)
-	  //      .append("br");
-	  //  }
-
+	  }
 
 	  buttons.checked = function (value) {
 	    if (!arguments.length) return checked;
@@ -27490,8 +27467,11 @@
 	  // ad species key to each summary object and create an
 	  // array of objects - sorted by yreq
 	  const {
-	    fillScale
+	    fillScale,
+	    what
 	  } = props;
+	  let tmp = props.slices.filter(d => d.name === what);
+	  let sliceVarLabel = tmp[0].label;
 	  Object.keys(data).forEach(x => data[x]["species"] = x);
 	  let dataArray = Object.keys(data).map(x => data[x]);
 	  dataArray.sort((a, b) => b.yreq - a.yreq);
@@ -27503,24 +27483,28 @@
            <td class="species-name">
 <svg width="${rectSize}" height="${rectSize}">
   <rect width="${rectSize}" height="${rectSize}"
-style="fill:${fillScale(row.species)};" />
+style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
         </svg>  ${row.species}</td>
            <td class="center aligned">${row.events}</td>
            <td class="right aligned">${commaFormat(row.yreq)}</td>
        </tr>`;
 	  });
+	  selectAll("#slice-value-label").text(sliceVarLabel);
 	  select("#stocked-summary-table-tbody").html(html$$1);
 	};
 
 	const update_stats_panel = (allxf, props) => {
 	  // this function calculates the total number of fish stocked and
 	  // the number of events by species and then updates the stat panel.
+	  const what = props.what;
+	  let tmp = props.slices.filter(d => d.name === what);
+	  let sliceVarLabel = tmp[0].label;
 	  let current = allxf.value(); // grand total accessor:
 
-	  const get_total = varname => {
+	  const get_total = (varname, count = false) => {
 	    let mykeys = Object.keys(current);
 
-	    if (varname === "species") {
+	    if (count) {
 	      mykeys = mykeys.filter(x => current[x]["events"] > 0);
 	      return mykeys.length;
 	    } else {
@@ -27531,16 +27515,22 @@ style="fill:${fillScale(row.species)};" />
 	  let total_stocked = get_total("total");
 	  let yreq_stocked = get_total("yreq");
 	  let event_count = get_total("events");
-	  let species_count = get_total("species");
-	  let commaFormat = format(",d");
-	  selectAll("#species-count").text(commaFormat(species_count));
+	  let value_count = get_total(what, true);
+	  let commaFormat = format(",d"); // pluralize our labels if there is more than one value
+
+	  if (sliceVarLabel !== "Species" & value_count > 1) {
+	    sliceVarLabel = sliceVarLabel === "Agency" ? "Agencies" : sliceVarLabel + "s";
+	  }
+
+	  selectAll("#slice-value-label-plural").text(sliceVarLabel);
+	  selectAll("#value-count").text(commaFormat(value_count));
 	  selectAll("#event-count").text(commaFormat(event_count));
 	  selectAll("#total-stocked").text(commaFormat(total_stocked));
 	  selectAll("#yreq-stocked").text(commaFormat(yreq_stocked));
 	  update_summary_table(current, props);
 	};
 
-	/* global accessToken,  dataURL */
+	/* global accessToken,  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
 	const log$2 = browser("app:log");
 
 	{
@@ -27640,7 +27630,7 @@ style="fill:${fillScale(row.species)};" />
 	  name: "life_stage",
 	  label: "Life Stage"
 	}, {
-	  name: "stk_meth",
+	  name: "stk_method",
 	  label: "Stocking Method"
 	}];
 	let sliceSelector = RadioButtons().selector("#slices-selector").options(slices).checked("species");
@@ -27665,8 +27655,7 @@ style="fill:${fillScale(row.species)};" />
 	  data.forEach(d => prepare_stocking_data(d)); // load our geometries and call our polygon overlay on the geom group:
 
 	  geomg.datum(topodata).call(polygons);
-	  let ndx = crossfilter2(data);
-	  let all = ndx.groupAll().reduce(stockingAdd, stockingRemove, stockingInitial); // these are dimensions that will be used by the polygon overlay:
+	  let ndx = crossfilter2(data); // these are dimensions that will be used by the polygon overlay:
 
 	  let lakePolygonDim = ndx.dimension(d => d.lake);
 	  let jurisdictionPolygonDim = ndx.dimension(d => d.jurisdiction_slug);
@@ -27697,11 +27686,14 @@ style="fill:${fillScale(row.species)};" />
 	  let lifeStageGroup = lifeStageDim.group().reduceSum(d => d[column]);
 	  let markGroup = markDim.group().reduceSum(d => d[column]);
 	  let monthGroup = monthDim.group().reduceSum(d => d[column]);
-	  let stkMethGroup = stkMethDim.group().reduceSum(d => d[column]); // set-up our spatial groups - each key will contain an object with
-	  // the total number of fish stocked, the number of yearling equivalents,
-	  // and the total number of events.  the variable 'what' determines how the
-	  // groups are calculated
+	  let stkMethGroup = stkMethDim.group().reduceSum(d => d[column]); // set-up our spatial groups - each key will contain an object
+	  // with the total number of fish stocked, the number of yearling
+	  // equivalents, and the total number of events.  the variable
+	  // 'sliceVar' determines how the groups are calculated -
+	  // initialize them as empty objects and fill them wih a function
+	  // that is called again when sliceVar is changed.
 
+	  let all = {};
 	  let lakeMapGroup = {};
 	  let jurisdictionMapGroup = {};
 	  let stateProvMapGroup = {};
@@ -27710,6 +27702,7 @@ style="fill:${fillScale(row.species)};" />
 	  let geomMapGroup = {};
 
 	  const calcMapGroups = () => {
+	    all = ndx.groupAll().reduce(stockingAdd, stockingRemove, stockingInitial);
 	    lakeMapGroup = lakeDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
 	    jurisdictionMapGroup = jurisdictionDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
 	    stateProvMapGroup = stateProvDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
@@ -27720,7 +27713,9 @@ style="fill:${fillScale(row.species)};" />
 
 	  calcMapGroups();
 	  update_stats_panel(all, {
-	    fillScale: speciesColourScale
+	    fillScale: speciesColourScale,
+	    slices: slices,
+	    what: sliceVar
 	  }); //A function to set all of the filters to checked - called when
 	  //the page loads of if the reset button is clicked.
 
@@ -27926,6 +27921,11 @@ style="fill:${fillScale(row.species)};" />
 	    pts = get_pts(spatialUnit, centroids, ptAccessor);
 	    pieg.data([pts]).call(piecharts);
 	    piecharts.selectedPie(null).clear_pointInfo();
+	    update_stats_panel(all, {
+	      fillScale: speciesColourScale,
+	      slices: slices,
+	      what: sliceVar
+	    });
 	  }; // if the spatial radio buttons change, update the global variable
 	  // and update the pie charts
 
@@ -27962,7 +27962,9 @@ style="fill:${fillScale(row.species)};" />
 
 	  ndx.onChange(() => {
 	    update_stats_panel(all, {
-	      fillScale: speciesColourScale
+	      fillScale: speciesColourScale,
+	      slices: slices,
+	      what: sliceVar
 	    });
 	    checkBoxes(lakeSelection, {
 	      filterkey: "lake",

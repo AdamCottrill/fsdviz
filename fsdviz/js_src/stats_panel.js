@@ -16,7 +16,9 @@ const update_summary_table = (data, props) => {
   // ad species key to each summary object and create an
   // array of objects - sorted by yreq
 
-  const { fillScale } = props;
+  const { fillScale, what } = props;
+  let tmp = props.slices.filter(d => d.name === what);
+  let sliceVarLabel = tmp[0].label;
 
   Object.keys(data).forEach(x => (data[x]["species"] = x));
   let dataArray = Object.keys(data).map(x => data[x]);
@@ -35,13 +37,14 @@ const update_summary_table = (data, props) => {
            <td class="species-name">
 <svg width="${rectSize}" height="${rectSize}">
   <rect width="${rectSize}" height="${rectSize}"
-style="fill:${fillScale(row.species)};" />
+style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
         </svg>  ${row.species}</td>
            <td class="center aligned">${row.events}</td>
            <td class="right aligned">${commaFormat(row.yreq)}</td>
        </tr>`;
     });
 
+  selectAll("#slice-value-label").text(sliceVarLabel);
   select("#stocked-summary-table-tbody").html(html);
 };
 
@@ -49,12 +52,16 @@ export const update_stats_panel = (allxf, props) => {
   // this function calculates the total number of fish stocked and
   // the number of events by species and then updates the stat panel.
 
+  const what = props.what;
+  let tmp = props.slices.filter(d => d.name === what);
+  let sliceVarLabel = tmp[0].label;
+
   let current = allxf.value();
 
   // grand total accessor:
-  const get_total = varname => {
+  const get_total = (varname, count = false) => {
     let mykeys = Object.keys(current);
-    if (varname === "species") {
+    if (count) {
       mykeys = mykeys.filter(x => current[x]["events"] > 0);
       return mykeys.length;
     } else {
@@ -65,11 +72,18 @@ export const update_stats_panel = (allxf, props) => {
   let total_stocked = get_total("total");
   let yreq_stocked = get_total("yreq");
   let event_count = get_total("events");
-  let species_count = get_total("species");
+  let value_count = get_total(what, true);
 
   let commaFormat = format(",d");
 
-  selectAll("#species-count").text(commaFormat(species_count));
+  // pluralize our labels if there is more than one value
+  if ((sliceVarLabel !== "Species") & (value_count > 1)) {
+    sliceVarLabel =
+      sliceVarLabel === "Agency" ? "Agencies" : sliceVarLabel + "s";
+  }
+
+  selectAll("#slice-value-label-plural").text(sliceVarLabel);
+  selectAll("#value-count").text(commaFormat(value_count));
   selectAll("#event-count").text(commaFormat(event_count));
   selectAll("#total-stocked").text(commaFormat(total_stocked));
   selectAll("#yreq-stocked").text(commaFormat(yreq_stocked));
