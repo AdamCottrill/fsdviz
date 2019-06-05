@@ -7415,7 +7415,29 @@
 
 	var csv = dsvFormat(",");
 
+	var csvParse = csv.parse;
+
 	var tsv = dsvFormat("\t");
+
+	function responseText(response) {
+	  if (!response.ok) throw new Error(response.status + " " + response.statusText);
+	  return response.text();
+	}
+
+	function text(input, init) {
+	  return fetch(input, init).then(responseText);
+	}
+
+	function dsvParse(parse) {
+	  return function(input, init, row) {
+	    if (arguments.length === 2 && typeof init === "function") row = init, init = undefined;
+	    return text(input, init).then(function(response) {
+	      return parse(response, row);
+	    });
+	  };
+	}
+
+	var csv$1 = dsvParse(csvParse);
 
 	function responseJson(response) {
 	  if (!response.ok) throw new Error(response.status + " " + response.statusText);
@@ -25045,6 +25067,7 @@
 	  // default values:
 	  let selectedPie;
 	  let data;
+	  let labelLookup = {};
 
 	  let radiusAccessor = d => d.total;
 
@@ -25070,10 +25093,17 @@
 	    let dataArray = Object.keys(data).map(x => data[x]);
 	    dataArray.sort((a, b) => b.value - a.value);
 	    let total = sum(dataArray.map(d => d.value));
-	    let html$$1 = `<h5>${d.key}: ${commaFormat(total)}</h5>`;
+	    let label = labelLookup[d.key];
+
+	    if (typeof label === "undefined") {
+	      label = d.key;
+	    }
+
+	    let html$$1 = `<h5>${label}: ${commaFormat(total)}</h5>`;
 	    html$$1 += '<table class="ui celled compact table">';
 	    dataArray.filter(d => d.value > 0).forEach(row => {
-	      html$$1 += `<tr id="tr-${row.slice.replace(" ", "-")}">
+	      let rowid = row.slice.replace(/ /g, "-").replace(/[()]/g, "");
+	      html$$1 += `<tr id="tr-${rowid}">
            <td class="species-name">${row.slice}</td>
            <td class="right aligned">${commaFormat(row.value)}</td>
        </tr>`;
@@ -25108,7 +25138,7 @@
 	      const radiusScale = sqrt$1().range([1, maxCircleSize]).domain([0, sum(data, radiusAccessor)]);
 	      let pies = selection$$1.selectAll(".pie").data(data, d => d.key);
 	      pies.exit().transition().duration(200).remove();
-	      let piesEnter = pies.enter().append("g").attr("class", "pie").on("click", function (d) {
+	      let piesEnter = pies.enter().append("g").attr("class", "pie").attr("id", d => d.key).on("click", function (d) {
 	        if (selectedPie && selectedPie === d.key) {
 	          // second click on same circle, turn off selectedPie and make point info empty:
 	          selectedPie = null;
@@ -25130,7 +25160,7 @@
 
 	      function onePie(d) {
 	        const highlight_row = (d, bool) => {
-	          let selector$$1 = "#tr-" + d.data.slice.replace(" ", "-");
+	          let selector$$1 = "#tr-" + d.data.slice.replace(/ /g, "-").replace(/[()]/g, "");
 	          let tmp = selectAll(selector$$1);
 	          tmp.classed("error", bool);
 	        };
@@ -25139,15 +25169,23 @@
 	        let svg$$1 = select(this).attr("width", r * 2).attr("height", r * 2);
 	        let slices = svg$$1.selectAll(".arc").data(d => myPie(d.values), d => d.index);
 	        let slicesEnter = slices.enter().append("path").attr("class", "arc").on("mouseover", function (d) {
+	          let slug = this.parentElement.id;
+	          let label = labelLookup[slug];
+
+	          if (typeof label === "undefined") {
+	            label = slug;
+	          }
+
+	          let html$$1 = `<strong>${label}</strong><br>${d.data.slice}: ${commaFormat(d.data.value)}`;
 	          select(this).classed("hover", true);
 
-	          if (selectedPie) {
+	          if (selectedPie && selectedPie === slug) {
 	            highlight_row(d, true); //select('#point-info').html(get_sliceInfo(d));
 	          }
 
-	          tooltip.style("visibility", "visible").html(d.data.slice + ": " + commaFormat(d.data.value));
+	          tooltip.style("visibility", "visible").html(html$$1);
 	        }).on("mousemove", function () {
-	          return tooltip.style("top", event.layerY + "px").style("left", event.layerX + "px");
+	          return tooltip.style("top", event.layerY - 5 + "px").style("left", event.layerX + 15 + "px");
 	        }).on("mouseout", function (d) {
 	          select(this).classed("hover", false);
 	          highlight_row(d, false);
@@ -25221,6 +25259,13 @@
 	  chart.selectedPie = function (value) {
 	    if (!arguments.length) return selectedPie;
 	    selectedPie = value;
+	    return chart;
+	  }; // our object to connect pie chart keys (slugs) with their pretty labels
+
+
+	  chart.labelLookup = function (value) {
+	    if (!arguments.length) return labelLookup;
+	    labelLookup = value;
 	    return chart;
 	  }; // the function that populates point info div with information
 	  // about the selectedPie point
@@ -27540,6 +27585,7 @@ style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
 	}
 
 	const filters = {};
+	const labelLookup = {};
 	const column = "events"; // the name of the column with our response:
 
 	let responseVar = "yreq"; //let sliceVar = "agency_abbrev";
@@ -27633,7 +27679,7 @@ style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
 	  name: "stk_method",
 	  label: "Stocking Method"
 	}];
-	let sliceSelector = RadioButtons().selector("#slices-selector").options(slices).checked("species");
+	let sliceSelector = RadioButtons().selector("#slices-selector").options(slices).checked("species_name");
 	sliceSelector();
 	const slice_selector = selectAll("#slices-selector input"); // Our Response Variable buttons:
 
@@ -27650,9 +27696,11 @@ style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
 	let pieSizeVarSelector = RadioButtons().selector("#pie-size-selector").options(pieSizeVars).checked(responseVar);
 	pieSizeVarSelector();
 	const pie_size_selector = selectAll("#pie-size-selector input");
-	Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(([data, centroids, topodata]) => {
+	Promise.all([json(dataURL), json(centroidsURL), json(topoURL), csv$1(slugURL)]).then(([data, centroids, topodata, slugs]) => {
 	  // prepare our stocking data and set up our cross filters:
-	  data.forEach(d => prepare_stocking_data(d)); // load our geometries and call our polygon overlay on the geom group:
+	  data.forEach(d => prepare_stocking_data(d));
+	  slugs.forEach(d => labelLookup[d.slug] = d.label);
+	  piecharts.labelLookup(labelLookup); // load our geometries and call our polygon overlay on the geom group:
 
 	  geomg.datum(topodata).call(polygons);
 	  let ndx = crossfilter2(data); // these are dimensions that will be used by the polygon overlay:

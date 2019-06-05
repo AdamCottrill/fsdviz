@@ -20,6 +20,8 @@ export const piechart_overlay = () => {
   let selectedPie;
   let data;
 
+  let labelLookup = {};
+
   let radiusAccessor = d => d.total;
   let fillAccessor = d => d.value;
   let responseVar = "yreq";
@@ -51,12 +53,20 @@ export const piechart_overlay = () => {
     dataArray.sort((a, b) => b.value - a.value);
     let total = sum(dataArray.map(d => d.value));
 
-    let html = `<h5>${d.key}: ${commaFormat(total)}</h5>`;
+    let label = labelLookup[d.key];
+
+    if (typeof label === "undefined") {
+      label = d.key;
+    }
+
+    let html = `<h5>${label}: ${commaFormat(total)}</h5>`;
     html += '<table class="ui celled compact table">';
     dataArray
       .filter(d => d.value > 0)
       .forEach(row => {
-        html += `<tr id="tr-${row.slice.replace(" ", "-")}">
+        let rowid = row.slice.replace(/ /g, "-").replace(/[()]/g, "");
+
+        html += `<tr id="tr-${rowid}">
            <td class="species-name">${row.slice}</td>
            <td class="right aligned">${commaFormat(row.value)}</td>
        </tr>`;
@@ -116,6 +126,7 @@ export const piechart_overlay = () => {
         .enter()
         .append("g")
         .attr("class", "pie")
+        .attr("id", d => d.key)
         .on("click", function(d) {
           if (selectedPie && selectedPie === d.key) {
             // second click on same circle, turn off selectedPie and make point info empty:
@@ -145,7 +156,9 @@ export const piechart_overlay = () => {
       // elements selectedPie above
       function onePie(d) {
         const highlight_row = (d, bool) => {
-          let selector = "#tr-" + d.data.slice.replace(" ", "-");
+          let selector =
+            "#tr-" + d.data.slice.replace(/ /g, "-").replace(/[()]/g, "");
+
           let tmp = selectAll(selector);
           tmp.classed("error", bool);
         };
@@ -165,19 +178,29 @@ export const piechart_overlay = () => {
           .append("path")
           .attr("class", "arc")
           .on("mouseover", function(d) {
+            let slug = this.parentElement.id;
+            let label = labelLookup[slug];
+
+            if (typeof label === "undefined") {
+              label = slug;
+            }
+
+            let html = `<strong>${label}</strong><br>${
+              d.data.slice
+            }: ${commaFormat(d.data.value)}`;
+
             select(this).classed("hover", true);
-            if (selectedPie) {
+
+            if (selectedPie && selectedPie === slug) {
               highlight_row(d, true);
               //select('#point-info').html(get_sliceInfo(d));
             }
-            tooltip
-              .style("visibility", "visible")
-              .html(d.data.slice + ": " + commaFormat(d.data.value));
+            tooltip.style("visibility", "visible").html(html);
           })
           .on("mousemove", function() {
             return tooltip
-              .style("top", event.layerY + "px")
-              .style("left", event.layerX + "px");
+              .style("top", event.layerY - 5 + "px")
+              .style("left", event.layerX + 15 + "px");
           })
           .on("mouseout", function(d) {
             select(this).classed("hover", false);
@@ -257,6 +280,13 @@ export const piechart_overlay = () => {
   chart.selectedPie = function(value) {
     if (!arguments.length) return selectedPie;
     selectedPie = value;
+    return chart;
+  };
+
+  // our object to connect pie chart keys (slugs) with their pretty labels
+  chart.labelLookup = function(value) {
+    if (!arguments.length) return labelLookup;
+    labelLookup = value;
     return chart;
   };
 

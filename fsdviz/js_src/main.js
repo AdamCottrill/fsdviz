@@ -3,7 +3,7 @@
 import debug from "debug";
 
 import crossfilter from "crossfilter2";
-import { selectAll, json, select, sum, scaleOrdinal } from "d3";
+import { csv, selectAll, json, select, sum, scaleOrdinal } from "d3";
 
 import Leaflet from "leaflet";
 
@@ -29,6 +29,8 @@ if (ENV !== "production") {
 }
 
 const filters = {};
+
+const labelLookup = {};
 
 const column = "events";
 // the name of the column with our response:
@@ -173,7 +175,7 @@ let slices = [
 let sliceSelector = RadioButtons()
   .selector("#slices-selector")
   .options(slices)
-  .checked("species");
+  .checked("species_name");
 
 sliceSelector();
 const slice_selector = selectAll("#slices-selector input");
@@ -194,124 +196,375 @@ pieSizeVarSelector();
 
 const pie_size_selector = selectAll("#pie-size-selector input");
 
-Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
-  ([data, centroids, topodata]) => {
-    // prepare our stocking data and set up our cross filters:
-    data.forEach(d => prepare_stocking_data(d));
+Promise.all([
+  json(dataURL),
+  json(centroidsURL),
+  json(topoURL),
+  csv(slugURL)
+]).then(([data, centroids, topodata, slugs]) => {
+  // prepare our stocking data and set up our cross filters:
 
-    // load our geometries and call our polygon overlay on the geom group:
-    geomg.datum(topodata).call(polygons);
+  data.forEach(d => prepare_stocking_data(d));
 
-    let ndx = crossfilter(data);
+  slugs.forEach(d => (labelLookup[d.slug] = d.label));
+  piecharts.labelLookup(labelLookup);
 
-    // these are dimensions that will be used by the polygon overlay:
+  // load our geometries and call our polygon overlay on the geom group:
+  geomg.datum(topodata).call(polygons);
 
-    let lakePolygonDim = ndx.dimension(d => d.lake);
-    let jurisdictionPolygonDim = ndx.dimension(d => d.jurisdiction_slug);
-    let manUnitPolygonDim = ndx.dimension(d => d.man_unit);
+  let ndx = crossfilter(data);
 
-    let lakeDim = ndx.dimension(d => d.lake);
-    let agencyDim = ndx.dimension(d => d.agency_abbrev);
-    let stateProvDim = ndx.dimension(d => d.stateprov);
-    let jurisdictionDim = ndx.dimension(d => d.jurisdiction_slug);
-    let manUnitDim = ndx.dimension(d => d.man_unit);
-    let grid10Dim = ndx.dimension(d => d.grid10);
-    let geomDim = ndx.dimension(d => d.geom);
-    let speciesDim = ndx.dimension(d => d.species_name);
-    let strainDim = ndx.dimension(d => d.strain);
-    let yearClassDim = ndx.dimension(d => d.year_class);
-    let lifeStageDim = ndx.dimension(d => d.life_stage);
-    let markDim = ndx.dimension(d => d.mark);
-    let monthDim = ndx.dimension(d => d.month);
-    let stkMethDim = ndx.dimension(d => d.stk_method);
+  // these are dimensions that will be used by the polygon overlay:
 
-    let lakeGroup = lakeDim.group().reduceSum(d => d[column]);
-    let agencyGroup = agencyDim.group().reduceSum(d => d[column]);
-    let stateProvGroup = stateProvDim.group().reduceSum(d => d[column]);
-    let jurisdictionGroup = jurisdictionDim.group().reduceSum(d => d[column]);
-    let manUnitGroup = manUnitDim.group().reduceSum(d => d[column]);
-    //let grid10Group = grid10Dim.group().reduceSum(d => d[column]);
-    let speciesGroup = speciesDim.group().reduceSum(d => d[column]);
-    let strainGroup = strainDim.group().reduceSum(d => d[column]);
-    let yearClassGroup = yearClassDim.group().reduceSum(d => d[column]);
-    let lifeStageGroup = lifeStageDim.group().reduceSum(d => d[column]);
-    let markGroup = markDim.group().reduceSum(d => d[column]);
-    let monthGroup = monthDim.group().reduceSum(d => d[column]);
-    let stkMethGroup = stkMethDim.group().reduceSum(d => d[column]);
+  let lakePolygonDim = ndx.dimension(d => d.lake);
+  let jurisdictionPolygonDim = ndx.dimension(d => d.jurisdiction_slug);
+  let manUnitPolygonDim = ndx.dimension(d => d.man_unit);
 
-    // set-up our spatial groups - each key will contain an object
-    // with the total number of fish stocked, the number of yearling
-    // equivalents, and the total number of events.  the variable
-    // 'sliceVar' determines how the groups are calculated -
-    // initialize them as empty objects and fill them wih a function
-    // that is called again when sliceVar is changed.
-    let all = {};
-    let lakeMapGroup = {};
-    let jurisdictionMapGroup = {};
-    let stateProvMapGroup = {};
-    let manUnitMapGroup = {};
-    let grid10MapGroup = {};
-    let geomMapGroup = {};
+  let lakeDim = ndx.dimension(d => d.lake);
+  let agencyDim = ndx.dimension(d => d.agency_abbrev);
+  let stateProvDim = ndx.dimension(d => d.stateprov);
+  let jurisdictionDim = ndx.dimension(d => d.jurisdiction_slug);
+  let manUnitDim = ndx.dimension(d => d.man_unit);
+  let grid10Dim = ndx.dimension(d => d.grid10);
+  let geomDim = ndx.dimension(d => d.geom);
+  let speciesDim = ndx.dimension(d => d.species_name);
+  let strainDim = ndx.dimension(d => d.strain);
+  let yearClassDim = ndx.dimension(d => d.year_class);
+  let lifeStageDim = ndx.dimension(d => d.life_stage);
+  let markDim = ndx.dimension(d => d.mark);
+  let monthDim = ndx.dimension(d => d.month);
+  let stkMethDim = ndx.dimension(d => d.stk_method);
 
-    const calcMapGroups = () => {
-      all = ndx.groupAll().reduce(stockingAdd, stockingRemove, stockingInitial);
+  let lakeGroup = lakeDim.group().reduceSum(d => d[column]);
+  let agencyGroup = agencyDim.group().reduceSum(d => d[column]);
+  let stateProvGroup = stateProvDim.group().reduceSum(d => d[column]);
+  let jurisdictionGroup = jurisdictionDim.group().reduceSum(d => d[column]);
+  let manUnitGroup = manUnitDim.group().reduceSum(d => d[column]);
+  //let grid10Group = grid10Dim.group().reduceSum(d => d[column]);
+  let speciesGroup = speciesDim.group().reduceSum(d => d[column]);
+  let strainGroup = strainDim.group().reduceSum(d => d[column]);
+  let yearClassGroup = yearClassDim.group().reduceSum(d => d[column]);
+  let lifeStageGroup = lifeStageDim.group().reduceSum(d => d[column]);
+  let markGroup = markDim.group().reduceSum(d => d[column]);
+  let monthGroup = monthDim.group().reduceSum(d => d[column]);
+  let stkMethGroup = stkMethDim.group().reduceSum(d => d[column]);
 
-      lakeMapGroup = lakeDim
-        .group()
-        .reduce(stockingAdd, stockingRemove, stockingInitial);
+  // set-up our spatial groups - each key will contain an object
+  // with the total number of fish stocked, the number of yearling
+  // equivalents, and the total number of events.  the variable
+  // 'sliceVar' determines how the groups are calculated -
+  // initialize them as empty objects and fill them wih a function
+  // that is called again when sliceVar is changed.
+  let all = {};
+  let lakeMapGroup = {};
+  let jurisdictionMapGroup = {};
+  let stateProvMapGroup = {};
+  let manUnitMapGroup = {};
+  let grid10MapGroup = {};
+  let geomMapGroup = {};
 
-      jurisdictionMapGroup = jurisdictionDim
-        .group()
-        .reduce(stockingAdd, stockingRemove, stockingInitial);
+  const calcMapGroups = () => {
+    all = ndx.groupAll().reduce(stockingAdd, stockingRemove, stockingInitial);
 
-      stateProvMapGroup = stateProvDim
-        .group()
-        .reduce(stockingAdd, stockingRemove, stockingInitial);
+    lakeMapGroup = lakeDim
+      .group()
+      .reduce(stockingAdd, stockingRemove, stockingInitial);
 
-      manUnitMapGroup = manUnitDim
-        .group()
-        .reduce(stockingAdd, stockingRemove, stockingInitial);
+    jurisdictionMapGroup = jurisdictionDim
+      .group()
+      .reduce(stockingAdd, stockingRemove, stockingInitial);
 
-      grid10MapGroup = grid10Dim
-        .group()
-        .reduce(stockingAdd, stockingRemove, stockingInitial);
+    stateProvMapGroup = stateProvDim
+      .group()
+      .reduce(stockingAdd, stockingRemove, stockingInitial);
 
-      geomMapGroup = geomDim
-        .group()
-        .reduce(stockingAdd, stockingRemove, stockingInitial);
-    };
+    manUnitMapGroup = manUnitDim
+      .group()
+      .reduce(stockingAdd, stockingRemove, stockingInitial);
 
-    calcMapGroups();
+    grid10MapGroup = grid10Dim
+      .group()
+      .reduce(stockingAdd, stockingRemove, stockingInitial);
+
+    geomMapGroup = geomDim
+      .group()
+      .reduce(stockingAdd, stockingRemove, stockingInitial);
+  };
+
+  calcMapGroups();
+
+  update_stats_panel(all, {
+    fillScale: speciesColourScale,
+    slices: slices,
+    what: sliceVar
+  });
+
+  //A function to set all of the filters to checked - called when
+  //the page loads of if the reset button is clicked.
+  const set_or_reset_filters = () => {
+    initialize_filter(filters, "lake", lakeDim);
+    initialize_filter(filters, "stateProv", stateProvDim);
+    initialize_filter(filters, "jurisdiction", jurisdictionDim);
+    initialize_filter(filters, "manUnit", manUnitDim);
+    initialize_filter(filters, "agency", agencyDim);
+    initialize_filter(filters, "species", speciesDim);
+    initialize_filter(filters, "strain", strainDim);
+    initialize_filter(filters, "yearClass", yearClassDim);
+    initialize_filter(filters, "lifeStage", lifeStageDim);
+    initialize_filter(filters, "mark", markDim);
+    initialize_filter(filters, "stockingMonth", monthDim);
+    initialize_filter(filters, "stkMeth", stkMethDim);
+  };
+  // initialize our filters when everything loads
+  set_or_reset_filters();
+
+  let reset_button = select("#reset-button");
+  reset_button.on("click", set_or_reset_filters);
+
+  let lakeSelection = select("#lake-filter");
+  checkBoxes(lakeSelection, {
+    filterkey: "lake",
+    xfdim: lakeDim,
+    xfgroup: lakeGroup,
+    filters: filters
+  });
+
+  let stateProvSelection = select("#state-prov-filter");
+  checkBoxes(stateProvSelection, {
+    filterkey: "stateProv",
+    xfdim: stateProvDim,
+    xfgroup: stateProvGroup,
+    filters: filters
+  });
+
+  let jurisdictionSelection = select("#jurisdiction-filter");
+  checkBoxes(jurisdictionSelection, {
+    filterkey: "jurisdiction",
+    xfdim: jurisdictionDim,
+    xfgroup: jurisdictionGroup,
+    filters: filters
+  });
+
+  let manUnitSelection = select("#manUnit-filter");
+  checkBoxes(manUnitSelection, {
+    filterkey: "manUnit",
+    xfdim: manUnitDim,
+    xfgroup: manUnitGroup,
+    filters: filters
+  });
+
+  let agencySelection = select("#agency-filter");
+  checkBoxes(agencySelection, {
+    filterkey: "agency",
+    xfdim: agencyDim,
+    xfgroup: agencyGroup,
+    filters: filters
+  });
+
+  let speciesSelection = select("#species-filter");
+  checkBoxes(speciesSelection, {
+    filterkey: "species",
+    xfdim: speciesDim,
+    xfgroup: speciesGroup,
+    filters: filters
+  });
+
+  let strainSelection = select("#strain-filter");
+  checkBoxes(strainSelection, {
+    filterkey: "strain",
+    xfdim: strainDim,
+    xfgroup: strainGroup,
+    filters: filters
+  });
+
+  let yearClassSelection = select("#year-class-filter");
+  checkBoxes(yearClassSelection, {
+    filterkey: "yearClass",
+    xfdim: yearClassDim,
+    xfgroup: yearClassGroup,
+    filters: filters
+  });
+
+  let markSelection = select("#mark-filter");
+  checkBoxes(markSelection, {
+    filterkey: "mark",
+    xfdim: markDim,
+    xfgroup: markGroup,
+    filters: filters
+  });
+
+  let monthSelection = select("#stocking-month-filter");
+  checkBoxes(monthSelection, {
+    filterkey: "stockingMonth",
+    xfdim: monthDim,
+    xfgroup: monthGroup,
+
+    filters: filters
+  });
+
+  let stkMethSelection = select("#stocking-method-filter");
+  checkBoxes(stkMethSelection, {
+    filterkey: "stkMeth",
+    xfdim: stkMethDim,
+    xfgroup: stkMethGroup,
+    filters: filters
+  });
+
+  let lifeStageSelection = select("#life-stage-filter");
+  checkBoxes(lifeStageSelection, {
+    filterkey: "lifeStage",
+    xfdim: lifeStageDim,
+    xfgroup: lifeStageGroup,
+    filters: filters
+  });
+
+  // an accessor function to get values of our currently selected
+  // response variable.
+  let ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]);
+
+  // convert pts as wkt to array of two floats
+  const get_coordinates = pt => {
+    let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
+    return [parseFloat(coords[0]), parseFloat(coords[1])];
+  };
+
+  // a helper function to get the data in the correct format for plotting on the map.
+  const get_pts = (spatialUnit, centriods, ptAccessor) => {
+    let pts;
+
+    switch (spatialUnit) {
+      case "lake":
+        pts = Object.values(lakeMapGroup.all());
+        break;
+      case "stateProv":
+        pts = Object.values(stateProvMapGroup.all());
+        break;
+      case "jurisdiction":
+        pts = Object.values(jurisdictionMapGroup.all());
+        break;
+      case "manUnit":
+        pts = Object.values(manUnitMapGroup.all());
+        break;
+      case "grid10":
+        pts = Object.values(grid10MapGroup.all());
+        break;
+      case "geom":
+        pts = Object.values(geomMapGroup.all());
+        break;
+    }
+
+    if (spatialUnit === "geom") {
+      pts.forEach(d => (d["coordinates"] = get_coordinates(d.key)));
+    } else {
+      pts.forEach(d => (d["coordinates"] = centroids[spatialUnit][d.key]));
+    }
+    pts.forEach(d => (d["total"] = sum(ptAccessor(d))));
+
+    return pts.filter(d => d.total > 0);
+  };
+
+  // we need to create a function to update the crossfilter based on
+  // the current state of our map.  it needs to take two arguments:
+  // dimension and value; note - we may need to update the spatial
+  // resolution to be limited to only those below the currently
+  // selected spatial unit:
+  const updateCrossfilter = (dimension, value) => {
+    // when we update our cross filter dimension, we also
+    // need to remove any existing filters from lower levels.  If
+    // we go back to Lake from a management unit, we all
+    // management units to be included in the results.
+
+    switch (dimension) {
+      case "basin":
+        lakePolygonDim.filterAll();
+        jurisdictionPolygonDim.filterAll();
+        manUnitPolygonDim.filterAll();
+        update_spatialUnit("jurisdiction");
+        break;
+      case "lake":
+        lakePolygonDim.filter(value);
+        jurisdictionPolygonDim.filterAll();
+        manUnitPolygonDim.filterAll();
+        update_spatialUnit("jurisdiction");
+        break;
+      case "jurisdiction":
+        jurisdictionPolygonDim.filter(value);
+        manUnitPolygonDim.filterAll();
+        update_spatialUnit("manUnit");
+        break;
+      case "manUnit":
+        manUnitPolygonDim.filter(value);
+        update_spatialUnit("grid10");
+        break;
+    }
+  };
+
+  polygons.updateCrossfilter(updateCrossfilter);
+  polygons.render();
+
+  //piecharts.radiusAccessor(d => d.total).keyfield(spatialUnit);
+
+  let pts = get_pts(spatialUnit, centroids, ptAccessor);
+  pieg.data([pts]).call(piecharts);
+
+  // recacalculate the points given the current spatial unit and
+  // point accessor
+  const updatePieCharts = () => {
+    pts = get_pts(spatialUnit, centroids, ptAccessor);
+    pieg.data([pts]).call(piecharts);
+    piecharts.selectedPie(null).clear_pointInfo();
 
     update_stats_panel(all, {
       fillScale: speciesColourScale,
       slices: slices,
       what: sliceVar
     });
+  };
 
-    //A function to set all of the filters to checked - called when
-    //the page loads of if the reset button is clicked.
-    const set_or_reset_filters = () => {
-      initialize_filter(filters, "lake", lakeDim);
-      initialize_filter(filters, "stateProv", stateProvDim);
-      initialize_filter(filters, "jurisdiction", jurisdictionDim);
-      initialize_filter(filters, "manUnit", manUnitDim);
-      initialize_filter(filters, "agency", agencyDim);
-      initialize_filter(filters, "species", speciesDim);
-      initialize_filter(filters, "strain", strainDim);
-      initialize_filter(filters, "yearClass", yearClassDim);
-      initialize_filter(filters, "lifeStage", lifeStageDim);
-      initialize_filter(filters, "mark", markDim);
-      initialize_filter(filters, "stockingMonth", monthDim);
-      initialize_filter(filters, "stkMeth", stkMethDim);
-    };
-    // initialize our filters when everything loads
-    set_or_reset_filters();
+  // if the spatial radio buttons change, update the global variable
+  // and update the pie charts
+  const update_spatialUnit = value => {
+    spatialUnit = value;
+    spatialSelector.checked(spatialUnit).refresh();
+    updatePieCharts();
+  };
 
-    let reset_button = select("#reset-button");
-    reset_button.on("click", set_or_reset_filters);
+  // if the pie chart slice selector radio buttons changes, update
+  // the global variable and update the pie charts
+  const update_sliceValue = value => {
+    sliceVar = value;
+    calcMapGroups();
+    updatePieCharts();
+  };
 
-    let lakeSelection = select("#lake-filter");
+  //==================================================+
+  //         RADIO BUTTON CHANGE LISTENERS
+
+  spatial_resolution.on("change", function() {
+    update_spatialUnit(this.value);
+  });
+
+  slice_selector.on("change", function() {
+    update_sliceValue(this.value);
+  });
+
+  pie_size_selector.on("change", function() {
+    responseVar = this.value;
+    piecharts.responseVar(responseVar);
+    updatePieCharts();
+  });
+
+  //==================================================+
+  //         CROSSFILTER ON CHANGE
+
+  // if the crossfilter changes, update our checkboxes:
+  ndx.onChange(() => {
+    update_stats_panel(all, {
+      fillScale: speciesColourScale,
+      slices: slices,
+      what: sliceVar
+    });
+
     checkBoxes(lakeSelection, {
       filterkey: "lake",
       xfdim: lakeDim,
@@ -319,7 +572,6 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    let stateProvSelection = select("#state-prov-filter");
     checkBoxes(stateProvSelection, {
       filterkey: "stateProv",
       xfdim: stateProvDim,
@@ -327,7 +579,6 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    let jurisdictionSelection = select("#jurisdiction-filter");
     checkBoxes(jurisdictionSelection, {
       filterkey: "jurisdiction",
       xfdim: jurisdictionDim,
@@ -335,7 +586,6 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    let manUnitSelection = select("#manUnit-filter");
     checkBoxes(manUnitSelection, {
       filterkey: "manUnit",
       xfdim: manUnitDim,
@@ -343,7 +593,6 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    let agencySelection = select("#agency-filter");
     checkBoxes(agencySelection, {
       filterkey: "agency",
       xfdim: agencyDim,
@@ -351,7 +600,6 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    let speciesSelection = select("#species-filter");
     checkBoxes(speciesSelection, {
       filterkey: "species",
       xfdim: speciesDim,
@@ -359,7 +607,6 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    let strainSelection = select("#strain-filter");
     checkBoxes(strainSelection, {
       filterkey: "strain",
       xfdim: strainDim,
@@ -367,7 +614,6 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    let yearClassSelection = select("#year-class-filter");
     checkBoxes(yearClassSelection, {
       filterkey: "yearClass",
       xfdim: yearClassDim,
@@ -375,7 +621,6 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    let markSelection = select("#mark-filter");
     checkBoxes(markSelection, {
       filterkey: "mark",
       xfdim: markDim,
@@ -383,16 +628,13 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    let monthSelection = select("#stocking-month-filter");
     checkBoxes(monthSelection, {
       filterkey: "stockingMonth",
       xfdim: monthDim,
       xfgroup: monthGroup,
-
       filters: filters
     });
 
-    let stkMethSelection = select("#stocking-method-filter");
     checkBoxes(stkMethSelection, {
       filterkey: "stkMeth",
       xfdim: stkMethDim,
@@ -400,7 +642,6 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    let lifeStageSelection = select("#life-stage-filter");
     checkBoxes(lifeStageSelection, {
       filterkey: "lifeStage",
       xfdim: lifeStageDim,
@@ -408,253 +649,20 @@ Promise.all([json(dataURL), json(centroidsURL), json(topoURL)]).then(
       filters: filters
     });
 
-    // an accessor function to get values of our currently selected
-    // response variable.
-    let ptAccessor = d =>
-      Object.keys(d.value).map(x => d.value[x][responseVar]);
+    // see fi there are any check box filters:
+    let filter_states = Object.values(filters).map(d => d.is_filtered);
+    let filtered = !filter_states.every(d => d === false);
 
-    // convert pts as wkt to array of two floats
-    const get_coordinates = pt => {
-      let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
-      return [parseFloat(coords[0]), parseFloat(coords[1])];
-    };
+    let reset_button = select("#reset-button");
+    reset_button.classed("disabled", !filtered);
 
-    // a helper function to get the data in the correct format for plotting on the map.
-    const get_pts = (spatialUnit, centriods, ptAccessor) => {
-      let pts;
-
-      switch (spatialUnit) {
-        case "lake":
-          pts = Object.values(lakeMapGroup.all());
-          break;
-        case "stateProv":
-          pts = Object.values(stateProvMapGroup.all());
-          break;
-        case "jurisdiction":
-          pts = Object.values(jurisdictionMapGroup.all());
-          break;
-        case "manUnit":
-          pts = Object.values(manUnitMapGroup.all());
-          break;
-        case "grid10":
-          pts = Object.values(grid10MapGroup.all());
-          break;
-        case "geom":
-          pts = Object.values(geomMapGroup.all());
-          break;
-      }
-
-      if (spatialUnit === "geom") {
-        pts.forEach(d => (d["coordinates"] = get_coordinates(d.key)));
-      } else {
-        pts.forEach(d => (d["coordinates"] = centroids[spatialUnit][d.key]));
-      }
-      pts.forEach(d => (d["total"] = sum(ptAccessor(d))));
-
-      return pts.filter(d => d.total > 0);
-    };
-
-    // we need to create a function to update the crossfilter based on
-    // the current state of our map.  it needs to take two arguments:
-    // dimension and value; note - we may need to update the spatial
-    // resolution to be limited to only those below the currently
-    // selected spatial unit:
-    const updateCrossfilter = (dimension, value) => {
-      // when we update our cross filter dimension, we also
-      // need to remove any existing filters from lower levels.  If
-      // we go back to Lake from a management unit, we all
-      // management units to be included in the results.
-
-      switch (dimension) {
-        case "basin":
-          lakePolygonDim.filterAll();
-          jurisdictionPolygonDim.filterAll();
-          manUnitPolygonDim.filterAll();
-          update_spatialUnit("jurisdiction");
-          break;
-        case "lake":
-          lakePolygonDim.filter(value);
-          jurisdictionPolygonDim.filterAll();
-          manUnitPolygonDim.filterAll();
-          update_spatialUnit("jurisdiction");
-          break;
-        case "jurisdiction":
-          jurisdictionPolygonDim.filter(value);
-          manUnitPolygonDim.filterAll();
-          update_spatialUnit("manUnit");
-          break;
-        case "manUnit":
-          manUnitPolygonDim.filter(value);
-          update_spatialUnit("grid10");
-          break;
-      }
-    };
-
-    polygons.updateCrossfilter(updateCrossfilter);
-    polygons.render();
-
-    //piecharts.radiusAccessor(d => d.total).keyfield(spatialUnit);
-
+    //update our map too:
     let pts = get_pts(spatialUnit, centroids, ptAccessor);
     pieg.data([pts]).call(piecharts);
+  });
 
-    // recacalculate the points given the current spatial unit and
-    // point accessor
-    const updatePieCharts = () => {
-      pts = get_pts(spatialUnit, centroids, ptAccessor);
-      pieg.data([pts]).call(piecharts);
-      piecharts.selectedPie(null).clear_pointInfo();
-
-      update_stats_panel(all, {
-        fillScale: speciesColourScale,
-        slices: slices,
-        what: sliceVar
-      });
-    };
-
-    // if the spatial radio buttons change, update the global variable
-    // and update the pie charts
-    const update_spatialUnit = value => {
-      spatialUnit = value;
-      spatialSelector.checked(spatialUnit).refresh();
-      updatePieCharts();
-    };
-
-    // if the pie chart slice selector radio buttons changes, update
-    // the global variable and update the pie charts
-    const update_sliceValue = value => {
-      sliceVar = value;
-      calcMapGroups();
-      updatePieCharts();
-    };
-
-    //==================================================+
-    //         RADIO BUTTON CHANGE LISTENERS
-
-    spatial_resolution.on("change", function() {
-      update_spatialUnit(this.value);
-    });
-
-    slice_selector.on("change", function() {
-      update_sliceValue(this.value);
-    });
-
-    pie_size_selector.on("change", function() {
-      responseVar = this.value;
-      piecharts.responseVar(responseVar);
-      updatePieCharts();
-    });
-
-    //==================================================+
-    //         CROSSFILTER ON CHANGE
-
-    // if the crossfilter changes, update our checkboxes:
-    ndx.onChange(() => {
-      update_stats_panel(all, {
-        fillScale: speciesColourScale,
-        slices: slices,
-        what: sliceVar
-      });
-
-      checkBoxes(lakeSelection, {
-        filterkey: "lake",
-        xfdim: lakeDim,
-        xfgroup: lakeGroup,
-        filters: filters
-      });
-
-      checkBoxes(stateProvSelection, {
-        filterkey: "stateProv",
-        xfdim: stateProvDim,
-        xfgroup: stateProvGroup,
-        filters: filters
-      });
-
-      checkBoxes(jurisdictionSelection, {
-        filterkey: "jurisdiction",
-        xfdim: jurisdictionDim,
-        xfgroup: jurisdictionGroup,
-        filters: filters
-      });
-
-      checkBoxes(manUnitSelection, {
-        filterkey: "manUnit",
-        xfdim: manUnitDim,
-        xfgroup: manUnitGroup,
-        filters: filters
-      });
-
-      checkBoxes(agencySelection, {
-        filterkey: "agency",
-        xfdim: agencyDim,
-        xfgroup: agencyGroup,
-        filters: filters
-      });
-
-      checkBoxes(speciesSelection, {
-        filterkey: "species",
-        xfdim: speciesDim,
-        xfgroup: speciesGroup,
-        filters: filters
-      });
-
-      checkBoxes(strainSelection, {
-        filterkey: "strain",
-        xfdim: strainDim,
-        xfgroup: strainGroup,
-        filters: filters
-      });
-
-      checkBoxes(yearClassSelection, {
-        filterkey: "yearClass",
-        xfdim: yearClassDim,
-        xfgroup: yearClassGroup,
-        filters: filters
-      });
-
-      checkBoxes(markSelection, {
-        filterkey: "mark",
-        xfdim: markDim,
-        xfgroup: markGroup,
-        filters: filters
-      });
-
-      checkBoxes(monthSelection, {
-        filterkey: "stockingMonth",
-        xfdim: monthDim,
-        xfgroup: monthGroup,
-        filters: filters
-      });
-
-      checkBoxes(stkMethSelection, {
-        filterkey: "stkMeth",
-        xfdim: stkMethDim,
-        xfgroup: stkMethGroup,
-        filters: filters
-      });
-
-      checkBoxes(lifeStageSelection, {
-        filterkey: "lifeStage",
-        xfdim: lifeStageDim,
-        xfgroup: lifeStageGroup,
-        filters: filters
-      });
-
-      // see fi there are any check box filters:
-      let filter_states = Object.values(filters).map(d => d.is_filtered);
-      let filtered = !filter_states.every(d => d === false);
-
-      let reset_button = select("#reset-button");
-      reset_button.classed("disabled", !filtered);
-
-      //update our map too:
-      let pts = get_pts(spatialUnit, centroids, ptAccessor);
-      pieg.data([pts]).call(piecharts);
-    });
-
-    mymap.on("moveend", function() {
-      polygons.render();
-      pieg.call(piecharts);
-    });
-  }
-);
+  mymap.on("moveend", function() {
+    polygons.render();
+    pieg.call(piecharts);
+  });
+});
