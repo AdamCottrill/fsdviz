@@ -2,10 +2,10 @@
 Views associated with our stocking application.
 '''
 
-from django.shortcuts import redirect
 from django.db.models import Count, Q, Max
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
-import json
 
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
@@ -15,7 +15,26 @@ from ..common.models import Lake, Jurisdiction
 from .models import StockingEvent
 from .filters import StockingEventFilter
 
-from django.shortcuts import get_object_or_404
+
+from .forms import FindEventsForm
+
+def find_events(request):
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = FindEventsForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            return HttpResponseRedirect('/thanks/')
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = FindEventsForm()
+
+    return render(request, 'stocking/find_events_form.html', {'form': form})
 
 
 def StockingEventListLatestYear(request):
