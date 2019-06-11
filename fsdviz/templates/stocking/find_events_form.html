@@ -1,5 +1,8 @@
 {% extends 'fsdviz_base.html' %}
 
+
+{% load static %}
+
 {% block extra_head %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.7.5/components/calendar.min.css" />
 
@@ -261,27 +264,38 @@
 
 {% block extra_js %}
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.7.5/components/calendar.min.js"></script>
 
-    <script type="text/javascript">
-     $(".select.dropdown").dropdown();
-     $('#example1').calendar();
-     $('#id_first_date').calendar({type: 'date'});
-     $('#id_last_date').calendar({type: 'date'});
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.7.5/components/calendar.min.js"></script>
 
 
-     $(document).ready(function(){
-         $('#id_lake').change(function(){
-             console.log("lake changed!!");
-         })
+        <script type="text/javascript">
+         $(".select.dropdown").dropdown();
+         $('#id_first_date').calendar({type: 'date'});
+         $('#id_last_date').calendar({type: 'date'});
 
-     });
+         // our dropdown label lookups - cross filter returns the
+         // current id's or slugs. these are used to create meaningful lables
+
+         let lakes = {{ lakes|safe}};
+         let agencies = {{ agencies|safe}};
+         let jurisdictions = {{ jurisdictions|safe}};
+         let stateProv = {{ stateProv|safe }};
+         let managementUnits = {{ management_units|safe }};
+         let species = {{ species|safe}};
+         let strains = {{ strains|safe }};
+         let lifestages = {{ lifestages|safe }};
+         let stockingMethods = {{ stocking_methods|safe }};
+
+         //these are our disctict combinations of values represented in our drop-down boxes.
+         // crossfilter will be used to track available values as filters are applied on other dimensions.
+         // e.g. - OMNR stocking should disappear when Lake Michigan is selected.
+         // note: we might want to make all of these AJAX calls.
+         let values = {{ values|safe }};
 
 
+        </script>
 
-    </script>
-
-
+        <script type="text/javascript" src="{% static "js/findEventsForm.js" %}"></script>
 
 
 {% endblock %}

@@ -2,7 +2,7 @@
 Views associated with our stocking application.
 '''
 
-from django.db.models import Count, Q, Max
+from django.db.models import Count, Q, Max, F
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
@@ -11,12 +11,15 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
-from ..common.models import Lake, Jurisdiction
-from .models import StockingEvent
+import json
+
+from ..common.models import (Lake, Jurisdiction, Species, Strain,
+                             StateProvince, ManagementUnit, Agency)
+from .models import StockingEvent, StockingMethod, LifeStage
 from .filters import StockingEventFilter
 
-
 from .forms import FindEventsForm
+
 
 def find_events(request):
     # if this is a POST request we need to process the form data
@@ -33,8 +36,77 @@ def find_events(request):
     # if a GET (or any other method) we'll create a blank form
     else:
         form = FindEventsForm()
+        # these will give our results shorter fieldnames
+        field_aliases = {
+            "agency_code": F('agency__abbrev'),
+            "spc": F('species__abbrev'),
+            "strain": F('strain_raw__strain'),
+            "stage": F('lifestage__abbrev'),
+            "method": F('stocking_method__stk_meth'),
+            "jurisd": F('jurisdiction__slug'),
+            "lake": F('jurisdiction__lake__abbrev'),
+            "state": F('jurisdiction__stateprov__abbrev')
+        }
 
-    return render(request, 'stocking/find_events_form.html', {'form': form})
+        # use our shorter field names in the list of fields to select:
+        fields = [
+            'year', 'month', 'mark', "agency_code", "spc",
+            "strain", "stage", "method", "jurisd",
+            "lake", "state"
+        ]
+
+        related_tables = [
+            'jurisdiction', 'agency', 'species', 'strain', 'lifestage',
+            'stocking_method', 'jurisdition__lake', 'jurisdiction__stateprov'
+        ]
+
+        values = list(StockingEvent.objects\
+                              .select_related(*related_tables)\
+                              .annotate(**field_aliases)\
+                              .values(*fields).distinct().order_by())
+
+        # lakes, agencies, juristictions, states/provinces, species,
+        # strains, lifestages, stockingmethods
+
+        #lookups - to provide nice labels for dropdown menues
+
+        lakes = list(Lake.objects.values('abbrev', 'lake_name'))
+        stateProv = list(StateProvince.objects.values('abbrev', 'name'))
+        jurisdictions = list(Jurisdiction.objects.values('slug', 'name'))
+        agencies = list(Agency.objects.all().values('abbrev', 'agency_name'))
+
+        #manunits
+        managementUnits = list(
+            ManagementUnit.objects.values('slug', 'label', 'description'))
+
+
+        species = list(Species.objects.values_list('common_name', 'abbrev'))
+
+        #Strain????
+        strains = list(
+            Strain.objects.values('id', 'strain_code', 'strain_label')\
+            .distinct().order_by())
+
+
+        stocking_methods = list(
+            StockingMethod.objects.values('stk_meth', 'description'))
+        lifestages = list(
+            LifeStage.objects.values('id', 'abbrev', 'description'))
+
+    return render(
+        request, 'stocking/find_events_form.html', {
+            'form': form,
+            'values': json.dumps(values),
+            'lakes': json.dumps(lakes),
+            "agencies": json.dumps(agencies),
+            'stateProv': json.dumps(stateProv),
+            'jurisdictions': json.dumps(jurisdictions),
+            'management_units': json.dumps(managementUnits),
+            'species': json.dumps(species),
+            'strains': json.dumps(strains),
+            'lifestages': json.dumps(lifestages),
+            'stocking_methods': json.dumps(stocking_methods)
+        })
 
 
 def StockingEventListLatestYear(request):
@@ -63,8 +135,6 @@ def PieChartMapViewLatestYear(request):
 
 
 class PieChartMapView(TemplateView):
-
-
     """This is going to be the ront page of out application.  Most of the
     work will done by the javascript libraries, but we will need to pass
     in serveral variables to set things up:
@@ -105,24 +175,31 @@ class PieChartMapView(TemplateView):
 
         lake_name = self.kwargs.get('lake_name')
         if lake_name:
-            dataUrl = reverse('stocking_api:api-stocking-event-map-list-lake-year',
-                              kwargs={'year': year, 'lake_name': lake_name})
+            dataUrl = reverse(
+                'stocking_api:api-stocking-event-map-list-lake-year',
+                kwargs={
+                    'year': year,
+                    'lake_name': lake_name
+                })
             spatialUnit = 'lake'
             obj = Lake.objects.get(abbrev=lake_name)
 
         jurisdiction_slug = self.kwargs.get('jurisdiction')
         if jurisdiction_slug:
-            dataUrl = reverse('stocking_api:api-stocking-event-map-list-jurisdiction-year',
-                              kwargs={'year': year,
-                                      'jurisdiction': jurisdiction_slug})
+            dataUrl = reverse(
+                'stocking_api:api-stocking-event-map-list-jurisdiction-year',
+                kwargs={
+                    'year': year,
+                    'jurisdiction': jurisdiction_slug
+                })
             spatialUnit = 'jurisdiction'
             obj = Jurisdiction.objects.get(slug=jurisdiction_slug)
+
 
 #        slug = self.kwargs.get('management_unit')
 #        if manUnit_slug:
 #            spatialUnit = 'manUnit'
 #            obj = ManagementUnit.objects.get(slug=slug)
-
 
         context['dataUrl'] = dataUrl
         context['spatialUnit'] = spatialUnit
@@ -132,6 +209,7 @@ class PieChartMapView(TemplateView):
             context['label'] = obj.label
 
         return context
+
 
 class StockingEventListView(ListView):
     '''
@@ -289,10 +367,11 @@ class StockingEventListView(ListView):
             self.request.GET, queryset=queryset)
 
         qs = filtered_list.qs.values(
-            'stock_id', 'agency__abbrev', 'jurisdiction__lake__lake_name', 'site', 'date',
-            'species__common_name', 'strain_raw__strain__strain_label',
-            'year_class', 'lifestage__description',
-            'stocking_method__description', 'mark', 'yreq_stocked')
+            'stock_id', 'agency__abbrev', 'jurisdiction__lake__lake_name',
+            'site', 'date', 'species__common_name',
+            'strain_raw__strain__strain_label', 'year_class',
+            'lifestage__description', 'stocking_method__description', 'mark',
+            'yreq_stocked')
 
         return qs
 
