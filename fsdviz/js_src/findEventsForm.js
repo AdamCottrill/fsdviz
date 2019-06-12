@@ -224,77 +224,62 @@ const filterYears = (firstYear, lastYear) => {
 //=============================================
 // create listeners for each of our form widgets
 
-let lake_listener = select("#id_lake").on("change", function() {
+select("#id_lake").on("change", function() {
   let selected = get_selections(this);
   filterDim(lakeDim, selected);
 });
 
-let stateProv_listener = select("#id_stateprov").on("change", function() {
+select("#id_stateprov").on("change", function() {
   let selected = get_selections(this);
   filterDim(stateDim, selected);
 });
 
-let jurisdiction_listener = select("#id_jurisdiction").on("change", function() {
+select("#id_jurisdiction").on("change", function() {
   let selected = get_selections(this);
   filterDim(jurisdictionDim, selected);
 });
 
-let firstYear_listener = select("#id_first_year").on("change", function() {
+select("#id_first_year").on("change", function() {
   firstYear = this.value;
   filterYears(firstYear, lastYear);
 });
 
-let lastYear_listener = select("#id_last_year").on("change", function() {
+select("#id_last_year").on("change", function() {
   firstYear = this.value;
   filterYears(firstYear, lastYear);
 });
 
-let month_listener = select("#id_months").on("change", function() {
+select("#id_months").on("change", function() {
   let selected = get_selections(this);
   filterDim(monthDim, selected);
 });
 
-let agency_listener = select("#id_agency").on("change", function() {
+select("#id_agency").on("change", function() {
   let selected = get_selections(this);
   filterDim(agencyDim, selected);
 });
 
-let species_listener = select("#id_species").on("change", function() {
+select("#id_species").on("change", function() {
   let selected = get_selections(this);
   filterDim(speciesDim, selected);
 });
 
-let strain_listener = select("#id_strain").on("change", function() {
+select("#id_strain").on("change", function() {
   let selected = get_selections(this);
   filterDim(strainDim, selected);
 });
 
-let lifeStage_listener = select("#id_life_stage").on("change", function() {
+select("#id_life_stage").on("change", function() {
   let selected = get_selections(this);
   filterDim(stageDim, selected);
 });
 
-let stockingMethod_listener = select("#id_stocking_method").on(
-  "change",
-  function() {
-    let selected = get_selections(this);
-    filterDim(methodDim, selected);
-  }
-);
+select("#id_stocking_method").on("change", function() {
+  let selected = get_selections(this);
+  filterDim(methodDim, selected);
+});
 
-//debugger;
-
-//events
-
-//agency_code
-
-//jurisd
-//lake
-//mark
-//method
-//month
-//spc
-//stage
-//state
-//strain
-//year
+select("#reset-button").on("click", () => {
+  $("#find-events-form").form("reset");
+  update_widgets();
+});

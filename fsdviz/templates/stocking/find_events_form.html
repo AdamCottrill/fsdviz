@@ -20,7 +20,7 @@
 
         <h5>Estimated number of events: <span id="event-total"></span> </h5>
 
-        <form class="ui form" action="{% url 'stocking:find-events' %}" method="post">
+        <form class="ui form" id="find-events-form" action="{% url 'stocking:find-events' %}" method="post">
             {% csrf_token %}
 
             {% if form.errors %}
@@ -282,10 +282,9 @@
                 </div>
             {% endif %}
 
-            <button class="ui left floated small primary basic button">Reset Form</button>
-            <button class="ui right floated small primary button" type="submit">Submit</button>
+            <div class="ui clear button" id="reset-button">Clear Form</div>
+            <button type="submit"class="ui right floated small primary button" >Submit</button>
         </form>
-
 
     </div>
 
@@ -300,6 +299,7 @@
 
 
         <script type="text/javascript">
+         $('.ui.form').form();
          $(".select.dropdown").dropdown();
          $('#id_first_date').calendar({type: 'date'});
          $('#id_last_date').calendar({type: 'date'});
