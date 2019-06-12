@@ -60,10 +60,12 @@ def find_events(request):
             'stocking_method', 'jurisdition__lake', 'jurisdiction__stateprov'
         ]
 
+        counts = {"events": Count('id')}
+
         values = list(StockingEvent.objects\
                               .select_related(*related_tables)\
                               .annotate(**field_aliases)\
-                              .values(*fields).distinct().order_by())
+                              .values(*fields).order_by().annotate(**counts))
 
         # lakes, agencies, juristictions, states/provinces, species,
         # strains, lifestages, stockingmethods
@@ -80,13 +82,13 @@ def find_events(request):
             ManagementUnit.objects.values('slug', 'label', 'description'))
 
 
-        species = list(Species.objects.values_list('common_name', 'abbrev'))
+        species = list(Species.objects.values('common_name', 'abbrev'))
 
         #Strain????
-        strains = list(
-            Strain.objects.values('id', 'strain_code', 'strain_label')\
-            .distinct().order_by())
-
+        strains = list(Strain.objects.prefetch_related('species')\
+                        .annotate(**{'spc_name': F('species__common_name')})\
+                        .values('id', 'spc_name', 'strain_code', 'strain_label')
+                       .distinct().order_by());
 
         stocking_methods = list(
             StockingMethod.objects.values('stk_meth', 'description'))

@@ -1,14 +1,17 @@
 from django import forms
 
-
 from ..common.models import (Lake, Agency, Jurisdiction, ManagementUnit,
-                             StateProvince, Species)
+                             StateProvince, Species, Strain)
 from ..stocking.models import LifeStage, StockingMethod
 
 from ..common.widgets import SemanticDatePicker
 
 
 class FindEventsForm(forms.Form):
+
+    MONTHS = ((1, "Jan"), (2, "Feb"), (3, "Mar"), (4, "Apr"), (5, "May"),
+              (6, "Jun"), (7, "Jul"), (8, "Aug"), (9, "Sep"), (10, "Oct"),
+              (11, "Nov"), (12, "Dec"), (0, "Unk"))
 
     # lake(s)
     # species
@@ -25,11 +28,17 @@ class FindEventsForm(forms.Form):
         label='First Date', widget=SemanticDatePicker, required=False)
     last_date = forms.DateField(
         label='Last Date', widget=SemanticDatePicker, required=False)
+
+    months = forms.MultipleChoiceField(
+        label="Stocking Month",
+        widget=forms.SelectMultiple,
+        choices=MONTHS, required=False)
+
+    months.widget.attrs['class'] = 'ui dropdown'
+
     #   LAKE
     lake = forms.ModelMultipleChoiceField(
-        queryset=Lake.objects.all(),
-        to_field_name='abbrev',
-        required=False)
+        queryset=Lake.objects.all(), to_field_name='abbrev', required=False)
 
     lake.widget.attrs['class'] = 'ui dropdown'
 
@@ -43,9 +52,7 @@ class FindEventsForm(forms.Form):
 
     #   AGENCY
     agency = forms.ModelMultipleChoiceField(
-        queryset=Agency.objects.all(),
-        to_field_name='abbrev',
-        required=False)
+        queryset=Agency.objects.all(), to_field_name='abbrev', required=False)
 
     agency.widget.attrs['class'] = 'ui dropdown'
 
@@ -67,13 +74,16 @@ class FindEventsForm(forms.Form):
 
     #   SPECIES
     species = forms.ModelMultipleChoiceField(
-        queryset=Species.objects.all(),
-        to_field_name='abbrev',
-        required=False)
+        queryset=Species.objects.all(), to_field_name='abbrev', required=False)
 
     species.widget.attrs['class'] = 'ui dropdown'
 
+    strain = forms.ModelMultipleChoiceField(
+        queryset=(Strain.objects.values('id', 'strain_code',
+                                        'strain_label').distinct().order_by()),
+        required=False)
 
+    strain.widget.attrs['class'] = 'ui dropdown'
 
     life_stage = forms.ModelMultipleChoiceField(
         queryset=LifeStage.objects.all(),
@@ -88,9 +98,6 @@ class FindEventsForm(forms.Form):
         required=False)
 
     stocking_method.widget.attrs['class'] = 'ui dropdown'
-
-
-
 
 
 #    #   STRAIN

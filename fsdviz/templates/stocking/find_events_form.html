@@ -18,12 +18,10 @@
 
         <h3>Find Stocking Events</h3>
 
-
+        <h5>Estimated number of events: <span id="event-total"></span> </h5>
 
         <form class="ui form" action="{% url 'stocking:find-events' %}" method="post">
             {% csrf_token %}
-
-
 
             {% if form.errors %}
                 <div class="ui negative message">
@@ -168,6 +166,24 @@
 
 
 
+            <!-- Stocking Months -->
+            <div class="field {% if form.months.errors %} error{% endif %}">
+                {{ form.months.label_tag }}
+                {{ form.months }}
+            </div>
+            {% if form.months.errors %}
+                <div class="ui warning message">
+                    <ul class="list">
+                        {% for error in form.months.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+
+
+
 
             <!-- First Date -->
             <div class="field {% if form.first_date.errors %} error{% endif %}">
@@ -202,8 +218,6 @@
 
 
 
-
-
             <!-- SPECIES -->
             <div class="field {% if form.species.errors %} error{% endif %}">
                 {{ form.species.label_tag }}
@@ -213,6 +227,23 @@
                 <div class="ui warning message">
                     <ul class="list">
                         {% for error in form.species.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+
+
+            <!-- STRAIN -->
+            <div class="field {% if form.strain.errors %} error{% endif %}">
+                {{ form.strain.label_tag }}
+                {{ form.strain }}
+            </div>
+            {% if form.strain.errors %}
+                <div class="ui warning message">
+                    <ul class="list">
+                        {% for error in form.strain.errors %}
                             <li>{{ error }}</li>
                         {% endfor %}
                     </ul>
@@ -281,7 +312,7 @@
          let jurisdictions = {{ jurisdictions|safe}};
          let stateProv = {{ stateProv|safe }};
          let managementUnits = {{ management_units|safe }};
-         let species = {{ species|safe}};
+         let species_list = {{ species|safe}};
          let strains = {{ strains|safe }};
          let lifestages = {{ lifestages|safe }};
          let stockingMethods = {{ stocking_methods|safe }};
