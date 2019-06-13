@@ -1,101 +1,96 @@
 from django import forms
+from django.db.models import Min, Max
 
-from ..common.models import (Lake, Agency, Jurisdiction, ManagementUnit,
-                             StateProvince, Species, Strain)
-from ..stocking.models import LifeStage, StockingMethod
+#from ..common.models import (Lake, Agency, Jurisdiction, ManagementUnit,
+#                             StateProvince, Species, Strain)
 
-from ..common.widgets import SemanticDatePicker
+from ..stocking.models import StockingEvent
+
+#from ..common.widgets import SemanticDatePicker
 
 
 class FindEventsForm(forms.Form):
+
+    year_range = StockingEvent.objects.aggregate(Min('year'), Max('year'))
 
     MONTHS = ((1, "Jan"), (2, "Feb"), (3, "Mar"), (4, "Apr"), (5, "May"),
               (6, "Jun"), (7, "Jul"), (8, "Aug"), (9, "Sep"), (10, "Oct"),
               (11, "Nov"), (12, "Dec"), (0, "Unk"))
 
-    # lake(s)
-    # species
-    # strain(s)
-    # agency(ies)
-
     first_year = forms.IntegerField(
-        label='First Year', min_value=1960, max_value=2018, required=False)
+        label='Earliest Year',
+        min_value=year_range['year__min'],
+        max_value=year_range['year__max'],
+        widget=forms.NumberInput(
+            attrs={'placeholder': year_range['year__min']}),
+        required=False)
 
     last_year = forms.IntegerField(
-        label='Last Year', min_value=1960, max_value=2018, required=False)
-
-    first_date = forms.DateField(
-        label='First Date', widget=SemanticDatePicker, required=False)
-    last_date = forms.DateField(
-        label='Last Date', widget=SemanticDatePicker, required=False)
+        label='Latest Year',
+        min_value=year_range['year__min'],
+        max_value=year_range['year__max'],
+        widget=forms.NumberInput(
+            attrs={'placeholder': year_range['year__max']}),
+        required=False)
 
     months = forms.MultipleChoiceField(
         label="Stocking Month",
         widget=forms.SelectMultiple,
-        choices=MONTHS, required=False)
+        choices=MONTHS,
+        required=False)
 
     months.widget.attrs['class'] = 'ui dropdown'
 
     #   LAKE
-    lake = forms.ModelMultipleChoiceField(
-        queryset=Lake.objects.all(), to_field_name='abbrev', required=False)
+    lake = forms.MultipleChoiceField(
+        label="Lake", widget=forms.SelectMultiple, required=False)
 
     lake.widget.attrs['class'] = 'ui dropdown'
 
     #   STATEPROV
-    stateprov = forms.ModelMultipleChoiceField(
-        queryset=StateProvince.objects.all(),
-        to_field_name='abbrev',
-        required=False)
+    stateprov = forms.MultipleChoiceField(
+        label="State/Province", widget=forms.SelectMultiple, required=False)
 
     stateprov.widget.attrs['class'] = 'ui dropdown'
 
     #   AGENCY
-    agency = forms.ModelMultipleChoiceField(
-        queryset=Agency.objects.all(), to_field_name='abbrev', required=False)
+    agency = forms.MultipleChoiceField(
+        label="Agency", widget=forms.SelectMultiple, required=False)
 
     agency.widget.attrs['class'] = 'ui dropdown'
 
     #   JURISDICTIOn
-    jurisdiction = forms.ModelMultipleChoiceField(
-        queryset=Jurisdiction.objects.all(),
-        to_field_name='slug',
-        required=False)
+    jurisdiction = forms.MultipleChoiceField(
+        label="Jurisdiction", widget=forms.SelectMultiple, required=False)
 
     jurisdiction.widget.attrs['class'] = 'ui dropdown'
 
-    #   MANGEMENT UNIT
-    manUnit = forms.ModelMultipleChoiceField(
-        queryset=ManagementUnit.objects.all(),
-        to_field_name='slug',
-        required=False)
-
-    manUnit.widget.attrs['class'] = 'ui dropdown'
+    #    #   MANGEMENT UNIT
+    #    manUnit = forms.ModelMultipleChoiceField(
+    #        queryset=ManagementUnit.objects.all(),
+    #        to_field_name='slug',
+    #        required=False)
+    #
+    #    manUnit.widget.attrs['class'] = 'ui dropdown'
 
     #   SPECIES
-    species = forms.ModelMultipleChoiceField(
-        queryset=Species.objects.all(), to_field_name='abbrev', required=False)
+    species = forms.MultipleChoiceField(
+        label="Species", widget=forms.SelectMultiple, required=False)
 
     species.widget.attrs['class'] = 'ui dropdown'
 
-    strain = forms.ModelMultipleChoiceField(
-        queryset=(Strain.objects.values('id', 'strain_code',
-                                        'strain_label').distinct().order_by()),
-        required=False)
+    strain = forms.MultipleChoiceField(
+        label="Strain", widget=forms.SelectMultiple, required=False)
 
     strain.widget.attrs['class'] = 'ui dropdown'
 
-    life_stage = forms.ModelMultipleChoiceField(
-        queryset=LifeStage.objects.all(),
-        to_field_name='abbrev',
-        required=False)
+    life_stage = forms.MultipleChoiceField(
+        label="Life Stage", widget=forms.SelectMultiple, required=False)
 
     life_stage.widget.attrs['class'] = 'ui dropdown'
 
-    stocking_method = forms.ModelMultipleChoiceField(
-        queryset=StockingMethod.objects.all(),
-        to_field_name='stk_meth',
-        required=False)
+    stocking_method = forms.MultipleChoiceField(
+        label="Stocking Method", widget=forms.SelectMultiple, required=False)
 
     stocking_method.widget.attrs['class'] = 'ui dropdown'
 

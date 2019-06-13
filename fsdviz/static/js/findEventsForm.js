@@ -8581,23 +8581,28 @@
 	/* global values lakes, agencies, jurisdictions, stateProv, species, strains, lifestages, stockingMethods */
 
 	let commaFormat = format(",d");
-	let firstYear;
-	let lastYear;
+	let firstYear = "";
+	let lastYear = "";
 	const month_lookup = {
-	  1: "Jan",
-	  2: "Feb",
-	  3: "Mar",
-	  4: "Apr",
-	  5: "May",
-	  6: "Jun",
-	  7: "Jul",
-	  8: "Aug",
-	  9: "Sep",
-	  10: "Oct",
-	  11: "Nov",
-	  12: "Dec",
-	  0: "Unk"
-	}; // create our lookup tables
+	  "1": "January",
+	  "2": "February",
+	  "3": "March",
+	  "4": "April",
+	  "5": "May",
+	  "6": "June",
+	  "7": "July",
+	  "8": "August",
+	  "9": "September",
+	  "10": "October",
+	  "11": "November",
+	  "12": "December",
+	  "0": "Unknown/Not Reported"
+	}; // a little scrubbing:
+
+	values.forEach(d => {
+	  d.month = d.month ? "" + d.month : "0";
+	  return d;
+	}); // create our lookup tables
 
 	let lake_lookup = {};
 	lakes.forEach(d => lake_lookup[d.abbrev] = `${d.lake_name} (${d.abbrev})`);
@@ -8618,13 +8623,13 @@
 	let method_lookup = {};
 	stockingMethods.forEach(d => method_lookup[d.stk_meth] = `${d.description} (${d.stk_meth})`);
 
-	const get_selections = function (widget) {
+	const get_selections = function (widget, what = "value") {
 	  let selected = [];
 
 	  if (widget.selectedIndex >= 0) {
 	    for (let i = widget.selectedIndex; i < widget.length; i++) {
 	      if (widget.options[i].selected) {
-	        selected.push(widget.options[i].value);
+	        selected.push(widget.options[i][what]);
 	      }
 	    }
 	  }
@@ -8728,12 +8733,14 @@
 	update_widgets();
 
 	const filterYears = (firstYear, lastYear) => {
+	  //clear any existing filters on year:
 	  if (firstYear && lastYear) {
-	    yearDim.filter([firstYear, lastYear]);
-	  } else if (firstYear) {
-	    yearDim.filter(d => d >= firstYear);
-	  } else if (lastYear) {
-	    yearDim.filter(d => d <= lastYear);
+	    let top = parseInt(lastYear) + 1;
+	    yearDim.filter([parseInt(firstYear), top]);
+	  } else if (firstYear && lastYear === "") {
+	    yearDim.filterFunction(d => d >= parseInt(firstYear));
+	  } else if (firstYear === "" && lastYear) {
+	    yearDim.filterFunction(d => d <= parseInt(lastYear));
 	  } else {
 	    yearDim.filterAll();
 	  }
@@ -8754,11 +8761,11 @@
 	  filterDim(jurisdictionDim, selected);
 	});
 	select("#id_first_year").on("change", function () {
-	  firstYear = this.value;
+	  firstYear = this.value || "";
 	  filterYears(firstYear, lastYear);
 	});
 	select("#id_last_year").on("change", function () {
-	  firstYear = this.value;
+	  lastYear = this.value || "";
 	  filterYears(firstYear, lastYear);
 	});
 	select("#id_months").on("change", function () {
