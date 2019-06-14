@@ -22,12 +22,113 @@ from .forms import FindEventsForm
 
 
 def find_events(request):
+
+    field_aliases = {
+        "agency_code": F('agency__abbrev'),
+        "spc": F('species__abbrev'),
+        "strain": F('strain_raw__strain'),
+        "stage": F('lifestage__abbrev'),
+        "method": F('stocking_method__stk_meth'),
+        "jurisd": F('jurisdiction__slug'),
+        "lake": F('jurisdiction__lake__abbrev'),
+        "state": F('jurisdiction__stateprov__abbrev')
+    }
+
+    # use our shorter field names in the list of fields to select:
+    fields = [
+        'year', 'month', 'mark', "agency_code", "spc", "strain", "stage",
+        "method", "jurisd", "lake", "state"
+    ]
+
+    related_tables = [
+        'jurisdiction', 'agency', 'species', 'strain', 'lifestage',
+        'stocking_method', 'jurisdition__lake', 'jurisdiction__stateprov'
+    ]
+
+    counts = {"events": Count('id')}
+
+    values = list(StockingEvent.objects\
+                          .select_related(*related_tables)\
+                          .annotate(**field_aliases)\
+                          .values(*fields).order_by().annotate(**counts))
+
+    # these will give our results shorter fieldnames
+
+    # lakes, agencies, juristictions, states/provinces, species,
+    # strains, lifestages, stockingmethods
+
+    #lookups - to provide nice labels for dropdown menues
+    lakes = list(Lake.objects.values('abbrev', 'lake_name'))
+    stateProv = list(StateProvince.objects.values('abbrev', 'name'))
+    jurisdictions = list(Jurisdiction.objects.values('slug', 'name'))
+    agencies = list(Agency.objects.all().values('abbrev', 'agency_name'))
+
+    # manunits
+    #managementUnits = list(
+    #    ManagementUnit.objects.values('slug', 'label', 'description'))
+
+    species = list(Species.objects.values('abbrev', 'common_name'))
+
+    # Strain????
+    strains = list(Strain.objects.prefetch_related('species')\
+                    .annotate(**{'spc_name': F('species__common_name')})\
+                    .values('id', 'spc_name', 'strain_code', 'strain_label')
+                   .distinct().order_by())
+
+    stocking_methods = list(
+        StockingMethod.objects.values('stk_meth', 'description'))
+    lifestages = list(LifeStage.objects.values('abbrev', 'description'))
+
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
         form = FindEventsForm(request.POST)
+
+        # initialize the choices - these will be dynamically updated
+        # by js in the html, but need to be here when we validate the
+        # form.  They are tuples of the form (value, label) that
+        # correspond to elements in dropdown list.  note that strain
+        #  has multiple values that need to be stitched together.
+
+        form.fields['lake'].choices = [list(x.values()) for x in lakes]
+        form.fields['stateprov'].choices = [
+            list(x.values()) for x in stateProv
+        ]
+        form.fields['jurisdiction'].choices = [
+            list(x.values()) for x in jurisdictions
+        ]
+        form.fields['agency'].choices = [list(x.values()) for x in agencies]
+        form.fields['species'].choices = [list(x.values()) for x in species]
+        form.fields['strain'].choices = [
+            (str(x['id']),
+             '{spc_name} - {strain_label} ({strain_code})'.format(**x))
+            for x in strains
+        ]
+
+        form.fields['stocking_method'].choices = [
+            list(x.values()) for x in stocking_methods
+        ]
+        form.fields['life_stage'].choices = [
+            (x['abbrev'], '{description} ({abbrev})'.format(**x))
+            for x in lifestages
+        ]
+
         # check whether it's valid:
         if form.is_valid():
+
+            #base url:
+            #query paremters for:
+            # agency
+            # lake
+            # stateProv
+            # jurisdiction
+            # stocking month
+            # first year, last year
+            # species
+            # strain
+            # lifestage
+            # stocking method
+
             # process the data in form.cleaned_data as required
             # ...
             # redirect to a new URL:
@@ -35,75 +136,22 @@ def find_events(request):
 
     # if a GET (or any other method) we'll create a blank form
     else:
+
         form = FindEventsForm()
-        # these will give our results shorter fieldnames
-        field_aliases = {
-            "agency_code": F('agency__abbrev'),
-            "spc": F('species__abbrev'),
-            "strain": F('strain_raw__strain'),
-            "stage": F('lifestage__abbrev'),
-            "method": F('stocking_method__stk_meth'),
-            "jurisd": F('jurisdiction__slug'),
-            "lake": F('jurisdiction__lake__abbrev'),
-            "state": F('jurisdiction__stateprov__abbrev')
-        }
 
-        # use our shorter field names in the list of fields to select:
-        fields = [
-            'year', 'month', 'mark', "agency_code", "spc",
-            "strain", "stage", "method", "jurisd",
-            "lake", "state"
-        ]
-
-        related_tables = [
-            'jurisdiction', 'agency', 'species', 'strain', 'lifestage',
-            'stocking_method', 'jurisdition__lake', 'jurisdiction__stateprov'
-        ]
-
-        counts = {"events": Count('id')}
-
-        values = list(StockingEvent.objects\
-                              .select_related(*related_tables)\
-                              .annotate(**field_aliases)\
-                              .values(*fields).order_by().annotate(**counts))
-
-        # lakes, agencies, juristictions, states/provinces, species,
-        # strains, lifestages, stockingmethods
-
-        #lookups - to provide nice labels for dropdown menues
-
-        lakes = list(Lake.objects.values('abbrev', 'lake_name'))
-        stateProv = list(StateProvince.objects.values('abbrev', 'name'))
-        jurisdictions = list(Jurisdiction.objects.values('slug', 'name'))
-        agencies = list(Agency.objects.all().values('abbrev', 'agency_name'))
-
-        #manunits
-        managementUnits = list(
-            ManagementUnit.objects.values('slug', 'label', 'description'))
-
-
-        species = list(Species.objects.values('common_name', 'abbrev'))
-
-        #Strain????
-        strains = list(Strain.objects.prefetch_related('species')\
-                        .annotate(**{'spc_name': F('species__common_name')})\
-                        .values('id', 'spc_name', 'strain_code', 'strain_label')
-                       .distinct().order_by());
-
-        stocking_methods = list(
-            StockingMethod.objects.values('stk_meth', 'description'))
-        lifestages = list(
-            LifeStage.objects.values('id', 'abbrev', 'description'))
+    #import pdb; pdb.set_trace()
 
     return render(
-        request, 'stocking/find_events_form.html', {
+        request,
+        'stocking/find_events_form.html',
+        {
             'form': form,
             'values': json.dumps(values),
             'lakes': json.dumps(lakes),
             "agencies": json.dumps(agencies),
             'stateProv': json.dumps(stateProv),
             'jurisdictions': json.dumps(jurisdictions),
-            'management_units': json.dumps(managementUnits),
+            #'management_units': json.dumps(managementUnits),
             'species': json.dumps(species),
             'strains': json.dumps(strains),
             'lifestages': json.dumps(lifestages),

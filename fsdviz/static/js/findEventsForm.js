@@ -4292,6 +4292,12 @@
 	      : new Selection([[selector]], root$1);
 	}
 
+	function selectAll(selector) {
+	  return typeof selector === "string"
+	      ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
+	      : new Selection([selector == null ? [] : selector], root$1);
+	}
+
 	function define(constructor, factory, prototype) {
 	  constructor.prototype = factory.prototype = prototype;
 	  prototype.constructor = constructor;
@@ -8601,6 +8607,9 @@
 
 	values.forEach(d => {
 	  d.month = d.month ? "" + d.month : "0";
+	  d.year = parseInt(d.year);
+	  d.events = parseInt(d.events);
+	  d.strain = d.strain + "";
 	  return d;
 	}); // create our lookup tables
 
@@ -8611,13 +8620,15 @@
 	let jurisdiction_lookup = {};
 	jurisdictions.forEach(d => jurisdiction_lookup[d.slug] = d.name);
 	let stateProv_lookup = {};
-	stateProv.forEach(d => stateProv_lookup[d.abbrev] = `${d.name} (${d.abbrev})`);
-	let manUnit_lookup = {};
-	managementUnits.forEach(d => manUnit_lookup[d.slug] = `${d.description} (${d.label})`);
+	stateProv.forEach(d => stateProv_lookup[d.abbrev] = `${d.name} (${d.abbrev})`); // let manUnit_lookup = {};
+	// managementUnits.forEach(
+	//   d => (manUnit_lookup[d.slug] = `${d.description} (${d.label})`)
+	// );
+
 	let species_lookup = {};
 	species_list.forEach(d => species_lookup[d.abbrev] = `${d.common_name} (${d.abbrev})`);
 	let strain_lookup = {};
-	strains.forEach(d => strain_lookup[d.id] = `${d.spc_name} - ${d.strain_label} (${d.strain_code})`);
+	strains.forEach(d => strain_lookup[d.id + ""] = `${d.spc_name} - ${d.strain_label} (${d.strain_code})`);
 	let lifestage_lookup = {};
 	lifestages.forEach(d => lifestage_lookup[d.abbrev] = `${d.description} (${d.abbrev})`);
 	let method_lookup = {};
@@ -8699,7 +8710,8 @@
 	let stageGroup = stageDim.group().reduceSum(d => d.events);
 
 	const update_total = () => {
-	  select("#event-total").text(commaFormat(all.value()));
+	  let total = all.value();
+	  select("#event-total").text(commaFormat(total)).classed("total-zero", total <= 0 ? true : false);
 	};
 
 	const update_widgets = () => {
@@ -8744,6 +8756,16 @@
 	  } else {
 	    yearDim.filterAll();
 	  }
+	};
+
+	const checkYears = (firstYear, lastYear) => {
+	  let yearInputs = selectAll(".year-input");
+
+	  if (firstYear !== "" && lastYear !== "" && firstYear > lastYear) {
+	    yearInputs.classed("error", true);
+	  } else {
+	    yearInputs.classed("error", false);
+	  }
 	}; //=============================================
 	// create listeners for each of our form widgets
 
@@ -8762,10 +8784,12 @@
 	});
 	select("#id_first_year").on("change", function () {
 	  firstYear = this.value || "";
+	  checkYears(firstYear, lastYear);
 	  filterYears(firstYear, lastYear);
 	});
 	select("#id_last_year").on("change", function () {
 	  lastYear = this.value || "";
+	  checkYears(firstYear, lastYear);
 	  filterYears(firstYear, lastYear);
 	});
 	select("#id_months").on("change", function () {

@@ -1,13 +1,8 @@
 from django import forms
 from django.db.models import Min, Max
-
-#from ..common.models import (Lake, Agency, Jurisdiction, ManagementUnit,
-#                             StateProvince, Species, Strain)
+from django.core.exceptions import ValidationError
 
 from ..stocking.models import StockingEvent
-
-#from ..common.widgets import SemanticDatePicker
-
 
 class FindEventsForm(forms.Form):
 
@@ -93,6 +88,16 @@ class FindEventsForm(forms.Form):
         label="Stocking Method", widget=forms.SelectMultiple, required=False)
 
     stocking_method.widget.attrs['class'] = 'ui dropdown'
+
+    def clean(self):
+
+        first_year = self.cleaned_data.get('first_year')
+        last_year = self.cleaned_data.get('last_year')
+
+        if (first_year and last_year):
+            if (first_year > last_year):
+                raise ValidationError("Earliest year occurs after latest year.")
+        return self.cleaned_data
 
 
 #    #   STRAIN

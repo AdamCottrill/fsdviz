@@ -28,6 +28,9 @@ const month_lookup = {
 // a little scrubbing:
 values.forEach(d => {
   d.month = d.month ? "" + d.month : "0";
+  d.year = parseInt(d.year);
+  d.events = parseInt(d.events);
+  d.strain = d.strain + "";
   return d;
 });
 
@@ -49,10 +52,10 @@ stateProv.forEach(
   d => (stateProv_lookup[d.abbrev] = `${d.name} (${d.abbrev})`)
 );
 
-let manUnit_lookup = {};
-managementUnits.forEach(
-  d => (manUnit_lookup[d.slug] = `${d.description} (${d.label})`)
-);
+// let manUnit_lookup = {};
+// managementUnits.forEach(
+//   d => (manUnit_lookup[d.slug] = `${d.description} (${d.label})`)
+// );
 
 let species_lookup = {};
 species_list.forEach(
@@ -62,7 +65,7 @@ species_list.forEach(
 let strain_lookup = {};
 strains.forEach(
   d =>
-    (strain_lookup[d.id] = `${d.spc_name} - ${d.strain_label} (${
+    (strain_lookup[d.id + ""] = `${d.spc_name} - ${d.strain_label} (${
       d.strain_code
     })`)
 );
@@ -170,7 +173,10 @@ let methodGroup = methodDim.group().reduceSum(d => d.events);
 let stageGroup = stageDim.group().reduceSum(d => d.events);
 
 const update_total = () => {
-  select("#event-total").text(commaFormat(all.value()));
+  let total = all.value();
+  select("#event-total")
+    .text(commaFormat(total))
+    .classed("total-zero", total <= 0 ? true : false);
 };
 
 const update_widgets = () => {
@@ -229,6 +235,15 @@ const filterYears = (firstYear, lastYear) => {
   }
 };
 
+const checkYears = (firstYear, lastYear) => {
+  let yearInputs = selectAll(".year-input");
+  if (firstYear !== "" && lastYear !== "" && firstYear > lastYear) {
+    yearInputs.classed("error", true);
+  } else {
+    yearInputs.classed("error", false);
+  }
+};
+
 //=============================================
 // create listeners for each of our form widgets
 
@@ -249,11 +264,13 @@ select("#id_jurisdiction").on("change", function() {
 
 select("#id_first_year").on("change", function() {
   firstYear = this.value || "";
+  checkYears(firstYear, lastYear);
   filterYears(firstYear, lastYear);
 });
 
 select("#id_last_year").on("change", function() {
   lastYear = this.value || "";
+  checkYears(firstYear, lastYear);
   filterYears(firstYear, lastYear);
 });
 

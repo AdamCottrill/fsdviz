@@ -8,6 +8,17 @@
 
 
 
+    <style type="text/css" media="screen">
+
+
+     .total-zero {
+         color:red;
+
+     }
+
+    </style>
+
+
 {% endblock %}
 
 
@@ -16,11 +27,13 @@
     <div class="ui container">
 
 
-        <h3>Find Stocking Events</h3>
+        <h1>Find Stocking Events</h1>
 
-        <h5>Estimated number of events: <span id="event-total"></span> </h5>
+        <h5>Estimated number of events: <strong>
+            <span id="event-total"></span>
+        </strong> </h5>
 
-        <form class="ui form" id="find-events-form" action="{% url 'stocking:find-events' %}" method="post">
+        <form class="ui form" id="find-events-form" action="{% url 'stocking:find-events' %}" method="POST">
             {% csrf_token %}
 
 
@@ -132,7 +145,7 @@
 
 
                     <!-- First Year -->
-                    <div class="four wide field {% if form.first_year.errors %} error{% endif %}">
+                    <div class="four wide field year-input {% if form.first_year.errors %} error{% endif %}">
                         {{ form.first_year.label_tag }}
                         {{ form.first_year }}
                     </div>
@@ -148,7 +161,7 @@
 
 
                     <!-- Last Year -->
-                    <div class="four wide field {% if form.last_year.errors %} error{% endif %}">
+                    <div class="four wide field year-input {% if form.last_year.errors %} error{% endif %}">
                         {{ form.last_year.label_tag }}
                         {{ form.last_year }}
                     </div>
@@ -281,7 +294,7 @@
      let agencies = {{ agencies|safe}};
      let jurisdictions = {{ jurisdictions|safe}};
      let stateProv = {{ stateProv|safe }};
-     let managementUnits = {{ management_units|safe }};
+     //let managementUnits = {{ management_units|safe }};
      let species_list = {{ species|safe}};
      let strains = {{ strains|safe }};
      let lifestages = {{ lifestages|safe }};
