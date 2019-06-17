@@ -68,6 +68,7 @@ class FindEventsForm(forms.Form):
     #
     #    manUnit.widget.attrs['class'] = 'ui dropdown'
 
+
     #   SPECIES
     species = forms.MultipleChoiceField(
         label="Species", widget=forms.SelectMultiple, required=False)

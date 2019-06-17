@@ -4,7 +4,8 @@ from django.urls import path
 from rest_framework.routers import SimpleRouter
 
 from .views import (LifeStageViewSet, ConditionViewSet, StockingMethodViewSet,
-                    StockingEventViewSet, StockingEventMapListView)
+                    StockingEventViewSet, StockingEventMapListView,
+                    StockingEventListAPIView)
 
 
 app_name = "api"
@@ -21,6 +22,13 @@ urlpatterns = router.urls
 # urls for the template views.
 
 urlpatterns += [
+
+
+    path(
+        'get_events/',
+        StockingEventListAPIView.as_view(),
+        name='api-get-stocking-events'),
+
     path(
         'events/',
         StockingEventViewSet.as_view({'get': 'list'}),

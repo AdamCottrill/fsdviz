@@ -2,18 +2,18 @@ from django.urls import path
 
 from .views import (PieChartMapView, PieChartMapViewLatestYear,
                     StockingEventListView, StockingEventDetailView,
-                    StockingEventListLatestYear, find_events)
+                    StockingEventListLatestYear, find_events,
+)
 
 app_name = 'stocking'
 
 urlpatterns = [
     path('', PieChartMapViewLatestYear, name='stocking-events'),
 
-
     path(
         'find_events',
         find_events,
-        name='find-events'),
+        name='find-stocking-events'),
 
     path(
         'events/<int:year>/',

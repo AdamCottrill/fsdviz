@@ -1,0 +1,52 @@
+{% extends 'fsdviz_base.html' %}
+
+
+{% load static %}
+
+{% block extra_head %}
+
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="ui container">
+
+        <h1>Found Stocking Events</h1>
+
+        <a href="{% url 'stocking:find-stocking-events' %}">Find Events</a>
+
+        <h2>DataURL = {{ dataUrl }} </h2>
+
+    </div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+
+
+    <script src="https://d3js.org/d3-fetch.v1.min.js"></script>
+
+
+    <script type="text/javascript">
+
+        const dataURL = "{{ dataUrl }}";
+
+        console.log(dataURL);
+
+        d3.json(dataURL).then(function(data) {
+        console.log(data.length, " events");
+        console.log(data[0]);
+    });
+
+
+
+    </script>
+
+
+
+
+
+{% endblock %}

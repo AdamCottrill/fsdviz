@@ -5,6 +5,7 @@ The veiws in this file should all be publicly available as readonly.
 """
 from django.db.models import Count, F, Q, Sum
 from rest_framework import generics, viewsets
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
@@ -16,6 +17,7 @@ from fsdviz.stocking.filters import StockingEventFilter
 from .serializers import (LifeStageSerializer, ConditionSerializer,
                           StockingMethodSerializer, StockingEventSerializer,
                           StockingEventFastSerializer)
+
 
 class LifeStageViewSet(viewsets.ReadOnlyModelViewSet):
 
@@ -145,7 +147,6 @@ class StockingEventMapListView(generics.ListAPIView):
                                'stocking_method'
             )
 
-
         # filter by lake, year and jurisdiction if they were included in the url
         if lake_name:
             # Return a filtered queryset
@@ -174,3 +175,56 @@ class StockingEventMapListView(generics.ListAPIView):
             ).order_by().annotate(**aggregation_metrics)
 
         return queryset
+
+
+class StockingEventListAPIView(APIView):
+    """A list view of individual stocking events. This view is meant to be
+    called from find_events view and should always return a reasonable
+    subset of the database (say less than 5000 records?).
+
+    query parmeters are parsed from the url and used to filtered the
+    returned queryest.
+
+    To maximize performance, this view does not use a serializer and
+    instead returns just the values fom the queryset was recommended here:
+
+    https://www.dabapps.com/blog/api-performance-profiling-django-rest-framework/
+
+    Note: this is something we might want to consider for our other views too.
+
+    """
+
+    def get(self, request):
+
+        field_aliases = {
+            "agency_code": F('agency__abbrev'),
+            "species_code": F('species__abbrev'),
+            "strain": F('strain_raw__strain'),
+            #"grid10" : F('grid10__grid_10'),
+            "lifestage_code": F('lifestage__abbrev'),
+            "stockingMethod": F('stocking_method__stk_meth'),
+            "jurisdiction_code": F('jurisdiction__slug'),
+            "lake": F('jurisdiction__lake__abbrev'),
+            "stateProv": F('jurisdiction__stateprov__abbrev'),
+        }
+
+        fields = [
+            "lake", "jurisdiction_code", "stateProv", 'grid_10', "dd_lat",
+            'dd_lon', 'year', 'month', 'st_site', 'date', 'month', 'mark',
+            'year_class', "agency_code", "species_code", "strain",
+            "lifestage_code", "stockingMethod", "no_stocked", "yreq_stocked"
+        ]
+
+        queryset = StockingEvent.objects\
+                              .select_related('jurisdiction', 'agency',
+                                              'species', 'strain', 'lifestage',
+                                              'grid10',
+                                              'stocking_method',
+                                              'jurisdition__lake',
+                                              'jurisdiction__stateprov')\
+                              .annotate(**field_aliases)
+
+        filtered = StockingEventFilter(
+            request.GET, queryset=queryset).qs.values(*fields)
+
+        return Response(filtered[:5000])

@@ -1,4 +1,4 @@
-/* global values lakes, agencies, jurisdictions, stateProv, species, strains, lifestages, stockingMethods */
+/* global values lakes, agencies, jurisdictions, stateProv, species_list, strains, lifestages, stockingMethods */
 
 import crossfilter from "crossfilter2";
 import { select, selectAll, format } from "d3";
@@ -36,49 +36,50 @@ values.forEach(d => {
 
 // create our lookup tables
 
-let lake_lookup = {};
-lakes.forEach(d => (lake_lookup[d.abbrev] = `${d.lake_name} (${d.abbrev})`));
+const lake_lookup = lakes.reduce((accumulator, d) => {
+  accumulator[d[0]] = d[1];
+  return accumulator;
+}, {});
 
-let agency_lookup = {};
-agencies.forEach(
-  d => (agency_lookup[d.abbrev] = `${d.agency_name} (${d.abbrev})`)
-);
+const agency_lookup = agencies.reduce((accumulator, d) => {
+  accumulator[d[0]] = d[1];
+  return accumulator;
+}, {});
 
-let jurisdiction_lookup = {};
-jurisdictions.forEach(d => (jurisdiction_lookup[d.slug] = d.name));
+const jurisdiction_lookup = jurisdictions.reduce((accumulator, d) => {
+  accumulator[d[0]] = d[1];
+  return accumulator;
+}, {});
 
-let stateProv_lookup = {};
-stateProv.forEach(
-  d => (stateProv_lookup[d.abbrev] = `${d.name} (${d.abbrev})`)
-);
+const stateProv_lookup = stateProv.reduce((accumulator, d) => {
+  accumulator[d[0]] = d[1];
+  return accumulator;
+}, {});
+
+const species_lookup = species_list.reduce((accumulator, d) => {
+  accumulator[d[0]] = d[1];
+  return accumulator;
+}, {});
+
+const strain_lookup = strains.reduce((accumulator, d) => {
+  accumulator[d[0]] = d[1];
+  return accumulator;
+}, {});
+
+const lifestage_lookup = lifestages.reduce((accumulator, d) => {
+  accumulator[d[0]] = d[1];
+  return accumulator;
+}, {});
+
+const method_lookup = stockingMethods.reduce((accumulator, d) => {
+  accumulator[d[0]] = d[1];
+  return accumulator;
+}, {});
 
 // let manUnit_lookup = {};
 // managementUnits.forEach(
 //   d => (manUnit_lookup[d.slug] = `${d.description} (${d.label})`)
 // );
-
-let species_lookup = {};
-species_list.forEach(
-  d => (species_lookup[d.abbrev] = `${d.common_name} (${d.abbrev})`)
-);
-
-let strain_lookup = {};
-strains.forEach(
-  d =>
-    (strain_lookup[d.id + ""] = `${d.spc_name} - ${d.strain_label} (${
-      d.strain_code
-    })`)
-);
-
-let lifestage_lookup = {};
-lifestages.forEach(
-  d => (lifestage_lookup[d.abbrev] = `${d.description} (${d.abbrev})`)
-);
-
-let method_lookup = {};
-stockingMethods.forEach(
-  d => (method_lookup[d.stk_meth] = `${d.description} (${d.stk_meth})`)
-);
 
 const get_selections = function(widget, what = "value") {
   let selected = [];
@@ -306,5 +307,16 @@ select("#id_stocking_method").on("change", function() {
 
 select("#reset-button").on("click", () => {
   $("#find-events-form").form("reset");
-  update_widgets();
+
+  yearDim.filterAll();
+  monthDim.filterAll();
+  lakeDim.filterAll();
+  jurisdictionDim.filterAll();
+  stateDim.filterAll();
+  agencyDim.filterAll();
+  speciesDim.filterAll();
+  strainDim.filterAll();
+  markDim.filterAll();
+  methodDim.filterAll();
+  stageDim.filterAll();
 });

@@ -33,7 +33,7 @@
             <span id="event-total"></span>
         </strong> </h5>
 
-        <form class="ui form" id="find-events-form" action="{% url 'stocking:find-events' %}" method="POST">
+        <form class="ui form" id="find-events-form" action="{% url 'stocking:find-stocking-events' %}" method="POST">
             {% csrf_token %}
 
 

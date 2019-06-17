@@ -19,10 +19,18 @@ from .models import StockingEvent, StockingMethod, LifeStage
 from .filters import StockingEventFilter
 
 from .forms import FindEventsForm
-
+from .utils import form2params
 
 def find_events(request):
+    """this view will render a form that will gather stocking event
+    parameters of interest to the user.  Values returned from the form
+    will be used to build a URL to query those records from the
+    database and plot them in an HTML template. - much like the home
+    page, but not limited to a single year.
 
+    """
+
+    # these will give our results shorter fieldnames
     field_aliases = {
         "agency_code": F('agency__abbrev'),
         "spc": F('species__abbrev'),
@@ -52,22 +60,17 @@ def find_events(request):
                           .annotate(**field_aliases)\
                           .values(*fields).order_by().annotate(**counts))
 
-    # these will give our results shorter fieldnames
-
-    # lakes, agencies, juristictions, states/provinces, species,
-    # strains, lifestages, stockingmethods
-
     #lookups - to provide nice labels for dropdown menues
-    lakes = list(Lake.objects.values('abbrev', 'lake_name'))
-    stateProv = list(StateProvince.objects.values('abbrev', 'name'))
-    jurisdictions = list(Jurisdiction.objects.values('slug', 'name'))
-    agencies = list(Agency.objects.all().values('abbrev', 'agency_name'))
+    lakes = Lake.objects.values_list('abbrev', 'lake_name')
+    stateProv = StateProvince.objects.values_list('abbrev', 'name')
+    jurisdictions = Jurisdiction.objects.values_list('slug', 'name')
+    agencies = Agency.objects.all().values_list('abbrev', 'agency_name')
 
     # manunits
     #managementUnits = list(
     #    ManagementUnit.objects.values('slug', 'label', 'description'))
 
-    species = list(Species.objects.values('abbrev', 'common_name'))
+    species = Species.objects.values_list('abbrev', 'common_name')
 
     # Strain????
     strains = list(Strain.objects.prefetch_related('species')\
@@ -75,71 +78,60 @@ def find_events(request):
                     .values('id', 'spc_name', 'strain_code', 'strain_label')
                    .distinct().order_by())
 
-    stocking_methods = list(
-        StockingMethod.objects.values('stk_meth', 'description'))
-    lifestages = list(LifeStage.objects.values('abbrev', 'description'))
+    stocking_methods = StockingMethod.objects.values_list(
+        'stk_meth', 'description')
+    lifestages = LifeStage.objects.values_list('abbrev', 'description')
+
+    # now make our lookups in to key-value pairs with pretty or meaningful lables:
+    # most are of the form (id, 'lablel (id)')
+    # passed to html template and used for form validation
+    lakes = [(x[0], '{} ({})'.format(x[1], x[0])) for x in lakes]
+    jurisdictions = [(x[0], x[1]) for x in jurisdictions]
+    stateProv = [(x[0], '{} ({})'.format(x[1], x[0])) for x in stateProv]
+    agencies = [(x[0], '{} ({})'.format(x[1], x[0])) for x in agencies]
+    species = [(x[0], '{} ({})'.format(x[1], x[0])) for x in species]
+    lifestages = [(x[0], '{} ({})'.format(x[1], x[0])) for x in lifestages]
+    stocking_methods = [(x[0], '{} ({})'.format(x[1], x[0]))
+                        for x in stocking_methods]
+
+    # strains is more complicated because it uses id, and the label
+    # includes species, strain_code and strain_label
+    strains = [(str(x['id']),
+                '{spc_name} - {strain_label} ({strain_code})'.format(**x))
+               for x in strains]
 
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
         form = FindEventsForm(request.POST)
 
-        # initialize the choices - these will be dynamically updated
-        # by js in the html, but need to be here when we validate the
-        # form.  They are tuples of the form (value, label) that
-        # correspond to elements in dropdown list.  note that strain
-        #  has multiple values that need to be stitched together.
-
-        form.fields['lake'].choices = [list(x.values()) for x in lakes]
-        form.fields['stateprov'].choices = [
-            list(x.values()) for x in stateProv
-        ]
-        form.fields['jurisdiction'].choices = [
-            list(x.values()) for x in jurisdictions
-        ]
-        form.fields['agency'].choices = [list(x.values()) for x in agencies]
-        form.fields['species'].choices = [list(x.values()) for x in species]
-        form.fields['strain'].choices = [
-            (str(x['id']),
-             '{spc_name} - {strain_label} ({strain_code})'.format(**x))
-            for x in strains
-        ]
-
-        form.fields['stocking_method'].choices = [
-            list(x.values()) for x in stocking_methods
-        ]
-        form.fields['life_stage'].choices = [
-            (x['abbrev'], '{description} ({abbrev})'.format(**x))
-            for x in lifestages
-        ]
+        # the choice need to be added here so that the form can be
+        # validated.
+        form.fields['lake'].choices = lakes
+        form.fields['stateprov'].choices = stateProv
+        form.fields['jurisdiction'].choices = jurisdictions
+        form.fields['agency'].choices = agencies
+        form.fields['species'].choices = species
+        form.fields['strain'].choices = strains
+        form.fields['stocking_method'].choices = stocking_methods
+        form.fields['life_stage'].choices = lifestages
 
         # check whether it's valid:
         if form.is_valid():
+            #now we need to build our query parameters based on the
+            #selcted values:
 
-            #base url:
-            #query paremters for:
-            # agency
-            # lake
-            # stateProv
-            # jurisdiction
-            # stocking month
-            # first year, last year
-            # species
-            # strain
-            # lifestage
-            # stocking method
+            params = form2params(form.cleaned_data)
+            dataUrl = reverse('api:api-get-stocking-events') + params
 
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            return HttpResponseRedirect('/thanks/')
+            #NOTE: this should be a re-direct to a seperate view(?)
 
-    # if a GET (or any other method) we'll create a blank form
+            return render(request, 'stocking/found_events.html',
+                          context={'dataUrl': dataUrl})
+
     else:
 
         form = FindEventsForm()
-
-    #import pdb; pdb.set_trace()
 
     return render(
         request,
