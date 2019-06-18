@@ -3,6 +3,8 @@
 The veiws in this file should all be publicly available as readonly.
 
 """
+
+from django.conf import settings
 from django.db.models import Count, F, Q, Sum
 from rest_framework import generics, viewsets
 from rest_framework.views import APIView
@@ -227,4 +229,6 @@ class StockingEventListAPIView(APIView):
         filtered = StockingEventFilter(
             request.GET, queryset=queryset).qs.values(*fields)
 
-        return Response(filtered[:5000])
+        maxEvents = settings.MAX_FILTERED_EVENT_COUNT
+
+        return Response(filtered[:maxEvents])

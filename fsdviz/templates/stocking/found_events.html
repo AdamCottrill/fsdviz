@@ -14,6 +14,20 @@
 
         <h1>Found Stocking Events</h1>
 
+
+        <div class="ui hidden warning message" id="record-count-warning">
+            <i class="close icon"></i>
+            <div class="header">
+                Too many stocking events returned!
+            </div>
+            The number of records returned by your selections exceeds
+            the maximum number of stocking events that can be displayed
+            by this view. You should return to
+            <a href="{% url 'stocking:find-stocking-events' %}">Find Stocking Events</a> and refine your search criteria.
+        </div>
+
+
+
         <a href="{% url 'stocking:find-stocking-events' %}">Find Events</a>
 
         <h2>DataURL = {{ dataUrl }} </h2>
@@ -26,26 +40,18 @@
 {% block extra_js %}
 
 
-
+    <script src="https://d3js.org/d3-selection.v1.min.js"></script>
     <script src="https://d3js.org/d3-fetch.v1.min.js"></script>
 
 
     <script type="text/javascript">
 
-        const dataURL = "{{ dataUrl }}";
-
-        console.log(dataURL);
-
-        d3.json(dataURL).then(function(data) {
-        console.log(data.length, " events");
-        console.log(data[0]);
-    });
-
-
+     const dataURL = "{{ dataUrl|safe }}" + window.location.search;
+     const maxEvents = {{ maxEvents }};
 
     </script>
 
-
+    <script type="text/javascript" src="{% static "js/filteredStockingEvents.js" %}"></script>
 
 
 

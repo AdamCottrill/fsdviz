@@ -65,5 +65,20 @@ export default [
       }
     },
     plugins: plugins
+  },
+
+  {
+    input: "fsdviz/js_src/filteredStockingEvents.js",
+    onwarn: onwarn,
+    output: {
+      name: "FilteredStockingEvents",
+      file: "fsdviz/static/js/filteredStockingEvents.js",
+      format: "iife",
+      sourceMap: "inline",
+      globals: {
+        crossfilter2: "crossfilter"
+      }
+    },
+    plugins: plugins
   }
 ];

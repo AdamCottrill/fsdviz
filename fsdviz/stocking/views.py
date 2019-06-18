@@ -2,6 +2,7 @@
 Views associated with our stocking application.
 '''
 
+from django.conf import settings
 from django.db.models import Count, Q, Max, F
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render, get_object_or_404
@@ -120,14 +121,11 @@ def find_events(request):
         if form.is_valid():
             #now we need to build our query parameters based on the
             #selcted values:
-
             params = form2params(form.cleaned_data)
-            dataUrl = reverse('api:api-get-stocking-events') + params
-
-            #NOTE: this should be a re-direct to a seperate view(?)
-
-            return render(request, 'stocking/found_events.html',
-                          context={'dataUrl': dataUrl})
+            url = reverse('stocking:filtered-stocking-events') + params
+            print('params={}'.format(params))
+            print('url={}'.format(url))
+            return redirect(url)
 
     else:
 
@@ -149,6 +147,19 @@ def find_events(request):
             'lifestages': json.dumps(lifestages),
             'stocking_methods': json.dumps(stocking_methods)
         })
+
+
+def filtered_events(request):
+    """Get the most recent year of stockin and
+    pass the information onto our annual_events view.
+    """
+    dataUrl = reverse('api:api-get-stocking-events')
+
+    maxEvents = settings.MAX_FILTERED_EVENT_COUNT
+
+    return render(request, 'stocking/found_events.html',
+                          context={'dataUrl': dataUrl,
+                                   'maxEvents': maxEvents})
 
 
 def StockingEventListLatestYear(request):

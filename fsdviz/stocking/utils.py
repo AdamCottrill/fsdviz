@@ -24,7 +24,7 @@ def form2params(formdata):
                 tmp = value
             params.append('{}={}'.format(key, tmp))
 
-    if len(params) > 1:
+    if len(params) >= 1:
         return '?' + '&'.join(params)
     else:
         return ""
