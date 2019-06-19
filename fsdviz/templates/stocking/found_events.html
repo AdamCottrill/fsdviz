@@ -5,6 +5,22 @@
 
 {% block extra_head %}
 
+    <style type="text/css" media="screen">
+
+     .pass-through {
+         pointer-events: none;
+     }
+
+
+     #species-year-bar-chart .x.axis text {
+         text-anchor: end !important;
+         transform: rotate(-45deg);
+     }
+
+    </style>
+
+
+
 {% endblock %}
 
 
@@ -45,7 +61,31 @@
                         <div class="header">Stocking Over Time</div>
                     </div>
                     <div class="content">
-                        <p>Graphs of stocking over time go here. </p>
+
+                        <form class="form-inline pull-right">
+
+                            <button id="species-previous-year" type="button">Previous</button>
+                            <button id="species-next-year" type="button">Next</button>
+
+                            <label class="radio-inline">
+                                <input class="species-brush-toggle" type="radio" name="optradio" value="brush" checked>Brush
+                            </label>
+                            <label class="radio-inline">
+                                <input class="species-brush-toggle" type="radio" name="optradio" value="tooltip">Tooltip
+                            </label>
+                        </form>
+
+
+                        <div id="species-year-bar-chart">
+                            <h5>Species Stocked Over Time
+                                <span>
+                                    <a class="reset" id="species-year-bar-chart-reset" href="#species-year-bar-chart" style="display: none;">reset</a>
+                                    <div class="clearfix"></div>
+                                </span>
+                            </h5>
+                        </div>
+
+
                     </div>
                 </div>
             </div>

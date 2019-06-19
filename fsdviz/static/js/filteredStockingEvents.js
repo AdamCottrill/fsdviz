@@ -3352,6 +3352,73 @@
 	}
 
 	var ascendingBisect = bisector(ascending);
+	var bisectRight = ascendingBisect.right;
+
+	function sequence(start, stop, step) {
+	  start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
+
+	  var i = -1,
+	      n = Math.max(0, Math.ceil((stop - start) / step)) | 0,
+	      range = new Array(n);
+
+	  while (++i < n) {
+	    range[i] = start + i * step;
+	  }
+
+	  return range;
+	}
+
+	var e10 = Math.sqrt(50),
+	    e5 = Math.sqrt(10),
+	    e2 = Math.sqrt(2);
+
+	function ticks(start, stop, count) {
+	  var reverse,
+	      i = -1,
+	      n,
+	      ticks,
+	      step;
+
+	  stop = +stop, start = +start, count = +count;
+	  if (start === stop && count > 0) return [start];
+	  if (reverse = stop < start) n = start, start = stop, stop = n;
+	  if ((step = tickIncrement(start, stop, count)) === 0 || !isFinite(step)) return [];
+
+	  if (step > 0) {
+	    start = Math.ceil(start / step);
+	    stop = Math.floor(stop / step);
+	    ticks = new Array(n = Math.ceil(stop - start + 1));
+	    while (++i < n) ticks[i] = (start + i) * step;
+	  } else {
+	    start = Math.floor(start * step);
+	    stop = Math.ceil(stop * step);
+	    ticks = new Array(n = Math.ceil(start - stop + 1));
+	    while (++i < n) ticks[i] = (start - i) / step;
+	  }
+
+	  if (reverse) ticks.reverse();
+
+	  return ticks;
+	}
+
+	function tickIncrement(start, stop, count) {
+	  var step = (stop - start) / Math.max(0, count),
+	      power = Math.floor(Math.log(step) / Math.LN10),
+	      error = step / Math.pow(10, power);
+	  return power >= 0
+	      ? (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1) * Math.pow(10, power)
+	      : -Math.pow(10, -power) / (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1);
+	}
+
+	function tickStep(start, stop, count) {
+	  var step0 = Math.abs(stop - start) / Math.max(0, count),
+	      step1 = Math.pow(10, Math.floor(Math.log(step0) / Math.LN10)),
+	      error = step0 / step1;
+	  if (error >= e10) step1 *= 10;
+	  else if (error >= e5) step1 *= 5;
+	  else if (error >= e2) step1 *= 2;
+	  return stop < start ? -step1 : step1;
+	}
 
 	var noop = {value: function() {}};
 
@@ -4292,6 +4359,12 @@
 	      : new Selection([[selector]], root$1);
 	}
 
+	function selectAll(selector) {
+	  return typeof selector === "string"
+	      ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
+	      : new Selection([selector == null ? [] : selector], root$1);
+	}
+
 	function define(constructor, factory, prototype) {
 	  constructor.prototype = factory.prototype = prototype;
 	  prototype.constructor = constructor;
@@ -4918,9 +4991,54 @@
 
 	var rgbBasis = rgbSpline(basis$1);
 
+	function array$2(a, b) {
+	  var nb = b ? b.length : 0,
+	      na = a ? Math.min(nb, a.length) : 0,
+	      x = new Array(na),
+	      c = new Array(nb),
+	      i;
+
+	  for (i = 0; i < na; ++i) x[i] = interpolateValue(a[i], b[i]);
+	  for (; i < nb; ++i) c[i] = b[i];
+
+	  return function(t) {
+	    for (i = 0; i < na; ++i) c[i] = x[i](t);
+	    return c;
+	  };
+	}
+
+	function date(a, b) {
+	  var d = new Date;
+	  return a = +a, b -= a, function(t) {
+	    return d.setTime(a + b * t), d;
+	  };
+	}
+
 	function interpolateNumber(a, b) {
 	  return a = +a, b -= a, function(t) {
 	    return a + b * t;
+	  };
+	}
+
+	function object(a, b) {
+	  var i = {},
+	      c = {},
+	      k;
+
+	  if (a === null || typeof a !== "object") a = {};
+	  if (b === null || typeof b !== "object") b = {};
+
+	  for (k in b) {
+	    if (k in a) {
+	      i[k] = interpolateValue(a[k], b[k]);
+	    } else {
+	      c[k] = b[k];
+	    }
+	  }
+
+	  return function(t) {
+	    for (k in i) c[k] = i[k](t);
+	    return c;
 	  };
 	}
 
@@ -4985,6 +5103,24 @@
 	          for (var i = 0, o; i < b; ++i) s[(o = q[i]).i] = o.x(t);
 	          return s.join("");
 	        });
+	}
+
+	function interpolateValue(a, b) {
+	  var t = typeof b, c;
+	  return b == null || t === "boolean" ? constant$3(b)
+	      : (t === "number" ? interpolateNumber
+	      : t === "string" ? ((c = color(b)) ? (b = c, interpolateRgb) : interpolateString)
+	      : b instanceof color ? interpolateRgb
+	      : b instanceof Date ? date
+	      : Array.isArray(b) ? array$2
+	      : typeof b.valueOf !== "function" && typeof b.toString !== "function" || isNaN(b) ? object
+	      : interpolateNumber)(a, b);
+	}
+
+	function interpolateRound(a, b) {
+	  return a = +a, b -= a, function(t) {
+	    return Math.round(a + b * t);
+	  };
 	}
 
 	var degrees = 180 / Math.PI;
@@ -6156,12 +6292,12 @@
 	  return map;
 	}
 
-	function Set() {}
+	function Set$1() {}
 
 	var proto = map$1.prototype;
 
-	Set.prototype = set$2.prototype = {
-	  constructor: Set,
+	Set$1.prototype = set$2.prototype = {
+	  constructor: Set$1,
 	  has: proto.has,
 	  add: function(value) {
 	    value += "";
@@ -6177,10 +6313,10 @@
 	};
 
 	function set$2(object, f) {
-	  var set = new Set;
+	  var set = new Set$1;
 
 	  // Copy constructor.
-	  if (object instanceof Set) object.each(function(value) { set.add(value); });
+	  if (object instanceof Set$1) object.each(function(value) { set.add(value); });
 
 	  // Otherwise, assume it’s an array.
 	  else if (object) {
@@ -7071,6 +7207,19 @@
 	  return locale;
 	}
 
+	function precisionFixed(step) {
+	  return Math.max(0, -exponent$1(Math.abs(step)));
+	}
+
+	function precisionPrefix(step, value) {
+	  return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent$1(value) / 3))) * 3 - exponent$1(Math.abs(step)));
+	}
+
+	function precisionRound(step, max) {
+	  step = Math.abs(step), max = Math.abs(max) - step;
+	  return Math.max(0, exponent$1(max) - exponent$1(step)) + 1;
+	}
+
 	// Adds floating point numbers with twice the normal precision.
 	// Reference: J. R. Shewchuk, Adaptive Precision Floating-Point Arithmetic and
 	// Fast Robust Geometric Predicates, Discrete & Computational Geometry 18(3)
@@ -7130,6 +7279,244 @@
 	var lengthSum$1 = adder();
 
 	// Returns the 2D cross product of AB and AC vectors, i.e., the z-component of
+
+	function initRange(domain, range) {
+	  switch (arguments.length) {
+	    case 0: break;
+	    case 1: this.range(domain); break;
+	    default: this.range(range).domain(domain); break;
+	  }
+	  return this;
+	}
+
+	var array$4 = Array.prototype;
+
+	var map$2 = array$4.map;
+	var slice$5 = array$4.slice;
+
+	function constant$a(x) {
+	  return function() {
+	    return x;
+	  };
+	}
+
+	function number$2(x) {
+	  return +x;
+	}
+
+	var unit = [0, 1];
+
+	function identity$7(x) {
+	  return x;
+	}
+
+	function normalize(a, b) {
+	  return (b -= (a = +a))
+	      ? function(x) { return (x - a) / b; }
+	      : constant$a(isNaN(b) ? NaN : 0.5);
+	}
+
+	function clamper(domain) {
+	  var a = domain[0], b = domain[domain.length - 1], t;
+	  if (a > b) t = a, a = b, b = t;
+	  return function(x) { return Math.max(a, Math.min(b, x)); };
+	}
+
+	// normalize(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
+	// interpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding range value x in [a,b].
+	function bimap(domain, range, interpolate$$1) {
+	  var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
+	  if (d1 < d0) d0 = normalize(d1, d0), r0 = interpolate$$1(r1, r0);
+	  else d0 = normalize(d0, d1), r0 = interpolate$$1(r0, r1);
+	  return function(x) { return r0(d0(x)); };
+	}
+
+	function polymap(domain, range, interpolate$$1) {
+	  var j = Math.min(domain.length, range.length) - 1,
+	      d = new Array(j),
+	      r = new Array(j),
+	      i = -1;
+
+	  // Reverse descending domains.
+	  if (domain[j] < domain[0]) {
+	    domain = domain.slice().reverse();
+	    range = range.slice().reverse();
+	  }
+
+	  while (++i < j) {
+	    d[i] = normalize(domain[i], domain[i + 1]);
+	    r[i] = interpolate$$1(range[i], range[i + 1]);
+	  }
+
+	  return function(x) {
+	    var i = bisectRight(domain, x, 1, j) - 1;
+	    return r[i](d[i](x));
+	  };
+	}
+
+	function copy(source, target) {
+	  return target
+	      .domain(source.domain())
+	      .range(source.range())
+	      .interpolate(source.interpolate())
+	      .clamp(source.clamp())
+	      .unknown(source.unknown());
+	}
+
+	function transformer$1() {
+	  var domain = unit,
+	      range = unit,
+	      interpolate$$1 = interpolateValue,
+	      transform,
+	      untransform,
+	      unknown,
+	      clamp = identity$7,
+	      piecewise$$1,
+	      output,
+	      input;
+
+	  function rescale() {
+	    piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
+	    output = input = null;
+	    return scale;
+	  }
+
+	  function scale(x) {
+	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range, interpolate$$1)))(transform(clamp(x)));
+	  }
+
+	  scale.invert = function(y) {
+	    return clamp(untransform((input || (input = piecewise$$1(range, domain.map(transform), interpolateNumber)))(y)));
+	  };
+
+	  scale.domain = function(_) {
+	    return arguments.length ? (domain = map$2.call(_, number$2), clamp === identity$7 || (clamp = clamper(domain)), rescale()) : domain.slice();
+	  };
+
+	  scale.range = function(_) {
+	    return arguments.length ? (range = slice$5.call(_), rescale()) : range.slice();
+	  };
+
+	  scale.rangeRound = function(_) {
+	    return range = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
+	  };
+
+	  scale.clamp = function(_) {
+	    return arguments.length ? (clamp = _ ? clamper(domain) : identity$7, scale) : clamp !== identity$7;
+	  };
+
+	  scale.interpolate = function(_) {
+	    return arguments.length ? (interpolate$$1 = _, rescale()) : interpolate$$1;
+	  };
+
+	  scale.unknown = function(_) {
+	    return arguments.length ? (unknown = _, scale) : unknown;
+	  };
+
+	  return function(t, u) {
+	    transform = t, untransform = u;
+	    return rescale();
+	  };
+	}
+
+	function continuous(transform, untransform) {
+	  return transformer$1()(transform, untransform);
+	}
+
+	function tickFormat(start, stop, count, specifier) {
+	  var step = tickStep(start, stop, count),
+	      precision;
+	  specifier = formatSpecifier(specifier == null ? ",f" : specifier);
+	  switch (specifier.type) {
+	    case "s": {
+	      var value = Math.max(Math.abs(start), Math.abs(stop));
+	      if (specifier.precision == null && !isNaN(precision = precisionPrefix(step, value))) specifier.precision = precision;
+	      return formatPrefix(specifier, value);
+	    }
+	    case "":
+	    case "e":
+	    case "g":
+	    case "p":
+	    case "r": {
+	      if (specifier.precision == null && !isNaN(precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop))))) specifier.precision = precision - (specifier.type === "e");
+	      break;
+	    }
+	    case "f":
+	    case "%": {
+	      if (specifier.precision == null && !isNaN(precision = precisionFixed(step))) specifier.precision = precision - (specifier.type === "%") * 2;
+	      break;
+	    }
+	  }
+	  return format(specifier);
+	}
+
+	function linearish(scale) {
+	  var domain = scale.domain;
+
+	  scale.ticks = function(count) {
+	    var d = domain();
+	    return ticks(d[0], d[d.length - 1], count == null ? 10 : count);
+	  };
+
+	  scale.tickFormat = function(count, specifier) {
+	    var d = domain();
+	    return tickFormat(d[0], d[d.length - 1], count == null ? 10 : count, specifier);
+	  };
+
+	  scale.nice = function(count) {
+	    if (count == null) count = 10;
+
+	    var d = domain(),
+	        i0 = 0,
+	        i1 = d.length - 1,
+	        start = d[i0],
+	        stop = d[i1],
+	        step;
+
+	    if (stop < start) {
+	      step = start, start = stop, stop = step;
+	      step = i0, i0 = i1, i1 = step;
+	    }
+
+	    step = tickIncrement(start, stop, count);
+
+	    if (step > 0) {
+	      start = Math.floor(start / step) * step;
+	      stop = Math.ceil(stop / step) * step;
+	      step = tickIncrement(start, stop, count);
+	    } else if (step < 0) {
+	      start = Math.ceil(start * step) / step;
+	      stop = Math.floor(stop * step) / step;
+	      step = tickIncrement(start, stop, count);
+	    }
+
+	    if (step > 0) {
+	      d[i0] = Math.floor(start / step) * step;
+	      d[i1] = Math.ceil(stop / step) * step;
+	      domain(d);
+	    } else if (step < 0) {
+	      d[i0] = Math.ceil(start * step) / step;
+	      d[i1] = Math.floor(stop * step) / step;
+	      domain(d);
+	    }
+
+	    return scale;
+	  };
+
+	  return scale;
+	}
+
+	function linear$2() {
+	  var scale = continuous(identity$7, identity$7);
+
+	  scale.copy = function() {
+	    return copy(scale, linear$2());
+	  };
+
+	  initRange.apply(scale, arguments);
+
+	  return linearish(scale);
+	}
 
 	var t0$1 = new Date,
 	    t1$1 = new Date;
@@ -8590,6 +8977,7 @@
 	/* global values dc, dataURL, maxEvents */
 
 	const dateParser = timeParse("%Y-%m-%d");
+	let commaFormat = format(",");
 	const width1 = 425;
 	const height1 = 400;
 	const width2 = 300;
@@ -8599,7 +8987,38 @@
 	const markMap = markLookup.reduce((accumulator, d) => {
 	  accumulator[d[0]] = d[1];
 	  return accumulator;
-	}, {});
+	}, {}); // Reducers for dims by species:
+
+	const speciesAdd = (p, v) => {
+	  let counts = p[v.species_code] || {
+	    yreq_stocked: 0,
+	    no_stocked: 0,
+	    event_count: 0
+	  };
+	  counts.yreq_stocked += v.yreq_stocked;
+	  counts.no_stocked += v.no_stocked;
+	  counts.event_count += v.event_count;
+	  p[v.species_code] = counts;
+	  return p;
+	};
+
+	const speciesRemove = (p, v) => {
+	  let counts = p[v.species_code] || {
+	    yreq_stocked: 0,
+	    no_stocked: 0,
+	    event_count: 0
+	  };
+	  counts.yreq_stocked -= v.yreq_stocked;
+	  counts.no_stocked -= v.no_stocked;
+	  counts.event_count -= v.event_count;
+	  p[v.species_code] = counts;
+	  return p;
+	};
+
+	const speciesInitial = () => {
+	  return {};
+	};
+
 	json(dataURL).then(function (data) {
 	  select("#record-count-warning").classed("hidden", data.length >= maxEvents ? false : true);
 	  data.forEach(d => {
@@ -8623,6 +9042,8 @@
 	  // setup our cross filter:
 
 	  let ndx = crossfilter2(data);
+	  let yearDim = ndx.dimension(d => d.year);
+	  let monthDim = ndx.dimension(d => d.month);
 	  let lakeDim = ndx.dimension(d => d.lake);
 	  let agencyDim = ndx.dimension(d => d.agency_code);
 	  let stateProvDim = ndx.dimension(d => d.stateProv);
@@ -8635,8 +9056,9 @@
 	  let yearClassDim = ndx.dimension(d => d.year_class);
 	  let lifeStageDim = ndx.dimension(d => d.lifestage_code);
 	  let markDim = ndx.dimension(d => d.mark);
-	  let monthDim = ndx.dimension(d => d.month);
 	  let stkMethDim = ndx.dimension(d => d.stockingMethod);
+	  let yearGroup = yearDim.group().reduceSum(d => d[column]);
+	  let monthGroup = monthDim.group().reduceSum(d => d[column]);
 	  let lakeGroup = lakeDim.group().reduceSum(d => d[column]);
 	  let agencyGroup = agencyDim.group().reduceSum(d => d[column]);
 	  let stateProvGroup = stateProvDim.group().reduceSum(d => d[column]);
@@ -8648,13 +9070,64 @@
 	  let yearClassGroup = yearClassDim.group().reduceSum(d => d[column]);
 	  let lifeStageGroup = lifeStageDim.group().reduceSum(d => d[column]);
 	  let markGroup = markDim.group().reduceSum(d => d[column]);
-	  let monthGroup = monthDim.group().reduceSum(d => d[column]);
-	  let stkMethGroup = stkMethDim.group().reduceSum(d => d[column]); // helper functions
+	  let stkMethGroup = stkMethDim.group().reduceSum(d => d[column]);
+	  let speciesStockedByYear = yearDim.group().reduce(speciesAdd, speciesRemove, speciesInitial); //  let strainStockedByYear = yearDim
+	  //    .group()
+	  //    .reduce(stockingAdd, stockingRemove, stockingInitial);
+	  //=========================================
+	  //      helper functions
+
+	  function sel_stack(item_name) {
+	    return function (d) {
+	      return d.value[item_name][column];
+	    };
+	  } // a function to create a list of distinct values
+
+
+	  const get_values = (x, value) => {
+	    let tmp = [];
+	    x.forEach(function (d) {
+	      tmp.push(d[value]);
+	    });
+	    return [...new Set(tmp)];
+	  };
+
+	  const ensure_group_bins = (group, keys$$1) => {
+	    // (source_group, bins...}
+	    return {
+	      all: function () {
+	        let result = group.all().slice(0);
+	        result.forEach(function (x) {
+	          keys$$1.forEach(function (d) {
+	            x.value[d] = x.value[d] || 0;
+	          });
+	        });
+	        return result;
+	      }
+	    };
+	  }; // NOTE: not sure we need this. we should be able to pluck them
+	  // from the strain and species dimensions.
+
+
+	  let species_list = get_values(data, "species_code");
+	  let strain_list = get_values(data, "strain");
+	  let speciesStockedByYear0s = ensure_group_bins(speciesStockedByYear, species_list);
+	  let species = species_list[0];
+	  let first_year = yearDim.bottom(1)[0].year;
+	  let last_year = yearDim.top(1)[0].year; //  let years = [];
+	  //  for(let i=first_year; i<=last_year; ++i){
+	  //    years.push(""+i);
+	  //  }
+
+	  let years$$1 = sequence(first_year, last_year);
+	  years$$1.push(last_year);
 
 	  select("#btn_reset_filters").on("click", () => {
 	    dc.filterAll();
 	    dc.renderAll();
 	  }); // declare our plots
+
+	  const speciesByYearBarChart = dc.barChart("#species-year-bar-chart"); //const strainByYearBarChart = dc.barChart('#strain-year-bar-chart');
 
 	  const lakeChart = dc.pieChart("#lake-plot");
 	  const stateProvChart = dc.pieChart("#state-province-plot");
@@ -8665,7 +9138,82 @@
 	  const markChart = dc.pieChart("#mark-plot"); //  const markChart = dc.rowChart("#mark-plot");
 
 	  const lifestageChart = dc.rowChart("#lifestage-plot");
-	  const stockingMethodChart = dc.rowChart("#stocking-method-plot");
+	  const stockingMethodChart = dc.rowChart("#stocking-method-plot"); // ==================================================================
+
+	  let speciesByYearBarChartXScale = linear$2().domain([first_year, last_year]); // extract the event count given the year and spc
+
+
+	  let speciesTooltip = function (d) {
+	    let yr = d.key;
+	    let spc = this.layer.trim(); // TODO = lookup species common name here.
+
+	    let stocked = commaFormat(d.value[spc] == 0 ? 0 : d.value[spc][column]);
+	    return `${yr} - ${spc}: ${stocked}`;
+	  };
+
+	  speciesByYearBarChart.width(width1 * 2).height(height1).x(speciesByYearBarChartXScale).margins({
+	    left: 60,
+	    top: 20,
+	    right: 10,
+	    bottom: 30
+	  }).brushOn(true).centerBar(true).alwaysUseRounding(true).round(function (x) {
+	    return Math.floor(x) + 0.5;
+	  }).clipPadding(10).elasticY(true).yAxisLabel("Yearly Equivalents") // make this a function of 'column'
+	  .dimension(yearDim).group(speciesStockedByYear0s, species, sel_stack(species)).title(speciesTooltip).xAxis().tickFormat(format("")); //.renderLabel(true);
+
+	  for (let i = 1; i < species_list.length; ++i) {
+	    species = species_list[i];
+	    speciesByYearBarChart.stack(speciesStockedByYear0s, species, sel_stack(species));
+	  }
+
+	  speciesByYearBarChart.render();
+	  speciesByYearBarChart.on("postRender", function () {
+	    speciesByYearBarChart.select("#species-year-bar-chart rect.overlay").on("dblclick", function () {
+	      //debugger;
+	      // get the mouse corrdinates relative to our overlay (plotting) rectangle
+	      // not sure why d3 is needed here:
+	      let x = d3.mouse(this)[0]; // convert those coordinates to years
+
+	      let yr = Math.round(speciesByYearBarChartXScale.invert(x)); // apply a filter that is exactly on year wide
+
+	      speciesByYearBarChart.filter(dc.filters.RangedFilter(yr, yr + 1));
+	    });
+	  });
+
+	  let decrementSpeciesByYearBarChartFilter = () => {
+	    if (speciesByYearBarChart.filters().length) {
+	      let yr0 = speciesByYearBarChart.filters()[0][0];
+	      let yr1 = speciesByYearBarChart.filters()[0][1];
+	      let newFilters = dc.filters.RangedFilter(yr0 - 1, yr1 - 1);
+	      speciesByYearBarChart.filterAll();
+	      speciesByYearBarChart.filter(newFilters);
+	    }
+	  };
+
+	  let incrementSpeciesByYearBarChartFilter = () => {
+	    if (speciesByYearBarChart.filters().length) {
+	      let yr0 = speciesByYearBarChart.filters()[0][0];
+	      let yr1 = speciesByYearBarChart.filters()[0][1];
+	      let newFilters = dc.filters.RangedFilter(yr0 + 1, yr1 + 1);
+	      speciesByYearBarChart.filterAll();
+	      speciesByYearBarChart.filter(newFilters);
+	    }
+	  }; // attach our increment and decrement functions to the
+	  // button click events
+
+
+	  let nextyr = selectAll("#species-next-year").on("click", incrementSpeciesByYearBarChartFilter);
+	  let lastyr = selectAll("#species-previous-year").on("click", decrementSpeciesByYearBarChartFilter); // toggle the css
+
+	  let brushtoggle = selectAll(".species-brush-toggle");
+	  brushtoggle.on("change", function () {
+	    let tooltip = this.value == "tooltip";
+	    let overlay = select("#species-year-bar-chart rect.overlay");
+	    overlay.classed("pass-through", tooltip);
+	    let selection$$1 = select("#species-year-bar-chart rect.selection");
+	    selection$$1.classed("pass-through", tooltip);
+	  }); //==========================================================
+
 	  lakeChart.width(width1).height(height1).dimension(lakeDim).group(lakeGroup); //.title(keyTooltip);
 
 	  lakeChart.on("renderlet", function (chart) {
@@ -8809,9 +9357,9 @@
 	      let filters = lifestageChart.filters();
 
 	      if (!filters || !filters.length) {
-	        d3.select("#lifestage-filter").text("All").classed("filtered", false);
+	        select("#lifestage-filter").text("All").classed("filtered", false);
 	      } else {
-	        d3.select("#lifestage-filter").text(filters).classed("filtered", true);
+	        select("#lifestage-filter").text(filters).classed("filtered", true);
 	      }
 	    });
 	  });
@@ -8833,9 +9381,9 @@
 	      let filters = stockingMethodChart.filters();
 
 	      if (!filters || !filters.length) {
-	        d3.select("#stocking-method-filter").text("All").classed("filtered", false);
+	        select("#stocking-method-filter").text("All").classed("filtered", false);
 	      } else {
-	        d3.select("#stocking-method-filter").text(filters).classed("filtered", true);
+	        select("#stocking-method-filter").text(filters).classed("filtered", true);
 	      }
 	    });
 	  });
