@@ -5,6 +5,10 @@
 
 {% block extra_head %}
 
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.12/dc.min.css" />
+
+
     <style type="text/css" media="screen">
 
      .pass-through {
@@ -62,27 +66,49 @@
                     </div>
                     <div class="content">
 
-                        <form class="form-inline pull-right">
-
-                            <button id="species-previous-year" type="button">Previous</button>
-                            <button id="species-next-year" type="button">Next</button>
-
-                            <label class="radio-inline">
-                                <input class="species-brush-toggle" type="radio" name="optradio" value="brush" checked>Brush
-                            </label>
-                            <label class="radio-inline">
-                                <input class="species-brush-toggle" type="radio" name="optradio" value="tooltip">Tooltip
-                            </label>
-                        </form>
-
-
                         <div id="species-year-bar-chart">
-                            <h5>Species Stocked Over Time
-                                <span>
-                                    <a class="reset" id="species-year-bar-chart-reset" href="#species-year-bar-chart" style="display: none;">reset</a>
-                                    <div class="clearfix"></div>
-                                </span>
-                            </h5>
+
+                            <div class="ui grid">
+                                <div class="four wide column">
+                                    <h5>Species Stocked Over Time
+                                        <span>
+                                            <a class="reset" id="species-year-bar-chart-reset" href="#" style="display: none;">reset</a>
+                                            <div class="clearfix"></div>
+                                        </span>
+                                    </h5>
+                                </div>
+                                <div class="centered two wide column">
+                                    <div class="ui icon buttons ">
+                                        <button class="mini ui primary button brush-control"  id="species-previous-year"><i class="left angle icon"></i></button>
+                                        <button class="mini ui primary button brush-control" id="species-next-year"><i class="right angle icon"></i></button>
+                                    </div>
+
+                                </div>
+                                <div class="right floated left aligned four wide column">
+                                    <form class="ui form">
+                                        <div class="inline fields">
+                                            <div class="field">
+                                                <div class="ui radio checkbox">
+                                                    <input class="species-brush-toggle" type="radio" name="optradio" checked="" value="brush" tabindex="0" class="hidden">
+                                                    <label>Brush</label>
+                                                </div>
+                                            </div>
+                                            <div class="field">
+                                                <div class="ui radio checkbox">
+                                                    <input class="species-brush-toggle" type="radio" name="optradio"  value="tooltip" tabindex="0" class="hidden">
+                                                    <label>Tooltip</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </form>
+
+                                </div>
+                            </div>
+
+
+
+
                         </div>
 
 
@@ -220,7 +246,7 @@
                                         <div id="lake-plot">
                                             <h5>Lake
                                                 <span>
-                                                    <a class="reset" id="lake-plot-reset" href="#lake-plot" style="display: none;">reset</a>
+                                                    <a class="reset" id="lake-plot-reset" href="#" style="display: none;">reset</a>
                                                     <div class="clearfix"></div>
                                                 </span>
                                             </h5>
@@ -230,7 +256,7 @@
                                         <div id="state-province-plot">
                                             <h5>State/Province
                                                 <span>
-                                                    <a class="reset" id="state-province-plot-reset" href="#state-province-plot" style="display: none;">reset</a>
+                                                    <a class="reset" id="state-province-plot-reset" href="#" style="display: none;">reset</a>
                                                     <div class="clearfix"></div>
                                                 </span>
                                             </h5>
@@ -243,7 +269,7 @@
                                         <div id="jurisdiction-plot">
                                             <h5>Jurisdiction
                                                 <span>
-                                                    <a class="reset" id="jurisdiction-plot-reset" href="#jurisdiction-plot" style="display: none;">reset</a>
+                                                    <a class="reset" id="jurisdiction-plot-reset" href="#" style="display: none;">reset</a>
                                                     <div class="clearfix"></div>
                                                 </span>
                                             </h5>
@@ -253,7 +279,7 @@
                                         <div id="agency-plot">
                                             <h5>Agency
                                                 <span>
-                                                    <a class="reset" id="agency-plot-reset" href="#agency-plot" style="display: none;">reset</a>
+                                                    <a class="reset" id="agency-plot-reset" href="#" style="display: none;">reset</a>
                                                     <div class="clearfix"></div>
                                                 </span>
                                             </h5>
@@ -283,7 +309,7 @@
                                     <div id="species-plot">
                                         <h5>Species
                                             <span>
-                                                <a class="reset" id="species-plot-reset" href="#species-plot" style="display: none;">reset</a>
+                                                <a class="reset" id="species-plot-reset" href="#" style="display: none;">reset</a>
                                                 <div class="clearfix"></div>
                                             </span>
                                         </h5>
@@ -293,7 +319,7 @@
                                     <div id="strain-plot">
                                         <h5>Strain
                                             <span>
-                                                <a class="reset" id="strain-plot-reset" href="#strain-plot" style="display: none;">reset</a>
+                                                <a class="reset" id="strain-plot-reset" href="#" style="display: none;">reset</a>
                                                 <div class="clearfix"></div>
                                             </span>
                                         </h5>
@@ -310,7 +336,7 @@
             <div class="ui fluid card accordion">
                 <div class="content">
                     <div class="header title active">
-                        <h3>Lifestage, Mark and Stocking Method
+                        <h3>Lifestage and Stocking Method
                             <div class="right floated meta"><i class="chevron down icon"></i></div>
                         </hr>
                         </h3>
@@ -324,7 +350,7 @@
 
                                         <h5>Life Stage
                                             <span>
-                                                <a class="reset" id="lifestage-plot-reset" href="#lifestage-plot" style="display: none;">reset</a>
+                                                <a class="reset" id="lifestage-plot-reset" href="#" style="display: none;">reset</a>
                                                 <div  class="clearfix"></div>
                                             </span>
                                         </h5>
@@ -335,17 +361,7 @@
                                     <div id="stocking-method-plot">
                                         <h5>Stocking Method
                                             <span>
-                                                <a class="reset" id="stocking-method-plot-reset" href="#stocking-method-plot" style="display: none;">reset</a>
-                                                <div class="clearfix"></div>
-                                            </span>
-                                        </h5>
-                                    </div>
-                                </div>
-                                <div class="column">
-                                    <div id="mark-plot">
-                                        <h5>Mark/Clip
-                                            <span>
-                                                <a class="reset" id="mark-plot-reset" href="#mark-plot" style="display: none;">reset</a>
+                                                <a class="reset" id="stocking-method-plot-reset" href="#" style="display: none;">reset</a>
                                                 <div class="clearfix"></div>
                                             </span>
                                         </h5>
@@ -357,8 +373,55 @@
                 </div>
             </div>
 
-        </div>
 
+            <div class="ui fluid card accordion">
+                <div class="content">
+                    <div class="header title active">
+                        <h3>Clips, Marks, and Tags
+                            <div class="right floated meta"><i class="chevron down icon"></i></div>
+                        </hr>
+                        </h3>
+                    </div>
+                    <div class="content">
+                        <div class="transition visible" style="display: block !important;">
+                            <div class="ui equal width grid">
+                                <div class="column">
+                                    <div id="clip-plot">
+                                        <h5>Clips
+                                            <span>
+                                                <a class="reset" id="clip-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div  class="clearfix"></div>
+                                            </span>
+                                        </h5>
+
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div id="tag-plot">
+                                        <h5>Tags
+                                            <span>
+                                                <a class="reset" id="tag-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div class="clearfix"></div>
+                                            </span>
+                                        </h5>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div id="mark-plot">
+                                        <h5>Chemical Marks
+                                            <span>
+                                                <a class="reset" id="mark-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div class="clearfix"></div>
+                                            </span>
+                                        </h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 {% endblock %}
@@ -374,10 +437,10 @@
 
     </script>
 
-    <!-- dc.js won't roll up - add these here for now:  -->
+    <!-- dc.js won't roll up - add these here for now:      -->
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter2/1.4.6/crossfilter.min.js"></script>
-    <script src="https://unpkg.com/dc@3.0.8/dc.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.12/dc.min.js"></script>
 
     <script type="text/javascript" src="{% static "js/filteredStockingEvents.js" %}"></script>
 

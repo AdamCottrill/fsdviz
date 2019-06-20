@@ -8975,6 +8975,7 @@
 	};
 
 	/* global values dc, dataURL, maxEvents */
+	// import dc from "dc";
 
 	const dateParser = timeParse("%Y-%m-%d");
 	let commaFormat = format(",");
@@ -8983,7 +8984,17 @@
 	const width2 = 300;
 	const height2 = 300;
 	let column = "yreq_stocked";
-	const markLookup = [["ad", "AD"], ["Ad", "AD"], ["AD", "AD"], ["Ad/T-bar tag", "ADTAG"], ["ADCWT", "ADCWT"], ["ADCWTOX", "ADCWTOX"], ["ADDO", "ADDO"], ["ADDORV", "ADDORV"], ["ADLM", "ADLM"], ["ADLMLP", "ADLMLP"], ["ADLMLV", "ADLMLV"], ["ADLMRP", "ADLMRP"], ["ADLMRV", "ADLMRV"], ["ADLP", "ADLP"], ["ADCWTLP", "ADLPCWT"], ["ADLPRM", "ADLPRM"], ["ADLPRV", "ADLPRV"], ["ADLV", "ADLV"], ["ADCWTLV", "ADLVCWT"], ["ADLVOX", "ADLVOX"], ["ADLVRM", "ADLVRM"], ["ADLVRP", "ADLVRP"], ["ADOX", "ADOX"], ["ADOXRV", "ADRVOX"], ["ADPT", "ADPT"], ["ADRM", "ADRM"], ["ADRMRP", "ADRMRP"], ["ADRMRV", "ADRMRV"], ["ADRP", "ADRP"], ["ADCWTRP", "ADRPCWT"], ["ADRV", "ADRV"], ["ADCWTRV", "ADRVCWT"], ["CA", "CA"], ["CA2", "CA"], ["CAL", "CA"], ["CWT", "CWT"], ["CWTOX", "CWTOX"], ["DO", "DO"], ["DOLP", "DOLP"], ["DOLV", "DOLV"], ["DORP", "DORP"], ["DORV", "DORV"], ["LM", "LM"], ["LMLP", "LMLP"], ["LMLV", "LMLV"], ["LP", "LP"], ["CWTLP", "LPCWT"], ["LPLV", "LPLV"], ["LPOX", "LPOX"], ["LPRM", "LPRM"], ["BP", "LPRP"], ["LPRV", "LPRV"], ["LPOXRV", "LPRVOX"], ["LR", "LR"], ["LV", "LV"], ["CWTLV", "LVCWT"], ["LVOX", "LVOX"], ["LVPT", "LVPT"], ["LVRP", "LVRP"], ["LVOXRP", "LVRPOX"], ["BV", "LVRV"], ["BVPIT", "LVRVPIT"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "OX"], ["ox", "OX"], ["OX", "OX"], ["OXRP", "OXRP"], ["OXRV", "OXRV"], ["PIT", "PT"], ["PIT tag", "PT"], ["PT", "PT"], ["PTRV", "PTRV"], ["RM", "RM"], ["RMRV", "RMRV"], ["RP", "RP"], ["RPRV", "RPRV"], ["RV", "RV"], ["CWTRV", "RVCWT"], ["CWTOXRV", "RVCWTOX"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "Unknown"], ["FTRV", "Unknown"], ["JT", "Unknown"], ["SCU", "Unknown"], ["UP", "Unknown"], ["UT", "Unknown"], ["VIE", "Unknown"], ["VIE-LFY", "Unknown"], ["XX", "Unknown"], ["ADFT", "Unknown"], ["ADFTLP", "Unknown"], ["AZR", "Unknown"], ["Fin Clip", "Unknown"], ["FT", "Unknown"], ["RR", "Unknown"], ["VIE-RFY", "Unknown"]];
+	const markLookup = [["ad", "None"], ["Ad", "None"], ["AD", "None"], ["Ad/T-bar tag", "None"], ["ADCWT", "None"], ["ADCWTOX", "OX"], ["ADDO", "None"], ["ADDORV", "None"], ["ADLM", "None"], ["ADLMLP", "None"], ["ADLMLV", "None"], ["ADLMRP", "None"], ["ADLMRV", "None"], ["ADLP", "None"], ["ADCWTLP", "None"], ["ADLPRM", "None"], ["ADLPRV", "None"], ["ADLV", "None"], ["ADCWTLV", "None"], ["ADLVOX", "OX"], ["ADLVRM", "None"], ["ADLVRP", "None"], ["ADOX", "OX"], ["ADOXRV", "OX"], ["ADPT", "None"], ["ADRM", "None"], ["ADRMRP", "None"], ["ADRMRV", "None"], ["ADRP", "None"], ["ADCWTRP", "None"], ["ADRV", "None"], ["ADCWTRV", "None"], ["CA", "CA"], ["CA2", "CA"], ["CAL", "CA"], ["CWT", "None"], ["CWTOX", "OX"], ["DO", "None"], ["DOLP", "None"], ["DOLV", "None"], ["DORP", "None"], ["DORV", "None"], ["LM", "None"], ["LMLP", "None"], ["LMLV", "None"], ["LP", "None"], ["CWTLP", "None"], ["LPLV", "None"], ["LPOX", "OX"], ["LPRM", "None"], ["BP", "None"], ["LPRV", "None"], ["LPOXRV", "None"], ["LR", "None"], ["LV", "None"], ["CWTLV", "None"], ["LVOX", "OX"], ["LVPT", "None"], ["LVRP", "None"], ["LVOXRP", "OX"], ["BV", "None"], ["BVPIT", "None"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "OX"], ["ox", "OX"], ["OX", "OX"], ["OXRP", "OX"], ["OXRV", "OX"], ["PIT", "None"], ["PIT tag", "None"], ["PT", "None"], ["PTRV", "None"], ["RM", "None"], ["RMRV", "None"], ["RP", "None"], ["RPRV", "None"], ["RV", "None"], ["CWTRV", "None"], ["CWTOXRV", "OX"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "None"], ["FTRV", "None"], ["JT", "None"], ["SCU", "None"], ["UP", "None"], ["UT", "None"], ["VIE", "None"], ["VIE-LFY", "None"], ["XX", "None"], ["ADFT", "None"], ["ADFTLP", "None"], ["AZR", "None"], ["Fin Clip", "None"], ["FT", "None"], ["RR", "None"], ["VIE-RFY", "None"]];
+	const clipLookup = [["ad", "AD"], ["Ad", "AD"], ["AD", "AD"], ["Ad/T-bar tag", "AD"], ["ADCWT", "AD"], ["ADCWTOX", "AD"], ["ADDO", "ADDO"], ["ADDORV", "ADDORV"], ["ADLM", "ADLM"], ["ADLMLP", "ADLMLP"], ["ADLMLV", "ADLMLV"], ["ADLMRP", "ADLMRP"], ["ADLMRV", "ADLMRV"], ["ADLP", "ADLP"], ["ADCWTLP", "ADLP"], ["ADLPRM", "ADLPRM"], ["ADLPRV", "ADLPRV"], ["ADLV", "ADLV"], ["ADCWTLV", "ADLV"], ["ADLVOX", "ADLV"], ["ADLVRM", "ADLVRM"], ["ADLVRP", "ADLVRP"], ["ADOX", "AD"], ["ADOXRV", "ADRV"], ["ADPT", "ADPT"], ["ADRM", "ADRM"], ["ADRMRP", "ADRMRP"], ["ADRMRV", "ADRMRV"], ["ADRP", "ADRP"], ["ADCWTRP", "ADRP"], ["ADRV", "ADRV"], ["ADCWTRV", "ADRV"], ["CA", "None"], ["CA2", "None"], ["CAL", "None"], ["CWT", "None"], ["CWTOX", "None"], ["DO", "DO"], ["DOLP", "DOLP"], ["DOLV", "DOLV"], ["DORP", "DORP"], ["DORV", "DORV"], ["LM", "LM"], ["LMLP", "LMLP"], ["LMLV", "LMLV"], ["LP", "LP"], ["CWTLP", "LP"], ["LPLV", "LPLV"], ["LPOX", "LP"], ["LPRM", "LPRM"], ["BP", "LPRP"], ["LPRV", "LPRV"], ["LPOXRV", "LPRV"], ["LR", "LR"], ["LV", "LV"], ["CWTLV", "LV"], ["LVOX", "LV"], ["LVPT", "LV"], ["LVRP", "LVRP"], ["LVOXRP", "LVRP"], ["BV", "LVRV"], ["BVPIT", "LVRV"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "None"], ["ox", "None"], ["OX", "None"], ["OXRP", "RP"], ["OXRV", "RV"], ["PIT", "None"], ["PIT tag", "None"], ["PT", "None"], ["PTRV", "RV"], ["RM", "RM"], ["RMRV", "RMRV"], ["RP", "RP"], ["RPRV", "RPRV"], ["RV", "RV"], ["CWTRV", "RV"], ["CWTOXRV", "RV"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "Unknown"], ["FTRV", "Unknown"], ["JT", "Unknown"], ["SCU", "Unknown"], ["UP", "Unknown"], ["UT", "Unknown"], ["VIE", "Unknown"], ["VIE-LFY", "Unknown"], ["XX", "Unknown"], ["ADFT", "Unknown"], ["ADFTLP", "Unknown"], ["AZR", "Unknown"], ["Fin Clip", "Unknown"], ["FT", "Unknown"], ["RR", "Unknown"], ["VIE-RFY", "Unknown"]];
+	const tagLookup = [["ad", "None"], ["Ad", "None"], ["AD", "None"], ["Ad/T-bar tag", "ATAG"], ["ADCWT", "CWT"], ["ADCWTOX", "CWT"], ["ADDO", "None"], ["ADDORV", "None"], ["ADLM", "None"], ["ADLMLP", "None"], ["ADLMLV", "None"], ["ADLMRP", "None"], ["ADLMRV", "None"], ["ADLP", "None"], ["ADCWTLP", "CWT"], ["ADLPRM", "None"], ["ADLPRV", "None"], ["ADLV", "None"], ["ADCWTLV", "CWT"], ["ADLVOX", "None"], ["ADLVRM", "None"], ["ADLVRP", "None"], ["ADOX", "None"], ["ADOXRV", "None"], ["ADPT", "None"], ["ADRM", "None"], ["ADRMRP", "None"], ["ADRMRV", "None"], ["ADRP", "None"], ["ADCWTRP", "CWT"], ["ADRV", "None"], ["ADCWTRV", "CWT"], ["CA", "None"], ["CA2", "None"], ["CAL", "None"], ["CWT", "CWT"], ["CWTOX", "CWT"], ["DO", "None"], ["DOLP", "None"], ["DOLV", "None"], ["DORP", "None"], ["DORV", "None"], ["LM", "None"], ["LMLP", "None"], ["LMLV", "None"], ["LP", "None"], ["CWTLP", "CWT"], ["LPLV", "None"], ["LPOX", "None"], ["LPRM", "None"], ["BP", "None"], ["LPRV", "None"], ["LPOXRV", "None"], ["LR", "None"], ["LV", "None"], ["CWTLV", "CWT"], ["LVOX", "None"], ["LVPT", "PIT"], ["LVRP", "None"], ["LVOXRP", "None"], ["BV", "None"], ["BVPIT", "PIT"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "None"], ["ox", "None"], ["OX", "None"], ["OXRP", "None"], ["OXRV", "None"], ["PIT", "PIT"], ["PIT tag", "PIT"], ["PT", "PIT"], ["PTRV", "PIT"], ["RM", "None"], ["RMRV", "None"], ["RP", "None"], ["RPRV", "None"], ["RV", "None"], ["CWTRV", "CWT"], ["CWTOXRV", "CWT"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "Unknown"], ["FTRV", "Unknown"], ["JT", "Unknown"], ["SCU", "Unknown"], ["UP", "Unknown"], ["UT", "Unknown"], ["VIE", "Unknown"], ["VIE-LFY", "Unknown"], ["XX", "Unknown"], ["ADFT", "Unknown"], ["ADFTLP", "Unknown"], ["AZR", "Unknown"], ["Fin Clip", "None"], ["FT", "Unknown"], ["RR", "Unknown"], ["VIE-RFY", "Unknown"]];
+	const clipMap = clipLookup.reduce((accumulator, d) => {
+	  accumulator[d[0]] = d[1];
+	  return accumulator;
+	}, {});
+	const tagMap = tagLookup.reduce((accumulator, d) => {
+	  accumulator[d[0]] = d[1];
+	  return accumulator;
+	}, {});
 	const markMap = markLookup.reduce((accumulator, d) => {
 	  accumulator[d[0]] = d[1];
 	  return accumulator;
@@ -9034,10 +9045,12 @@
 	    d.year_class = parseInt(d.year_class);
 	    d.yreq_stocked = parseInt(d.yreq_stocked);
 	    d.event_count = 1;
+	    d.clip = clipMap[d.mark] ? clipMap[d.mark] : "Unknown";
+	    d.tag = tagMap[d.mark] ? tagMap[d.mark] : "Unknown";
 	    d.mark = markMap[d.mark] ? markMap[d.mark] : "Unknown";
 	    return d;
 	  });
-	  console.log("data[2] = ", data[2]); // parse date
+	  console.log("data[21] = ", data[2]); // parse date
 	  // get strain lookup
 	  // setup our cross filter:
 
@@ -9056,6 +9069,8 @@
 	  let yearClassDim = ndx.dimension(d => d.year_class);
 	  let lifeStageDim = ndx.dimension(d => d.lifestage_code);
 	  let markDim = ndx.dimension(d => d.mark);
+	  let clipDim = ndx.dimension(d => d.clip);
+	  let tagDim = ndx.dimension(d => d.tag);
 	  let stkMethDim = ndx.dimension(d => d.stockingMethod);
 	  let yearGroup = yearDim.group().reduceSum(d => d[column]);
 	  let monthGroup = monthDim.group().reduceSum(d => d[column]);
@@ -9070,6 +9085,8 @@
 	  let yearClassGroup = yearClassDim.group().reduceSum(d => d[column]);
 	  let lifeStageGroup = lifeStageDim.group().reduceSum(d => d[column]);
 	  let markGroup = markDim.group().reduceSum(d => d[column]);
+	  let tagGroup = tagDim.group().reduceSum(d => d[column]);
+	  let clipGroup = clipDim.group().reduceSum(d => d[column]);
 	  let stkMethGroup = stkMethDim.group().reduceSum(d => d[column]);
 	  let speciesStockedByYear = yearDim.group().reduce(speciesAdd, speciesRemove, speciesInitial); //  let strainStockedByYear = yearDim
 	  //    .group()
@@ -9111,7 +9128,11 @@
 
 	  let species_list = get_values(data, "species_code");
 	  let strain_list = get_values(data, "strain");
-	  let speciesStockedByYear0s = ensure_group_bins(speciesStockedByYear, species_list);
+	  let speciesStockedByYear0s = ensure_group_bins(speciesStockedByYear, species_list); //  let strainStockedByYear0s = ensure_group_bins(
+	  //    strainStockedByYear,
+	  //    strain_list
+	  //  );
+
 	  let species = species_list[0];
 	  let first_year = yearDim.bottom(1)[0].year;
 	  let last_year = yearDim.top(1)[0].year; //  let years = [];
@@ -9134,14 +9155,21 @@
 	  const agencyChart = dc.pieChart("#agency-plot");
 	  const jurisdictionChart = dc.pieChart("#jurisdiction-plot");
 	  const speciesChart = dc.pieChart("#species-plot");
-	  const strainChart = dc.pieChart("#strain-plot");
-	  const markChart = dc.pieChart("#mark-plot"); //  const markChart = dc.rowChart("#mark-plot");
+	  const strainChart = dc.pieChart("#strain-plot"); //  const markChart = dc.rowChart("#mark-plot");
 
 	  const lifestageChart = dc.rowChart("#lifestage-plot");
-	  const stockingMethodChart = dc.rowChart("#stocking-method-plot"); // ==================================================================
+	  const stockingMethodChart = dc.rowChart("#stocking-method-plot");
+	  const markChart = dc.pieChart("#mark-plot");
+	  const tagChart = dc.pieChart("#tag-plot");
+	  const clipChart = dc.pieChart("#clip-plot"); // ==================================================================
 
 	  let speciesByYearBarChartXScale = linear$2().domain([first_year, last_year]); // extract the event count given the year and spc
-
+	  // used for tool tips
+	  //  let get_event_count = (yr, spc) => {
+	  //    let counts = speciesStockedByYear.all().filter(item => item.key === yr)[0];
+	  //    return counts.value[spc];
+	  //  };
+	  // create string for stacked bar chart tooltips:
 
 	  let speciesTooltip = function (d) {
 	    let yr = d.key;
@@ -9151,7 +9179,7 @@
 	    return `${yr} - ${spc}: ${stocked}`;
 	  };
 
-	  speciesByYearBarChart.width(width1 * 2).height(height1).x(speciesByYearBarChartXScale).margins({
+	  speciesByYearBarChart.width(width1 * 2.4).height(height1).x(speciesByYearBarChartXScale).margins({
 	    left: 60,
 	    top: 20,
 	    right: 10,
@@ -9185,8 +9213,8 @@
 	      let yr0 = speciesByYearBarChart.filters()[0][0];
 	      let yr1 = speciesByYearBarChart.filters()[0][1];
 	      let newFilters = dc.filters.RangedFilter(yr0 - 1, yr1 - 1);
-	      speciesByYearBarChart.filterAll();
-	      speciesByYearBarChart.filter(newFilters);
+	      speciesByYearBarChart.replaceFilter(newFilters);
+	      dc.redrawAll();
 	    }
 	  };
 
@@ -9195,15 +9223,21 @@
 	      let yr0 = speciesByYearBarChart.filters()[0][0];
 	      let yr1 = speciesByYearBarChart.filters()[0][1];
 	      let newFilters = dc.filters.RangedFilter(yr0 + 1, yr1 + 1);
-	      speciesByYearBarChart.filterAll();
-	      speciesByYearBarChart.filter(newFilters);
+	      speciesByYearBarChart.replaceFilter(newFilters);
+	      dc.redrawAll();
 	    }
 	  }; // attach our increment and decrement functions to the
 	  // button click events
 
 
-	  let nextyr = selectAll("#species-next-year").on("click", incrementSpeciesByYearBarChartFilter);
-	  let lastyr = selectAll("#species-previous-year").on("click", decrementSpeciesByYearBarChartFilter); // toggle the css
+	  let nextyr = select("#species-next-year").classed("visible", () => {
+	    return speciesByYearBarChart.hasFilter();
+	  });
+	  nextyr.on("click", incrementSpeciesByYearBarChartFilter);
+	  let lastyr = select("#species-previous-year").classed("visibile", () => {
+	    return speciesByYearBarChart.hasFilter();
+	  });
+	  lastyr.on("click", decrementSpeciesByYearBarChartFilter); // toggle the css
 
 	  let brushtoggle = selectAll(".species-brush-toggle");
 	  brushtoggle.on("change", function () {
@@ -9212,7 +9246,14 @@
 	    overlay.classed("pass-through", tooltip);
 	    let selection$$1 = select("#species-year-bar-chart rect.selection");
 	    selection$$1.classed("pass-through", tooltip);
+	  }); //   javascript:lakeChart.filterAll();dc.redrawAll();
+	  // set up our reset listener
+
+	  select("#species-year-bar-chart-reset").on("click", () => {
+	    speciesByYearBarChart.filterAll();
+	    dc.redrawAll();
 	  }); //==========================================================
+	  //                   LAKE
 
 	  lakeChart.width(width1).height(height1).dimension(lakeDim).group(lakeGroup); //.title(keyTooltip);
 
@@ -9232,7 +9273,9 @@
 	  select("#lake-plot-reset").on("click", () => {
 	    lakeChart.filterAll();
 	    dc.redrawAll();
-	  });
+	  }); //==============================================
+	  //            AGENCY
+
 	  agencyChart.width(width1).height(height1).dimension(agencyDim).group(agencyGroup); //.title(keyTooltip);
 
 	  agencyChart.on("renderlet", function (chart) {
@@ -9251,7 +9294,9 @@
 	  select("#agency-plot-reset").on("click", () => {
 	    agencyChart.filterAll();
 	    dc.redrawAll();
-	  });
+	  }); //==============================================
+	  //            JURISDICTION
+
 	  jurisdictionChart.width(width1).height(height1).dimension(jurisdictionDim).group(jurisdictionGroup); //.title(keyTooltip);
 
 	  jurisdictionChart.on("renderlet", function (chart) {
@@ -9270,7 +9315,9 @@
 	  select("#jurisdiction-plot-reset").on("click", () => {
 	    jurisdictionChart.filterAll();
 	    dc.redrawAll();
-	  });
+	  }); //==============================================
+	  //               STATE OR PROVINCE
+
 	  stateProvChart.width(width1).height(height1).dimension(stateProvDim).group(stateProvGroup); //.title(keyTooltip);
 
 	  stateProvChart.on("renderlet", function (chart) {
@@ -9308,7 +9355,9 @@
 	  select("#species-plot-reset").on("click", () => {
 	    speciesChart.filterAll();
 	    dc.redrawAll();
-	  });
+	  }); //==============================================
+	  //               STRAIN
+
 	  strainChart.width(width1).height(height1).dimension(strainDim).group(strainGroup); //.title(keyTooltip);
 
 	  strainChart.on("renderlet", function (chart) {
@@ -9325,24 +9374,8 @@
 	  select("#strain-plot-reset").on("click", () => {
 	    strainChart.filterAll();
 	    dc.redrawAll();
-	  });
-	  markChart.width(width2).height(height2).dimension(markDim).group(markGroup); //.title(keyTooltip);
-
-	  markChart.on("renderlet", function (chart) {
-	    dc.events.trigger(function () {
-	      let filters = markChart.filters();
-
-	      if (!filters || !filters.length) {
-	        select("#mark-filter").text("All").classed("filtered", false);
-	      } else {
-	        select("#mark-filter").text(filters).classed("filtered", true);
-	      }
-	    });
-	  });
-	  select("#mark-plot-reset").on("click", () => {
-	    markChart.filterAll();
-	    dc.redrawAll();
-	  }); // gridrow Chart
+	  }); //==============================================
+	  //               LIFESTAGE
 
 	  lifestageChart.width(width2).height(height2).margins({
 	    top: 5,
@@ -9366,7 +9399,8 @@
 	  select("#lifestage-plot-reset").on("click", () => {
 	    lifestageChart.filterAll();
 	    dc.redrawAll();
-	  }); // gridrow Chart
+	  }); //==============================================
+	  //               STOCKING METHOD
 
 	  stockingMethodChart.width(width2).height(height2).margins({
 	    top: 5,
@@ -9389,6 +9423,63 @@
 	  });
 	  select("#stocking-method-plot-reset").on("click", () => {
 	    stockingMethodChart.filterAll();
+	    dc.redrawAll();
+	  }); //==============================================
+	  //               MARKS
+
+	  markChart.width(width2).height(height2).dimension(markDim).group(markGroup); //.title(keyTooltip);
+
+	  markChart.on("renderlet", function (chart) {
+	    dc.events.trigger(function () {
+	      let filters = markChart.filters();
+
+	      if (!filters || !filters.length) {
+	        select("#mark-filter").text("All").classed("filtered", false);
+	      } else {
+	        select("#mark-filter").text(filters).classed("filtered", true);
+	      }
+	    });
+	  });
+	  select("#mark-plot-reset").on("click", () => {
+	    markChart.filterAll();
+	    dc.redrawAll();
+	  }); //==============================================
+	  //               CLIPS
+
+	  clipChart.width(width2).height(height2).dimension(clipDim).group(clipGroup); //.title(keyTooltip);
+
+	  clipChart.on("renderlet", function (chart) {
+	    dc.events.trigger(function () {
+	      let filters = clipChart.filters();
+
+	      if (!filters || !filters.length) {
+	        select("#clip-filter").text("All").classed("filtered", false);
+	      } else {
+	        select("#clip-filter").text(filters).classed("filtered", true);
+	      }
+	    });
+	  });
+	  select("#clip-plot-reset").on("click", () => {
+	    clipChart.filterAll();
+	    dc.redrawAll();
+	  }); //==============================================
+	  //               TAGS
+
+	  tagChart.width(width2).height(height2).dimension(tagDim).group(tagGroup); //.title(keyTooltip);
+
+	  tagChart.on("renderlet", function (chart) {
+	    dc.events.trigger(function () {
+	      let filters = tagChart.filters();
+
+	      if (!filters || !filters.length) {
+	        select("#tag-filter").text("All").classed("filtered", false);
+	      } else {
+	        select("#tag-filter").text(filters).classed("filtered", true);
+	      }
+	    });
+	  });
+	  select("#tag-plot-reset").on("click", () => {
+	    tagChart.filterAll();
 	    dc.redrawAll();
 	  });
 	  dc.renderAll();

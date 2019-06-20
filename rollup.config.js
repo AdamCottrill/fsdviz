@@ -61,7 +61,8 @@ export default [
       format: "iife",
       sourceMap: "inline",
       globals: {
-        crossfilter2: "crossfilter"
+        crossfilter2: "crossfilter",
+        d3: "d3"
       }
     },
     plugins: plugins
@@ -76,7 +77,9 @@ export default [
       format: "iife",
       sourceMap: "inline",
       globals: {
-        crossfilter2: "crossfilter"
+        crossfilter2: "crossfilter",
+        d3: "d3",
+        dc: "dc"
       }
     },
     plugins: plugins

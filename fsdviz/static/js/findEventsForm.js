@@ -6259,7 +6259,7 @@
 	      : "");
 	}
 
-	function dsvFormat(delimiter) {
+	function dsv(delimiter) {
 	  var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
 	      DELIMITER = delimiter.charCodeAt(0);
 
@@ -6363,9 +6363,21 @@
 	  };
 	}
 
-	var csv = dsvFormat(",");
+	var csv = dsv(",");
 
-	var tsv = dsvFormat("\t");
+	var csvParse = csv.parse;
+	var csvParseRows = csv.parseRows;
+	var csvFormat = csv.format;
+	var csvFormatBody = csv.formatBody;
+	var csvFormatRows = csv.formatRows;
+
+	var tsv = dsv("\t");
+
+	var tsvParse = tsv.parse;
+	var tsvParseRows = tsv.parseRows;
+	var tsvFormat = tsv.format;
+	var tsvFormatBody = tsv.formatBody;
+	var tsvFormatRows = tsv.formatRows;
 
 	function tree_add(d) {
 	  var x = +this._x.call(null, d),
