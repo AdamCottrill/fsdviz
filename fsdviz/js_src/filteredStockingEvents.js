@@ -519,7 +519,7 @@ json(dataURL).then(function(data) {
   //  );
 
   let species = species_list[0];
-  let strain = strain_list[0];
+  //let strain = strain_list[0];
 
   let first_year = yearDim.bottom(1)[0].year;
   let last_year = yearDim.top(1)[0].year;
@@ -554,9 +554,9 @@ json(dataURL).then(function(data) {
   const speciesChart = dc.pieChart("#species-plot");
   const strainChart = dc.pieChart("#strain-plot");
 
-  //  const markChart = dc.rowChart("#mark-plot");
   const lifestageChart = dc.rowChart("#lifestage-plot");
   const stockingMethodChart = dc.rowChart("#stocking-method-plot");
+  const stockingMonthChart = dc.rowChart("#stocking-month-plot");
 
   const markChart = dc.pieChart("#mark-plot");
   const tagChart = dc.pieChart("#tag-plot");
@@ -565,9 +565,10 @@ json(dataURL).then(function(data) {
   // ==================================================================
 
   let speciesByYearBarChartXScale = scaleLinear().domain([
-    first_year,
-    last_year
+    first_year - 0.6,
+    last_year + 0.55
   ]);
+  //let speciesByYearBarChartXScale = scaleBand().domain(years);
 
   // extract the event count given the year and spc
   // used for tool tips
@@ -590,6 +591,8 @@ json(dataURL).then(function(data) {
     .width(width1 * 2.4)
     .height(height1)
     .x(speciesByYearBarChartXScale)
+    .dimension(yearDim)
+    .group(speciesStockedByYear0s, species, sel_stack(species))
     .margins({ left: 60, top: 20, right: 10, bottom: 30 })
     .brushOn(true)
     .centerBar(true)
@@ -597,15 +600,15 @@ json(dataURL).then(function(data) {
     .round(function(x) {
       return Math.floor(x) + 0.5;
     })
-    .clipPadding(10)
     .elasticY(true)
     .yAxisLabel("Yearly Equivalents") // make this a function of 'column'
-    .dimension(yearDim)
-    .group(speciesStockedByYear0s, species, sel_stack(species))
-    .title(speciesTooltip)
-    .xAxis()
-    .tickFormat(format(""));
+    .title(speciesTooltip);
   //.renderLabel(true);
+
+  speciesByYearBarChart
+    .xAxis()
+    .tickFormat(format("d"))
+    .ticks(years.length);
 
   for (let i = 1; i < species_list.length; ++i) {
     species = species_list[i];
@@ -794,11 +797,11 @@ json(dataURL).then(function(data) {
     dc.events.trigger(function() {
       let filters = stateProvChart.filters();
       if (!filters || !filters.length) {
-        select("#stateProv-filter")
+        select("#state-prov-filter")
           .text("All")
           .classed("filtered", false);
       } else {
-        select("#stateProv-filter")
+        select("#state-prov-filter")
           .text(filters)
           .classed("filtered", true);
       }
@@ -941,6 +944,43 @@ json(dataURL).then(function(data) {
   });
 
   select("#stocking-method-plot-reset").on("click", () => {
+    stockingMethodChart.filterAll();
+    dc.redrawAll();
+  });
+
+  //==============================================
+  //               STOCKING MONTH
+
+  stockingMonthChart
+    .width(width2)
+    .height(height2)
+    .margins({ top: 5, left: 10, right: 10, bottom: 20 })
+    .dimension(monthDim)
+    .group(monthGroup)
+    //.ordering(d => d.key)
+    .gap(2)
+    //.title(keyTooltip)
+    .label(d => d.key)
+    .elasticX(true)
+    .xAxis()
+    .ticks(4);
+
+  stockingMonthChart.on("renderlet", function(chart) {
+    dc.events.trigger(function() {
+      let filters = stockingMonthChart.filters();
+      if (!filters || !filters.length) {
+        select("#stocking-month-filter")
+          .text("All")
+          .classed("filtered", false);
+      } else {
+        select("#stocking-month-filter")
+          .text(filters)
+          .classed("filtered", true);
+      }
+    });
+  });
+
+  select("#stocking-month-plot-reset").on("click", () => {
     stockingMethodChart.filterAll();
     dc.redrawAll();
   });

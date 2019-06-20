@@ -21,6 +21,44 @@
          transform: rotate(-45deg);
      }
 
+
+     .dc-chart g.row text {fill: grey;}
+
+     tr .filtered {
+         font-weight: bold;
+         color: red;
+
+     }
+
+     text {
+         font-family: sans-serif;
+     }
+
+     .tick text {
+         fill: #8E8883;
+         font-size: 1.2em;
+         font-family: sans-serif;
+     }
+
+     .tick {
+         opacity: 0.8;
+     }
+
+     .tick line {
+         stroke: #C0C0BB;
+
+     }
+
+     .axis-label {
+         fill: #635F5D;
+         font-size: 1.5em;
+         font-family: sans-serif;
+     }
+
+
+
+
+
     </style>
 
 
@@ -136,88 +174,74 @@
                         <p class="transition visible" style="display: block !important;">
                             <div class="ui horizontal segments">
                                 <div class="ui segment">
-                                    <h4>Temporal Filters</h4>
-
+                                    <h4>Spatial And Administrative</h4>
                                     <table>
                                         <tr>
-                                            <td><strong>Year(s):</strong></td>
-                                            <td id="year-filter">All</td>
+                                            <td><strong>Lake(s):</strong></td>
+                                            <td id="lake-filter">All</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Season(s):</strong></td>
-                                            <td id="season-filter">All</td>
+                                            <td><strong>State(s)/Prov.:</strong></td>
+                                            <td id="state-prov-filter">All</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Month(s):</strong></td>
-                                            <td id="month-filter">All</td>
+                                            <td><strong>Jurisdiction</strong></td>
+                                            <td id="jurisdiction-filter">All</td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><strong>Agency</strong></td>
+                                            <td id="agency-filter">All</td>
                                         </tr>
                                     </table>
 
                                 </div>
                                 <div class="ui segment">
-                                    <h4>Spatial Filters</h4>
-
+                                    <h4>Species And Strain(s)</h4>
                                     <table>
-                                        <tr>
-                                            <td><strong>Assessment Area:</strong></td>
-                                            <td id="assess-area-filter">All</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Port(s):</strong></td>
-                                            <td id="port-filter">All</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Grid Rows(s):</strong></td>
-                                            <td id="gridrow-filter">All</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Grid Cols(s):</strong></td>
-                                            <td id="gridcol-filter">All</td>
-                                        </tr>
-                                    </table>
-
-                                </div>
-                                <div class="ui segment">
-                                    <h4>Fishery Filters</h4>
-
-                                    <table>
-                                        <tr>
-                                            <td><strong>Fishery:</strong></td>
-                                            <td id="fishery-filter">All</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>License Number(s):</strong></td>
-                                            <td id="license-filter">All</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Boat(s):</strong></td>
-                                            <td id="boat-filter">All</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Captain(s):</strong></td>
-                                            <td id="captain-filter">All</td>
-                                        </tr>
-                                    </table>
-
-                                </div>
-                                <div class="ui segment">
-                                    <h4>Fishing Practices</h4>
-                                    <table>
-                                        <tr>
-                                            <td><strong>Target Species:</strong></td>
-                                            <td id="trgspc-filter">All</td>
-                                        </tr>
                                         <tr>
                                             <td><strong>Species:</strong></td>
                                             <td id="species-filter">All</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Set Type(s):</strong></td>
-                                            <td id="settype-filter">All</td>
+                                            <td><strong>Strain(s):</strong></td>
+                                            <td id="strain-filter">All</td>
+                                        </tr>
+                                    </table>
+
+                                </div>
+                                <div class="ui segment">
+                                    <h4>Stocking Methods</h4>
+
+                                    <table>
+                                        <tr>
+                                            <td><strong>Life Stage(s):</strong></td>
+                                            <td id="lifestage-filter">All</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Disposition:</strong></td>
-                                            <td id="dis-filter">All</td>
+                                            <td><strong>Stocking Method:</strong></td>
+                                            <td id="stocking-method-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Stocking Month(s):</strong></td>
+                                            <td id="stocking-month-filter">All</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="ui segment">
+                                    <h4>Clips, Marks and Tags</h4>
+                                    <table>
+                                        <tr>
+                                            <td><strong>Clip(s):</strong></td>
+                                            <td id="clip-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Tag()s):</strong></td>
+                                            <td id="tag-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Mark(s):</strong></td>
+                                            <td id="mark-filter">All</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -296,7 +320,7 @@
             <div class="ui fluid card accordion">
                 <div class="content">
                     <div class="header title active">
-                        <h3>Species And Strain
+                        <h3>Species And Strains
                             <div class="right floated meta"><i class="chevron down icon"></i></div>
                         </hr>
                         </h3>
@@ -362,6 +386,16 @@
                                         <h5>Stocking Method
                                             <span>
                                                 <a class="reset" id="stocking-method-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div class="clearfix"></div>
+                                            </span>
+                                        </h5>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div id="stocking-month-plot">
+                                        <h5>Stocking Month
+                                            <span>
+                                                <a class="reset" id="stocking-month-plot-reset" href="#" style="display: none;">reset</a>
                                                 <div class="clearfix"></div>
                                             </span>
                                         </h5>
