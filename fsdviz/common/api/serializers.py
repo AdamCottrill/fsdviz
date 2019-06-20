@@ -66,7 +66,14 @@ class StrainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Strain
-        fields = ('strain_code', 'strain_label', 'strain_species')
+        fields = ('id', 'strain_code', 'strain_label', 'strain_species')
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """ Perform necessary eager loading of data. """
+        queryset = queryset.select_related('strain_species')
+        return queryset
+
 
 
 class StrainRawSerializer(serializers.HyperlinkedModelSerializer):

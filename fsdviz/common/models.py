@@ -296,7 +296,7 @@ class Species(models.Model):
 
     def __str__(self):
         """ String representation for a Species."""
-        return "{} ({})".format(self.common_name, self.abbrev)
+        return "{} ({})".format(self.common_name.title(), self.abbrev)
 
 
 class Strain(models.Model):

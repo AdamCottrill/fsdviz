@@ -64,9 +64,18 @@ class SpeciesViewSet(viewsets.ReadOnlyModelViewSet):
 
 class StrainViewSet(viewsets.ReadOnlyModelViewSet):
 
-    queryset = Strain.objects.all().distinct()
+    queryset = Strain.objects.prefetch_related('species')\
+                             .all().distinct()
     serializer_class = StrainSerializer
     filterset_class = StrainFilter
+
+    def get_queryset(self):
+        """from: http://ses4j.github.io/2015/11/23/
+           optimizing-slow-django-rest-framework-performance/
+        """
+        queryset = Strain.objects.distinct().all()
+        queryset = self.get_serializer_class().setup_eager_loading(queryset)
+        return queryset
 
 
 class StrainRawViewSet(viewsets.ReadOnlyModelViewSet):
