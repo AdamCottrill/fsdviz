@@ -27,7 +27,7 @@ class LakeSerializer(serializers.ModelSerializer):
 class StateProvinceSerializer(serializers.ModelSerializer):
     class Meta:
         model = StateProvince
-        fields = ('abbrev', 'name', 'country')
+        fields = ('abbrev', 'name', 'country', 'description')
 
 
 class JurisdictionSerializer(serializers.ModelSerializer):
@@ -40,7 +40,14 @@ class JurisdictionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Jurisdiction
-        fields = ('name', 'lake', 'stateprov')
+        fields = ('slug', 'name', 'lake', 'stateprov', 'description')
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """ Perform necessary eager loading of data. """
+        queryset = queryset.select_related('lake', 'stateprov')
+        return queryset
+
 
 
 class ManagementUnitSerializer(serializers.ModelSerializer):

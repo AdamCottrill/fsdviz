@@ -210,12 +210,11 @@ class StockingEventListAPIView(APIView):
             "stateProv": F('jurisdiction__stateprov__abbrev'),
         }
 
-        fields = [
-            "lake", "jurisdiction_code", "stateProv", 'grid_10', "dd_lat",
-            'dd_lon', 'year', 'month', 'st_site', 'date', 'month', 'mark',
-            'year_class', "agency_code", "species_code", "strain",
-            "lifestage_code", "stockingMethod", "no_stocked", "yreq_stocked"
-        ]
+        fields = [ "stock_id", "lake", "jurisdiction_code",
+            "stateProv", 'grid_10', "dd_lat", 'dd_lon', 'year',
+            'month', 'st_site', 'date', 'month', 'mark', 'year_class',
+            "agency_code", "species_code", "strain", "lifestage_code",
+            "stockingMethod", "no_stocked", "yreq_stocked" ]
 
         queryset = StockingEvent.objects\
                               .select_related('jurisdiction', 'agency',
