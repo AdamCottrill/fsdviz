@@ -51,13 +51,13 @@ import os
 
 import django_settings
 
- from django.contrib.gis.db.models import Extent
+from django.contrib.gis.db.models import Extent
 
 from fsdviz.common.models import (Agency, Lake, StateProvince, ManagementUnit,
                                   Species, Strain, StrainRaw, Grid10)
-from fsdviz.stocking.models import LifeStage, Condition
+from fsdviz.stocking.models import LifeStage, Condition, Mark
 
-from utils.lwdb_utils import recode_mark, get_mark_codes
+from utils.lwdb_utils import recode_mark, get_mark_codes, check_null_records
 from utils.common_lookups import MARK_SHOULDBE, CLIP2MARK
 
 
@@ -494,9 +494,9 @@ else:
 #====================================================
 #                  MARKS
 
-if who=='Ontario':
-    MARK_SHOULDBE.update(CLIP2MARK)
-
+# if who=='Ontario':
+#     MARK_SHOULDBE.update(CLIP2MARK)
+#
 sql = """select distinct MARK from [{}] where tag_no is not null;"""
 mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()

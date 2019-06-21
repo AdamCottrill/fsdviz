@@ -25040,6 +25040,7 @@
 	  counts.total -= v.total_stocked;
 	  counts.events -= v.events; //p[v[sliceVar]] = (p[v[sliceVar]] || 0) - v.yreq;
 
+	  p[v[sliceVar]] = counts;
 	  return p;
 	};
 	const stockingInitial = () => {

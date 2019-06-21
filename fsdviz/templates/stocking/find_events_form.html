@@ -1,0 +1,315 @@
+{% extends 'fsdviz_base.html' %}
+
+
+{% load static %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.7.5/components/calendar.min.css" />
+
+
+
+    <style type="text/css" media="screen">
+
+
+     .total-zero {
+         color:red;
+
+     }
+
+    </style>
+
+
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="ui container">
+
+
+        <h1>Find Stocking Events</h1>
+
+        <h5>Estimated number of events: <strong>
+            <span id="event-total"></span>
+        </strong> </h5>
+
+        <form class="ui form" id="find-events-form" action="{% url 'stocking:find-stocking-events' %}" method="POST">
+            {% csrf_token %}
+
+
+            <div class="grid">
+
+                <div class="fields">
+                    {% if form.errors %}
+                        <div class="ui negative message">
+                            <div class="header">
+                                Please fix the errors in the form below.
+                            </div>
+                            {% if form.errors %}
+                                <ul class="list">
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li class="error">{{ error|escape }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% for error in form.non_field_errors %}
+                                        <li class="error">{{ error|escape }}</li>
+                                    {% endfor %}
+                            {% endif %}
+                                </ul>
+                        </div>
+                    {% endif %}
+
+                    {% if msg %}
+                        <div class="ui negative message">
+                            {{ msg }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+                <div class="ui segment">
+
+                <div class="fields">
+                    <!-- LAKE -->
+                    <div class="eight wide field {% if form.lake.errors %} error{% endif %}">
+                        {{ form.lake.label_tag }}
+                        {{ form.lake }}
+                    </div>
+                    {% if form.lake.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.lake.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+
+                    <!-- STATEPROV -->
+                    <div class="eight wide field {% if form.stateprov.errors %} error{% endif %}">
+                        {{ form.stateprov.label_tag }}
+                        {{ form.stateprov }}
+                    </div>
+                    {% if form.stateprov.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.stateprov.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+
+
+                <div class="fields">
+
+                    <!-- JURISDICTION -->
+                    <div class="eight wide field {% if form.jurisdiction.errors %} error{% endif %}">
+                        {{ form.jurisdiction.label_tag }}
+                        {{ form.jurisdiction }}
+                    </div>
+                    {% if form.jurisdiction.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.jurisdiction.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+
+                    <!-- AGENCY -->
+                    <div class="eight wide field {% if form.agency.errors %} error{% endif %}">
+                        {{ form.agency.label_tag }}
+                        {{ form.agency }}
+                    </div>
+                    {% if form.agency.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.agency.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+
+
+            <div class="fields ui segment">
+
+
+                    <!-- First Year -->
+                    <div class="four wide field year-input {% if form.first_year.errors %} error{% endif %}">
+                        {{ form.first_year.label_tag }}
+                        {{ form.first_year }}
+                    </div>
+                    {% if form.first_year.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.first_year.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+
+                    <!-- Last Year -->
+                    <div class="four wide field year-input {% if form.last_year.errors %} error{% endif %}">
+                        {{ form.last_year.label_tag }}
+                        {{ form.last_year }}
+                    </div>
+                    {% if form.last_year.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.last_year.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+
+                    <!-- Stocking Months -->
+                    <div class="eight wide field {% if form.months.errors %} error{% endif %}">
+                        {{ form.months.label_tag }}
+                        {{ form.months }}
+                    </div>
+                    {% if form.months.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.months.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="fields ui segment">
+                    <!-- SPECIES -->
+                    <div class="eight wide field {% if form.species.errors %} error{% endif %}">
+                        {{ form.species.label_tag }}
+                        {{ form.species }}
+                    </div>
+                    {% if form.species.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.species.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+
+
+                    <!-- STRAIN -->
+                    <div class="eight wide field {% if form.strain.errors %} error{% endif %}">
+                        {{ form.strain.label_tag }}
+                        {{ form.strain }}
+                    </div>
+                    {% if form.strain.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.strain.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+
+
+                <div class="fields ui segment">
+                    <!-- LIFE_STAGE -->
+                    <div class="eight wide field {% if form.life_stage.errors %} error{% endif %}">
+                        {{ form.life_stage.label_tag }}
+                        {{ form.life_stage }}
+                    </div>
+                    {% if form.life_stage.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.life_stage.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- STOCKING_METHOD -->
+                    <div class="eight wide field {% if form.stocking_method.errors %} error{% endif %}">
+                        {{ form.stocking_method.label_tag }}
+                        {{ form.stocking_method }}
+                    </div>
+                    {% if form.stocking_method.errors %}
+                        <div class="ui warning message">
+                            <ul class="list">
+                                {% for error in form.stocking_method.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+
+
+                <div class="row">
+                    <div class="ui clear button" id="reset-button">Reset Form</div>
+                    <button type="submit"class="ui right floated small primary button" >Submit</button>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.7.5/components/calendar.min.js"></script>
+
+
+    <script type="text/javascript">
+     $('.ui.form').form();
+     $(".select.dropdown").dropdown();
+
+     // our dropdown label lookups - cross filter returns the
+     // current id's or slugs. these are used to create meaningful lables
+
+     let lakes = {{ lakes|safe}};
+     let agencies = {{ agencies|safe}};
+     let jurisdictions = {{ jurisdictions|safe}};
+     let stateProv = {{ stateProv|safe }};
+     //let managementUnits = {{ management_units|safe }};
+     let species_list = {{ species|safe}};
+     let strains = {{ strains|safe }};
+     let lifestages = {{ lifestages|safe }};
+     let stockingMethods = {{ stocking_methods|safe }};
+
+     //these are our disctict combinations of values represented in our drop-down boxes.
+     // crossfilter will be used to track available values as filters are applied on other dimensions.
+     // e.g. - OMNR stocking should disappear when Lake Michigan is selected.
+     // note: we might want to make all of these AJAX calls.
+     let values = {{ values|safe }};
+
+
+    </script>
+
+    <script type="text/javascript" src="{% static "js/findEventsForm.js" %}"></script>
+
+
+{% endblock %}

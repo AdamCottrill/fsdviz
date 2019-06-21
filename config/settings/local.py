@@ -12,6 +12,9 @@ MIDDLEWARE += [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
+ALLOWED_HOSTS = ['142.143.160.65', 'localhost', '127.0.0.1']
+
+#ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS += [
     'debug_toolbar',
@@ -30,4 +33,4 @@ DATABASES = {
     }
 }
 
-CORS_ORIGIN_WHITELIST += ['localhost:3000']
+CORS_ORIGIN_WHITELIST += ['localhost:3000', '142.143.160.65:3000']
