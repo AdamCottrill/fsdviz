@@ -380,8 +380,8 @@ def check_null_records(field, table, cursor, record_count, report_width):
 
     sql = "select stock_id from [{}] where [{}] is null or [{}]='';"
 
-    mdbcur.execute(sql.format(table, field, field))
-    rs = mdbcur.fetchall()
+    cursor.execute(sql.format(table, field, field))
+    rs = cursor.fetchall()
 
     if len(rs):
         missing = [str(x[0]) for x in rs[:record_count]]

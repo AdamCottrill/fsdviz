@@ -7,7 +7,6 @@ import {
   mouse,
   event,
   json,
-  csv,
   format,
   scaleLinear,
   scaleOrdinal,
