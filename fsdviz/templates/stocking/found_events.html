@@ -360,7 +360,7 @@
             <div class="ui fluid card accordion">
                 <div class="content">
                     <div class="header title active">
-                        <h3>Lifestage and Stocking Method
+                        <h3>Lifestage, Stocking Method and Month
                             <div class="right floated meta"><i class="chevron down icon"></i></div>
                         </hr>
                         </h3>
@@ -467,6 +467,7 @@
     <script type="text/javascript">
 
      const dataURL = "{{ dataUrl|safe }}" + window.location.search;
+     const slugURL = "{% static "data/slugs.csv" %}";
      const maxEvents = {{ maxEvents }};
 
     </script>

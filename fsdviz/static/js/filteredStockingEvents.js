@@ -4184,6 +4184,8 @@
 
 	var filterEvents = {};
 
+	var event = null;
+
 	if (typeof document !== "undefined") {
 	  var element = document.documentElement;
 	  if (!("onmouseenter" in element)) {
@@ -4203,9 +4205,12 @@
 
 	function contextListener(listener, index, group) {
 	  return function(event1) {
+	    var event0 = event; // Events can be reentrant (e.g., focus).
+	    event = event1;
 	    try {
 	      listener.call(this, this.__data__, index, group);
 	    } finally {
+	      event = event0;
 	    }
 	  };
 	}
@@ -7294,6 +7299,48 @@
 	var map$2 = array$4.map;
 	var slice$5 = array$4.slice;
 
+	var implicit = {name: "implicit"};
+
+	function ordinal() {
+	  var index = map$1(),
+	      domain = [],
+	      range = [],
+	      unknown = implicit;
+
+	  function scale(d) {
+	    var key = d + "", i = index.get(key);
+	    if (!i) {
+	      if (unknown !== implicit) return unknown;
+	      index.set(key, i = domain.push(d));
+	    }
+	    return range[(i - 1) % range.length];
+	  }
+
+	  scale.domain = function(_) {
+	    if (!arguments.length) return domain.slice();
+	    domain = [], index = map$1();
+	    var i = -1, n = _.length, d, key;
+	    while (++i < n) if (!index.has(key = (d = _[i]) + "")) index.set(key, domain.push(d));
+	    return scale;
+	  };
+
+	  scale.range = function(_) {
+	    return arguments.length ? (range = slice$5.call(_), scale) : range.slice();
+	  };
+
+	  scale.unknown = function(_) {
+	    return arguments.length ? (unknown = _, scale) : unknown;
+	  };
+
+	  scale.copy = function() {
+	    return ordinal(domain, range).unknown(unknown);
+	  };
+
+	  initRange.apply(scale, arguments);
+
+	  return scale;
+	}
+
 	function constant$a(x) {
 	  return function() {
 	    return x;
@@ -8984,6 +9031,21 @@
 	const width2 = 300;
 	const height2 = 300;
 	let column = "yreq_stocked";
+	const month_lookup = {
+	  "1": "Jan",
+	  "2": "Feb",
+	  "3": "Mar",
+	  "4": "Apr",
+	  "5": "May",
+	  "6": "Jun",
+	  "7": "Jul",
+	  "8": "Aug",
+	  "9": "Sept",
+	  "10": "Oct",
+	  "11": "Nov",
+	  "12": "Dec",
+	  "0": "Unkn"
+	};
 	const markLookup = [["ad", "None"], ["Ad", "None"], ["AD", "None"], ["Ad/T-bar tag", "None"], ["ADCWT", "None"], ["ADCWTOX", "OX"], ["ADDO", "None"], ["ADDORV", "None"], ["ADLM", "None"], ["ADLMLP", "None"], ["ADLMLV", "None"], ["ADLMRP", "None"], ["ADLMRV", "None"], ["ADLP", "None"], ["ADCWTLP", "None"], ["ADLPRM", "None"], ["ADLPRV", "None"], ["ADLV", "None"], ["ADCWTLV", "None"], ["ADLVOX", "OX"], ["ADLVRM", "None"], ["ADLVRP", "None"], ["ADOX", "OX"], ["ADOXRV", "OX"], ["ADPT", "None"], ["ADRM", "None"], ["ADRMRP", "None"], ["ADRMRV", "None"], ["ADRP", "None"], ["ADCWTRP", "None"], ["ADRV", "None"], ["ADCWTRV", "None"], ["CA", "CA"], ["CA2", "CA"], ["CAL", "CA"], ["CWT", "None"], ["CWTOX", "OX"], ["DO", "None"], ["DOLP", "None"], ["DOLV", "None"], ["DORP", "None"], ["DORV", "None"], ["LM", "None"], ["LMLP", "None"], ["LMLV", "None"], ["LP", "None"], ["CWTLP", "None"], ["LPLV", "None"], ["LPOX", "OX"], ["LPRM", "None"], ["BP", "None"], ["LPRV", "None"], ["LPOXRV", "None"], ["LR", "None"], ["LV", "None"], ["CWTLV", "None"], ["LVOX", "OX"], ["LVPT", "None"], ["LVRP", "None"], ["LVOXRP", "OX"], ["BV", "None"], ["BVPIT", "None"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "OX"], ["ox", "OX"], ["OX", "OX"], ["OXRP", "OX"], ["OXRV", "OX"], ["PIT", "None"], ["PIT tag", "None"], ["PT", "None"], ["PTRV", "None"], ["RM", "None"], ["RMRV", "None"], ["RP", "None"], ["RPRV", "None"], ["RV", "None"], ["CWTRV", "None"], ["CWTOXRV", "OX"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "None"], ["FTRV", "None"], ["JT", "None"], ["SCU", "None"], ["UP", "None"], ["UT", "None"], ["VIE", "None"], ["VIE-LFY", "None"], ["XX", "None"], ["ADFT", "None"], ["ADFTLP", "None"], ["AZR", "None"], ["Fin Clip", "None"], ["FT", "None"], ["RR", "None"], ["VIE-RFY", "None"]];
 	const clipLookup = [["ad", "AD"], ["Ad", "AD"], ["AD", "AD"], ["Ad/T-bar tag", "AD"], ["ADCWT", "AD"], ["ADCWTOX", "AD"], ["ADDO", "ADDO"], ["ADDORV", "ADDORV"], ["ADLM", "ADLM"], ["ADLMLP", "ADLMLP"], ["ADLMLV", "ADLMLV"], ["ADLMRP", "ADLMRP"], ["ADLMRV", "ADLMRV"], ["ADLP", "ADLP"], ["ADCWTLP", "ADLP"], ["ADLPRM", "ADLPRM"], ["ADLPRV", "ADLPRV"], ["ADLV", "ADLV"], ["ADCWTLV", "ADLV"], ["ADLVOX", "ADLV"], ["ADLVRM", "ADLVRM"], ["ADLVRP", "ADLVRP"], ["ADOX", "AD"], ["ADOXRV", "ADRV"], ["ADPT", "ADPT"], ["ADRM", "ADRM"], ["ADRMRP", "ADRMRP"], ["ADRMRV", "ADRMRV"], ["ADRP", "ADRP"], ["ADCWTRP", "ADRP"], ["ADRV", "ADRV"], ["ADCWTRV", "ADRV"], ["CA", "None"], ["CA2", "None"], ["CAL", "None"], ["CWT", "None"], ["CWTOX", "None"], ["DO", "DO"], ["DOLP", "DOLP"], ["DOLV", "DOLV"], ["DORP", "DORP"], ["DORV", "DORV"], ["LM", "LM"], ["LMLP", "LMLP"], ["LMLV", "LMLV"], ["LP", "LP"], ["CWTLP", "LP"], ["LPLV", "LPLV"], ["LPOX", "LP"], ["LPRM", "LPRM"], ["BP", "LPRP"], ["LPRV", "LPRV"], ["LPOXRV", "LPRV"], ["LR", "LR"], ["LV", "LV"], ["CWTLV", "LV"], ["LVOX", "LV"], ["LVPT", "LV"], ["LVRP", "LVRP"], ["LVOXRP", "LVRP"], ["BV", "LVRV"], ["BVPIT", "LVRV"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "None"], ["ox", "None"], ["OX", "None"], ["OXRP", "RP"], ["OXRV", "RV"], ["PIT", "None"], ["PIT tag", "None"], ["PT", "None"], ["PTRV", "RV"], ["RM", "RM"], ["RMRV", "RMRV"], ["RP", "RP"], ["RPRV", "RPRV"], ["RV", "RV"], ["CWTRV", "RV"], ["CWTOXRV", "RV"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "Unknown"], ["FTRV", "Unknown"], ["JT", "Unknown"], ["SCU", "Unknown"], ["UP", "Unknown"], ["UT", "Unknown"], ["VIE", "Unknown"], ["VIE-LFY", "Unknown"], ["XX", "Unknown"], ["ADFT", "Unknown"], ["ADFTLP", "Unknown"], ["AZR", "Unknown"], ["Fin Clip", "Unknown"], ["FT", "Unknown"], ["RR", "Unknown"], ["VIE-RFY", "Unknown"]];
 	const tagLookup = [["ad", "None"], ["Ad", "None"], ["AD", "None"], ["Ad/T-bar tag", "ATAG"], ["ADCWT", "CWT"], ["ADCWTOX", "CWT"], ["ADDO", "None"], ["ADDORV", "None"], ["ADLM", "None"], ["ADLMLP", "None"], ["ADLMLV", "None"], ["ADLMRP", "None"], ["ADLMRV", "None"], ["ADLP", "None"], ["ADCWTLP", "CWT"], ["ADLPRM", "None"], ["ADLPRV", "None"], ["ADLV", "None"], ["ADCWTLV", "CWT"], ["ADLVOX", "None"], ["ADLVRM", "None"], ["ADLVRP", "None"], ["ADOX", "None"], ["ADOXRV", "None"], ["ADPT", "None"], ["ADRM", "None"], ["ADRMRP", "None"], ["ADRMRV", "None"], ["ADRP", "None"], ["ADCWTRP", "CWT"], ["ADRV", "None"], ["ADCWTRV", "CWT"], ["CA", "None"], ["CA2", "None"], ["CAL", "None"], ["CWT", "CWT"], ["CWTOX", "CWT"], ["DO", "None"], ["DOLP", "None"], ["DOLV", "None"], ["DORP", "None"], ["DORV", "None"], ["LM", "None"], ["LMLP", "None"], ["LMLV", "None"], ["LP", "None"], ["CWTLP", "CWT"], ["LPLV", "None"], ["LPOX", "None"], ["LPRM", "None"], ["BP", "None"], ["LPRV", "None"], ["LPOXRV", "None"], ["LR", "None"], ["LV", "None"], ["CWTLV", "CWT"], ["LVOX", "None"], ["LVPT", "PIT"], ["LVRP", "None"], ["LVOXRP", "None"], ["BV", "None"], ["BVPIT", "PIT"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "None"], ["ox", "None"], ["OX", "None"], ["OXRP", "None"], ["OXRV", "None"], ["PIT", "PIT"], ["PIT tag", "PIT"], ["PT", "PIT"], ["PTRV", "PIT"], ["RM", "None"], ["RMRV", "None"], ["RP", "None"], ["RPRV", "None"], ["RV", "None"], ["CWTRV", "CWT"], ["CWTOXRV", "CWT"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "Unknown"], ["FTRV", "Unknown"], ["JT", "Unknown"], ["SCU", "Unknown"], ["UP", "Unknown"], ["UT", "Unknown"], ["VIE", "Unknown"], ["VIE-LFY", "Unknown"], ["XX", "Unknown"], ["ADFT", "Unknown"], ["ADFTLP", "Unknown"], ["AZR", "Unknown"], ["Fin Clip", "None"], ["FT", "Unknown"], ["RR", "Unknown"], ["VIE-RFY", "Unknown"]];
@@ -8998,7 +9060,11 @@
 	const markMap = markLookup.reduce((accumulator, d) => {
 	  accumulator[d[0]] = d[1];
 	  return accumulator;
-	}, {}); // Reducers for dims by species:
+	}, {}); // 19 colours
+
+	let speciesColours = ["#3cb44b", "#4363d8", "#e6194b", "#f58231", "#46f0f0", "#ffe119", "#f032e6", "#911eb4", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080", "#ffffff"]; //19 species
+
+	let all_species = ["LAT", "CHS", "RBT", "BNT", "COS", "WAL", "LTX", "ATS", "SPE", "BKT", "SOS", "YEP", "LHR", "BLO", "LAS", "MUE", "SMB", "TIM", "NOP"]; // Reducers for dims by species:
 
 	const speciesAdd = (p, v) => {
 	  let counts = p[v.species_code] || {
@@ -9030,8 +9096,48 @@
 	  return {};
 	};
 
-	json(dataURL).then(function (data) {
+	Promise.all([json(dataURL), json("/api/v1/common/lake"), json("/api/v1/common/agency"), json("/api/v1/common/jurisdiction"), json("/api/v1/common/state_province"), json("/api/v1/common/species"), json("/api/v1/common/strain"), json("/api/v1/stocking/lifestage"), json("/api/v1/stocking/stocking_method") //add ID
+	]).then(([data, lakes, agencies, jurisdictions, states, species1, strains, lifestages, stockingMethods]) => {
 	  select("#record-count-warning").classed("hidden", data.length >= maxEvents ? false : true);
+	  const lakeMap = lakes.reduce((accumulator, d) => {
+	    accumulator[d.abbrev] = d.lake_name;
+	    return accumulator;
+	  }, {});
+	  const agencyMap = agencies.reduce((accumulator, d) => {
+	    accumulator[d.abbrev] = d.agency_name;
+	    return accumulator;
+	  }, {});
+	  const jurisdictionMap = jurisdictions.reduce((accumulator, d) => {
+	    accumulator[d.slug] = {
+	      description: d.description,
+	      stateprov: d.stateprov.name
+	    };
+	    return accumulator;
+	  }, {});
+	  const stateProvMap = states.reduce((accumulator, d) => {
+	    accumulator[d.abbrev] = d.name;
+	    return accumulator;
+	  }, {});
+	  const speciesMap = species1.reduce((accumulator, d) => {
+	    accumulator[d.abbrev] = `${d.common_name} - (${d.abbrev})`;
+	    return accumulator;
+	  }, {});
+	  const strainMap = strains.reduce((accumulator, d) => {
+	    accumulator[d.id] = {
+	      long: `${d.strain_species.common_name} - ${d.strain_label}(${d.strain_code})`,
+	      short: `${d.strain_code}-${d.strain_species.abbrev}`
+	    };
+	    return accumulator;
+	  }, {});
+	  const stockingMethodMap = stockingMethods.reduce((accumulator, d) => {
+	    accumulator[d.stk_meth] = d.description;
+	    return accumulator;
+	  }, {});
+	  const lifestageMap = lifestages.reduce((accumulator, d) => {
+	    accumulator[d.abbrev] = d.description;
+	    return accumulator;
+	  }, {}); // Prepare our data:
+
 	  data.forEach(d => {
 	    //d.date: "2016-02-01"
 	    d.date = d.date ? dateParser(d.date) : "";
@@ -9049,10 +9155,7 @@
 	    d.tag = tagMap[d.mark] ? tagMap[d.mark] : "Unknown";
 	    d.mark = markMap[d.mark] ? markMap[d.mark] : "Unknown";
 	    return d;
-	  });
-	  console.log("data[21] = ", data[2]); // parse date
-	  // get strain lookup
-	  // setup our cross filter:
+	  }); // setup our cross filter:
 
 	  let ndx = crossfilter2(data);
 	  let yearDim = ndx.dimension(d => d.year);
@@ -9136,14 +9239,9 @@
 	  let species = species_list[0]; //let strain = strain_list[0];
 
 	  let first_year = yearDim.bottom(1)[0].year;
-	  let last_year = yearDim.top(1)[0].year; //  let years = [];
-	  //  for(let i=first_year; i<=last_year; ++i){
-	  //    years.push(""+i);
-	  //  }
-
+	  let last_year = yearDim.top(1)[0].year;
 	  let years$$1 = sequence(first_year, last_year);
 	  years$$1.push(last_year);
-
 	  select("#btn_reset_filters").on("click", () => {
 	    dc.filterAll();
 	    dc.renderAll();
@@ -9175,13 +9273,17 @@
 
 	  let speciesTooltip = function (d) {
 	    let yr = d.key;
-	    let spc = this.layer.trim(); // TODO = lookup species common name here.
-
+	    let spc = this.layer.trim();
+	    let label = speciesMap[spc];
 	    let stocked = commaFormat(d.value[spc] == 0 ? 0 : d.value[spc][column]);
-	    return `${yr} - ${spc}: ${stocked}`;
-	  };
+	    return `${yr} - ${label}: ${stocked}`;
+	  }; // colour our stacks using our colour scale:
 
-	  speciesByYearBarChart.width(width1 * 2.4).height(height1).x(speciesByYearBarChartXScale).dimension(yearDim).group(speciesStockedByYear0s, species, sel_stack(species)).margins({
+
+	  const speciesColourScale = ordinal().range(speciesColours).domain(all_species);
+	  speciesByYearBarChart.width(width1 * 2.4).height(height1).x(speciesByYearBarChartXScale).dimension(yearDim).colors(speciesColourScale).colorAccessor(function (d) {
+	    return this.layer;
+	  }).group(speciesStockedByYear0s, species, sel_stack(species)).margins({
 	    left: 60,
 	    top: 20,
 	    right: 10,
@@ -9198,7 +9300,16 @@
 	    speciesByYearBarChart.stack(speciesStockedByYear0s, species, sel_stack(species));
 	  }
 
-	  speciesByYearBarChart.render();
+	  speciesByYearBarChart.render(); //    speciesByYearBarChart.on("renderlet", function(chart) {
+	  //      chart.selectAll("g rect").style("fill", d => speciesColourScale(d.layer));
+	  //
+	  //      chart
+	  //        .selectAll("g.dc-legend-item rect")
+	  //        .style("fill", d => speciesColourScale(d.layer));
+	  //
+	  //      chart.selectAll("g rect.deselected").style("fill", d => "#ccc");
+	  //    });
+
 	  speciesByYearBarChart.on("postRender", function () {
 	    speciesByYearBarChart.select("#species-year-bar-chart rect.overlay").on("dblclick", function () {
 	      //debugger;
@@ -9254,13 +9365,13 @@
 	  // set up our reset listener
 
 	  select("#species-year-bar-chart-reset").on("click", () => {
+	    event.preventDefault();
 	    speciesByYearBarChart.filterAll();
 	    dc.redrawAll();
 	  }); //==========================================================
 	  //                   LAKE
 
-	  lakeChart.width(width1).height(height1).dimension(lakeDim).group(lakeGroup); //.title(keyTooltip);
-
+	  lakeChart.width(width1).height(height1).dimension(lakeDim).group(lakeGroup).label(d => lakeMap[d.key]).title(d => `${lakeMap[d.key]}: ${commaFormat(d.value)}`);
 	  lakeChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = lakeChart.filters();
@@ -9275,13 +9386,13 @@
 	  // set up our reset listener
 
 	  select("#lake-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    lakeChart.filterAll();
 	    dc.redrawAll();
 	  }); //==============================================
 	  //            AGENCY
 
-	  agencyChart.width(width1).height(height1).dimension(agencyDim).group(agencyGroup); //.title(keyTooltip);
-
+	  agencyChart.width(width1).height(height1).dimension(agencyDim).group(agencyGroup).title(d => `${agencyMap[d.key]}: ${commaFormat(d.value)}`);
 	  agencyChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = agencyChart.filters();
@@ -9296,13 +9407,13 @@
 	  // set up our reset listener
 
 	  select("#agency-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    agencyChart.filterAll();
 	    dc.redrawAll();
 	  }); //==============================================
 	  //            JURISDICTION
 
-	  jurisdictionChart.width(width1).height(height1).dimension(jurisdictionDim).group(jurisdictionGroup); //.title(keyTooltip);
-
+	  jurisdictionChart.width(width1).height(height1).dimension(jurisdictionDim).group(jurisdictionGroup).label(d => jurisdictionMap[d.key].stateprov).title(d => `${jurisdictionMap[d.key].description}: ${commaFormat(d.value)}`);
 	  jurisdictionChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = jurisdictionChart.filters();
@@ -9317,13 +9428,13 @@
 	  // set up our reset listener
 
 	  select("#jurisdiction-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    jurisdictionChart.filterAll();
 	    dc.redrawAll();
 	  }); //==============================================
 	  //               STATE OR PROVINCE
 
-	  stateProvChart.width(width1).height(height1).dimension(stateProvDim).group(stateProvGroup); //.title(keyTooltip);
-
+	  stateProvChart.width(width1).height(height1).dimension(stateProvDim).group(stateProvGroup).title(d => `${stateProvMap[d.key]}: ${commaFormat(d.value)}`);
 	  stateProvChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = stateProvChart.filters();
@@ -9338,11 +9449,11 @@
 	  // set up our reset listener
 
 	  select("#stateProv-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    stateProvChart.filterAll();
 	    dc.redrawAll();
 	  });
-	  speciesChart.width(width1).height(height1).dimension(speciesDim).group(speciesGroup); //.title(keyTooltip);
-
+	  speciesChart.width(width1).height(height1).dimension(speciesDim).group(speciesGroup).colors(speciesColourScale).title(d => `${speciesMap[d.key]}: ${commaFormat(d.value)}`);
 	  speciesChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = speciesChart.filters();
@@ -9357,13 +9468,13 @@
 	  // set up our reset listener
 
 	  select("#species-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    speciesChart.filterAll();
 	    dc.redrawAll();
 	  }); //==============================================
 	  //               STRAIN
 
-	  strainChart.width(width1).height(height1).dimension(strainDim).group(strainGroup); //.title(keyTooltip);
-
+	  strainChart.width(width1).height(height1).dimension(strainDim).group(strainGroup).title(d => `${strainMap[d.key].long}: ${commaFormat(d.value)}`).label(d => strainMap[d.key].short);
 	  strainChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = strainChart.filters();
@@ -9371,11 +9482,13 @@
 	      if (!filters || !filters.length) {
 	        select("#strain-filter").text("All").classed("filtered", false);
 	      } else {
-	        select("#strain-filter").text(filters).classed("filtered", true);
+	        let labels = filters.map(d => strainMap[d].short);
+	        select("#strain-filter").text(labels).classed("filtered", true);
 	      }
 	    });
 	  });
 	  select("#strain-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    strainChart.filterAll();
 	    dc.redrawAll();
 	  }); //==============================================
@@ -9387,8 +9500,7 @@
 	    right: 10,
 	    bottom: 20
 	  }).dimension(lifeStageDim).group(lifeStageGroup) //.ordering(d => d.key)
-	  .gap(2) //.title(keyTooltip)
-	  .label(d => d.key).elasticX(true).xAxis().ticks(4);
+	  .gap(2).title(d => commaFormat(d.value)).label(d => lifestageMap[d.key]).elasticX(true).xAxis().ticks(4);
 	  lifestageChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = lifestageChart.filters();
@@ -9401,6 +9513,7 @@
 	    });
 	  });
 	  select("#lifestage-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    lifestageChart.filterAll();
 	    dc.redrawAll();
 	  }); //==============================================
@@ -9412,8 +9525,7 @@
 	    right: 10,
 	    bottom: 20
 	  }).dimension(stkMethDim).group(stkMethGroup) //.ordering(d => d.key)
-	  .gap(2) //.title(keyTooltip)
-	  .label(d => d.key).elasticX(true).xAxis().ticks(4);
+	  .gap(2).title(d => commaFormat(d.value)).label(d => stockingMethodMap[d.key]).elasticX(true).xAxis().ticks(4);
 	  stockingMethodChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = stockingMethodChart.filters();
@@ -9426,6 +9538,7 @@
 	    });
 	  });
 	  select("#stocking-method-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    stockingMethodChart.filterAll();
 	    dc.redrawAll();
 	  }); //==============================================
@@ -9436,9 +9549,7 @@
 	    left: 10,
 	    right: 10,
 	    bottom: 20
-	  }).dimension(monthDim).group(monthGroup) //.ordering(d => d.key)
-	  .gap(2) //.title(keyTooltip)
-	  .label(d => d.key).elasticX(true).xAxis().ticks(4);
+	  }).dimension(monthDim).group(monthGroup).ordering(d => d.key).gap(2).title(d => commaFormat(d.value)).label(d => month_lookup[d.key]).elasticX(true).xAxis().ticks(4);
 	  stockingMonthChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = stockingMonthChart.filters();
@@ -9446,18 +9557,19 @@
 	      if (!filters || !filters.length) {
 	        select("#stocking-month-filter").text("All").classed("filtered", false);
 	      } else {
-	        select("#stocking-month-filter").text(filters).classed("filtered", true);
+	        let labels = filters.map(d => month_lookup[d]);
+	        select("#stocking-month-filter").text(labels).classed("filtered", true);
 	      }
 	    });
 	  });
 	  select("#stocking-month-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    stockingMethodChart.filterAll();
 	    dc.redrawAll();
 	  }); //==============================================
 	  //               MARKS
 
-	  markChart.width(width2).height(height2).dimension(markDim).group(markGroup); //.title(keyTooltip);
-
+	  markChart.width(width2).height(height2).dimension(markDim).group(markGroup).title(d => `${d.key}: ${commaFormat(d.value)}`);
 	  markChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = markChart.filters();
@@ -9470,13 +9582,13 @@
 	    });
 	  });
 	  select("#mark-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    markChart.filterAll();
 	    dc.redrawAll();
 	  }); //==============================================
 	  //               CLIPS
 
-	  clipChart.width(width2).height(height2).dimension(clipDim).group(clipGroup); //.title(keyTooltip);
-
+	  clipChart.width(width2).height(height2).dimension(clipDim).group(clipGroup).title(d => `${d.key}: ${commaFormat(d.value)}`);
 	  clipChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = clipChart.filters();
@@ -9489,13 +9601,13 @@
 	    });
 	  });
 	  select("#clip-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    clipChart.filterAll();
 	    dc.redrawAll();
 	  }); //==============================================
 	  //               TAGS
 
-	  tagChart.width(width2).height(height2).dimension(tagDim).group(tagGroup); //.title(keyTooltip);
-
+	  tagChart.width(width2).height(height2).dimension(tagDim).group(tagGroup).title(d => `${d.key}: ${commaFormat(d.value)}`);
 	  tagChart.on("renderlet", function (chart) {
 	    dc.events.trigger(function () {
 	      let filters = tagChart.filters();
@@ -9508,6 +9620,7 @@
 	    });
 	  });
 	  select("#tag-plot-reset").on("click", () => {
+	    event.preventDefault();
 	    tagChart.filterAll();
 	    dc.redrawAll();
 	  });
