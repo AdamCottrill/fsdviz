@@ -25,7 +25,7 @@ class LifeStageViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = LifeStage.objects.all()
     serializer_class = LifeStageSerializer
-
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
 
@@ -37,7 +37,7 @@ class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = StockingMethod.objects.all()
     serializer_class = StockingMethodSerializer
-
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
 
@@ -195,6 +195,8 @@ class StockingEventListAPIView(APIView):
     Note: this is something we might want to consider for our other views too.
 
     """
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
 

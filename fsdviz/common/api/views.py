@@ -5,6 +5,7 @@ The veiws in this file should all be publicly available as readonly.
 """
 
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from fsdviz.common.models import (Agency, Species, Lake, CWT, Jurisdiction,
                                   StateProvince, ManagementUnit, Strain,
@@ -14,28 +15,30 @@ from fsdviz.common.filters import (ManagementUnitFilter, StateProvinceFilter,
                                    JurisdictionFilter, StrainFilter,
                                    StrainRawFilter, MarkFilter)
 
-from .serializers import (AgencySerializer, SpeciesSerializer, LakeSerializer,
-                          StateProvinceSerializer, JurisdictionSerializer,
-                          CWTSerializer, ManagementUnitSerializer,
-                          StrainSerializer, StrainRawSerializer,
-                          Grid10Serializer, LatLonFlagSerializer,
-                          MarkSerializer)
+from .serializers import (
+    AgencySerializer, SpeciesSerializer, LakeSerializer,
+    StateProvinceSerializer, JurisdictionSerializer, CWTSerializer,
+    ManagementUnitSerializer, StrainSerializer, StrainRawSerializer,
+    Grid10Serializer, LatLonFlagSerializer, MarkSerializer)
 
 
 class AgencyViewSet(viewsets.ReadOnlyModelViewSet):
 
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     queryset = Agency.objects.all()
     serializer_class = AgencySerializer
 
 
 class LakeViewSet(viewsets.ReadOnlyModelViewSet):
 
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     queryset = Lake.objects.all()
     serializer_class = LakeSerializer
 
 
 class JurisdictionViewSet(viewsets.ReadOnlyModelViewSet):
 
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     queryset = Jurisdiction.objects.all()
     serializer_class = JurisdictionSerializer
     filterset_class = JurisdictionFilter
@@ -49,10 +52,9 @@ class JurisdictionViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-
-
 class StateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
 
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     queryset = StateProvince.objects.all()
     serializer_class = StateProvinceSerializer
     filterset_class = StateProvinceFilter
@@ -60,6 +62,7 @@ class StateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ManagementUnitViewSet(viewsets.ReadOnlyModelViewSet):
 
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     queryset = ManagementUnit.objects.all()
     serializer_class = ManagementUnitSerializer
     filterset_class = ManagementUnitFilter
@@ -67,6 +70,7 @@ class ManagementUnitViewSet(viewsets.ReadOnlyModelViewSet):
 
 class SpeciesViewSet(viewsets.ReadOnlyModelViewSet):
 
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     queryset = Species.objects.all()
     serializer_class = SpeciesSerializer
     lookup_field = 'abbrev'
@@ -74,6 +78,7 @@ class SpeciesViewSet(viewsets.ReadOnlyModelViewSet):
 
 class StrainViewSet(viewsets.ReadOnlyModelViewSet):
 
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     queryset = Strain.objects.prefetch_related('species')\
                              .distinct()
     serializer_class = StrainSerializer
@@ -115,6 +120,7 @@ class LatLonFlagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class MarkViewSet(viewsets.ReadOnlyModelViewSet):
 
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     queryset = Mark.objects.all()
     serializer_class = MarkSerializer
     filterset_class = MarkFilter

@@ -82,25 +82,25 @@ let speciesColours = [
 
 //19 species
 let all_species = [
-  "lake trout",
-  "chinook salmon",
-  "rainbow trout",
-  "brown trout",
-  "coho salmon",
-  "walleye",
-  "lake trout backcross",
-  "Atlantic salmon",
-  "splake",
-  "brook trout",
-  "sockeye salmon",
-  "yellow perch",
-  "lake herring (cisco)",
+  "Lake Trout",
+  "Chinook Salmon",
+  "Rainbow Trout",
+  "Brown Trout",
+  "Coho Salmon",
+  "Walleye",
+  "Lake Trout Backcross",
+  "Atlantic Salmon",
+  "Splake",
+  "Brook Trout",
+  "Sockeye Salmon",
+  "Yellow Perch",
+  "Lake Herring (Cisco)",
   "Bloater",
-  "lake sturgeon",
-  "muskellunge",
-  "smallmouth bass",
-  "Esox sp.",
-  "northern pike"
+  "Lake Sturgeon",
+  "Muskellunge",
+  "Smallmouth Bass",
+  "Esox Sp.",
+  "Northern Pike"
 ];
 
 const speciesColourScale = scaleOrdinal()

@@ -8773,15 +8773,15 @@
 
 	// normalize(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
 	// interpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding range value x in [a,b].
-	function bimap(domain, range$$1, interpolate$$1) {
-	  var d0 = domain[0], d1 = domain[1], r0 = range$$1[0], r1 = range$$1[1];
+	function bimap(domain, range, interpolate$$1) {
+	  var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
 	  if (d1 < d0) d0 = normalize(d1, d0), r0 = interpolate$$1(r1, r0);
 	  else d0 = normalize(d0, d1), r0 = interpolate$$1(r0, r1);
 	  return function(x) { return r0(d0(x)); };
 	}
 
-	function polymap(domain, range$$1, interpolate$$1) {
-	  var j = Math.min(domain.length, range$$1.length) - 1,
+	function polymap(domain, range, interpolate$$1) {
+	  var j = Math.min(domain.length, range.length) - 1,
 	      d = new Array(j),
 	      r = new Array(j),
 	      i = -1;
@@ -8789,12 +8789,12 @@
 	  // Reverse descending domains.
 	  if (domain[j] < domain[0]) {
 	    domain = domain.slice().reverse();
-	    range$$1 = range$$1.slice().reverse();
+	    range = range.slice().reverse();
 	  }
 
 	  while (++i < j) {
 	    d[i] = normalize(domain[i], domain[i + 1]);
-	    r[i] = interpolate$$1(range$$1[i], range$$1[i + 1]);
+	    r[i] = interpolate$$1(range[i], range[i + 1]);
 	  }
 
 	  return function(x) {
@@ -8814,7 +8814,7 @@
 
 	function transformer$1() {
 	  var domain = unit,
-	      range$$1 = unit,
+	      range = unit,
 	      interpolate$$1 = interpolateValue,
 	      transform,
 	      untransform,
@@ -8825,17 +8825,17 @@
 	      input;
 
 	  function rescale() {
-	    piecewise$$1 = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
+	    piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
 	    output = input = null;
 	    return scale;
 	  }
 
 	  function scale(x) {
-	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range$$1, interpolate$$1)))(transform(clamp(x)));
+	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range, interpolate$$1)))(transform(clamp(x)));
 	  }
 
 	  scale.invert = function(y) {
-	    return clamp(untransform((input || (input = piecewise$$1(range$$1, domain.map(transform), interpolateNumber)))(y)));
+	    return clamp(untransform((input || (input = piecewise$$1(range, domain.map(transform), interpolateNumber)))(y)));
 	  };
 
 	  scale.domain = function(_) {
@@ -8843,11 +8843,11 @@
 	  };
 
 	  scale.range = function(_) {
-	    return arguments.length ? (range$$1 = slice$5.call(_), rescale()) : range$$1.slice();
+	    return arguments.length ? (range = slice$5.call(_), rescale()) : range.slice();
 	  };
 
 	  scale.rangeRound = function(_) {
-	    return range$$1 = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
+	    return range = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
 	  };
 
 	  scale.clamp = function(_) {
@@ -9088,6 +9088,7 @@
 	    return (end - start) / k;
 	  });
 	};
+	var milliseconds = millisecond.range;
 
 	var durationSecond = 1e3;
 	var durationMinute = 6e4;
@@ -9104,6 +9105,7 @@
 	}, function(date) {
 	  return date.getUTCSeconds();
 	});
+	var seconds = second.range;
 
 	var minute = newInterval(function(date) {
 	  date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond);
@@ -9114,6 +9116,7 @@
 	}, function(date) {
 	  return date.getMinutes();
 	});
+	var minutes = minute.range;
 
 	var hour = newInterval(function(date) {
 	  date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond - date.getMinutes() * durationMinute);
@@ -9124,6 +9127,7 @@
 	}, function(date) {
 	  return date.getHours();
 	});
+	var hours = hour.range;
 
 	var day = newInterval(function(date) {
 	  date.setHours(0, 0, 0, 0);
@@ -9134,6 +9138,7 @@
 	}, function(date) {
 	  return date.getDate() - 1;
 	});
+	var days = day.range;
 
 	function weekday(i) {
 	  return newInterval(function(date) {
@@ -9154,6 +9159,8 @@
 	var friday = weekday(5);
 	var saturday = weekday(6);
 
+	var sundays = sunday.range;
+
 	var month = newInterval(function(date) {
 	  date.setDate(1);
 	  date.setHours(0, 0, 0, 0);
@@ -9164,6 +9171,7 @@
 	}, function(date) {
 	  return date.getMonth();
 	});
+	var months = month.range;
 
 	var year = newInterval(function(date) {
 	  date.setMonth(0, 1);
@@ -9186,6 +9194,7 @@
 	    date.setFullYear(date.getFullYear() + step * k);
 	  });
 	};
+	var years = year.range;
 
 	var utcMinute = newInterval(function(date) {
 	  date.setUTCSeconds(0, 0);
@@ -9196,6 +9205,7 @@
 	}, function(date) {
 	  return date.getUTCMinutes();
 	});
+	var utcMinutes = utcMinute.range;
 
 	var utcHour = newInterval(function(date) {
 	  date.setUTCMinutes(0, 0, 0);
@@ -9206,6 +9216,7 @@
 	}, function(date) {
 	  return date.getUTCHours();
 	});
+	var utcHours = utcHour.range;
 
 	var utcDay = newInterval(function(date) {
 	  date.setUTCHours(0, 0, 0, 0);
@@ -9216,6 +9227,7 @@
 	}, function(date) {
 	  return date.getUTCDate() - 1;
 	});
+	var utcDays = utcDay.range;
 
 	function utcWeekday(i) {
 	  return newInterval(function(date) {
@@ -9236,6 +9248,8 @@
 	var utcFriday = utcWeekday(5);
 	var utcSaturday = utcWeekday(6);
 
+	var utcSundays = utcSunday.range;
+
 	var utcMonth = newInterval(function(date) {
 	  date.setUTCDate(1);
 	  date.setUTCHours(0, 0, 0, 0);
@@ -9246,6 +9260,7 @@
 	}, function(date) {
 	  return date.getUTCMonth();
 	});
+	var utcMonths = utcMonth.range;
 
 	var utcYear = newInterval(function(date) {
 	  date.setUTCMonth(0, 1);
@@ -9268,6 +9283,7 @@
 	    date.setUTCFullYear(date.getUTCFullYear() + step * k);
 	  });
 	};
+	var utcYears = utcYear.range;
 
 	function localDate(d) {
 	  if (0 <= d.y && d.y < 100) {
@@ -24821,7 +24837,7 @@
 	window.L = exports;
 
 	})));
-
+	//# sourceMappingURL=leaflet-src.js.map
 	});
 
 	const checkBoxes = (selection$$1, props) => {
@@ -27590,7 +27606,7 @@ style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
 
 	let speciesColours = ["#3cb44b", "#4363d8", "#e6194b", "#f58231", "#46f0f0", "#ffe119", "#f032e6", "#911eb4", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080", "#ffffff"]; //19 species
 
-	let all_species = ["lake trout", "chinook salmon", "rainbow trout", "brown trout", "coho salmon", "walleye", "lake trout backcross", "Atlantic salmon", "splake", "brook trout", "sockeye salmon", "yellow perch", "lake herring (cisco)", "Bloater", "lake sturgeon", "muskellunge", "smallmouth bass", "Esox sp.", "northern pike"];
+	let all_species = ["Lake Trout", "Chinook Salmon", "Rainbow Trout", "Brown Trout", "Coho Salmon", "Walleye", "Lake Trout Backcross", "Atlantic Salmon", "Splake", "Brook Trout", "Sockeye Salmon", "Yellow Perch", "Lake Herring (Cisco)", "Bloater", "Lake Sturgeon", "Muskellunge", "Smallmouth Bass", "Esox Sp.", "Northern Pike"];
 	const speciesColourScale = ordinal().range(speciesColours).domain(all_species); // intantiation our polygon overlay
 
 	let polygons = polygon_overlay().leafletMap(mymap); //// Add a svg layer to the map
