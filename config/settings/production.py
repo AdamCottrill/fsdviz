@@ -1,3 +1,4 @@
+
 from config.settings.base import *
 
 # set the environment variables for SECRET_KEY, PG_USER and PG_PASS
