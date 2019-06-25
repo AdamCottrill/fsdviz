@@ -128,7 +128,7 @@
 
                             <div class="ui grid">
                                 <div class="four wide column">
-                                    <h5> <span id="stackedbar-chart-heading">Species Stocked Over Time </span>
+                                    <h5> <span id="stackedbar-chart-heading"></span>
                                         <span>
                                             <a class="reset" id="stackedbar-chart-reset" href="#" style="display: none;">reset</a>
                                             <div class="clearfix"></div>
@@ -471,69 +471,72 @@
             </div>
 
             <div class="three wide column" id="right-sidebar">
+                <div class="ui sticky">
 
-                <div class="ui tabular menu">
-                    <a class="item active" data-tab="statistics">
-                        Statistics
-                    </a>
-                    <a class="item" data-tab="settings">
-                        Settings
-                    </a>
-                </div>
+                    <div class="ui tabular menu">
+                        <a class="item active" data-tab="statistics">
+                            Statistics
+                        </a>
+                        <a class="item" data-tab="settings">
+                            Settings
+                        </a>
+                    </div>
 
-                <div
-                    class="ui bottom attached tab segment active"
-                    data-tab="statistics" >
-                    <div class="ui fluid card">
-                        <div class="content">
-                            <div class="header">Stats Panel</div>
-                        </div>
-                        <div class="content">
-                            <p>Summary Statstics:</p>
-                            <ul>
-                                <li><span id="total-stocked"></span> Fish</li>
-                                <li><span id="yreq-stocked"></span> Yearling Equiv.</li>
-                                <li><span id="event-count"></span> Events</li>
-                                <li><span id="value-count"></span> <span id="category-value-label-plural"></span></li>
-                            </ul>
-
-                            <div id="stocked-summary-table">
-                                <table
-                                    class="ui celled compact table tablesorter"
-                                    style="font-size: 0.7em"
-                                >
-                                    <thead>
-                                        <tr>
-                                            <th><span id="category-value-label"></th>
-                                                <th class="center aligned">Events</th>
-                                                <th class="center aligned">Yr.Eq.</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="stocked-summary-table-tbody"></tbody>
-                                </table>
+                    <div
+                        class="ui bottom attached tab segment active"
+                        data-tab="statistics" >
+                        <div class="ui fluid card">
+                            <div class="content">
+                                <div class="header">Stats Panel</div>
                             </div>
-                            <br />
-                            <div class="ui row">
-                                <div id="point-info"></div>
+                            <div class="content">
+                                <p>Summary Statstics:</p>
+                                <ul>
+                                    <li><span id="total-stocked"></span> Fish</li>
+                                    <li><span id="yreq-stocked"></span> Yearling Equiv.</li>
+                                    <li><span id="event-count"></span> Events</li>
+                                    <li><span id="value-count"></span> <span id="category-value-label-plural"></span></li>
+                                </ul>
+
+                                <div id="stocked-summary-table">
+                                    <table
+                                        class="ui celled compact table tablesorter"
+                                        style="font-size: 0.7em"
+                                    >
+                                        <thead>
+                                            <tr>
+                                                <th><span id="category-value-label"></th>
+                                                    <th class="center aligned">Events</th>
+                                                    <th class="center aligned">Yr.Eq.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="stocked-summary-table-tbody"></tbody>
+                                    </table>
+                                </div>
+                                <br />
+                                <div class="ui row">
+                                    <div id="point-info"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <div class="ui bottom attached tab segment" data-tab="settings">
+                        <h3 class="ui header">Spatial Resolution</h3>
+                        <div class="ui mini form" id="strata-selector"></div>
+
+                        <h3 class="ui header"
+                            data-tooltip="Controls what pie slices and stacked bars represent.">
+                            Category</h3>
+
+                        <div class="ui mini form" id="category-selector"></div>
+
+                        <h3 class="ui header"
+                            data-tooltip="Controls what the size of the pies and height of bars represent.">
+                            Response Variable</h3>
+                        <div class="ui mini form" id="pie-size-selector"></div>
+
+                    </div>
                 </div>
-                <div class="ui bottom attached tab segment" data-tab="settings">
-                    <h3 class="ui header">Spatial Resolution</h3>
-                    <div class="ui mini form" id="strata-selector"></div>
-
-                    <h3 class="ui header"
-                        data-tooltip="Consider applying filters before changing category.">
-                        Category*</h3>
-
-                    <div class="ui mini form" id="category-selector"></div>
-
-                    <h3 class="ui header">Response Variable (Circle Size)</h3>
-                    <div class="ui mini form" id="pie-size-selector"></div>
-
-                </div>
-
 
             </div>
 
@@ -574,6 +577,12 @@
      $(".menu .item").tab();
      $('.ui.radio.checkbox')
          .checkbox()
+     ;
+
+     $('.ui.sticky')
+         .sticky({
+             context: '#center-column'
+         })
      ;
     </script>
 
