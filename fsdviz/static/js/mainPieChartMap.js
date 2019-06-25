@@ -27514,11 +27514,12 @@
 	  // array of objects - sorted by yreq
 	  const {
 	    fillScale,
-	    what
-	  } = props;
-	  let tmp = props.slices.filter(d => d.name === what);
-	  let sliceVarLabel = tmp[0].label;
-	  Object.keys(data).forEach(x => data[x]["species"] = x);
+	    what,
+	    label
+	  } = props; //  let tmp = props.slices.filter(d => d.name === what);
+	  //  let sliceVarLabel = tmp[0].label;
+
+	  Object.keys(data).forEach(x => data[x]["category"] = x);
 	  let dataArray = Object.keys(data).map(x => data[x]);
 	  dataArray.sort((a, b) => b.yreq - a.yreq);
 	  let commaFormat = format(",d");
@@ -27529,22 +27530,25 @@
            <td class="species-name">
 <svg width="${rectSize}" height="${rectSize}">
   <rect width="${rectSize}" height="${rectSize}"
-style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
-        </svg>  ${row.species}</td>
+style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
+        </svg>  ${row.category}</td>
            <td class="center aligned">${row.events}</td>
            <td class="right aligned">${commaFormat(row.yreq)}</td>
        </tr>`;
 	  });
-	  selectAll("#slice-value-label").text(sliceVarLabel);
+	  selectAll("#category-value-label").text(label);
 	  select("#stocked-summary-table-tbody").html(html$$1);
 	};
 
 	const update_stats_panel = (allxf, props) => {
 	  // this function calculates the total number of fish stocked and
 	  // the number of events by species and then updates the stat panel.
-	  const what = props.what;
-	  let tmp = props.slices.filter(d => d.name === what);
-	  let sliceVarLabel = tmp[0].label;
+	  // what: response variable
+	  // label: name label used on bottom row of summary
+	  let {
+	    what,
+	    label
+	  } = props;
 	  let current = allxf.value(); // grand total accessor:
 
 	  const get_total = (varname, count = false) => {
@@ -27564,11 +27568,11 @@ style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
 	  let value_count = get_total(what, true);
 	  let commaFormat = format(",d"); // pluralize our labels if there is more than one value
 
-	  if (sliceVarLabel !== "Species" & value_count > 1) {
-	    sliceVarLabel = sliceVarLabel === "Agency" ? "Agencies" : sliceVarLabel + "s";
+	  if (label !== "Species" & value_count > 1) {
+	    label = label === "Agency" ? "Agencies" : label + "s";
 	  }
 
-	  selectAll("#slice-value-label-plural").text(sliceVarLabel);
+	  selectAll("#category-value-label-plural").text(label);
 	  selectAll("#value-count").text(commaFormat(value_count));
 	  selectAll("#event-count").text(commaFormat(event_count));
 	  selectAll("#total-stocked").text(commaFormat(total_stocked));
@@ -27763,7 +27767,7 @@ style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
 	  calcMapGroups();
 	  update_stats_panel(all, {
 	    fillScale: speciesColourScale,
-	    slices: slices,
+	    label: slices.filter(d => d.name === sliceVar)[0].label,
 	    what: sliceVar
 	  }); //A function to set all of the filters to checked - called when
 	  //the page loads of if the reset button is clicked.
@@ -27972,7 +27976,7 @@ style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
 	    piecharts.selectedPie(null).clear_pointInfo();
 	    update_stats_panel(all, {
 	      fillScale: speciesColourScale,
-	      slices: slices,
+	      label: slices.filter(d => d.name === sliceVar)[0].label,
 	      what: sliceVar
 	    });
 	  }; // if the spatial radio buttons change, update the global variable
@@ -28012,7 +28016,7 @@ style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
 	  ndx.onChange(() => {
 	    update_stats_panel(all, {
 	      fillScale: speciesColourScale,
-	      slices: slices,
+	      label: slices.filter(d => d.name === sliceVar)[0].label,
 	      what: sliceVar
 	    });
 	    checkBoxes(lakeSelection, {

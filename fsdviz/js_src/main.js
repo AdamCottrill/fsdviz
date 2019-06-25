@@ -295,7 +295,7 @@ Promise.all([
 
   update_stats_panel(all, {
     fillScale: speciesColourScale,
-    slices: slices,
+    label: slices.filter(d => d.name === sliceVar)[0].label,
     what: sliceVar
   });
 
@@ -516,7 +516,7 @@ Promise.all([
 
     update_stats_panel(all, {
       fillScale: speciesColourScale,
-      slices: slices,
+      label: slices.filter(d => d.name === sliceVar)[0].label,
       what: sliceVar
     });
   };
@@ -561,7 +561,7 @@ Promise.all([
   ndx.onChange(() => {
     update_stats_panel(all, {
       fillScale: speciesColourScale,
-      slices: slices,
+      label: slices.filter(d => d.name === sliceVar)[0].label,
       what: sliceVar
     });
 

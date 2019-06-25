@@ -16,11 +16,12 @@ const update_summary_table = (data, props) => {
   // ad species key to each summary object and create an
   // array of objects - sorted by yreq
 
-  const { fillScale, what } = props;
-  let tmp = props.slices.filter(d => d.name === what);
-  let sliceVarLabel = tmp[0].label;
+  const { fillScale, what, label } = props;
 
-  Object.keys(data).forEach(x => (data[x]["species"] = x));
+  //  let tmp = props.slices.filter(d => d.name === what);
+  //  let sliceVarLabel = tmp[0].label;
+
+  Object.keys(data).forEach(x => (data[x]["category"] = x));
   let dataArray = Object.keys(data).map(x => data[x]);
 
   dataArray.sort((a, b) => b.yreq - a.yreq);
@@ -37,14 +38,14 @@ const update_summary_table = (data, props) => {
            <td class="species-name">
 <svg width="${rectSize}" height="${rectSize}">
   <rect width="${rectSize}" height="${rectSize}"
-style="fill:${fillScale(row.species)}; stroke-width:0.5;stroke:#808080" />
-        </svg>  ${row.species}</td>
+style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
+        </svg>  ${row.category}</td>
            <td class="center aligned">${row.events}</td>
            <td class="right aligned">${commaFormat(row.yreq)}</td>
        </tr>`;
     });
 
-  selectAll("#slice-value-label").text(sliceVarLabel);
+  selectAll("#category-value-label").text(label);
   select("#stocked-summary-table-tbody").html(html);
 };
 
@@ -52,9 +53,10 @@ export const update_stats_panel = (allxf, props) => {
   // this function calculates the total number of fish stocked and
   // the number of events by species and then updates the stat panel.
 
-  const what = props.what;
-  let tmp = props.slices.filter(d => d.name === what);
-  let sliceVarLabel = tmp[0].label;
+  // what: response variable
+  // label: name label used on bottom row of summary
+
+  let { what, label } = props;
 
   let current = allxf.value();
 
@@ -77,12 +79,11 @@ export const update_stats_panel = (allxf, props) => {
   let commaFormat = format(",d");
 
   // pluralize our labels if there is more than one value
-  if ((sliceVarLabel !== "Species") & (value_count > 1)) {
-    sliceVarLabel =
-      sliceVarLabel === "Agency" ? "Agencies" : sliceVarLabel + "s";
+  if ((label !== "Species") & (value_count > 1)) {
+    label = label === "Agency" ? "Agencies" : label + "s";
   }
 
-  selectAll("#slice-value-label-plural").text(sliceVarLabel);
+  selectAll("#category-value-label-plural").text(label);
   selectAll("#value-count").text(commaFormat(value_count));
   selectAll("#event-count").text(commaFormat(event_count));
   selectAll("#total-stocked").text(commaFormat(total_stocked));
