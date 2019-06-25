@@ -16,6 +16,7 @@ import {
 
 import Leaflet from "leaflet";
 import { RadioButtons } from "./semanticRadioButtons";
+import { update_stats_panel } from "./stats_panel";
 
 //} from "d3";
 // import dc from "dc";
@@ -27,6 +28,14 @@ const width1 = 425;
 const height1 = 400;
 const width2 = 300;
 const height2 = 300;
+
+// intial values of global variabls that control the state of our page:
+let spatialUnit = "jurisdiction";
+
+let varName = "species_code"; // this should probably be 'category'
+let responseVar = "yreq";
+//let column = "yreq_stocked";
+let ylabel = "Yearly Equivalents";
 
 const month_lookup = {
   "1": "Jan",
@@ -467,38 +476,65 @@ const barchartColourScale = scaleOrdinal().range(speciesColours);
 //};
 
 // ===============================================================
-// Reducers for dims by by year - given the currently selected column:
-const byYearAdd = column => {
+//// Reducers for dims by by year - given the currently selected column:
+//const  stockingAdd = column => {
+//  return (p, v) => {
+//    let counts = p[v[column]] || {
+//      yreq_stocked: 0,
+//      no_stocked: 0,
+//      event_count: 0
+//    };
+//    counts.yreq_stocked += v.yreq_stocked;
+//    counts.no_stocked += v.no_stocked;
+//    counts.event_count += v.event_count;
+//    p[v[column]] = counts;
+//    return p;
+//  };
+//};
+//
+//const stockingRemove = column => {
+//  return (p, v) => {
+//    let counts = p[v[column]] || {
+//      yreq_stocked: 0,
+//      no_stocked: 0,
+//      event_count: 0
+//    };
+//    counts.yreq_stocked -= v.yreq_stocked;
+//    counts.no_stocked -= v.no_stocked;
+//    counts.event_count -= v.event_count;
+//    p[v[column]] = counts;
+//    return p;
+//  };
+//};
+//
+//const stockingInitial = () => {
+//  return {};
+//};
+//
+
+const stockingAdd = column => {
   return (p, v) => {
-    let counts = p[v[column]] || {
-      yreq_stocked: 0,
-      no_stocked: 0,
-      event_count: 0
-    };
-    counts.yreq_stocked += v.yreq_stocked;
-    counts.no_stocked += v.no_stocked;
-    counts.event_count += v.event_count;
+    let counts = p[v[column]] || { yreq: 0, total: 0, events: 0 };
+    counts.yreq += v.yreq;
+    counts.total += v.total_stocked;
+    counts.events += v.events;
     p[v[column]] = counts;
     return p;
   };
 };
 
-const byYearRemove = column => {
+const stockingRemove = column => {
   return (p, v) => {
-    let counts = p[v[column]] || {
-      yreq_stocked: 0,
-      no_stocked: 0,
-      event_count: 0
-    };
-    counts.yreq_stocked -= v.yreq_stocked;
-    counts.no_stocked -= v.no_stocked;
-    counts.event_count -= v.event_count;
+    let counts = p[v[column]] || { yreq: 0, total: 0, events: 0 };
+    counts.yreq -= v.yreq;
+    counts.total -= v.total_stocked;
+    counts.events -= v.events;
     p[v[column]] = counts;
     return p;
   };
 };
 
-const byYearInitial = () => {
+export const stockingInitial = () => {
   return {};
 };
 
@@ -522,11 +558,6 @@ Leaflet.tileLayer(
 
 //======================================================
 //           RADIO BUTTONS
-
-let spatialUnit = "jurisdiction";
-let responseVar = "yreq";
-let column = "yreq_stocked";
-let ylabel = "Yearly Equivalents";
 
 let strata = [
   { name: "lake", label: "Lake" },
@@ -681,12 +712,14 @@ Promise.all([
       d.dd_lon = parseFloat(d.dd_lon);
       d.grid_10 = parseInt(d.grid_10);
       d.month = d.month ? parseInt(d.month) : 0;
-      d.no_stocked = parseInt(d.no_stocked);
+
       d.strain = d.strain + "";
       d.year = parseInt(d.year);
       d.year_class = parseInt(d.year_class);
-      d.yreq_stocked = parseInt(d.yreq_stocked);
-      d.event_count = 1;
+      //yreq, events, & total_stocked match names on other views
+      d.yreq = parseInt(d.yreq_stocked);
+      d.events = 1;
+      d.total_stocked = parseInt(d.no_stocked);
       d.clip = clipMap[d.mark] ? clipMap[d.mark] : "Unknown";
       d.tag = tagMap[d.mark] ? tagMap[d.mark] : "Unknown";
       d.mark = markMap[d.mark] ? markMap[d.mark] : "Unknown";
@@ -718,22 +751,24 @@ Promise.all([
     let tagDim = ndx.dimension(d => d.tag);
     let stkMethDim = ndx.dimension(d => d.stockingMethod);
 
-    let yearGroup = yearDim.group().reduceSum(d => d[column]);
-    let monthGroup = monthDim.group().reduceSum(d => d[column]);
-    let lakeGroup = lakeDim.group().reduceSum(d => d[column]);
-    let agencyGroup = agencyDim.group().reduceSum(d => d[column]);
-    let stateProvGroup = stateProvDim.group().reduceSum(d => d[column]);
-    let jurisdictionGroup = jurisdictionDim.group().reduceSum(d => d[column]);
-    //let manUnitGroup = manUnitDim.group().reduceSum(d => d[column]);
-    let grid10Group = grid10Dim.group().reduceSum(d => d[column]);
-    let speciesGroup = speciesDim.group().reduceSum(d => d[column]);
-    let strainGroup = strainDim.group().reduceSum(d => d[column]);
-    //let yearClassGroup = yearClassDim.group().reduceSum(d => d[column]);
-    let lifeStageGroup = lifeStageDim.group().reduceSum(d => d[column]);
-    let markGroup = markDim.group().reduceSum(d => d[column]);
-    let tagGroup = tagDim.group().reduceSum(d => d[column]);
-    let clipGroup = clipDim.group().reduceSum(d => d[column]);
-    let stkMethGroup = stkMethDim.group().reduceSum(d => d[column]);
+    let yearGroup = yearDim.group().reduceSum(d => d[responseVar]);
+    let monthGroup = monthDim.group().reduceSum(d => d[responseVar]);
+    let lakeGroup = lakeDim.group().reduceSum(d => d[responseVar]);
+    let agencyGroup = agencyDim.group().reduceSum(d => d[responseVar]);
+    let stateProvGroup = stateProvDim.group().reduceSum(d => d[responseVar]);
+    let jurisdictionGroup = jurisdictionDim
+      .group()
+      .reduceSum(d => d[responseVar]);
+    //let manUnitGroup = manUnitDim.group().reduceSum(d => d[responseVar]);
+    let grid10Group = grid10Dim.group().reduceSum(d => d[responseVar]);
+    let speciesGroup = speciesDim.group().reduceSum(d => d[responseVar]);
+    let strainGroup = strainDim.group().reduceSum(d => d[responseVar]);
+    //let yearClassGroup = yearClassDim.group().reduceSum(d => d[responseVar]);
+    let lifeStageGroup = lifeStageDim.group().reduceSum(d => d[responseVar]);
+    let markGroup = markDim.group().reduceSum(d => d[responseVar]);
+    let tagGroup = tagDim.group().reduceSum(d => d[responseVar]);
+    let clipGroup = clipDim.group().reduceSum(d => d[responseVar]);
+    let stkMethGroup = stkMethDim.group().reduceSum(d => d[responseVar]);
 
     // these are the unique values for each category variable - used
     // select stack of barcharts and add 0's were necessary.
@@ -749,6 +784,78 @@ Promise.all([
     const uniqueClips = clipGroup.top(Infinity).map(d => d.key);
     const uniqueTags = tagGroup.top(Infinity).map(d => d.key);
 
+    // set-up our spatial groups - each key will contain an object
+    // with the total number of fish stocked, the number of yearling
+    // equivalents, and the total number of events.  the variable
+    // 'sliceVar' determines how the groups are calculated -
+    // initialize them as empty objects and fill them wih a function
+    // that is called again when sliceVar is changed.
+    let all = {};
+    let lakeMapGroup = {};
+    let jurisdictionMapGroup = {};
+    let stateProvMapGroup = {};
+    //let manUnitMapGroup = {};
+    let grid10MapGroup = {};
+    //let geomMapGroup = {};
+
+    const calcMapGroups = varName => {
+      all = ndx
+        .groupAll()
+        .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+
+      lakeMapGroup = lakeDim
+        .group()
+        .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+
+      jurisdictionMapGroup = jurisdictionDim
+        .group()
+        .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+
+      stateProvMapGroup = stateProvDim
+        .group()
+        .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+
+      //      manUnitMapGroup = manUnitDim
+      //        .group()
+      //        .reduce(
+      //          stockingAdd(varName),
+      //          stockingRemove(varName),
+      //            stockingInitial
+      //        );
+
+      grid10MapGroup = grid10Dim
+        .group()
+        .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+
+      //      geomMapGroup = geomDim
+      //        .group()
+      //        .reduce(
+      //          stockingAdd(varName),
+      //          stockingRemove(varName),
+      //            stockingInitial
+      //        );
+    };
+
+    calcMapGroups(varName);
+
+    //debugger;
+
+    // initialize the stats panel
+    update_stats_panel(all, {
+      fillScale: speciesColourScale,
+      label: categories.filter(d => d.name === varName)[0].label,
+      what: responseVar
+    });
+
+    // set up a change event handler each fime the crossfilter changes
+    ndx.onChange(() => {
+      update_stats_panel(all, {
+        fillScale: speciesColourScale,
+        label: categories.filter(d => d.name === varName)[0].label,
+        what: responseVar
+      });
+    });
+
     let first_year = yearDim.bottom(1)[0].year;
     let last_year = yearDim.top(1)[0].year;
 
@@ -760,7 +867,7 @@ Promise.all([
 
     function sel_stack(item_name) {
       return function(d) {
-        return d.value[item_name][column];
+        return d.value[item_name][responseVar];
       };
     }
 
@@ -808,7 +915,6 @@ Promise.all([
 
     // ==================================================================
 
-    let varName = "species_code";
     let items = uniqueSpecies;
     let lookupMap = speciesMap;
     let plotLabel = "Species Stocked Through Time";
@@ -823,13 +929,13 @@ Promise.all([
     // byYearLookup so that our tooltips work.
     let byYear = yearDim
       .group()
-      .reduce(byYearAdd(varName), byYearRemove(varName), byYearInitial);
+      .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
 
     // if our category variable changes - recacalculate our by-year dimension.
     const update_CategoryValue = varName => {
       byYear = yearDim
         .group()
-        .reduce(byYearAdd(varName), byYearRemove(varName), byYearInitial);
+        .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
     };
 
     // if category variable is species, use the species colour scale
@@ -851,7 +957,7 @@ Promise.all([
         let yr = d.key;
         let label = lookupMap[layer];
         let stocked = commaFormat(
-          d.value[layer] == 0 ? 0 : d.value[layer][column]
+          d.value[layer] == 0 ? 0 : d.value[layer][responseVar]
         );
         return `${yr} - ${label}: ${stocked}`;
       } else {
@@ -962,14 +1068,21 @@ Promise.all([
 
     lastyr.on("click", decrementStackedBarByYearFilter);
 
-    // toggle the css
-    let brushtoggle = selectAll(".stackedbar-brush-toggle");
-    brushtoggle.on("change", function() {
-      let tooltip = true ? this.value == "tooltip" : false;
+    // a function to set the state of stacked bar plot based on
+    // the brush/toolip  value of tooltip (a boolean). Called by brush toggle
+    // on change and when the category of the stacked bar plot is re-rendered.
+    const setBrushTooltip = tooltip => {
       let overlay = select("#stackedbar-chart rect.overlay");
       overlay.classed("pass-through", tooltip);
       let selection = select("#stackedbar-chart rect.selection");
       selection.classed("pass-through", tooltip);
+    };
+
+    // toggle the css
+    let brushtoggle = selectAll(".stackedbar-brush-toggle");
+    brushtoggle.on("change", function() {
+      let tooltip = true ? this.value == "tooltip" : false;
+      setBrushTooltip(tooltip);
     });
 
     //   javascript:lakeChart.filterAll();dc.redrawAll();
@@ -1048,6 +1161,7 @@ Promise.all([
           plotLabel = "Species Stocked Through Time";
       }
 
+      calcMapGroups(varName);
       updateStackeBarLabel(plotLabel);
 
       // these need to be recalculated
@@ -1059,7 +1173,7 @@ Promise.all([
 
       byYear = yearDim
         .group()
-        .reduce(byYearAdd(varName), byYearRemove(varName), byYearInitial);
+        .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
 
       byYearWith0s = ensure_group_bins(byYear, items);
 
@@ -1075,8 +1189,17 @@ Promise.all([
         );
       }
 
+      update_stats_panel(all, {
+        fillScale: barchartColourScale,
+        label: categories.filter(d => d.name === varName)[0].label,
+        what: responseVar
+      });
+
       //stackedByYearBarChart.redraw();
       stackedByYearBarChart.render();
+
+      let tmp = select('input[name="brush-toggle"]:checked').node().value;
+      setBrushTooltip(tmp === "tooltip");
     });
 
     //==========================================================
