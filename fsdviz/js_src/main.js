@@ -9,7 +9,11 @@ import Leaflet from "leaflet";
 
 import { checkBoxes } from "./checkBoxArray";
 
-import { prepare_stocking_data, initialize_filter } from "./utils";
+import {
+  prepare_stocking_data,
+  initialize_filter,
+  get_coordinates
+} from "./utils";
 import { stockingAdd, stockingRemove, stockingInitial } from "./reducers";
 
 import { piechart_overlay } from "./piechart_overlay";
@@ -421,12 +425,6 @@ Promise.all([
   // an accessor function to get values of our currently selected
   // response variable.
   let ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]);
-
-  // convert pts as wkt to array of two floats
-  const get_coordinates = pt => {
-    let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
-    return [parseFloat(coords[0]), parseFloat(coords[1])];
-  };
 
   // a helper function to get the data in the correct format for plotting on the map.
   const get_pts = (spatialUnit, centriods, ptAccessor) => {

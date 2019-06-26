@@ -204,7 +204,7 @@ class StockingEventListAPIView(APIView):
             "agency_code": F('agency__abbrev'),
             "species_code": F('species__abbrev'),
             "strain": F('strain_raw__strain'),
-            #"grid10" : F('grid10__grid_10'),
+            "grid10": F('grid_10__slug'),
             "lifestage_code": F('lifestage__abbrev'),
             "stockingMethod": F('stocking_method__stk_meth'),
             "jurisdiction_code": F('jurisdiction__slug'),
@@ -213,17 +213,17 @@ class StockingEventListAPIView(APIView):
         }
 
         fields = [ "stock_id", "lake", "jurisdiction_code",
-            "stateProv", 'grid_10', "dd_lat", 'dd_lon', 'year',
+            "stateProv", 'grid10', "dd_lat", 'dd_lon', 'year',
             'month', 'st_site', 'date', 'month', 'mark', 'year_class',
             "agency_code", "species_code", "strain", "lifestage_code",
-            "stockingMethod", "no_stocked", "yreq_stocked" ]
+            "stockingMethod", "no_stocked", "yreq_stocked"]
 
         queryset = StockingEvent.objects\
                               .select_related('jurisdiction', 'agency',
                                               'species', 'strain', 'lifestage',
-                                              'grid10',
+                                              'grid_10',
                                               'stocking_method',
-                                              'jurisdition__lake',
+                                              'jurisdiction__lake',
                                               'jurisdiction__stateprov')\
                               .annotate(**field_aliases)
 

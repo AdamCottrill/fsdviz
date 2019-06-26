@@ -3354,6 +3354,48 @@ var FilteredStockingEvents = (function (exports) {
 	var ascendingBisect = bisector(ascending);
 	var bisectRight = ascendingBisect.right;
 
+	function descending(a, b) {
+	  return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+	}
+
+	function extent(values, valueof) {
+	  var n = values.length,
+	      i = -1,
+	      value,
+	      min,
+	      max;
+
+	  if (valueof == null) {
+	    while (++i < n) { // Find the first comparable value.
+	      if ((value = values[i]) != null && value >= value) {
+	        min = max = value;
+	        while (++i < n) { // Compare the remaining values.
+	          if ((value = values[i]) != null) {
+	            if (min > value) min = value;
+	            if (max < value) max = value;
+	          }
+	        }
+	      }
+	    }
+	  }
+
+	  else {
+	    while (++i < n) { // Find the first comparable value.
+	      if ((value = valueof(values[i], i, values)) != null && value >= value) {
+	        min = max = value;
+	        while (++i < n) { // Compare the remaining values.
+	          if ((value = valueof(values[i], i, values)) != null) {
+	            if (min > value) min = value;
+	            if (max < value) max = value;
+	          }
+	        }
+	      }
+	    }
+	  }
+
+	  return [min, max];
+	}
+
 	function sequence(start, stop, step) {
 	  start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
 
@@ -6242,7 +6284,134 @@ var FilteredStockingEvents = (function (exports) {
 
 	var pi$1 = Math.PI;
 
-	var pi$2 = Math.PI;
+	var pi$2 = Math.PI,
+	    tau$2 = 2 * pi$2,
+	    epsilon$1 = 1e-6,
+	    tauEpsilon = tau$2 - epsilon$1;
+
+	function Path() {
+	  this._x0 = this._y0 = // start of current subpath
+	  this._x1 = this._y1 = null; // end of current subpath
+	  this._ = "";
+	}
+
+	function path() {
+	  return new Path;
+	}
+
+	Path.prototype = path.prototype = {
+	  constructor: Path,
+	  moveTo: function(x, y) {
+	    this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y);
+	  },
+	  closePath: function() {
+	    if (this._x1 !== null) {
+	      this._x1 = this._x0, this._y1 = this._y0;
+	      this._ += "Z";
+	    }
+	  },
+	  lineTo: function(x, y) {
+	    this._ += "L" + (this._x1 = +x) + "," + (this._y1 = +y);
+	  },
+	  quadraticCurveTo: function(x1, y1, x, y) {
+	    this._ += "Q" + (+x1) + "," + (+y1) + "," + (this._x1 = +x) + "," + (this._y1 = +y);
+	  },
+	  bezierCurveTo: function(x1, y1, x2, y2, x, y) {
+	    this._ += "C" + (+x1) + "," + (+y1) + "," + (+x2) + "," + (+y2) + "," + (this._x1 = +x) + "," + (this._y1 = +y);
+	  },
+	  arcTo: function(x1, y1, x2, y2, r) {
+	    x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
+	    var x0 = this._x1,
+	        y0 = this._y1,
+	        x21 = x2 - x1,
+	        y21 = y2 - y1,
+	        x01 = x0 - x1,
+	        y01 = y0 - y1,
+	        l01_2 = x01 * x01 + y01 * y01;
+
+	    // Is the radius negative? Error.
+	    if (r < 0) throw new Error("negative radius: " + r);
+
+	    // Is this path empty? Move to (x1,y1).
+	    if (this._x1 === null) {
+	      this._ += "M" + (this._x1 = x1) + "," + (this._y1 = y1);
+	    }
+
+	    // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
+	    else if (!(l01_2 > epsilon$1));
+
+	    // Or, are (x0,y0), (x1,y1) and (x2,y2) collinear?
+	    // Equivalently, is (x1,y1) coincident with (x2,y2)?
+	    // Or, is the radius zero? Line to (x1,y1).
+	    else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon$1) || !r) {
+	      this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
+	    }
+
+	    // Otherwise, draw an arc!
+	    else {
+	      var x20 = x2 - x0,
+	          y20 = y2 - y0,
+	          l21_2 = x21 * x21 + y21 * y21,
+	          l20_2 = x20 * x20 + y20 * y20,
+	          l21 = Math.sqrt(l21_2),
+	          l01 = Math.sqrt(l01_2),
+	          l = r * Math.tan((pi$2 - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
+	          t01 = l / l01,
+	          t21 = l / l21;
+
+	      // If the start tangent is not coincident with (x0,y0), line to.
+	      if (Math.abs(t01 - 1) > epsilon$1) {
+	        this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
+	      }
+
+	      this._ += "A" + r + "," + r + ",0,0," + (+(y01 * x20 > x01 * y20)) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21);
+	    }
+	  },
+	  arc: function(x, y, r, a0, a1, ccw) {
+	    x = +x, y = +y, r = +r;
+	    var dx = r * Math.cos(a0),
+	        dy = r * Math.sin(a0),
+	        x0 = x + dx,
+	        y0 = y + dy,
+	        cw = 1 ^ ccw,
+	        da = ccw ? a0 - a1 : a1 - a0;
+
+	    // Is the radius negative? Error.
+	    if (r < 0) throw new Error("negative radius: " + r);
+
+	    // Is this path empty? Move to (x0,y0).
+	    if (this._x1 === null) {
+	      this._ += "M" + x0 + "," + y0;
+	    }
+
+	    // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
+	    else if (Math.abs(this._x1 - x0) > epsilon$1 || Math.abs(this._y1 - y0) > epsilon$1) {
+	      this._ += "L" + x0 + "," + y0;
+	    }
+
+	    // Is this arc empty? We’re done.
+	    if (!r) return;
+
+	    // Does the angle go the wrong way? Flip the direction.
+	    if (da < 0) da = da % tau$2 + tau$2;
+
+	    // Is this a complete circle? Draw two arcs to complete the circle.
+	    if (da > tauEpsilon) {
+	      this._ += "A" + r + "," + r + ",0,1," + cw + "," + (x - dx) + "," + (y - dy) + "A" + r + "," + r + ",0,1," + cw + "," + (this._x1 = x0) + "," + (this._y1 = y0);
+	    }
+
+	    // Is this arc non-empty? Draw an arc!
+	    else if (da > epsilon$1) {
+	      this._ += "A" + r + "," + r + ",0," + (+(da >= pi$2)) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
+	    }
+	  },
+	  rect: function(x, y, w, h) {
+	    this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y) + "h" + (+w) + "v" + (+h) + "h" + (-w) + "Z";
+	  },
+	  toString: function() {
+	    return this._;
+	  }
+	};
 
 	var prefix = "$";
 
@@ -6521,7 +6690,29 @@ var FilteredStockingEvents = (function (exports) {
 
 	var csv = dsvFormat(",");
 
+	var csvParse = csv.parse;
+
 	var tsv = dsvFormat("\t");
+
+	function responseText(response) {
+	  if (!response.ok) throw new Error(response.status + " " + response.statusText);
+	  return response.text();
+	}
+
+	function text(input, init) {
+	  return fetch(input, init).then(responseText);
+	}
+
+	function dsvParse(parse) {
+	  return function(input, init, row) {
+	    if (arguments.length === 2 && typeof init === "function") row = init, init = undefined;
+	    return text(input, init).then(function(response) {
+	      return parse(response, row);
+	    });
+	  };
+	}
+
+	var csv$1 = dsvParse(csvParse);
 
 	function responseJson(response) {
 	  if (!response.ok) throw new Error(response.status + " " + response.statusText);
@@ -7584,6 +7775,53 @@ var FilteredStockingEvents = (function (exports) {
 	  initRange.apply(scale, arguments);
 
 	  return linearish(scale);
+	}
+
+	function transformPow(exponent) {
+	  return function(x) {
+	    return x < 0 ? -Math.pow(-x, exponent) : Math.pow(x, exponent);
+	  };
+	}
+
+	function transformSqrt(x) {
+	  return x < 0 ? -Math.sqrt(-x) : Math.sqrt(x);
+	}
+
+	function transformSquare(x) {
+	  return x < 0 ? -x * x : x * x;
+	}
+
+	function powish(transform) {
+	  var scale = transform(identity$7, identity$7),
+	      exponent = 1;
+
+	  function rescale() {
+	    return exponent === 1 ? transform(identity$7, identity$7)
+	        : exponent === 0.5 ? transform(transformSqrt, transformSquare)
+	        : transform(transformPow(exponent), transformPow(1 / exponent));
+	  }
+
+	  scale.exponent = function(_) {
+	    return arguments.length ? (exponent = +_, rescale()) : exponent;
+	  };
+
+	  return linearish(scale);
+	}
+
+	function pow$1() {
+	  var scale = powish(transformer$1());
+
+	  scale.copy = function() {
+	    return copy(scale, pow$1()).exponent(scale.exponent());
+	  };
+
+	  initRange.apply(scale, arguments);
+
+	  return scale;
+	}
+
+	function sqrt$1() {
+	  return pow$1.apply(null, arguments).exponent(0.5);
 	}
 
 	var t0$1 = new Date,
@@ -8943,7 +9181,373 @@ var FilteredStockingEvents = (function (exports) {
 
 	var plasma = ramp$1(colors("0d088710078813078916078a19068c1b068d1d068e20068f2206902406912605912805922a05932c05942e05952f059631059733059735049837049938049a3a049a3c049b3e049c3f049c41049d43039e44039e46039f48039f4903a04b03a14c02a14e02a25002a25102a35302a35502a45601a45801a45901a55b01a55c01a65e01a66001a66100a76300a76400a76600a76700a86900a86a00a86c00a86e00a86f00a87100a87201a87401a87501a87701a87801a87a02a87b02a87d03a87e03a88004a88104a78305a78405a78606a68707a68808a68a09a58b0aa58d0ba58e0ca48f0da4910ea3920fa39410a29511a19613a19814a099159f9a169f9c179e9d189d9e199da01a9ca11b9ba21d9aa31e9aa51f99a62098a72197a82296aa2395ab2494ac2694ad2793ae2892b02991b12a90b22b8fb32c8eb42e8db52f8cb6308bb7318ab83289ba3388bb3488bc3587bd3786be3885bf3984c03a83c13b82c23c81c33d80c43e7fc5407ec6417dc7427cc8437bc9447aca457acb4679cc4778cc4977cd4a76ce4b75cf4c74d04d73d14e72d24f71d35171d45270d5536fd5546ed6556dd7566cd8576bd9586ada5a6ada5b69db5c68dc5d67dd5e66de5f65de6164df6263e06363e16462e26561e26660e3685fe4695ee56a5de56b5de66c5ce76e5be76f5ae87059e97158e97257ea7457eb7556eb7655ec7754ed7953ed7a52ee7b51ef7c51ef7e50f07f4ff0804ef1814df1834cf2844bf3854bf3874af48849f48948f58b47f58c46f68d45f68f44f79044f79143f79342f89441f89540f9973ff9983ef99a3efa9b3dfa9c3cfa9e3bfb9f3afba139fba238fca338fca537fca636fca835fca934fdab33fdac33fdae32fdaf31fdb130fdb22ffdb42ffdb52efeb72dfeb82cfeba2cfebb2bfebd2afebe2afec029fdc229fdc328fdc527fdc627fdc827fdca26fdcb26fccd25fcce25fcd025fcd225fbd324fbd524fbd724fad824fada24f9dc24f9dd25f8df25f8e125f7e225f7e425f6e626f6e826f5e926f5eb27f4ed27f3ee27f3f027f2f227f1f426f1f525f0f724f0f921"));
 
+	function constant$b(x) {
+	  return function constant() {
+	    return x;
+	  };
+	}
+
+	var abs$1 = Math.abs;
+	var atan2$1 = Math.atan2;
+	var cos$2 = Math.cos;
+	var max$2 = Math.max;
+	var min$1 = Math.min;
+	var sin$2 = Math.sin;
+	var sqrt$2 = Math.sqrt;
+
+	var epsilon$3 = 1e-12;
 	var pi$4 = Math.PI;
+	var halfPi$3 = pi$4 / 2;
+	var tau$4 = 2 * pi$4;
+
+	function acos$1(x) {
+	  return x > 1 ? 0 : x < -1 ? pi$4 : Math.acos(x);
+	}
+
+	function asin$1(x) {
+	  return x >= 1 ? halfPi$3 : x <= -1 ? -halfPi$3 : Math.asin(x);
+	}
+
+	function arcInnerRadius(d) {
+	  return d.innerRadius;
+	}
+
+	function arcOuterRadius(d) {
+	  return d.outerRadius;
+	}
+
+	function arcStartAngle(d) {
+	  return d.startAngle;
+	}
+
+	function arcEndAngle(d) {
+	  return d.endAngle;
+	}
+
+	function arcPadAngle(d) {
+	  return d && d.padAngle; // Note: optional!
+	}
+
+	function intersect(x0, y0, x1, y1, x2, y2, x3, y3) {
+	  var x10 = x1 - x0, y10 = y1 - y0,
+	      x32 = x3 - x2, y32 = y3 - y2,
+	      t = y32 * x10 - x32 * y10;
+	  if (t * t < epsilon$3) return;
+	  t = (x32 * (y0 - y2) - y32 * (x0 - x2)) / t;
+	  return [x0 + t * x10, y0 + t * y10];
+	}
+
+	// Compute perpendicular offset line of length rc.
+	// http://mathworld.wolfram.com/Circle-LineIntersection.html
+	function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
+	  var x01 = x0 - x1,
+	      y01 = y0 - y1,
+	      lo = (cw ? rc : -rc) / sqrt$2(x01 * x01 + y01 * y01),
+	      ox = lo * y01,
+	      oy = -lo * x01,
+	      x11 = x0 + ox,
+	      y11 = y0 + oy,
+	      x10 = x1 + ox,
+	      y10 = y1 + oy,
+	      x00 = (x11 + x10) / 2,
+	      y00 = (y11 + y10) / 2,
+	      dx = x10 - x11,
+	      dy = y10 - y11,
+	      d2 = dx * dx + dy * dy,
+	      r = r1 - rc,
+	      D = x11 * y10 - x10 * y11,
+	      d = (dy < 0 ? -1 : 1) * sqrt$2(max$2(0, r * r * d2 - D * D)),
+	      cx0 = (D * dy - dx * d) / d2,
+	      cy0 = (-D * dx - dy * d) / d2,
+	      cx1 = (D * dy + dx * d) / d2,
+	      cy1 = (-D * dx + dy * d) / d2,
+	      dx0 = cx0 - x00,
+	      dy0 = cy0 - y00,
+	      dx1 = cx1 - x00,
+	      dy1 = cy1 - y00;
+
+	  // Pick the closer of the two intersection points.
+	  // TODO Is there a faster way to determine which intersection to use?
+	  if (dx0 * dx0 + dy0 * dy0 > dx1 * dx1 + dy1 * dy1) cx0 = cx1, cy0 = cy1;
+
+	  return {
+	    cx: cx0,
+	    cy: cy0,
+	    x01: -ox,
+	    y01: -oy,
+	    x11: cx0 * (r1 / r - 1),
+	    y11: cy0 * (r1 / r - 1)
+	  };
+	}
+
+	function arc() {
+	  var innerRadius = arcInnerRadius,
+	      outerRadius = arcOuterRadius,
+	      cornerRadius = constant$b(0),
+	      padRadius = null,
+	      startAngle = arcStartAngle,
+	      endAngle = arcEndAngle,
+	      padAngle = arcPadAngle,
+	      context = null;
+
+	  function arc() {
+	    var buffer,
+	        r,
+	        r0 = +innerRadius.apply(this, arguments),
+	        r1 = +outerRadius.apply(this, arguments),
+	        a0 = startAngle.apply(this, arguments) - halfPi$3,
+	        a1 = endAngle.apply(this, arguments) - halfPi$3,
+	        da = abs$1(a1 - a0),
+	        cw = a1 > a0;
+
+	    if (!context) context = buffer = path();
+
+	    // Ensure that the outer radius is always larger than the inner radius.
+	    if (r1 < r0) r = r1, r1 = r0, r0 = r;
+
+	    // Is it a point?
+	    if (!(r1 > epsilon$3)) context.moveTo(0, 0);
+
+	    // Or is it a circle or annulus?
+	    else if (da > tau$4 - epsilon$3) {
+	      context.moveTo(r1 * cos$2(a0), r1 * sin$2(a0));
+	      context.arc(0, 0, r1, a0, a1, !cw);
+	      if (r0 > epsilon$3) {
+	        context.moveTo(r0 * cos$2(a1), r0 * sin$2(a1));
+	        context.arc(0, 0, r0, a1, a0, cw);
+	      }
+	    }
+
+	    // Or is it a circular or annular sector?
+	    else {
+	      var a01 = a0,
+	          a11 = a1,
+	          a00 = a0,
+	          a10 = a1,
+	          da0 = da,
+	          da1 = da,
+	          ap = padAngle.apply(this, arguments) / 2,
+	          rp = (ap > epsilon$3) && (padRadius ? +padRadius.apply(this, arguments) : sqrt$2(r0 * r0 + r1 * r1)),
+	          rc = min$1(abs$1(r1 - r0) / 2, +cornerRadius.apply(this, arguments)),
+	          rc0 = rc,
+	          rc1 = rc,
+	          t0,
+	          t1;
+
+	      // Apply padding? Note that since r1 ≥ r0, da1 ≥ da0.
+	      if (rp > epsilon$3) {
+	        var p0 = asin$1(rp / r0 * sin$2(ap)),
+	            p1 = asin$1(rp / r1 * sin$2(ap));
+	        if ((da0 -= p0 * 2) > epsilon$3) p0 *= (cw ? 1 : -1), a00 += p0, a10 -= p0;
+	        else da0 = 0, a00 = a10 = (a0 + a1) / 2;
+	        if ((da1 -= p1 * 2) > epsilon$3) p1 *= (cw ? 1 : -1), a01 += p1, a11 -= p1;
+	        else da1 = 0, a01 = a11 = (a0 + a1) / 2;
+	      }
+
+	      var x01 = r1 * cos$2(a01),
+	          y01 = r1 * sin$2(a01),
+	          x10 = r0 * cos$2(a10),
+	          y10 = r0 * sin$2(a10);
+
+	      // Apply rounded corners?
+	      if (rc > epsilon$3) {
+	        var x11 = r1 * cos$2(a11),
+	            y11 = r1 * sin$2(a11),
+	            x00 = r0 * cos$2(a00),
+	            y00 = r0 * sin$2(a00),
+	            oc;
+
+	        // Restrict the corner radius according to the sector angle.
+	        if (da < pi$4 && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
+	          var ax = x01 - oc[0],
+	              ay = y01 - oc[1],
+	              bx = x11 - oc[0],
+	              by = y11 - oc[1],
+	              kc = 1 / sin$2(acos$1((ax * bx + ay * by) / (sqrt$2(ax * ax + ay * ay) * sqrt$2(bx * bx + by * by))) / 2),
+	              lc = sqrt$2(oc[0] * oc[0] + oc[1] * oc[1]);
+	          rc0 = min$1(rc, (r0 - lc) / (kc - 1));
+	          rc1 = min$1(rc, (r1 - lc) / (kc + 1));
+	        }
+	      }
+
+	      // Is the sector collapsed to a line?
+	      if (!(da1 > epsilon$3)) context.moveTo(x01, y01);
+
+	      // Does the sector’s outer ring have rounded corners?
+	      else if (rc1 > epsilon$3) {
+	        t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw);
+	        t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw);
+
+	        context.moveTo(t0.cx + t0.x01, t0.cy + t0.y01);
+
+	        // Have the corners merged?
+	        if (rc1 < rc) context.arc(t0.cx, t0.cy, rc1, atan2$1(t0.y01, t0.x01), atan2$1(t1.y01, t1.x01), !cw);
+
+	        // Otherwise, draw the two corners and the ring.
+	        else {
+	          context.arc(t0.cx, t0.cy, rc1, atan2$1(t0.y01, t0.x01), atan2$1(t0.y11, t0.x11), !cw);
+	          context.arc(0, 0, r1, atan2$1(t0.cy + t0.y11, t0.cx + t0.x11), atan2$1(t1.cy + t1.y11, t1.cx + t1.x11), !cw);
+	          context.arc(t1.cx, t1.cy, rc1, atan2$1(t1.y11, t1.x11), atan2$1(t1.y01, t1.x01), !cw);
+	        }
+	      }
+
+	      // Or is the outer ring just a circular arc?
+	      else context.moveTo(x01, y01), context.arc(0, 0, r1, a01, a11, !cw);
+
+	      // Is there no inner ring, and it’s a circular sector?
+	      // Or perhaps it’s an annular sector collapsed due to padding?
+	      if (!(r0 > epsilon$3) || !(da0 > epsilon$3)) context.lineTo(x10, y10);
+
+	      // Does the sector’s inner ring (or point) have rounded corners?
+	      else if (rc0 > epsilon$3) {
+	        t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw);
+	        t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw);
+
+	        context.lineTo(t0.cx + t0.x01, t0.cy + t0.y01);
+
+	        // Have the corners merged?
+	        if (rc0 < rc) context.arc(t0.cx, t0.cy, rc0, atan2$1(t0.y01, t0.x01), atan2$1(t1.y01, t1.x01), !cw);
+
+	        // Otherwise, draw the two corners and the ring.
+	        else {
+	          context.arc(t0.cx, t0.cy, rc0, atan2$1(t0.y01, t0.x01), atan2$1(t0.y11, t0.x11), !cw);
+	          context.arc(0, 0, r0, atan2$1(t0.cy + t0.y11, t0.cx + t0.x11), atan2$1(t1.cy + t1.y11, t1.cx + t1.x11), cw);
+	          context.arc(t1.cx, t1.cy, rc0, atan2$1(t1.y11, t1.x11), atan2$1(t1.y01, t1.x01), !cw);
+	        }
+	      }
+
+	      // Or is the inner ring just a circular arc?
+	      else context.arc(0, 0, r0, a10, a00, cw);
+	    }
+
+	    context.closePath();
+
+	    if (buffer) return context = null, buffer + "" || null;
+	  }
+
+	  arc.centroid = function() {
+	    var r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2,
+	        a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - pi$4 / 2;
+	    return [cos$2(a) * r, sin$2(a) * r];
+	  };
+
+	  arc.innerRadius = function(_) {
+	    return arguments.length ? (innerRadius = typeof _ === "function" ? _ : constant$b(+_), arc) : innerRadius;
+	  };
+
+	  arc.outerRadius = function(_) {
+	    return arguments.length ? (outerRadius = typeof _ === "function" ? _ : constant$b(+_), arc) : outerRadius;
+	  };
+
+	  arc.cornerRadius = function(_) {
+	    return arguments.length ? (cornerRadius = typeof _ === "function" ? _ : constant$b(+_), arc) : cornerRadius;
+	  };
+
+	  arc.padRadius = function(_) {
+	    return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant$b(+_), arc) : padRadius;
+	  };
+
+	  arc.startAngle = function(_) {
+	    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant$b(+_), arc) : startAngle;
+	  };
+
+	  arc.endAngle = function(_) {
+	    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant$b(+_), arc) : endAngle;
+	  };
+
+	  arc.padAngle = function(_) {
+	    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant$b(+_), arc) : padAngle;
+	  };
+
+	  arc.context = function(_) {
+	    return arguments.length ? ((context = _ == null ? null : _), arc) : context;
+	  };
+
+	  return arc;
+	}
+
+	function descending$1(a, b) {
+	  return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+	}
+
+	function identity$9(d) {
+	  return d;
+	}
+
+	function pie() {
+	  var value = identity$9,
+	      sortValues = descending$1,
+	      sort = null,
+	      startAngle = constant$b(0),
+	      endAngle = constant$b(tau$4),
+	      padAngle = constant$b(0);
+
+	  function pie(data) {
+	    var i,
+	        n = data.length,
+	        j,
+	        k,
+	        sum = 0,
+	        index = new Array(n),
+	        arcs = new Array(n),
+	        a0 = +startAngle.apply(this, arguments),
+	        da = Math.min(tau$4, Math.max(-tau$4, endAngle.apply(this, arguments) - a0)),
+	        a1,
+	        p = Math.min(Math.abs(da) / n, padAngle.apply(this, arguments)),
+	        pa = p * (da < 0 ? -1 : 1),
+	        v;
+
+	    for (i = 0; i < n; ++i) {
+	      if ((v = arcs[index[i] = i] = +value(data[i], i, data)) > 0) {
+	        sum += v;
+	      }
+	    }
+
+	    // Optionally sort the arcs by previously-computed values or by data.
+	    if (sortValues != null) index.sort(function(i, j) { return sortValues(arcs[i], arcs[j]); });
+	    else if (sort != null) index.sort(function(i, j) { return sort(data[i], data[j]); });
+
+	    // Compute the arcs! They are stored in the original data's order.
+	    for (i = 0, k = sum ? (da - n * pa) / sum : 0; i < n; ++i, a0 = a1) {
+	      j = index[i], v = arcs[j], a1 = a0 + (v > 0 ? v * k : 0) + pa, arcs[j] = {
+	        data: data[j],
+	        index: i,
+	        value: v,
+	        startAngle: a0,
+	        endAngle: a1,
+	        padAngle: p
+	      };
+	    }
+
+	    return arcs;
+	  }
+
+	  pie.value = function(_) {
+	    return arguments.length ? (value = typeof _ === "function" ? _ : constant$b(+_), pie) : value;
+	  };
+
+	  pie.sortValues = function(_) {
+	    return arguments.length ? (sortValues = _, sort = null, pie) : sortValues;
+	  };
+
+	  pie.sort = function(_) {
+	    return arguments.length ? (sort = _, sortValues = null, pie) : sort;
+	  };
+
+	  pie.startAngle = function(_) {
+	    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant$b(+_), pie) : startAngle;
+	  };
+
+	  pie.endAngle = function(_) {
+	    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant$b(+_), pie) : endAngle;
+	  };
+
+	  pie.padAngle = function(_) {
+	    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant$b(+_), pie) : padAngle;
+	  };
+
+	  return pie;
+	}
 
 	function sign$1(x) {
 	  return x < 0 ? -1 : 1;
@@ -23187,8 +23791,329 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  update_summary_table(current, props);
 	};
 
+	// a function to prepare the json stocking data for use in our map
+	// this: "Point(-84.0326737783168 45.7810170315535)" becomes
+	// this: [-84.0326737783168, 45.7810170315535]
+
+	const get_coordinates = pt => {
+	  let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
+	  return [parseFloat(coords[0]), parseFloat(coords[1])];
+	}; //
+	//export const update_summary_table = data => {
+	//    // generate the html for rows of our summary table body.  for each species in data
+	//    // we want to generate html that looks like this:
+	//    //   <tr>
+	//    //       <td>${ row.species }</td>
+	//    //       <td>${ row.event_count }</td>
+	//    //       <td>${ commaFormat(row.total_stocked) }</td>
+	//    //   </tr>
+	//
+	//    let commaFormat = d3.format(',d');
+	//    html = "";
+	//
+	//    data.forEach(row => {
+	//
+	//        html += `<tr>
+	//           <td>${ row.key }</td>
+	//           <td>${ row.value.events }</td>
+	//           <td>${ commaFormat(row.value.total) }</td>
+	//       </tr>`;
+	//    });
+	//
+	//    d3.select("#stocked-summary-table-tbody").html(html);
+	//
+	//}
+	//
+	//
+	//export const update_stats_panel = data =>{
+	//    // this function calculates the total number of fish stocked and
+	//    // the number of events by species and then updates the stat panel.
+	//
+	//    let byspecies = d3.nest()
+	//        .key(d =>  d.species )
+	//        .rollup(values => { return {
+	//            total: d3.sum(values, d => +d.total_yreq_stocked ),
+	//            events: values.length,
+	//        };
+	//                          })
+	//        .entries(data);
+	//
+	//    // sort out table by total number stocked:
+	//    byspecies.sort((a,b) => b.value.total - a.value.total);
+	//
+	//    let species_count = byspecies.length;
+	//    let event_count = d3.sum(byspecies, d=>d.value.events);
+	//    let total_stocked = d3.sum(byspecies, d=>d.value.total);
+	//
+	//    let commaFormat = d3.format(',d');
+	//
+	//    d3.selectAll("#species-count").text(commaFormat(species_count));
+	//    d3.selectAll("#event-count").text(commaFormat(event_count));
+	//    d3.selectAll("#total-stocked").text(commaFormat(total_stocked));
+	//
+	//    update_summary_table(byspecies);
+	//
+	//
+	//}
+	//
+	// a generalized group by function for our points. It uses d3.nest to
+	// calculate the total number of events and fish stocked at each
+	// point.  'groupby' provides a second level of grouping. it returns
+	// an array of obj - one for each pt-group by combination (pt-species,
+	// pt-lifestage ect.). Each object contains a geom label, coordinates,
+	// value, and stat element.
+	//export const group_pts = (data, groupby, value) => {
+	//
+	//   let pts = d3.nest()
+	//        .key(d =>  d.geom )
+	//        .key( d => d[groupby] )
+	//        .rollup(values => { return {
+	//            total: d3.sum(values, d => +d[value] ),
+	//            events: values.length,
+	//        };
+	//                          })
+	//        .entries(data);
+	//
+	//    let flat =[];
+	//
+	//    pts.forEach(pt=>{
+	//        pt.values.forEach(x=> {
+	//            flat.push({
+	//                geom:pt.key,
+	//                coordinates:get_coordinates(pt.key),
+	//                value:x.key,
+	//                stats:x.value});
+	//        });
+	//    });
+	//
+	//    //finally - sort our aggregated data from largest to smallest so
+	//    // that smaller points plot on top of larger ones and we can click
+	//    // or hover over them.
+	//    flat.sort((a,b) => b.stats.total - a.stats.total);
+	//
+	//    return flat;
+	//}
+	//
+
+	// a re-usabel chart component that will overlay points a map.
+	const piechart_overlay = () => {
+	  // default values:
+	  let selectedPie;
+	  let data;
+	  let labelLookup = {};
+
+	  let radiusAccessor = d => d.total;
+
+	  let fillAccessor = d => d.value;
+
+	  let responseVar = "yreq";
+	  let maxCircleSize = 140;
+	  let fillScale = ordinal();
+	  let myArc = arc().innerRadius(0);
+	  let myPie = pie().sort(null).value(fillAccessor);
+	  const commaFormat = format(",d"); // the name of the field that uniquely identifies each point:
+
+	  let keyfield = "geom";
+	  let pointInfoSelector = "#point-info"; // we will pass in a function to transform lat-long to screen coordinates
+	  // when we instantiate the overlay
+
+	  let getProjection;
+
+	  let get_pointInfo = d => {
+	    // this does not work as expected - it needs to be updated if the
+	    // filters change.
+	    let data = d.values;
+	    let dataArray = Object.keys(data).map(x => data[x]);
+	    dataArray.sort((a, b) => b.value - a.value);
+	    let total = sum(dataArray.map(d => d.value));
+	    let label = labelLookup[d.key];
+
+	    if (typeof label === "undefined") {
+	      label = d.key;
+	    }
+
+	    let html$$1 = `<h5>${label}: ${commaFormat(total)}</h5>`;
+	    html$$1 += '<table class="ui celled compact table">';
+	    dataArray.filter(d => d.value > 0).forEach(row => {
+	      let rowid = row.slice.replace(/ /g, "-").replace(/[()]/g, "");
+	      html$$1 += `<tr id="tr-${rowid}">
+           <td class="species-name">${row.slice}</td>
+           <td class="right aligned">${commaFormat(row.value)}</td>
+       </tr>`;
+	    });
+	    html$$1 += "</table>";
+	    return html$$1;
+	  };
+
+	  const chart = function (selection$$1) {
+	    selection$$1.each(function (data) {
+	      // prepare data for pie:
+	      //    coordinates: [-82.8801, 45.9883]
+	      //    key: "er_mi"
+	      //    total: 10000
+	      //    values: [{slice: "Rainbow Trout", value:0}, {slice: "Lake Trout", value: 10} ]
+	      data.forEach(x => {
+	        let mykeys = Object.keys(x.value);
+	        let values$$1 = mykeys.map(d => ({
+	          slice: d,
+	          value: x.value[d][responseVar]
+	        }));
+	        x["values"] = values$$1;
+	      }); // create a tooltip
+
+	      var tooltip = select("#mapid").append("div").attr("class", "tooltip").attr("id", "pie-tooltip").style("pointer-events", "none").style("z-index", "999").html("<p>Tool-tip</p>"); //==========================================================
+	      //             PIE CHARTS
+	      // sort our pies so small pies plot on top of large pies
+
+	      data.sort((a, b) => descending(a.total, b.total)); // the circles will be scaled as though there is a single large pie chart
+	      // (recognizing that there almost never will be)
+
+	      const radiusScale = sqrt$1().range([1, maxCircleSize]).domain([0, sum(data, radiusAccessor)]);
+	      let pies = selection$$1.selectAll(".pie").data(data, d => d.key);
+	      pies.exit().transition().duration(200).remove();
+	      let piesEnter = pies.enter().append("g").attr("class", "pie").attr("id", d => d.key).on("click", function (d) {
+	        if (selectedPie && selectedPie === d.key) {
+	          // second click on same circle, turn off selectedPie and make point info empty:
+	          selectedPie = null;
+	          select(pointInfoSelector).html("");
+	          selectAll(".selected-pie").classed("selected-pie", false);
+	        } else {
+	          // set selectedPie, fill in map info and highlight our selectedPie pie
+	          selectedPie = d.key;
+	          select(pointInfoSelector).html(get_pointInfo(d));
+	          selectAll(".selected-pie").classed("selected-pie", false);
+	          select(this).classed("selected-pie", true);
+	        }
+	      });
+	      pies.merge(piesEnter).attr("transform", function (d) {
+	        let translate = getProjection(d.coordinates[0], d.coordinates[1]);
+	        return `translate( ${translate.x}  ${translate.y} )`;
+	      }).transition().duration(200).each(onePie); // a function that represents one pie chart. Repeated for each
+	      // elements selectedPie above
+
+	      function onePie(d) {
+	        const highlight_row = (d, bool) => {
+	          let selector$$1 = "#tr-" + d.data.slice.replace(/ /g, "-").replace(/[()]/g, "");
+	          let tmp = selectAll(selector$$1);
+	          tmp.classed("error", bool);
+	        };
+
+	        let r = radiusScale(d.total);
+	        let svg$$1 = select(this).attr("width", r * 2).attr("height", r * 2);
+	        let slices = svg$$1.selectAll(".arc").data(d => myPie(d.values), d => d.index);
+	        let slicesEnter = slices.enter().append("path").attr("class", "arc").on("mouseover", function (d) {
+	          let slug = this.parentElement.id;
+	          let label = labelLookup[slug];
+
+	          if (typeof label === "undefined") {
+	            label = slug;
+	          }
+
+	          let html$$1 = `<strong>${label}</strong><br>${d.data.slice}: ${commaFormat(d.data.value)}`;
+	          select(this).classed("hover", true);
+
+	          if (selectedPie && selectedPie === slug) {
+	            highlight_row(d, true); //select('#point-info').html(get_sliceInfo(d));
+	          }
+
+	          tooltip.style("visibility", "visible").html(html$$1);
+	        }).on("mousemove", function () {
+	          return tooltip.style("top", event.layerY - 5 + "px").style("left", event.layerX + 15 + "px");
+	        }).on("mouseout", function (d) {
+	          select(this).classed("hover", false);
+	          highlight_row(d, false);
+	          tooltip.style("visibility", "hidden").html("");
+	        });
+	        slices.merge(slicesEnter).attr("d", myArc.outerRadius(r)).style("fill", d => fillScale(d.data.slice));
+	        slices.exit().remove();
+	      }
+	    });
+	  };
+
+	  chart.clear_pointInfo = () => {
+	    select(pointInfoSelector).html("");
+	  }; // update our data
+
+
+	  chart.data = function (value) {
+	    if (!arguments.length) return data;
+	    data = value;
+	    return chart;
+	  };
+
+	  chart.getProjection = function (value) {
+	    if (!arguments.length) return getProjection;
+	    getProjection = value;
+	    return chart;
+	  };
+
+	  chart.radiusAccessor = function (value) {
+	    if (!arguments.length) return radiusAccessor;
+	    radiusAccessor = value;
+	    return chart;
+	  };
+
+	  chart.fillAccessor = function (value) {
+	    if (!arguments.length) return fillAccessor;
+	    fillAccessor = value;
+	    return chart;
+	  };
+
+	  chart.fillScale = function (value) {
+	    if (!arguments.length) return fillScale;
+	    fillScale = value;
+	    return chart;
+	  };
+
+	  chart.keyfield = function (value) {
+	    if (!arguments.length) return keyfield;
+	    keyfield = value;
+	    return chart;
+	  };
+
+	  chart.responseVar = function (value) {
+	    if (!arguments.length) return responseVar;
+	    responseVar = value;
+	    return chart;
+	  };
+
+	  chart.maxCircleSize = function (value) {
+	    if (!arguments.length) return maxCircleSize;
+	    maxCircleSize = value;
+	    return chart;
+	  };
+
+	  chart.pointInfoSelector = function (value) {
+	    if (!arguments.length) return pointInfoSelector;
+	    pointInfoSelector = value;
+	    return chart;
+	  };
+
+	  chart.selectedPie = function (value) {
+	    if (!arguments.length) return selectedPie;
+	    selectedPie = value;
+	    return chart;
+	  }; // our object to connect pie chart keys (slugs) with their pretty labels
+
+
+	  chart.labelLookup = function (value) {
+	    if (!arguments.length) return labelLookup;
+	    labelLookup = value;
+	    return chart;
+	  }; // the function that populates point info div with information
+	  // about the selectedPie point
+
+
+	  chart.get_pointInfo = function (value) {
+	    if (!arguments.length) return get_pointInfo;
+	    get_pointInfo = value;
+	    return chart;
+	  };
+
+	  return chart;
+	};
+
 	/* global values dc, dataURL, maxEvents */
-	// import dc from "dc";
 
 	const dateParser = timeParse("%Y-%m-%d");
 	let commaFormat = format(",");
@@ -23201,8 +24126,10 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	let varName = "species_code"; // this should probably be 'category'
 
 	let responseVar = "yreq"; //let column = "yreq_stocked";
+	// TODO:make ylabel a function of the response variable radio buttons array:
 
 	let ylabel = "Yearly Equivalents";
+	const labelLookup = {};
 	const month_lookup = {
 	  "1": "Jan",
 	  "2": "Feb",
@@ -23220,7 +24147,11 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	};
 	const markLookup = [["ad", "None"], ["Ad", "None"], ["AD", "None"], ["Ad/T-bar tag", "None"], ["ADCWT", "None"], ["ADCWTOX", "OX"], ["ADDO", "None"], ["ADDORV", "None"], ["ADLM", "None"], ["ADLMLP", "None"], ["ADLMLV", "None"], ["ADLMRP", "None"], ["ADLMRV", "None"], ["ADLP", "None"], ["ADCWTLP", "None"], ["ADLPRM", "None"], ["ADLPRV", "None"], ["ADLV", "None"], ["ADCWTLV", "None"], ["ADLVOX", "OX"], ["ADLVRM", "None"], ["ADLVRP", "None"], ["ADOX", "OX"], ["ADOXRV", "OX"], ["ADPT", "None"], ["ADRM", "None"], ["ADRMRP", "None"], ["ADRMRV", "None"], ["ADRP", "None"], ["ADCWTRP", "None"], ["ADRV", "None"], ["ADCWTRV", "None"], ["CA", "CA"], ["CA2", "CA"], ["CAL", "CA"], ["CWT", "None"], ["CWTOX", "OX"], ["DO", "None"], ["DOLP", "None"], ["DOLV", "None"], ["DORP", "None"], ["DORV", "None"], ["LM", "None"], ["LMLP", "None"], ["LMLV", "None"], ["LP", "None"], ["CWTLP", "None"], ["LPLV", "None"], ["LPOX", "OX"], ["LPRM", "None"], ["BP", "None"], ["LPRV", "None"], ["LPOXRV", "None"], ["LR", "None"], ["LV", "None"], ["CWTLV", "None"], ["LVOX", "OX"], ["LVPT", "None"], ["LVRP", "None"], ["LVOXRP", "OX"], ["BV", "None"], ["BVPIT", "None"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "OX"], ["ox", "OX"], ["OX", "OX"], ["OXRP", "OX"], ["OXRV", "OX"], ["PIT", "None"], ["PIT tag", "None"], ["PT", "None"], ["PTRV", "None"], ["RM", "None"], ["RMRV", "None"], ["RP", "None"], ["RPRV", "None"], ["RV", "None"], ["CWTRV", "None"], ["CWTOXRV", "OX"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "None"], ["FTRV", "None"], ["JT", "None"], ["SCU", "None"], ["UP", "None"], ["UT", "None"], ["VIE", "None"], ["VIE-LFY", "None"], ["XX", "None"], ["ADFT", "None"], ["ADFTLP", "None"], ["AZR", "None"], ["Fin Clip", "None"], ["FT", "None"], ["RR", "None"], ["VIE-RFY", "None"]];
 	const clipLookup = [["ad", "AD"], ["Ad", "AD"], ["AD", "AD"], ["Ad/T-bar tag", "AD"], ["ADCWT", "AD"], ["ADCWTOX", "AD"], ["ADDO", "ADDO"], ["ADDORV", "ADDORV"], ["ADLM", "ADLM"], ["ADLMLP", "ADLMLP"], ["ADLMLV", "ADLMLV"], ["ADLMRP", "ADLMRP"], ["ADLMRV", "ADLMRV"], ["ADLP", "ADLP"], ["ADCWTLP", "ADLP"], ["ADLPRM", "ADLPRM"], ["ADLPRV", "ADLPRV"], ["ADLV", "ADLV"], ["ADCWTLV", "ADLV"], ["ADLVOX", "ADLV"], ["ADLVRM", "ADLVRM"], ["ADLVRP", "ADLVRP"], ["ADOX", "AD"], ["ADOXRV", "ADRV"], ["ADPT", "ADPT"], ["ADRM", "ADRM"], ["ADRMRP", "ADRMRP"], ["ADRMRV", "ADRMRV"], ["ADRP", "ADRP"], ["ADCWTRP", "ADRP"], ["ADRV", "ADRV"], ["ADCWTRV", "ADRV"], ["CA", "None"], ["CA2", "None"], ["CAL", "None"], ["CWT", "None"], ["CWTOX", "None"], ["DO", "DO"], ["DOLP", "DOLP"], ["DOLV", "DOLV"], ["DORP", "DORP"], ["DORV", "DORV"], ["LM", "LM"], ["LMLP", "LMLP"], ["LMLV", "LMLV"], ["LP", "LP"], ["CWTLP", "LP"], ["LPLV", "LPLV"], ["LPOX", "LP"], ["LPRM", "LPRM"], ["BP", "LPRP"], ["LPRV", "LPRV"], ["LPOXRV", "LPRV"], ["LR", "LR"], ["LV", "LV"], ["CWTLV", "LV"], ["LVOX", "LV"], ["LVPT", "LV"], ["LVRP", "LVRP"], ["LVOXRP", "LVRP"], ["BV", "LVRV"], ["BVPIT", "LVRV"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "None"], ["ox", "None"], ["OX", "None"], ["OXRP", "RP"], ["OXRV", "RV"], ["PIT", "None"], ["PIT tag", "None"], ["PT", "None"], ["PTRV", "RV"], ["RM", "RM"], ["RMRV", "RMRV"], ["RP", "RP"], ["RPRV", "RPRV"], ["RV", "RV"], ["CWTRV", "RV"], ["CWTOXRV", "RV"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "Unknown"], ["FTRV", "Unknown"], ["JT", "Unknown"], ["SCU", "Unknown"], ["UP", "Unknown"], ["UT", "Unknown"], ["VIE", "Unknown"], ["VIE-LFY", "Unknown"], ["XX", "Unknown"], ["ADFT", "Unknown"], ["ADFTLP", "Unknown"], ["AZR", "Unknown"], ["Fin Clip", "Unknown"], ["FT", "Unknown"], ["RR", "Unknown"], ["VIE-RFY", "Unknown"]];
-	const tagLookup = [["ad", "None"], ["Ad", "None"], ["AD", "None"], ["Ad/T-bar tag", "ATAG"], ["ADCWT", "CWT"], ["ADCWTOX", "CWT"], ["ADDO", "None"], ["ADDORV", "None"], ["ADLM", "None"], ["ADLMLP", "None"], ["ADLMLV", "None"], ["ADLMRP", "None"], ["ADLMRV", "None"], ["ADLP", "None"], ["ADCWTLP", "CWT"], ["ADLPRM", "None"], ["ADLPRV", "None"], ["ADLV", "None"], ["ADCWTLV", "CWT"], ["ADLVOX", "None"], ["ADLVRM", "None"], ["ADLVRP", "None"], ["ADOX", "None"], ["ADOXRV", "None"], ["ADPT", "None"], ["ADRM", "None"], ["ADRMRP", "None"], ["ADRMRV", "None"], ["ADRP", "None"], ["ADCWTRP", "CWT"], ["ADRV", "None"], ["ADCWTRV", "CWT"], ["CA", "None"], ["CA2", "None"], ["CAL", "None"], ["CWT", "CWT"], ["CWTOX", "CWT"], ["DO", "None"], ["DOLP", "None"], ["DOLV", "None"], ["DORP", "None"], ["DORV", "None"], ["LM", "None"], ["LMLP", "None"], ["LMLV", "None"], ["LP", "None"], ["CWTLP", "CWT"], ["LPLV", "None"], ["LPOX", "None"], ["LPRM", "None"], ["BP", "None"], ["LPRV", "None"], ["LPOXRV", "None"], ["LR", "None"], ["LV", "None"], ["CWTLV", "CWT"], ["LVOX", "None"], ["LVPT", "PIT"], ["LVRP", "None"], ["LVOXRP", "None"], ["BV", "None"], ["BVPIT", "PIT"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "None"], ["ox", "None"], ["OX", "None"], ["OXRP", "None"], ["OXRV", "None"], ["PIT", "PIT"], ["PIT tag", "PIT"], ["PT", "PIT"], ["PTRV", "PIT"], ["RM", "None"], ["RMRV", "None"], ["RP", "None"], ["RPRV", "None"], ["RV", "None"], ["CWTRV", "CWT"], ["CWTOXRV", "CWT"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "Unknown"], ["FTRV", "Unknown"], ["JT", "Unknown"], ["SCU", "Unknown"], ["UP", "Unknown"], ["UT", "Unknown"], ["VIE", "Unknown"], ["VIE-LFY", "Unknown"], ["XX", "Unknown"], ["ADFT", "Unknown"], ["ADFTLP", "Unknown"], ["AZR", "Unknown"], ["Fin Clip", "None"], ["FT", "Unknown"], ["RR", "Unknown"], ["VIE-RFY", "Unknown"]];
+	const tagLookup = [["ad", "None"], ["Ad", "None"], ["AD", "None"], ["Ad/T-bar tag", "ATAG"], ["ADCWT", "CWT"], ["ADCWTOX", "CWT"], ["ADDO", "None"], ["ADDORV", "None"], ["ADLM", "None"], ["ADLMLP", "None"], ["ADLMLV", "None"], ["ADLMRP", "None"], ["ADLMRV", "None"], ["ADLP", "None"], ["ADCWTLP", "CWT"], ["ADLPRM", "None"], ["ADLPRV", "None"], ["ADLV", "None"], ["ADCWTLV", "CWT"], ["ADLVOX", "None"], ["ADLVRM", "None"], ["ADLVRP", "None"], ["ADOX", "None"], ["ADOXRV", "None"], ["ADPT", "None"], ["ADRM", "None"], ["ADRMRP", "None"], ["ADRMRV", "None"], ["ADRP", "None"], ["ADCWTRP", "CWT"], ["ADRV", "None"], ["ADCWTRV", "CWT"], ["CA", "None"], ["CA2", "None"], ["CAL", "None"], ["CWT", "CWT"], ["CWTOX", "CWT"], ["DO", "None"], ["DOLP", "None"], ["DOLV", "None"], ["DORP", "None"], ["DORV", "None"], ["LM", "None"], ["LMLP", "None"], ["LMLV", "None"], ["LP", "None"], ["CWTLP", "CWT"], ["LPLV", "None"], ["LPOX", "None"], ["LPRM", "None"], ["BP", "None"], ["LPRV", "None"], ["LPOXRV", "None"], ["LR", "None"], ["LV", "None"], ["CWTLV", "CWT"], ["LVOX", "None"], ["LVPT", "PIT"], ["LVRP", "None"], ["LVOXRP", "None"], ["BV", "None"], ["BVPIT", "PIT"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "None"], ["ox", "None"], ["OX", "None"], ["OXRP", "None"], ["OXRV", "None"], ["PIT", "PIT"], ["PIT tag", "PIT"], ["PT", "PIT"], ["PTRV", "PIT"], ["RM", "None"], ["RMRV", "None"], ["RP", "None"], ["RPRV", "None"], ["RV", "None"], ["CWTRV", "CWT"], ["CWTOXRV", "CWT"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "Unknown"], ["FTRV", "Unknown"], ["JT", "Unknown"], ["SCU", "Unknown"], ["UP", "Unknown"], ["UT", "Unknown"], ["VIE", "Unknown"], ["VIE-LFY", "Unknown"], ["XX", "Unknown"], ["ADFT", "Unknown"], ["ADFTLP", "Unknown"], ["AZR", "Unknown"], ["Fin Clip", "None"], ["FT", "Unknown"], ["RR", "Unknown"], ["VIE-RFY", "Unknown"]]; // 19 colours
+
+	let speciesColours = ["#3cb44b", "#4363d8", "#e6194b", "#f58231", "#46f0f0", "#ffe119", "#f032e6", "#911eb4", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080", "#ffffff"]; //19 species
+
+	let all_species = ["LAT", "CHS", "RBT", "BNT", "COS", "WAL", "LTX", "ATS", "SPE", "BKT", "SOS", "YEP", "LHR", "BLO", "LAS", "MUE", "SMB", "TIM", "NOP"];
 	const clipMap = clipLookup.reduce((accumulator, d) => {
 	  accumulator[d[0]] = d[1];
 	  return accumulator;
@@ -23232,82 +24163,11 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	const markMap = markLookup.reduce((accumulator, d) => {
 	  accumulator[d[0]] = d[1];
 	  return accumulator;
-	}, {}); // 19 colours
-
-	let speciesColours = ["#3cb44b", "#4363d8", "#e6194b", "#f58231", "#46f0f0", "#ffe119", "#f032e6", "#911eb4", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080", "#ffffff"]; //19 species
-
-	let all_species = ["LAT", "CHS", "RBT", "BNT", "COS", "WAL", "LTX", "ATS", "SPE", "BKT", "SOS", "YEP", "LHR", "BLO", "LAS", "MUE", "SMB", "TIM", "NOP"]; // colour scale that will be used anywhere scpecies are displayed
+	}, {}); // colour scale that will be used anywhere scpecies are displayed
 
 	const speciesColourScale = ordinal().range(speciesColours).domain(all_species); // for now - use a generic colour scale for the stacked barplot
 
-	const barchartColourScale = ordinal().range(speciesColours); //
-	//// Reducers for dims by species:
-	//
-	//const speciesAdd = (p, v) => {
-	//  let counts = p[v.species_code] || {
-	//    yreq_stocked: 0,
-	//    no_stocked: 0,
-	//    event_count: 0
-	//  };
-	//  counts.yreq_stocked += v.yreq_stocked;
-	//  counts.no_stocked += v.no_stocked;
-	//  counts.event_count += v.event_count;
-	//  p[v.species_code] = counts;
-	//  return p;
-	//};
-	//
-	//const speciesRemove = (p, v) => {
-	//  let counts = p[v.species_code] || {
-	//    yreq_stocked: 0,
-	//    no_stocked: 0,
-	//    event_count: 0
-	//  };
-	//  counts.yreq_stocked -= v.yreq_stocked;
-	//  counts.no_stocked -= v.no_stocked;
-	//  counts.event_count -= v.event_count;
-	//  p[v.species_code] = counts;
-	//  return p;
-	//};
-	//
-	//const speciesInitial = () => {
-	//  return {};
-	//};
-	// ===============================================================
-	//// Reducers for dims by by year - given the currently selected column:
-	//const  stockingAdd = column => {
-	//  return (p, v) => {
-	//    let counts = p[v[column]] || {
-	//      yreq_stocked: 0,
-	//      no_stocked: 0,
-	//      event_count: 0
-	//    };
-	//    counts.yreq_stocked += v.yreq_stocked;
-	//    counts.no_stocked += v.no_stocked;
-	//    counts.event_count += v.event_count;
-	//    p[v[column]] = counts;
-	//    return p;
-	//  };
-	//};
-	//
-	//const stockingRemove = column => {
-	//  return (p, v) => {
-	//    let counts = p[v[column]] || {
-	//      yreq_stocked: 0,
-	//      no_stocked: 0,
-	//      event_count: 0
-	//    };
-	//    counts.yreq_stocked -= v.yreq_stocked;
-	//    counts.no_stocked -= v.no_stocked;
-	//    counts.event_count -= v.event_count;
-	//    p[v[column]] = counts;
-	//    return p;
-	//  };
-	//};
-	//
-	//const stockingInitial = () => {
-	//  return {};
-	//};
-	//
+	const barchartColourScale = ordinal().range(speciesColours);
 
 	const stockingAdd = column => {
 	  return (p, v) => {
@@ -23353,7 +24213,22 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  maxZoom: 18,
 	  id: "mapbox.streets",
 	  accessToken: accessToken
-	}).addTo(mymap); //======================================================
+	}).addTo(mymap); // Add a svg layer to the map
+
+	leafletSrc.svg().addTo(mymap); // Select the svg area and add a group element we can use to move things around:
+
+	let svg$1 = select("#mapid").select("svg"); // add a groups to our svg - for our pie charts
+
+	let pieg = svg$1.append("g"); // this function is used for points events (centroids and mouse clicks)
+	// converts the mouse clicks and cetroids to screen corrordinates that
+	// correspond with current map settings:
+
+	function projectPoint(x, y) {
+	  const point$$1 = mymap.latLngToLayerPoint(new leafletSrc.LatLng(y, x));
+	  return point$$1;
+	}
+
+	let piecharts = piechart_overlay(mymap).getProjection(projectPoint).fillScale(speciesColourScale); //======================================================
 	//           RADIO BUTTONS
 
 	let strata = [{
@@ -23365,10 +24240,8 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	}, {
 	  name: "jurisdiction",
 	  label: "Jurisdiction"
-	}, {
-	  name: "manUnit",
-	  label: "Managment Unit"
-	}, {
+	}, //  { name: "manUnit", label: "Managment Unit" },
+	{
 	  name: "grid10",
 	  label: "10-minute Grid"
 	}, {
@@ -23381,8 +24254,6 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	const spatial_resolution = selectAll("#strata-selector input"); // categories buttons:
 	// name must correspond to column names in our data
 	// TODO - add lookup option - for tooltip etc.
-	// categories for stacked bars:
-	// species. strain, agency_code, clip, mark, tag, lifestage_code, stockingMethod, jurisdiction_code, lake, stateProv,
 
 	let categories = [{
 	  name: "lake",
@@ -23434,9 +24305,20 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	}];
 	let pieSizeVarSelector = RadioButtons().selector("#pie-size-selector").options(pieSizeVars).checked(responseVar);
 	pieSizeVarSelector();
-	const pie_size_selector = selectAll("#pie-size-selector input");
-	Promise.all([json(dataURL), json("/api/v1/common/lake"), json("/api/v1/common/agency"), json("/api/v1/common/jurisdiction"), json("/api/v1/common/state_province"), json("/api/v1/common/species"), json("/api/v1/common/strain"), json("/api/v1/stocking/lifestage"), json("/api/v1/stocking/stocking_method") //add ID
-	]).then(([data, lakes, agencies, jurisdictions, states, species1, strains, lifestages, stockingMethods]) => {
+	const pie_size_selector = selectAll("#pie-size-selector input"); // TEMPORARY:
+
+	const centroidsURL = "/static/data/centroids.json";
+	const slugURL = "/static/data/slugs.csv"; // TODO: combine all of the api calls into a single call that returns a single json object:
+
+	Promise.all([json(dataURL), json("/api/v1/common/lake"), json("/api/v1/common/agency"), json("/api/v1/common/jurisdiction"), json("/api/v1/common/state_province"), json("/api/v1/common/species"), json("/api/v1/common/strain"), json("/api/v1/stocking/lifestage"), json("/api/v1/stocking/stocking_method"), json(centroidsURL), //json(topoURL),
+	csv$1(slugURL)]).then(([data, lakes, agencies, jurisdictions, states, species1, strains, lifestages, stockingMethods, centroids, //topodata,
+	slugs]) => {
+	  slugs.forEach(d => labelLookup[d.slug] = d.label);
+	  piecharts.labelLookup(labelLookup); // geographic extents:
+
+	  const latbounds = extent(data, d => d.dd_lat);
+	  const longbounds = extent(data, d => d.dd_lon);
+	  mymap.fitBounds([[latbounds[0], longbounds[0]], [latbounds[1], longbounds[1]]]);
 	  select("#record-count-warning").classed("hidden", data.length >= maxEvents ? false : true);
 	  const lakeMap = lakes.reduce((accumulator, d) => {
 	    accumulator[d.abbrev] = d.lake_name;
@@ -23486,8 +24368,9 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    //d.date: "2016-02-01"
 	    d.date = d.date ? dateParser(d.date) : "";
 	    d.dd_lat = parseFloat(d.dd_lat);
-	    d.dd_lon = parseFloat(d.dd_lon);
-	    d.grid_10 = parseInt(d.grid_10);
+	    d.dd_lon = parseFloat(d.dd_lon); //d.grid_10 = d.lake.toLowerCase() + "_" + d.grid_10; // this should be the slug
+
+	    d.grid_10 = d.grid10;
 	    d.month = d.month ? parseInt(d.month) : 0;
 	    d.strain = d.strain + "";
 	    d.year = parseInt(d.year);
@@ -23499,8 +24382,11 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    d.clip = clipMap[d.mark] ? clipMap[d.mark] : "Unknown";
 	    d.tag = tagMap[d.mark] ? tagMap[d.mark] : "Unknown";
 	    d.mark = markMap[d.mark] ? markMap[d.mark] : "Unknown";
+	    d.point = [+d.dd_lon, +d.dd_lat];
+	    d.geom = "Point(" + d.dd_lon + " " + d.dd_lat + ")";
 	    return d;
-	  }); // setup our cross filter:
+	  });
+	  console.log("data[1] = ", data[1]); // setup our cross filter:
 
 	  let ndx = crossfilter2(data);
 	  let yearDim = ndx.dimension(d => d.year);
@@ -23510,11 +24396,10 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  let stateProvDim = ndx.dimension(d => d.stateProv);
 	  let jurisdictionDim = ndx.dimension(d => d.jurisdiction_code); //let manUnitDim = ndx.dimension(d => d.man_unit);
 
-	  let grid10Dim = ndx.dimension(d => d.grid_10); //let geomDim = ndx.dimension(d => d.geom);
-
+	  let grid10Dim = ndx.dimension(d => d.grid_10);
+	  let geomDim = ndx.dimension(d => d.geom);
 	  let speciesDim = ndx.dimension(d => d.species_code);
-	  let strainDim = ndx.dimension(d => d.strain); //let yearClassDim = ndx.dimension(d => d.year_class);
-
+	  let strainDim = ndx.dimension(d => d.strain);
 	  let lifeStageDim = ndx.dimension(d => d.lifestage_code);
 	  let markDim = ndx.dimension(d => d.mark);
 	  let clipDim = ndx.dimension(d => d.clip);
@@ -23529,8 +24414,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 
 	  let grid10Group = grid10Dim.group().reduceSum(d => d[responseVar]);
 	  let speciesGroup = speciesDim.group().reduceSum(d => d[responseVar]);
-	  let strainGroup = strainDim.group().reduceSum(d => d[responseVar]); //let yearClassGroup = yearClassDim.group().reduceSum(d => d[responseVar]);
-
+	  let strainGroup = strainDim.group().reduceSum(d => d[responseVar]);
 	  let lifeStageGroup = lifeStageDim.group().reduceSum(d => d[responseVar]);
 	  let markGroup = markDim.group().reduceSum(d => d[responseVar]);
 	  let tagGroup = tagDim.group().reduceSum(d => d[responseVar]);
@@ -23560,7 +24444,8 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  let jurisdictionMapGroup = {};
 	  let stateProvMapGroup = {}; //let manUnitMapGroup = {};
 
-	  let grid10MapGroup = {}; //let geomMapGroup = {};
+	  let grid10MapGroup = {};
+	  let geomMapGroup = {};
 
 	  const calcMapGroups = varName => {
 	    all = ndx.groupAll().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
@@ -23574,31 +24459,18 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    //            stockingInitial
 	    //        );
 
-	    grid10MapGroup = grid10Dim.group().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial); //      geomMapGroup = geomDim
-	    //        .group()
-	    //        .reduce(
-	    //          stockingAdd(varName),
-	    //          stockingRemove(varName),
-	    //            stockingInitial
-	    //        );
+	    grid10MapGroup = grid10Dim.group().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+	    geomMapGroup = geomDim.group().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
 	  };
 
-	  calcMapGroups(varName); //debugger;
-	  // initialize the stats panel
+	  calcMapGroups(varName); // initialize the stats panel
 
 	  update_stats_panel(all, {
-	    fillScale: speciesColourScale,
+	    fillScale: barchartColourScale,
 	    label: categories.filter(d => d.name === varName)[0].label,
 	    what: responseVar
-	  }); // set up a change event handler each fime the crossfilter changes
+	  }); // set up an array of years:
 
-	  ndx.onChange(() => {
-	    update_stats_panel(all, {
-	      fillScale: speciesColourScale,
-	      label: categories.filter(d => d.name === varName)[0].label,
-	      what: responseVar
-	    });
-	  });
 	  let first_year = yearDim.bottom(1)[0].year;
 	  let last_year = yearDim.top(1)[0].year;
 	  let years$$1 = sequence(first_year, last_year);
@@ -23629,10 +24501,9 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  select("#btn_reset_filters").on("click", () => {
 	    dc.filterAll();
 	    dc.renderAll();
-	  }); // declare our plots
+	  }); // declare our dc.js plots
 
-	  const stackedByYearBarChart = dc.barChart("#stackedbar-chart"); //const strainByYearBarChart = dc.barChart('#strain-year-bar-chart');
-
+	  const stackedByYearBarChart = dc.barChart("#stackedbar-chart");
 	  const lakeChart = dc.pieChart("#lake-plot");
 	  const stateProvChart = dc.pieChart("#state-province-plot");
 	  const agencyChart = dc.pieChart("#agency-plot");
@@ -23656,10 +24527,8 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  // byYearLookup so that our tooltips work.
 
 
-	  let byYear = yearDim.group().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial); // if our category variable changes - recacalculate our by-year dimension.
-	  //let barchartColourScale = speciesColourScale;
+	  let byYear = yearDim.group().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial); // if category variable is species, use the species colour scale
 	  // these need to be recalculated
-
 
 	  if (varName === "species_code") {
 	    barchartColourScale.domain(all_species);
@@ -23703,16 +24572,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  }
 
 	  stackedByYearBarChart.render();
-	  updateStackeBarLabel(plotLabel); //    stackedByYearBarChart.on("renderlet", function(chart) {
-	  //      chart.selectAll("g rect").style("fill", d => speciesColourScale(d.layer));
-	  //
-	  //      chart
-	  //        .selectAll("g.dc-legend-item rect")
-	  //        .style("fill", d => speciesColourScale(d.layer));
-	  //
-	  //      chart.selectAll("g rect.deselected").style("fill", d => "#ccc");
-	  //    });
-
+	  updateStackeBarLabel(plotLabel);
 	  stackedByYearBarChart.on("postRender", function () {
 	    stackedByYearBarChart.select("#stackedbar-chart rect.overlay").on("dblclick", function () {
 	      //debugger;
@@ -23778,111 +24638,6 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    event.preventDefault();
 	    stackedByYearBarChart.filterAll();
 	    dc.redrawAll();
-	  }); //==========================================================
-	  //     CATEGORY VARIABLE HAS CHANGED!
-
-	  category_selector.on("change", function () {
-	    varName = this.value; //update_CategoryValue(varName);
-
-	    switch (varName) {
-	      case "species_code":
-	        items = uniqueSpecies;
-	        lookupMap = speciesMap;
-	        plotLabel = "Species Stocked Through Time";
-	        break;
-
-	      case "lake":
-	        items = uniqueLakes;
-	        lookupMap = lakeMap;
-	        plotLabel = "Stocking By Lake Through Time";
-	        break;
-
-	      case "stateProv":
-	        items = uniqueStateProvs;
-	        lookupMap = stateProvMap;
-	        plotLabel = "Stocking By State/Province Through Time";
-	        break;
-
-	      case "jurisdiction_code":
-	        items = uniqueJurisdictions;
-	        lookupMap = jurisdictionMap;
-	        plotLabel = "Stocking By Jurisdiction Through Time";
-	        break;
-
-	      case "agency_code":
-	        items = uniqueAgencies;
-	        lookupMap = agencyMap;
-	        plotLabel = "Stocking By Agency Through Time";
-	        break;
-
-	      case "strain":
-	        items = uniqueStrains;
-	        lookupMap = strainShortMap;
-	        plotLabel = "Stocking By Strain Through Time";
-	        break;
-
-	      case "clip":
-	        items = uniqueClips;
-	        lookupMap = clipMap;
-	        plotLabel = "Stocking By Clip Through Time";
-	        break;
-
-	      case "mark":
-	        items = uniqueMarks;
-	        lookupMap = markMap;
-	        plotLabel = "Stocking By Mark Through Time";
-	        break;
-
-	      case "tag":
-	        items = uniqueTags;
-	        lookupMap = tagMap;
-	        plotLabel = "Stocking By Tag Type Through Time";
-	        break;
-
-	      case "lifestage_code":
-	        items = uniqueLifestages;
-	        lookupMap = lifestageMap;
-	        plotLabel = "Stocking By LifeStage Through Time";
-	        break;
-
-	      case "stockingMethod":
-	        items = uniqueStockingMethods;
-	        lookupMap = stockingMethodMap;
-	        plotLabel = "Stocking By Stocking Method Through Time";
-	        break;
-
-	      default:
-	        items = uniqueSpecies;
-	        lookupMap = speciesMap;
-	        plotLabel = "Species Stocked Through Time";
-	    }
-
-	    calcMapGroups(varName);
-	    updateStackeBarLabel(plotLabel); // these need to be recalculated
-
-	    if (varName === "species_code") {
-	      barchartColourScale.domain(all_species);
-	    } else {
-	      barchartColourScale.domain(items);
-	    }
-
-	    byYear = yearDim.group().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
-	    byYearWith0s = ensure_group_bins(byYear, items);
-	    stackedByYearBarChart.group(byYearWith0s, items[0], sel_stack(items[0])).colors(barchartColourScale);
-
-	    for (let i = 1; i < items.length; ++i) {
-	      stackedByYearBarChart.stack(byYearWith0s, items[i], sel_stack(items[i]));
-	    }
-
-	    update_stats_panel(all, {
-	      fillScale: barchartColourScale,
-	      label: categories.filter(d => d.name === varName)[0].label,
-	      what: responseVar
-	    }); //stackedByYearBarChart.redraw();
-
-	    stackedByYearBarChart.render();
-	    let tmp = select('input[name="brush-toggle"]:checked').node().value;
-	    setBrushTooltip(tmp === "tooltip");
 	  }); //==========================================================
 	  //                   LAKE
 
@@ -24139,7 +24894,212 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    tagChart.filterAll();
 	    dc.redrawAll();
 	  });
-	  dc.renderAll();
+	  dc.renderAll(); //==================================================+
+	  //         RADIO BUTTON CHANGE LISTENERS
+
+	  spatial_resolution.on("change", function () {
+	    update_spatialUnit(this.value);
+	  }); // an accessor function to get values of our currently selected
+	  // response variable.
+
+	  let ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]); // a helper function to get the data in the correct format for
+
+
+	  const get_pts = (spatialUnit, centriods, ptAccessor) => {
+	    let pts;
+
+	    switch (spatialUnit) {
+	      case "lake":
+	        pts = Object.values(lakeMapGroup.all());
+	        break;
+
+	      case "stateProv":
+	        pts = Object.values(stateProvMapGroup.all());
+	        break;
+
+	      case "jurisdiction":
+	        pts = Object.values(jurisdictionMapGroup.all());
+	        break;
+	      //        case "manUnit":
+	      //               pts = Object.values(manUnitMapGroup.all());
+	      //                break;
+
+	      case "grid10":
+	        pts = Object.values(grid10MapGroup.all()); //debugger;
+
+	        break;
+
+	      case "geom":
+	        pts = Object.values(geomMapGroup.all());
+	        break;
+	    }
+
+	    if (spatialUnit === "geom") {
+	      pts.forEach(d => d["coordinates"] = get_coordinates(d.key));
+	    } else {
+	      pts.forEach(d => d["coordinates"] = centroids[spatialUnit][d.key]);
+	    }
+
+	    pts.forEach(d => d["total"] = sum(ptAccessor(d)));
+	    return pts.filter(d => d.total > 0);
+	  };
+
+	  let pts = get_pts(spatialUnit, centroids, ptAccessor);
+	  pieg.data([pts]).call(piecharts); // recacalculate the points given the current spatial unit and
+	  // point accessor
+
+	  const updatePieCharts = () => {
+	    pts = get_pts(spatialUnit, centroids, ptAccessor);
+	    pieg.data([pts]).call(piecharts);
+	    piecharts.selectedPie(null).clear_pointInfo();
+	    update_stats_panel(all, {
+	      //fillScale: speciesColourScale,
+	      fillScale: barchartColourScale,
+	      label: categories.filter(d => d.name === varName)[0].label,
+	      what: varName
+	    });
+	  }; // if the spatial radio buttons change, update the global variable
+	  // and update the pie charts
+
+
+	  const update_spatialUnit = value => {
+	    spatialUnit = value;
+	    spatialSelector.checked(spatialUnit).refresh();
+	    updatePieCharts();
+	  }; // if the pie chart slice selector radio buttons changes, update
+
+
+	  ndx.onChange(() => {
+	    //update our map too:
+	    pts = get_pts(spatialUnit, centroids, ptAccessor);
+	    pieg.data([pts]).call(piecharts);
+	    updatePieCharts();
+	    update_stats_panel(all, {
+	      fillScale: barchartColourScale,
+	      label: categories.filter(d => d.name === varName)[0].label,
+	      what: responseVar
+	    });
+	  }); //==================================================+
+	  //         RADIO BUTTON CHANGE LISTENERS
+
+	  spatial_resolution.on("change", function () {
+	    update_spatialUnit(this.value);
+	  });
+	  pie_size_selector.on("change", function () {
+	    responseVar = this.value;
+	    piecharts.responseVar(responseVar);
+	    updatePieCharts();
+	  }); //==========================================================
+	  //     CATEGORY VARIABLE HAS CHANGED!
+
+	  category_selector.on("change", function () {
+	    varName = this.value; //update_CategoryValue(varName);
+
+	    switch (varName) {
+	      case "species_code":
+	        items = uniqueSpecies;
+	        lookupMap = speciesMap;
+	        plotLabel = "Species Stocked Through Time";
+	        break;
+
+	      case "lake":
+	        items = uniqueLakes;
+	        lookupMap = lakeMap;
+	        plotLabel = "Stocking By Lake Through Time";
+	        break;
+
+	      case "stateProv":
+	        items = uniqueStateProvs;
+	        lookupMap = stateProvMap;
+	        plotLabel = "Stocking By State/Province Through Time";
+	        break;
+
+	      case "jurisdiction_code":
+	        items = uniqueJurisdictions;
+	        lookupMap = jurisdictionMap;
+	        plotLabel = "Stocking By Jurisdiction Through Time";
+	        break;
+
+	      case "agency_code":
+	        items = uniqueAgencies;
+	        lookupMap = agencyMap;
+	        plotLabel = "Stocking By Agency Through Time";
+	        break;
+
+	      case "strain":
+	        items = uniqueStrains;
+	        lookupMap = strainShortMap;
+	        plotLabel = "Stocking By Strain Through Time";
+	        break;
+
+	      case "clip":
+	        items = uniqueClips;
+	        lookupMap = clipMap;
+	        plotLabel = "Stocking By Clip Through Time";
+	        break;
+
+	      case "mark":
+	        items = uniqueMarks;
+	        lookupMap = markMap;
+	        plotLabel = "Stocking By Mark Through Time";
+	        break;
+
+	      case "tag":
+	        items = uniqueTags;
+	        lookupMap = tagMap;
+	        plotLabel = "Stocking By Tag Type Through Time";
+	        break;
+
+	      case "lifestage_code":
+	        items = uniqueLifestages;
+	        lookupMap = lifestageMap;
+	        plotLabel = "Stocking By LifeStage Through Time";
+	        break;
+
+	      case "stockingMethod":
+	        items = uniqueStockingMethods;
+	        lookupMap = stockingMethodMap;
+	        plotLabel = "Stocking By Stocking Method Through Time";
+	        break;
+
+	      default:
+	        items = uniqueSpecies;
+	        lookupMap = speciesMap;
+	        plotLabel = "Species Stocked Through Time";
+	    }
+
+	    calcMapGroups(varName);
+	    updateStackeBarLabel(plotLabel);
+	    updatePieCharts(); // these need to be recalculated
+
+	    if (varName === "species_code") {
+	      barchartColourScale.domain(all_species);
+	    } else {
+	      barchartColourScale.domain(items);
+	    }
+
+	    byYear = yearDim.group().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+	    byYearWith0s = ensure_group_bins(byYear, items);
+	    stackedByYearBarChart.group(byYearWith0s, items[0], sel_stack(items[0])).colors(barchartColourScale);
+
+	    for (let i = 1; i < items.length; ++i) {
+	      stackedByYearBarChart.stack(byYearWith0s, items[i], sel_stack(items[i]));
+	    }
+
+	    update_stats_panel(all, {
+	      fillScale: barchartColourScale,
+	      label: categories.filter(d => d.name === varName)[0].label,
+	      what: responseVar
+	    }); //stackedByYearBarChart.redraw();
+
+	    stackedByYearBarChart.render();
+	    let tmp = select('input[name="brush-toggle"]:checked').node().value;
+	    setBrushTooltip(tmp === "tooltip");
+	  });
+	  mymap.on("moveend", function () {
+	    //polygons.render();
+	    pieg.call(piecharts);
+	  });
 	});
 
 	exports.stockingInitial = stockingInitial;

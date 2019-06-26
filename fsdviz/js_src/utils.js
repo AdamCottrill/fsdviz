@@ -23,6 +23,14 @@ export const initialize_filter = (filters, key, dim) => {
   dim.filter(val => filters[key].values.indexOf(val) > -1);
 };
 
+// convert pts as wkt to array of two floats
+// this: "Point(-84.0326737783168 45.7810170315535)" becomes
+// this: [-84.0326737783168, 45.7810170315535]
+export const get_coordinates = pt => {
+  let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
+  return [parseFloat(coords[0]), parseFloat(coords[1])];
+};
+
 //
 //export const update_summary_table = data => {
 //    // generate the html for rows of our summary table body.  for each species in data

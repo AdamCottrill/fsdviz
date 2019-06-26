@@ -24920,6 +24920,13 @@
 	    is_filtered: false
 	  };
 	  dim.filter(val => filters[key].values.indexOf(val) > -1);
+	}; // convert pts as wkt to array of two floats
+	// this: "Point(-84.0326737783168 45.7810170315535)" becomes
+	// this: [-84.0326737783168, 45.7810170315535]
+
+	const get_coordinates = pt => {
+	  let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
+	  return [parseFloat(coords[0]), parseFloat(coords[1])];
 	}; //
 	//export const update_summary_table = data => {
 	//    // generate the html for rows of our summary table body.  for each species in data
@@ -27877,13 +27884,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  }); // an accessor function to get values of our currently selected
 	  // response variable.
 
-	  let ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]); // convert pts as wkt to array of two floats
-
-
-	  const get_coordinates = pt => {
-	    let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
-	    return [parseFloat(coords[0]), parseFloat(coords[1])];
-	  }; // a helper function to get the data in the correct format for plotting on the map.
+	  let ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]); // a helper function to get the data in the correct format for plotting on the map.
 
 
 	  const get_pts = (spatialUnit, centriods, ptAccessor) => {
