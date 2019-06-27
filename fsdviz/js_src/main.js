@@ -268,31 +268,33 @@ Promise.all([
   let geomMapGroup = {};
 
   const calcMapGroups = () => {
-    all = ndx.groupAll().reduce(stockingAdd, stockingRemove, stockingInitial);
+    all = ndx
+      .groupAll()
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     lakeMapGroup = lakeDim
       .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     jurisdictionMapGroup = jurisdictionDim
       .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     stateProvMapGroup = stateProvDim
       .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     manUnitMapGroup = manUnitDim
       .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     grid10MapGroup = grid10Dim
       .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     geomMapGroup = geomDim
       .group()
-      .reduce(stockingAdd, stockingRemove, stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
   };
 
   calcMapGroups();

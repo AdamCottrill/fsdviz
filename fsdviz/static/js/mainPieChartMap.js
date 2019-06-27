@@ -8773,15 +8773,15 @@
 
 	// normalize(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
 	// interpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding range value x in [a,b].
-	function bimap(domain, range$$1, interpolate$$1) {
-	  var d0 = domain[0], d1 = domain[1], r0 = range$$1[0], r1 = range$$1[1];
+	function bimap(domain, range, interpolate$$1) {
+	  var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
 	  if (d1 < d0) d0 = normalize(d1, d0), r0 = interpolate$$1(r1, r0);
 	  else d0 = normalize(d0, d1), r0 = interpolate$$1(r0, r1);
 	  return function(x) { return r0(d0(x)); };
 	}
 
-	function polymap(domain, range$$1, interpolate$$1) {
-	  var j = Math.min(domain.length, range$$1.length) - 1,
+	function polymap(domain, range, interpolate$$1) {
+	  var j = Math.min(domain.length, range.length) - 1,
 	      d = new Array(j),
 	      r = new Array(j),
 	      i = -1;
@@ -8789,12 +8789,12 @@
 	  // Reverse descending domains.
 	  if (domain[j] < domain[0]) {
 	    domain = domain.slice().reverse();
-	    range$$1 = range$$1.slice().reverse();
+	    range = range.slice().reverse();
 	  }
 
 	  while (++i < j) {
 	    d[i] = normalize(domain[i], domain[i + 1]);
-	    r[i] = interpolate$$1(range$$1[i], range$$1[i + 1]);
+	    r[i] = interpolate$$1(range[i], range[i + 1]);
 	  }
 
 	  return function(x) {
@@ -8814,7 +8814,7 @@
 
 	function transformer$1() {
 	  var domain = unit,
-	      range$$1 = unit,
+	      range = unit,
 	      interpolate$$1 = interpolateValue,
 	      transform,
 	      untransform,
@@ -8825,17 +8825,17 @@
 	      input;
 
 	  function rescale() {
-	    piecewise$$1 = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
+	    piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
 	    output = input = null;
 	    return scale;
 	  }
 
 	  function scale(x) {
-	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range$$1, interpolate$$1)))(transform(clamp(x)));
+	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range, interpolate$$1)))(transform(clamp(x)));
 	  }
 
 	  scale.invert = function(y) {
-	    return clamp(untransform((input || (input = piecewise$$1(range$$1, domain.map(transform), interpolateNumber)))(y)));
+	    return clamp(untransform((input || (input = piecewise$$1(range, domain.map(transform), interpolateNumber)))(y)));
 	  };
 
 	  scale.domain = function(_) {
@@ -8843,11 +8843,11 @@
 	  };
 
 	  scale.range = function(_) {
-	    return arguments.length ? (range$$1 = slice$5.call(_), rescale()) : range$$1.slice();
+	    return arguments.length ? (range = slice$5.call(_), rescale()) : range.slice();
 	  };
 
 	  scale.rangeRound = function(_) {
-	    return range$$1 = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
+	    return range = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
 	  };
 
 	  scale.clamp = function(_) {
@@ -24837,7 +24837,7 @@
 	window.L = exports;
 
 	})));
-
+	//# sourceMappingURL=leaflet-src.js.map
 	});
 
 	const checkBoxes = (selection$$1, props) => {
@@ -24904,7 +24904,7 @@
 	const prepare_stocking_data = data => {
 	  data.point = [+data.dd_lon, +data.dd_lat];
 	  data.geom = "Point(" + data.dd_lon + " " + data.dd_lat + ")";
-	  data.total_stocked = +data.total_stocked;
+	  data.total = +data.total_stocked;
 	  data.year_class = data.year_class ? data.year_class + "" : "Unkn";
 	  data.yreq = +data.yreq;
 	  data.mark = data.mark ? data.mark : "None";
@@ -25029,42 +25029,33 @@
 	// number stocked by species - if the species exists update, if not
 	// create it, if event count is 0 delete it.
 	// for each group('sliceVar'), we want to return an object of the form:
-	//{
-	// yreq : ,
-	// total: ,
-	// events: ,
-	//}
-	// agency_abbrev
-	// life_stage
-	// mark
-	// species_name
-	// stateprov
-	// stk_method
-	// strain
-	const stockingAdd = (p, v) => {
-	  let counts = p[v[sliceVar]] || {
-	    yreq: 0,
-	    total: 0,
-	    events: 0
+	const stockingAdd = column => {
+	  return (p, v) => {
+	    let counts = p[v[column]] || {
+	      yreq: 0,
+	      total: 0,
+	      events: 0
+	    };
+	    counts.yreq += v.yreq;
+	    counts.total += v.total;
+	    counts.events += v.events;
+	    p[v[column]] = counts;
+	    return p;
 	  };
-	  counts.yreq += v.yreq;
-	  counts.total += v.total_stocked;
-	  counts.events += v.events;
-	  p[v[sliceVar]] = counts;
-	  return p;
 	};
-	const stockingRemove = (p, v) => {
-	  let counts = p[v[sliceVar]] || {
-	    yreq: 0,
-	    total: 0,
-	    events: 0
+	const stockingRemove = column => {
+	  return (p, v) => {
+	    let counts = p[v[column]] || {
+	      yreq: 0,
+	      total: 0,
+	      events: 0
+	    };
+	    counts.yreq -= v.yreq;
+	    counts.total -= v.total;
+	    counts.events -= v.events;
+	    p[v[column]] = counts;
+	    return p;
 	  };
-	  counts.yreq -= v.yreq;
-	  counts.total -= v.total_stocked;
-	  counts.events -= v.events; //p[v[sliceVar]] = (p[v[sliceVar]] || 0) - v.yreq;
-
-	  p[v[sliceVar]] = counts;
-	  return p;
 	};
 	const stockingInitial = () => {
 	  return {};
@@ -27762,13 +27753,13 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  let geomMapGroup = {};
 
 	  const calcMapGroups = () => {
-	    all = ndx.groupAll().reduce(stockingAdd, stockingRemove, stockingInitial);
-	    lakeMapGroup = lakeDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
-	    jurisdictionMapGroup = jurisdictionDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
-	    stateProvMapGroup = stateProvDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
-	    manUnitMapGroup = manUnitDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
-	    grid10MapGroup = grid10Dim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
-	    geomMapGroup = geomDim.group().reduce(stockingAdd, stockingRemove, stockingInitial);
+	    all = ndx.groupAll().reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
+	    lakeMapGroup = lakeDim.group().reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
+	    jurisdictionMapGroup = jurisdictionDim.group().reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
+	    stateProvMapGroup = stateProvDim.group().reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
+	    manUnitMapGroup = manUnitDim.group().reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
+	    grid10MapGroup = grid10Dim.group().reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
+	    geomMapGroup = geomDim.group().reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 	  };
 
 	  calcMapGroups();

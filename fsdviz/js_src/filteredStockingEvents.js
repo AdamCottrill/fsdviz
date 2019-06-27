@@ -22,6 +22,7 @@ import { RadioButtons } from "./semanticRadioButtons";
 import { update_stats_panel } from "./stats_panel";
 import { get_coordinates } from "./utils";
 import { piechart_overlay } from "./piechart_overlay";
+import { stockingAdd, stockingRemove, stockingInitial } from "./reducers";
 
 // import dc from "dc";
 
@@ -450,32 +451,6 @@ const speciesColourScale = scaleOrdinal()
 const sharedColourScale = scaleOrdinal()
   .range(speciesColours)
   .domain(all_species);
-
-const stockingAdd = column => {
-  return (p, v) => {
-    let counts = p[v[column]] || { yreq: 0, total: 0, events: 0 };
-    counts.yreq += v.yreq;
-    counts.total += v.total;
-    counts.events += v.events;
-    p[v[column]] = counts;
-    return p;
-  };
-};
-
-const stockingRemove = column => {
-  return (p, v) => {
-    let counts = p[v[column]] || { yreq: 0, total: 0, events: 0 };
-    counts.yreq -= v.yreq;
-    counts.total -= v.total;
-    counts.events -= v.events;
-    p[v[column]] = counts;
-    return p;
-  };
-};
-
-export const stockingInitial = () => {
-  return {};
-};
 
 // setup the map with rough bounds (need to get pies to plot first,
 // this will be tweaked later):

@@ -2,7 +2,7 @@
 export const prepare_stocking_data = data => {
   data.point = [+data.dd_lon, +data.dd_lat];
   data.geom = "Point(" + data.dd_lon + " " + data.dd_lat + ")";
-  data.total_stocked = +data.total_stocked;
+  data.total = +data.total_stocked;
   data.year_class = data.year_class ? data.year_class + "" : "Unkn";
   data.yreq = +data.yreq;
   data.mark = data.mark ? data.mark : "None";

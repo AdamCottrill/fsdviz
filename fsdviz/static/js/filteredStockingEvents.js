@@ -1,4 +1,4 @@
-var FilteredStockingEvents = (function (exports) {
+(function () {
 	'use strict';
 
 	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -24113,6 +24113,43 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  return chart;
 	};
 
+	// our spatial dimensions will need custom reducer functions that will
+	// keep track of the number of events, yealing equivalents, and total
+	// number stocked by species - if the species exists update, if not
+	// create it, if event count is 0 delete it.
+	// for each group('sliceVar'), we want to return an object of the form:
+	const stockingAdd = column => {
+	  return (p, v) => {
+	    let counts = p[v[column]] || {
+	      yreq: 0,
+	      total: 0,
+	      events: 0
+	    };
+	    counts.yreq += v.yreq;
+	    counts.total += v.total;
+	    counts.events += v.events;
+	    p[v[column]] = counts;
+	    return p;
+	  };
+	};
+	const stockingRemove = column => {
+	  return (p, v) => {
+	    let counts = p[v[column]] || {
+	      yreq: 0,
+	      total: 0,
+	      events: 0
+	    };
+	    counts.yreq -= v.yreq;
+	    counts.total -= v.total;
+	    counts.events -= v.events;
+	    p[v[column]] = counts;
+	    return p;
+	  };
+	};
+	const stockingInitial = () => {
+	  return {};
+	};
+
 	/* global values dc, dataURL, maxEvents */
 
 	const dateParser = timeParse("%Y-%m-%d");
@@ -24167,41 +24204,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 
 	const speciesColourScale = ordinal().range(speciesColours).domain(all_species); // for now - use a generic colour scale.
 
-	const sharedColourScale = ordinal().range(speciesColours).domain(all_species);
-
-	const stockingAdd = column => {
-	  return (p, v) => {
-	    let counts = p[v[column]] || {
-	      yreq: 0,
-	      total: 0,
-	      events: 0
-	    };
-	    counts.yreq += v.yreq;
-	    counts.total += v.total;
-	    counts.events += v.events;
-	    p[v[column]] = counts;
-	    return p;
-	  };
-	};
-
-	const stockingRemove = column => {
-	  return (p, v) => {
-	    let counts = p[v[column]] || {
-	      yreq: 0,
-	      total: 0,
-	      events: 0
-	    };
-	    counts.yreq -= v.yreq;
-	    counts.total -= v.total;
-	    counts.events -= v.events;
-	    p[v[column]] = counts;
-	    return p;
-	  };
-	};
-
-	const stockingInitial = () => {
-	  return {};
-	}; // setup the map with rough bounds (need to get pies to plot first,
+	const sharedColourScale = ordinal().range(speciesColours).domain(all_species); // setup the map with rough bounds (need to get pies to plot first,
 	// this will be tweaked later):
 
 	const mymap = leafletSrc.map("mapid", {
@@ -25173,8 +25176,4 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  });
 	});
 
-	exports.stockingInitial = stockingInitial;
-
-	return exports;
-
-}({}));
+}());
