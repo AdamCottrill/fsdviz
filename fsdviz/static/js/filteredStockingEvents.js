@@ -24165,9 +24165,9 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  return accumulator;
 	}, {}); // colour scale that will be used anywhere scpecies are displayed
 
-	const speciesColourScale = ordinal().range(speciesColours).domain(all_species); // for now - use a generic colour scale for the stacked barplot
+	const speciesColourScale = ordinal().range(speciesColours).domain(all_species); // for now - use a generic colour scale.
 
-	const barchartColourScale = ordinal().range(speciesColours);
+	const sharedColourScale = ordinal().range(speciesColours).domain(all_species);
 
 	const stockingAdd = column => {
 	  return (p, v) => {
@@ -24344,15 +24344,18 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    return accumulator;
 	  }, {});
 	  const strainMap = strains.reduce((accumulator, d) => {
-	    accumulator[d.id + ""] = {
+	    let key = `${d.strain_code}-${d.strain_species.abbrev}`;
+	    accumulator[key] = {
 	      long: `${d.strain_species.common_name} - ${d.strain_label}(${d.strain_code})`,
 	      short: `${d.strain_code}-${d.strain_species.abbrev}`
 	    };
 	    return accumulator;
 	  }, {}); //just the short form for the stack bar labels:
+	  // key of of the form: <strain_code>-<species_abbrev>
 
 	  const strainShortMap = strains.reduce((accumulator, d) => {
-	    accumulator[d.id + ""] = `${d.strain_code}-${d.strain_species.abbrev}`;
+	    let key = `${d.strain_code}-${d.strain_species.abbrev}`;
+	    accumulator[key] = key;
 	    return accumulator;
 	  }, {});
 	  const stockingMethodMap = stockingMethods.reduce((accumulator, d) => {
@@ -24371,8 +24374,9 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    d.dd_lon = parseFloat(d.dd_lon); //d.grid_10 = d.lake.toLowerCase() + "_" + d.grid_10; // this should be the slug
 
 	    d.grid_10 = d.grid10;
-	    d.month = d.month ? parseInt(d.month) : 0;
-	    d.strain = d.strain + "";
+	    d.month = d.month ? parseInt(d.month) : 0; //NOTE: this will break when we get the database to return the strain slug.
+
+	    d.strain = d.strain + "-" + d.species_code;
 	    d.year = parseInt(d.year);
 	    d.year_class = parseInt(d.year_class); //yreq, events, & total_stocked match names on other views
 
@@ -24385,8 +24389,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    d.point = [+d.dd_lon, +d.dd_lat];
 	    d.geom = "Point(" + d.dd_lon + " " + d.dd_lat + ")";
 	    return d;
-	  });
-	  console.log("data[1] = ", data[1]); // setup our cross filter:
+	  }); // setup our cross filter:
 
 	  let ndx = crossfilter2(data);
 	  let yearDim = ndx.dimension(d => d.year);
@@ -24466,7 +24469,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  calcMapGroups(varName); // initialize the stats panel
 
 	  update_stats_panel(all, {
-	    fillScale: barchartColourScale,
+	    fillScale: sharedColourScale,
 	    label: categories.filter(d => d.name === varName)[0].label,
 	    what: responseVar
 	  }); // set up an array of years:
@@ -24516,6 +24519,25 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  const markChart = dc.pieChart("#mark-plot");
 	  const tagChart = dc.pieChart("#tag-plot");
 	  const clipChart = dc.pieChart("#clip-plot"); // ==================================================================
+	  // get teh default colour scale used by DC.js so we can revert
+	  // the charts back if they are no longer the selected category.
+
+	  const dcColours = strainChart.colors();
+
+	  const resetChartColours = () => {
+	    lakeChart.colors(dcColours);
+	    stateProvChart.colors(dcColours);
+	    agencyChart.colors(dcColours);
+	    jurisdictionChart.colors(dcColours);
+	    speciesChart.colors(dcColours);
+	    strainChart.colors(dcColours);
+	    lifestageChart.colors(dcColours);
+	    stockingMethodChart.colors(dcColours);
+	    stockingMonthChart.colors(dcColours);
+	    markChart.colors(dcColours);
+	    tagChart.colors(dcColours);
+	    clipChart.colors(dcColours);
+	  };
 
 	  let items = uniqueSpecies;
 	  let lookupMap = speciesMap;
@@ -24527,15 +24549,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  // byYearLookup so that our tooltips work.
 
 
-	  let byYear = yearDim.group().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial); // if category variable is species, use the species colour scale
-	  // these need to be recalculated
-
-	  if (varName === "species_code") {
-	    barchartColourScale.domain(all_species);
-	  } else {
-	    barchartColourScale.domain(items);
-	  }
-
+	  let byYear = yearDim.group().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
 	  let byYearWith0s = ensure_group_bins(byYear, items); // create string for stacked bar chart tooltips:
 
 	  let barchartTooltip = function (d) {
@@ -24543,7 +24557,9 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 
 	    if (layer !== "0") {
 	      let yr = d.key;
-	      let label = lookupMap[layer];
+	      let label = lookupMap[layer]; // some of our lookups are objects with a description attribute:
+
+	      label = typeof label === "object" ? label.description : label;
 	      let stocked = commaFormat(d.value[layer] == 0 ? 0 : d.value[layer][responseVar]);
 	      return `${yr} - ${label}: ${stocked}`;
 	    } else {
@@ -24563,7 +24579,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 
 	  stackedByYearBarChart.xAxis().tickFormat(format("d")).ticks(years$$1.length); // these are attributes we will be changing:
 
-	  stackedByYearBarChart.dimension(yearDim).group(byYearWith0s, items[0], sel_stack(items[0])).colors(barchartColourScale).colorAccessor(function (d) {
+	  stackedByYearBarChart.dimension(yearDim).group(byYearWith0s, items[0], sel_stack(items[0])).colors(sharedColourScale).colorAccessor(function (d) {
 	    return this.layer;
 	  }).yAxisLabel(ylabel); // make this a function of 'column'
 
@@ -24575,7 +24591,6 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  updateStackeBarLabel(plotLabel);
 	  stackedByYearBarChart.on("postRender", function () {
 	    stackedByYearBarChart.select("#stackedbar-chart rect.overlay").on("dblclick", function () {
-	      //debugger;
 	      // get the mouse corrdinates relative to our overlay (plotting) rectangle
 	      // not sure why d3 is needed here:
 	      let x = d3.mouse(this)[0]; // convert those coordinates to years
@@ -24925,8 +24940,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	      //                break;
 
 	      case "grid10":
-	        pts = Object.values(grid10MapGroup.all()); //debugger;
-
+	        pts = Object.values(grid10MapGroup.all());
 	        break;
 
 	      case "geom":
@@ -24949,12 +24963,12 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  // point accessor
 
 	  const updatePieCharts = () => {
+	    piecharts.fillScale(sharedColourScale).selectedPie(null).clear_pointInfo();
 	    pts = get_pts(spatialUnit, centroids, ptAccessor);
 	    pieg.data([pts]).call(piecharts);
-	    piecharts.selectedPie(null).clear_pointInfo();
 	    update_stats_panel(all, {
 	      //fillScale: speciesColourScale,
-	      fillScale: barchartColourScale,
+	      fillScale: sharedColourScale,
 	      label: categories.filter(d => d.name === varName)[0].label,
 	      what: varName
 	    });
@@ -24975,7 +24989,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    pieg.data([pts]).call(piecharts);
 	    updatePieCharts();
 	    update_stats_panel(all, {
-	      fillScale: barchartColourScale,
+	      fillScale: sharedColourScale,
 	      label: categories.filter(d => d.name === varName)[0].label,
 	      what: responseVar
 	    });
@@ -24995,102 +25009,118 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  category_selector.on("change", function () {
 	    varName = this.value; //update_CategoryValue(varName);
 
+	    resetChartColours();
+
 	    switch (varName) {
 	      case "species_code":
 	        items = uniqueSpecies;
 	        lookupMap = speciesMap;
 	        plotLabel = "Species Stocked Through Time";
+	        speciesChart.colors(sharedColourScale);
 	        break;
 
 	      case "lake":
 	        items = uniqueLakes;
 	        lookupMap = lakeMap;
 	        plotLabel = "Stocking By Lake Through Time";
+	        lakeChart.colors(sharedColourScale);
 	        break;
 
 	      case "stateProv":
 	        items = uniqueStateProvs;
 	        lookupMap = stateProvMap;
 	        plotLabel = "Stocking By State/Province Through Time";
+	        stateProvChart.colors(sharedColourScale);
 	        break;
 
 	      case "jurisdiction_code":
 	        items = uniqueJurisdictions;
 	        lookupMap = jurisdictionMap;
 	        plotLabel = "Stocking By Jurisdiction Through Time";
+	        jurisdictionChart.colors(sharedColourScale);
 	        break;
 
 	      case "agency_code":
 	        items = uniqueAgencies;
 	        lookupMap = agencyMap;
 	        plotLabel = "Stocking By Agency Through Time";
+	        agencyChart.colors(sharedColourScale);
 	        break;
 
 	      case "strain":
 	        items = uniqueStrains;
 	        lookupMap = strainShortMap;
 	        plotLabel = "Stocking By Strain Through Time";
+	        strainChart.colors(sharedColourScale);
 	        break;
 
 	      case "clip":
 	        items = uniqueClips;
 	        lookupMap = clipMap;
 	        plotLabel = "Stocking By Clip Through Time";
+	        clipChart.colors(sharedColourScale);
 	        break;
 
 	      case "mark":
 	        items = uniqueMarks;
 	        lookupMap = markMap;
 	        plotLabel = "Stocking By Mark Through Time";
+	        markChart.colors(sharedColourScale);
 	        break;
 
 	      case "tag":
 	        items = uniqueTags;
 	        lookupMap = tagMap;
 	        plotLabel = "Stocking By Tag Type Through Time";
+	        tagChart.colors(sharedColourScale);
 	        break;
 
 	      case "lifestage_code":
 	        items = uniqueLifestages;
 	        lookupMap = lifestageMap;
 	        plotLabel = "Stocking By LifeStage Through Time";
+	        lifestageChart.colors(sharedColourScale);
 	        break;
 
 	      case "stockingMethod":
 	        items = uniqueStockingMethods;
 	        lookupMap = stockingMethodMap;
 	        plotLabel = "Stocking By Stocking Method Through Time";
+	        stockingMethodChart.colors(sharedColourScale);
 	        break;
 
 	      default:
 	        items = uniqueSpecies;
 	        lookupMap = speciesMap;
 	        plotLabel = "Species Stocked Through Time";
-	    }
+	        speciesChart.colors(sharedColourScale);
+	    } // these need to be recalculated.  All Species is Global to the application,
+	    // items list of unique values of the resposne variable available when the page loaded.
 
-	    calcMapGroups(varName);
-	    updateStackeBarLabel(plotLabel);
-	    updatePieCharts(); // these need to be recalculated
 
 	    if (varName === "species_code") {
-	      barchartColourScale.domain(all_species);
+	      sharedColourScale.domain(all_species);
 	    } else {
-	      barchartColourScale.domain(items);
+	      sharedColourScale.domain(items);
 	    }
 
 	    byYear = yearDim.group().reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
 	    byYearWith0s = ensure_group_bins(byYear, items);
-	    stackedByYearBarChart.group(byYearWith0s, items[0], sel_stack(items[0])).colors(barchartColourScale);
+	    calcMapGroups(varName);
+	    updateStackeBarLabel(plotLabel);
+	    updatePieCharts();
+	    stackedByYearBarChart.group(byYearWith0s, items[0], sel_stack(items[0])).colors(sharedColourScale);
 
 	    for (let i = 1; i < items.length; ++i) {
 	      stackedByYearBarChart.stack(byYearWith0s, items[i], sel_stack(items[i]));
 	    }
 
 	    update_stats_panel(all, {
-	      fillScale: barchartColourScale,
+	      fillScale: sharedColourScale,
 	      label: categories.filter(d => d.name === varName)[0].label,
 	      what: responseVar
-	    }); //stackedByYearBarChart.redraw();
+	    });
+	    dc.redrawAll(); //stackedByYearBarChart.redraw();
 
 	    stackedByYearBarChart.render();
 	    let tmp = select('input[name="brush-toggle"]:checked').node().value;

@@ -305,6 +305,11 @@ class Strain(models.Model):
     "SEN(86)", "SEN(87)", "SEN(88)", "SEN(89)", "SEND", "SN", "SNHW",
     "SNNM", "SLD", "SLDSLW", "SLW" to all be referred to as Seneca (SN)
     lake trout.
+
+    TODO: create a slug field that uses the species abbrev and the strain code:
+
+    "{}-{}".format( x.strain_code, x.strain_species.abbrev)
+
     """
 
     strain_code = models.CharField(max_length=10)

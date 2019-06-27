@@ -194,6 +194,9 @@ class StockingEventListAPIView(APIView):
 
     Note: this is something we might want to consider for our other views too.
 
+    TODO: when slug is available for strain, use it. for now we will
+    build it on the front end.
+
     """
 
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -203,7 +206,7 @@ class StockingEventListAPIView(APIView):
         field_aliases = {
             "agency_code": F('agency__abbrev'),
             "species_code": F('species__abbrev'),
-            "strain": F('strain_raw__strain'),
+            "strain": F('strain_raw__strain__strain_code'),
             "grid10": F('grid_10__slug'),
             "lifestage_code": F('lifestage__abbrev'),
             "stockingMethod": F('stocking_method__stk_meth'),
