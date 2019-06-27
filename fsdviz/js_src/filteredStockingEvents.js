@@ -455,7 +455,7 @@ const stockingAdd = column => {
   return (p, v) => {
     let counts = p[v[column]] || { yreq: 0, total: 0, events: 0 };
     counts.yreq += v.yreq;
-    counts.total += v.total_stocked;
+    counts.total += v.total;
     counts.events += v.events;
     p[v[column]] = counts;
     return p;
@@ -466,7 +466,7 @@ const stockingRemove = column => {
   return (p, v) => {
     let counts = p[v[column]] || { yreq: 0, total: 0, events: 0 };
     counts.yreq -= v.yreq;
-    counts.total -= v.total_stocked;
+    counts.total -= v.total;
     counts.events -= v.events;
     p[v[column]] = counts;
     return p;
@@ -703,7 +703,7 @@ Promise.all([
       //yreq, events, & total_stocked match names on other views
       d.yreq = parseInt(d.yreq_stocked);
       d.events = 1;
-      d.total_stocked = parseInt(d.no_stocked);
+      d.total = parseInt(d.no_stocked);
       d.clip = clipMap[d.mark] ? clipMap[d.mark] : "Unknown";
       d.tag = tagMap[d.mark] ? tagMap[d.mark] : "Unknown";
       d.mark = markMap[d.mark] ? markMap[d.mark] : "Unknown";
@@ -736,23 +736,42 @@ Promise.all([
     let tagDim = ndx.dimension(d => d.tag);
     let stkMethDim = ndx.dimension(d => d.stockingMethod);
 
-    let yearGroup = yearDim.group().reduceSum(d => d[responseVar]);
-    let monthGroup = monthDim.group().reduceSum(d => d[responseVar]);
-    let lakeGroup = lakeDim.group().reduceSum(d => d[responseVar]);
-    let agencyGroup = agencyDim.group().reduceSum(d => d[responseVar]);
-    let stateProvGroup = stateProvDim.group().reduceSum(d => d[responseVar]);
-    let jurisdictionGroup = jurisdictionDim
-      .group()
-      .reduceSum(d => d[responseVar]);
-    //let manUnitGroup = manUnitDim.group().reduceSum(d => d[responseVar]);
-    let grid10Group = grid10Dim.group().reduceSum(d => d[responseVar]);
-    let speciesGroup = speciesDim.group().reduceSum(d => d[responseVar]);
-    let strainGroup = strainDim.group().reduceSum(d => d[responseVar]);
-    let lifeStageGroup = lifeStageDim.group().reduceSum(d => d[responseVar]);
-    let markGroup = markDim.group().reduceSum(d => d[responseVar]);
-    let tagGroup = tagDim.group().reduceSum(d => d[responseVar]);
-    let clipGroup = clipDim.group().reduceSum(d => d[responseVar]);
-    let stkMethGroup = stkMethDim.group().reduceSum(d => d[responseVar]);
+    let yearGroup;
+    let monthGroup;
+    let lakeGroup;
+    let agencyGroup;
+    let stateProvGroup;
+    let jurisdictionGroup;
+    let grid10Group;
+    let speciesGroup;
+    let strainGroup;
+    let lifeStageGroup;
+    let markGroup;
+    let tagGroup;
+    let clipGroup;
+    let stkMethGroup;
+
+    const updateGroups = responseVar => {
+      yearGroup = yearDim.group().reduceSum(d => d[responseVar]);
+      monthGroup = monthDim.group().reduceSum(d => d[responseVar]);
+      lakeGroup = lakeDim.group().reduceSum(d => d[responseVar]);
+      agencyGroup = agencyDim.group().reduceSum(d => d[responseVar]);
+      stateProvGroup = stateProvDim.group().reduceSum(d => d[responseVar]);
+      jurisdictionGroup = jurisdictionDim
+        .group()
+        .reduceSum(d => d[responseVar]);
+      //let manUnitGroup = manUnitDim.group().reduceSum(d => d[responseVar]);
+      grid10Group = grid10Dim.group().reduceSum(d => d[responseVar]);
+      speciesGroup = speciesDim.group().reduceSum(d => d[responseVar]);
+      strainGroup = strainDim.group().reduceSum(d => d[responseVar]);
+      lifeStageGroup = lifeStageDim.group().reduceSum(d => d[responseVar]);
+      markGroup = markDim.group().reduceSum(d => d[responseVar]);
+      tagGroup = tagDim.group().reduceSum(d => d[responseVar]);
+      clipGroup = clipDim.group().reduceSum(d => d[responseVar]);
+      stkMethGroup = stkMethDim.group().reduceSum(d => d[responseVar]);
+    };
+
+    updateGroups(responseVar);
 
     // these are the unique values for each category variable - used
     // select stack of barcharts and add 0's were necessary.
@@ -901,6 +920,21 @@ Promise.all([
       markChart.colors(dcColours);
       tagChart.colors(dcColours);
       clipChart.colors(dcColours);
+    };
+
+    const updateChartGroups = () => {
+      lakeChart.group(lakeGroup);
+      stateProvChart.group(stateProvGroup);
+      agencyChart.group(agencyGroup);
+      jurisdictionChart.group(jurisdictionGroup);
+      speciesChart.group(speciesGroup);
+      strainChart.group(strainGroup);
+      lifestageChart.group(lifeStageGroup);
+      stockingMethodChart.group(stkMethGroup);
+      stockingMonthChart.group(monthGroup);
+      markChart.group(markGroup);
+      tagChart.group(tagGroup);
+      clipChart.group(clipGroup);
     };
 
     let items = uniqueSpecies;
@@ -1572,8 +1606,16 @@ Promise.all([
 
     pie_size_selector.on("change", function() {
       responseVar = this.value;
+      updateGroups(responseVar);
+      updateChartGroups();
       piecharts.responseVar(responseVar);
       updatePieCharts();
+      dc.renderAll();
+
+      // make sure the behaviour of the stacked bar plot matches
+      // the currently selected option:
+      let tmp = select('input[name="brush-toggle"]:checked').node().value;
+      setBrushTooltip(tmp === "tooltip");
     });
 
     //==========================================================
