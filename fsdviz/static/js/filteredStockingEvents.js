@@ -24312,11 +24312,9 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	const pie_size_selector = selectAll("#pie-size-selector input"); // TEMPORARY:
 
 	const centroidsURL = "/static/data/centroids.json";
-	const slugURL = "/static/data/slugs.csv"; // TODO: combine all of the api calls into a single call that returns a single json object:
-
-	Promise.all([json(dataURL), json("/api/v1/common/lake"), json("/api/v1/common/agency"), json("/api/v1/common/jurisdiction"), json("/api/v1/common/state_province"), json("/api/v1/common/species"), json("/api/v1/common/strain"), json("/api/v1/stocking/lifestage"), json("/api/v1/stocking/stocking_method"), json(centroidsURL), //json(topoURL),
-	csv$1(slugURL)]).then(([data, lakes, agencies, jurisdictions, states, species1, strains, lifestages, stockingMethods, centroids, //topodata,
-	slugs]) => {
+	const slugURL = "/static/data/slugs.csv";
+	Promise.all([json(dataURL), json("/api/v1/stocking/lookups"), json("/api/v1/common/lookups"), json(centroidsURL), //json(topoURL),
+	csv$1(slugURL)]).then(([data, stocking, common, centroids, slugs]) => {
 	  slugs.forEach(d => labelLookup[d.slug] = d.label);
 	  piecharts.labelLookup(labelLookup); // get the geographic extents of our data and update our map:
 
@@ -24330,30 +24328,30 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  // create key:value pairs for all of the objects will need to lookup.
 	  // used mostly for labels. eg. lakeMap["HU"] will return "Lake Huron"
 
-	  const lakeMap = lakes.reduce((accumulator, d) => {
+	  const lakeMap = common.lakes.reduce((accumulator, d) => {
 	    accumulator[d.abbrev] = d.lake_name;
 	    return accumulator;
 	  }, {});
-	  const agencyMap = agencies.reduce((accumulator, d) => {
+	  const agencyMap = common.agencies.reduce((accumulator, d) => {
 	    accumulator[d.abbrev] = d.agency_name;
 	    return accumulator;
 	  }, {});
-	  const jurisdictionMap = jurisdictions.reduce((accumulator, d) => {
+	  const jurisdictionMap = common.jurisdictions.reduce((accumulator, d) => {
 	    accumulator[d.slug] = {
 	      description: d.description,
 	      stateprov: d.stateprov.name
 	    };
 	    return accumulator;
 	  }, {});
-	  const stateProvMap = states.reduce((accumulator, d) => {
+	  const stateProvMap = common.stateprov.reduce((accumulator, d) => {
 	    accumulator[d.abbrev] = d.name;
 	    return accumulator;
 	  }, {});
-	  const speciesMap = species1.reduce((accumulator, d) => {
+	  const speciesMap = common.species.reduce((accumulator, d) => {
 	    accumulator[d.abbrev] = `${d.common_name} - (${d.abbrev})`;
 	    return accumulator;
 	  }, {});
-	  const strainMap = strains.reduce((accumulator, d) => {
+	  const strainMap = common.strains.reduce((accumulator, d) => {
 	    let key = `${d.strain_code}-${d.strain_species.abbrev}`;
 	    accumulator[key] = {
 	      long: `${d.strain_species.common_name} - ${d.strain_label}(${d.strain_code})`,
@@ -24363,19 +24361,24 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  }, {}); //just the short form for the stack bar labels:
 	  // key of of the form: <strain_code>-<species_abbrev>
 
-	  const strainShortMap = strains.reduce((accumulator, d) => {
+	  const strainShortMap = common.strains.reduce((accumulator, d) => {
 	    let key = `${d.strain_code}-${d.strain_species.abbrev}`;
 	    accumulator[key] = key;
 	    return accumulator;
 	  }, {});
-	  const stockingMethodMap = stockingMethods.reduce((accumulator, d) => {
+	  const stockingMethodMap = stocking.stockingmethods.reduce((accumulator, d) => {
 	    accumulator[d.stk_meth] = d.description;
 	    return accumulator;
 	  }, {});
-	  const lifestageMap = lifestages.reduce((accumulator, d) => {
+	  const lifestageMap = stocking.lifestages.reduce((accumulator, d) => {
 	    accumulator[d.abbrev] = d.description;
 	    return accumulator;
-	  }, {}); // Prepare our data:
+	  }, {}); // a little cleanup - these were originally passed in, but have not
+	  // been transformed
+
+	  slugs = null;
+	  common = null;
+	  stocking = null; // Prepare our data:
 
 	  data.forEach(d => {
 	    //d.date: "2016-02-01"
