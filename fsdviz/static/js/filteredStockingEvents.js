@@ -3396,7 +3396,7 @@
 	  return [min, max];
 	}
 
-	function sequence(start, stop, step) {
+	function range(start, stop, step) {
 	  start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
 
 	  var i = -1,
@@ -7583,15 +7583,15 @@
 
 	// normalize(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
 	// interpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding range value x in [a,b].
-	function bimap(domain, range, interpolate$$1) {
-	  var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
+	function bimap(domain, range$$1, interpolate$$1) {
+	  var d0 = domain[0], d1 = domain[1], r0 = range$$1[0], r1 = range$$1[1];
 	  if (d1 < d0) d0 = normalize(d1, d0), r0 = interpolate$$1(r1, r0);
 	  else d0 = normalize(d0, d1), r0 = interpolate$$1(r0, r1);
 	  return function(x) { return r0(d0(x)); };
 	}
 
-	function polymap(domain, range, interpolate$$1) {
-	  var j = Math.min(domain.length, range.length) - 1,
+	function polymap(domain, range$$1, interpolate$$1) {
+	  var j = Math.min(domain.length, range$$1.length) - 1,
 	      d = new Array(j),
 	      r = new Array(j),
 	      i = -1;
@@ -7599,12 +7599,12 @@
 	  // Reverse descending domains.
 	  if (domain[j] < domain[0]) {
 	    domain = domain.slice().reverse();
-	    range = range.slice().reverse();
+	    range$$1 = range$$1.slice().reverse();
 	  }
 
 	  while (++i < j) {
 	    d[i] = normalize(domain[i], domain[i + 1]);
-	    r[i] = interpolate$$1(range[i], range[i + 1]);
+	    r[i] = interpolate$$1(range$$1[i], range$$1[i + 1]);
 	  }
 
 	  return function(x) {
@@ -7624,7 +7624,7 @@
 
 	function transformer$1() {
 	  var domain = unit,
-	      range = unit,
+	      range$$1 = unit,
 	      interpolate$$1 = interpolateValue,
 	      transform,
 	      untransform,
@@ -7635,17 +7635,17 @@
 	      input;
 
 	  function rescale() {
-	    piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
+	    piecewise$$1 = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
 	    output = input = null;
 	    return scale;
 	  }
 
 	  function scale(x) {
-	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range, interpolate$$1)))(transform(clamp(x)));
+	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range$$1, interpolate$$1)))(transform(clamp(x)));
 	  }
 
 	  scale.invert = function(y) {
-	    return clamp(untransform((input || (input = piecewise$$1(range, domain.map(transform), interpolateNumber)))(y)));
+	    return clamp(untransform((input || (input = piecewise$$1(range$$1, domain.map(transform), interpolateNumber)))(y)));
 	  };
 
 	  scale.domain = function(_) {
@@ -7653,11 +7653,11 @@
 	  };
 
 	  scale.range = function(_) {
-	    return arguments.length ? (range = slice$5.call(_), rescale()) : range.slice();
+	    return arguments.length ? (range$$1 = slice$5.call(_), rescale()) : range$$1.slice();
 	  };
 
 	  scale.rangeRound = function(_) {
-	    return range = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
+	    return range$$1 = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
 	  };
 
 	  scale.clamp = function(_) {
@@ -7986,6 +7986,8 @@
 	var saturday = weekday(6);
 
 	var sundays = sunday.range;
+	var mondays = monday.range;
+	var thursdays = thursday.range;
 
 	var month = newInterval(function(date) {
 	  date.setDate(1);
@@ -8075,6 +8077,8 @@
 	var utcSaturday = utcWeekday(6);
 
 	var utcSundays = utcSunday.range;
+	var utcMondays = utcMonday.range;
+	var utcThursdays = utcThursday.range;
 
 	var utcMonth = newInterval(function(date) {
 	  date.setUTCDate(1);
@@ -23663,7 +23667,7 @@
 	window.L = exports;
 
 	})));
-	//# sourceMappingURL=leaflet-src.js.map
+
 	});
 
 	const RadioButtons = () => {
@@ -24518,7 +24522,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 
 	  let first_year = yearDim.bottom(1)[0].year;
 	  let last_year = yearDim.top(1)[0].year;
-	  let years$$1 = sequence(first_year, last_year);
+	  let years$$1 = range(first_year, last_year);
 	  years$$1.push(last_year); //=========================================
 	  //      helper functions
 
