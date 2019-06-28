@@ -24150,7 +24150,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  return {};
 	};
 
-	/* global values dc, dataURL, maxEvents */
+	/* global values dc, dataURL, maxEvents, all_species, speciesColours, markLookup, tagLookup, clipLookup */
 
 	const dateParser = timeParse("%Y-%m-%d");
 	let commaFormat = format(",");
@@ -24165,7 +24165,9 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	let responseVar = "yreq"; //let column = "yreq_stocked";
 	// TODO:make ylabel a function of the response variable radio buttons array:
 
-	let ylabel = "Yearly Equivalents";
+	let ylabel = "Yearly Equivalents"; // a global object that will hold slug:label pairs for the labels of
+	// the currently selected spatial unit.
+
 	const labelLookup = {};
 	const month_lookup = {
 	  "1": "Jan",
@@ -24181,14 +24183,10 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  "11": "Nov",
 	  "12": "Dec",
 	  "0": "Unkn"
-	};
-	const markLookup = [["ad", "None"], ["Ad", "None"], ["AD", "None"], ["Ad/T-bar tag", "None"], ["ADCWT", "None"], ["ADCWTOX", "OX"], ["ADDO", "None"], ["ADDORV", "None"], ["ADLM", "None"], ["ADLMLP", "None"], ["ADLMLV", "None"], ["ADLMRP", "None"], ["ADLMRV", "None"], ["ADLP", "None"], ["ADCWTLP", "None"], ["ADLPRM", "None"], ["ADLPRV", "None"], ["ADLV", "None"], ["ADCWTLV", "None"], ["ADLVOX", "OX"], ["ADLVRM", "None"], ["ADLVRP", "None"], ["ADOX", "OX"], ["ADOXRV", "OX"], ["ADPT", "None"], ["ADRM", "None"], ["ADRMRP", "None"], ["ADRMRV", "None"], ["ADRP", "None"], ["ADCWTRP", "None"], ["ADRV", "None"], ["ADCWTRV", "None"], ["CA", "CA"], ["CA2", "CA"], ["CAL", "CA"], ["CWT", "None"], ["CWTOX", "OX"], ["DO", "None"], ["DOLP", "None"], ["DOLV", "None"], ["DORP", "None"], ["DORV", "None"], ["LM", "None"], ["LMLP", "None"], ["LMLV", "None"], ["LP", "None"], ["CWTLP", "None"], ["LPLV", "None"], ["LPOX", "OX"], ["LPRM", "None"], ["BP", "None"], ["LPRV", "None"], ["LPOXRV", "None"], ["LR", "None"], ["LV", "None"], ["CWTLV", "None"], ["LVOX", "OX"], ["LVPT", "None"], ["LVRP", "None"], ["LVOXRP", "OX"], ["BV", "None"], ["BVPIT", "None"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "OX"], ["ox", "OX"], ["OX", "OX"], ["OXRP", "OX"], ["OXRV", "OX"], ["PIT", "None"], ["PIT tag", "None"], ["PT", "None"], ["PTRV", "None"], ["RM", "None"], ["RMRV", "None"], ["RP", "None"], ["RPRV", "None"], ["RV", "None"], ["CWTRV", "None"], ["CWTOXRV", "OX"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "None"], ["FTRV", "None"], ["JT", "None"], ["SCU", "None"], ["UP", "None"], ["UT", "None"], ["VIE", "None"], ["VIE-LFY", "None"], ["XX", "None"], ["ADFT", "None"], ["ADFTLP", "None"], ["AZR", "None"], ["Fin Clip", "None"], ["FT", "None"], ["RR", "None"], ["VIE-RFY", "None"]];
-	const clipLookup = [["ad", "AD"], ["Ad", "AD"], ["AD", "AD"], ["Ad/T-bar tag", "AD"], ["ADCWT", "AD"], ["ADCWTOX", "AD"], ["ADDO", "ADDO"], ["ADDORV", "ADDORV"], ["ADLM", "ADLM"], ["ADLMLP", "ADLMLP"], ["ADLMLV", "ADLMLV"], ["ADLMRP", "ADLMRP"], ["ADLMRV", "ADLMRV"], ["ADLP", "ADLP"], ["ADCWTLP", "ADLP"], ["ADLPRM", "ADLPRM"], ["ADLPRV", "ADLPRV"], ["ADLV", "ADLV"], ["ADCWTLV", "ADLV"], ["ADLVOX", "ADLV"], ["ADLVRM", "ADLVRM"], ["ADLVRP", "ADLVRP"], ["ADOX", "AD"], ["ADOXRV", "ADRV"], ["ADPT", "ADPT"], ["ADRM", "ADRM"], ["ADRMRP", "ADRMRP"], ["ADRMRV", "ADRMRV"], ["ADRP", "ADRP"], ["ADCWTRP", "ADRP"], ["ADRV", "ADRV"], ["ADCWTRV", "ADRV"], ["CA", "None"], ["CA2", "None"], ["CAL", "None"], ["CWT", "None"], ["CWTOX", "None"], ["DO", "DO"], ["DOLP", "DOLP"], ["DOLV", "DOLV"], ["DORP", "DORP"], ["DORV", "DORV"], ["LM", "LM"], ["LMLP", "LMLP"], ["LMLV", "LMLV"], ["LP", "LP"], ["CWTLP", "LP"], ["LPLV", "LPLV"], ["LPOX", "LP"], ["LPRM", "LPRM"], ["BP", "LPRP"], ["LPRV", "LPRV"], ["LPOXRV", "LPRV"], ["LR", "LR"], ["LV", "LV"], ["CWTLV", "LV"], ["LVOX", "LV"], ["LVPT", "LV"], ["LVRP", "LVRP"], ["LVOXRP", "LVRP"], ["BV", "LVRV"], ["BVPIT", "LVRV"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "None"], ["ox", "None"], ["OX", "None"], ["OXRP", "RP"], ["OXRV", "RV"], ["PIT", "None"], ["PIT tag", "None"], ["PT", "None"], ["PTRV", "RV"], ["RM", "RM"], ["RMRV", "RMRV"], ["RP", "RP"], ["RPRV", "RPRV"], ["RV", "RV"], ["CWTRV", "RV"], ["CWTOXRV", "RV"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "Unknown"], ["FTRV", "Unknown"], ["JT", "Unknown"], ["SCU", "Unknown"], ["UP", "Unknown"], ["UT", "Unknown"], ["VIE", "Unknown"], ["VIE-LFY", "Unknown"], ["XX", "Unknown"], ["ADFT", "Unknown"], ["ADFTLP", "Unknown"], ["AZR", "Unknown"], ["Fin Clip", "Unknown"], ["FT", "Unknown"], ["RR", "Unknown"], ["VIE-RFY", "Unknown"]];
-	const tagLookup = [["ad", "None"], ["Ad", "None"], ["AD", "None"], ["Ad/T-bar tag", "ATAG"], ["ADCWT", "CWT"], ["ADCWTOX", "CWT"], ["ADDO", "None"], ["ADDORV", "None"], ["ADLM", "None"], ["ADLMLP", "None"], ["ADLMLV", "None"], ["ADLMRP", "None"], ["ADLMRV", "None"], ["ADLP", "None"], ["ADCWTLP", "CWT"], ["ADLPRM", "None"], ["ADLPRV", "None"], ["ADLV", "None"], ["ADCWTLV", "CWT"], ["ADLVOX", "None"], ["ADLVRM", "None"], ["ADLVRP", "None"], ["ADOX", "None"], ["ADOXRV", "None"], ["ADPT", "None"], ["ADRM", "None"], ["ADRMRP", "None"], ["ADRMRV", "None"], ["ADRP", "None"], ["ADCWTRP", "CWT"], ["ADRV", "None"], ["ADCWTRV", "CWT"], ["CA", "None"], ["CA2", "None"], ["CAL", "None"], ["CWT", "CWT"], ["CWTOX", "CWT"], ["DO", "None"], ["DOLP", "None"], ["DOLV", "None"], ["DORP", "None"], ["DORV", "None"], ["LM", "None"], ["LMLP", "None"], ["LMLV", "None"], ["LP", "None"], ["CWTLP", "CWT"], ["LPLV", "None"], ["LPOX", "None"], ["LPRM", "None"], ["BP", "None"], ["LPRV", "None"], ["LPOXRV", "None"], ["LR", "None"], ["LV", "None"], ["CWTLV", "CWT"], ["LVOX", "None"], ["LVPT", "PIT"], ["LVRP", "None"], ["LVOXRP", "None"], ["BV", "None"], ["BVPIT", "PIT"], ["NC", "None"], ["NO", "None"], ["None", "None"], ["none", "None"], ["", "None"], ["OTC", "None"], ["ox", "None"], ["OX", "None"], ["OXRP", "None"], ["OXRV", "None"], ["PIT", "PIT"], ["PIT tag", "PIT"], ["PT", "PIT"], ["PTRV", "PIT"], ["RM", "None"], ["RMRV", "None"], ["RP", "None"], ["RPRV", "None"], ["RV", "None"], ["CWTRV", "CWT"], ["CWTOXRV", "CWT"], ["", "Unknown"], [" ", "Unknown"], ["Chemical / Dye", "Unknown"], ["Chemical / Dye], Coded Wire Tag], Fin Clip", "Unknown"], ["FTRM", "Unknown"], ["FTRV", "Unknown"], ["JT", "Unknown"], ["SCU", "Unknown"], ["UP", "Unknown"], ["UT", "Unknown"], ["VIE", "Unknown"], ["VIE-LFY", "Unknown"], ["XX", "Unknown"], ["ADFT", "Unknown"], ["ADFTLP", "Unknown"], ["AZR", "Unknown"], ["Fin Clip", "None"], ["FT", "Unknown"], ["RR", "Unknown"], ["VIE-RFY", "Unknown"]]; // 19 colours
+	}; // these assume the clip-lookup script has already been loaded.  these
+	// will need to moved below promise() when we update the database and
+	// serializers to include mark, clips, tags:
 
-	let speciesColours = ["#3cb44b", "#4363d8", "#e6194b", "#f58231", "#46f0f0", "#ffe119", "#f032e6", "#911eb4", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080", "#ffffff"]; //19 species
-
-	let all_species = ["LAT", "CHS", "RBT", "BNT", "COS", "WAL", "LTX", "ATS", "SPE", "BKT", "SOS", "YEP", "LHR", "BLO", "LAS", "MUE", "SMB", "TIM", "NOP"];
 	const clipMap = clipLookup.reduce((accumulator, d) => {
 	  accumulator[d[0]] = d[1];
 	  return accumulator;
@@ -24200,7 +24198,10 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	const markMap = markLookup.reduce((accumulator, d) => {
 	  accumulator[d[0]] = d[1];
 	  return accumulator;
-	}, {}); // colour scale that will be used anywhere scpecies are displayed
+	}, {}); // these assume that all_species and speciesColours have already been
+	// loaded from the ~/js/speciesColors.js file.
+	// colour scale that will be used anywhere scpecies
+	// are displayed
 
 	const speciesColourScale = ordinal().range(speciesColours).domain(all_species); // for now - use a generic colour scale.
 
@@ -24317,12 +24318,18 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	csv$1(slugURL)]).then(([data, lakes, agencies, jurisdictions, states, species1, strains, lifestages, stockingMethods, centroids, //topodata,
 	slugs]) => {
 	  slugs.forEach(d => labelLookup[d.slug] = d.label);
-	  piecharts.labelLookup(labelLookup); // geographic extents:
+	  piecharts.labelLookup(labelLookup); // get the geographic extents of our data and update our map:
 
 	  const latbounds = extent(data, d => d.dd_lat);
 	  const longbounds = extent(data, d => d.dd_lon);
-	  mymap.fitBounds([[latbounds[0], longbounds[0]], [latbounds[1], longbounds[1]]]);
-	  select("#record-count-warning").classed("hidden", data.length >= maxEvents ? false : true);
+	  mymap.fitBounds([[latbounds[0], longbounds[0]], [latbounds[1], longbounds[1]]]); // see if we have the maximum number of stocking events. If so, we
+	  // have truncated the data and should show a warning.
+
+	  select("#record-count-warning").classed("hidden", data.length >= maxEvents ? false : true); // ==================================================================
+	  //                    LOOKUP-MAPS
+	  // create key:value pairs for all of the objects will need to lookup.
+	  // used mostly for labels. eg. lakeMap["HU"] will return "Lake Huron"
+
 	  const lakeMap = lakes.reduce((accumulator, d) => {
 	    accumulator[d.abbrev] = d.lake_name;
 	    return accumulator;
@@ -24392,7 +24399,8 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    d.point = [+d.dd_lon, +d.dd_lat];
 	    d.geom = "Point(" + d.dd_lon + " " + d.dd_lat + ")";
 	    return d;
-	  }); // setup our cross filter:
+	  }); //=======================================================================
+	  //                         CROSSFILTER
 
 	  let ndx = crossfilter2(data);
 	  let yearDim = ndx.dimension(d => d.year);
@@ -24410,7 +24418,16 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  let markDim = ndx.dimension(d => d.mark);
 	  let clipDim = ndx.dimension(d => d.clip);
 	  let tagDim = ndx.dimension(d => d.tag);
-	  let stkMethDim = ndx.dimension(d => d.stockingMethod);
+	  let stkMethDim = ndx.dimension(d => d.stockingMethod); // Create our groups here so the variables are in scope. They are
+	  // actually populated in a function that can be called when the
+	  // response variable changes and can be recalculated as needed.
+	  //[NOTE: this appears to work, but I'm not sure if recreateing
+	  //groups is the best way to do this. THe alternative would be to
+	  //use our custom stockingAdd, StockingRemove, stockingInital
+	  //reducers - but they would be continuously calculating values
+	  //that we might not be interested in (total, yreq and events
+	  //would be calculated on every change of the cross filter).]
+
 	  let yearGroup;
 	  let monthGroup;
 	  let lakeGroup;
@@ -24424,7 +24441,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  let markGroup;
 	  let tagGroup;
 	  let clipGroup;
-	  let stkMethGroup;
+	  let stkMethGroup; // the function to update our groups.
 
 	  const updateGroups = responseVar => {
 	    yearGroup = yearDim.group().reduceSum(d => d[responseVar]);
@@ -24526,7 +24543,8 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  select("#btn_reset_filters").on("click", () => {
 	    dc.filterAll();
 	    dc.renderAll();
-	  }); // declare our dc.js plots
+	  }); //==============================================================
+	  // declare our dc.js plots
 
 	  const stackedByYearBarChart = dc.barChart("#stackedbar-chart");
 	  const lakeChart = dc.pieChart("#lake-plot");
@@ -24541,7 +24559,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  const markChart = dc.pieChart("#mark-plot");
 	  const tagChart = dc.pieChart("#tag-plot");
 	  const clipChart = dc.pieChart("#clip-plot"); // ==================================================================
-	  // get teh default colour scale used by DC.js so we can revert
+	  // get the default colour scale used by DC.js so we can revert
 	  // the charts back if they are no longer the selected category.
 
 	  const dcColours = strainChart.colors();
@@ -24574,7 +24592,9 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	    markChart.group(markGroup);
 	    tagChart.group(tagGroup);
 	    clipChart.group(clipGroup);
-	  };
+	  }; //==========================================================
+	  //                 DYANAMIC STACKED BAR
+
 
 	  let items = uniqueSpecies;
 	  let lookupMap = speciesMap;
@@ -24948,10 +24968,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  });
 	  dc.renderAll(); //==================================================+
 	  //         RADIO BUTTON CHANGE LISTENERS
-
-	  spatial_resolution.on("change", function () {
-	    update_spatialUnit(this.value);
-	  }); // an accessor function to get values of our currently selected
+	  // an accessor function to get values of our currently selected
 	  // response variable.
 
 	  let ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]); // a helper function to get the data in the correct format for
