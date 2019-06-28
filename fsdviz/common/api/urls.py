@@ -1,4 +1,3 @@
-
 """urls for the api for our common models"""
 
 from django.urls import path
@@ -7,7 +6,8 @@ from rest_framework.routers import SimpleRouter
 from .views import (AgencyViewSet, SpeciesViewSet, JurisdictionViewSet,
                     CwtViewSet, StateProvinceViewSet, LakeViewSet,
                     ManagementUnitViewSet, StrainViewSet, StrainRawViewSet,
-                    Grid10ViewSet, LatLonFlagViewSet, MarkViewSet)
+                    Grid10ViewSet, LatLonFlagViewSet, MarkViewSet,
+                    CommonLookUpsAPIView)
 
 app_name = "common"
 
@@ -27,6 +27,13 @@ router.register('strainraw', StrainRawViewSet)
 router.register('cwt', CwtViewSet)
 
 urlpatterns = router.urls
+
+urlpatterns += [
+    path(
+        'lookups/',
+        CommonLookUpsAPIView.as_view(),
+        name='api-get-common-lookups'),
+]
 
 # urlpatterns = [
 

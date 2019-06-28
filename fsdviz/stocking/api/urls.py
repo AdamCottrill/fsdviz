@@ -5,7 +5,7 @@ from rest_framework.routers import SimpleRouter
 
 from .views import (LifeStageViewSet, ConditionViewSet, StockingMethodViewSet,
                     StockingEventViewSet, StockingEventMapListView,
-                    StockingEventListAPIView)
+                    StockingEventListAPIView, StockingEventLookUpsAPIView)
 
 
 app_name = "api"
@@ -22,6 +22,12 @@ urlpatterns = router.urls
 # urls for the template views.
 
 urlpatterns += [
+
+
+    path(
+        'lookups/',
+        StockingEventLookUpsAPIView.as_view(),
+        name='api-get-stocking-lookups'),
 
 
     path(

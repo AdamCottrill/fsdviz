@@ -11,6 +11,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
+import json
+
 from fsdviz.stocking.models import (LifeStage, Condition, StockingMethod,
                                     StockingEvent)
 
@@ -27,6 +29,7 @@ class LifeStageViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LifeStageSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+
 class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Condition.objects.all()
@@ -38,6 +41,7 @@ class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = StockingMethod.objects.all()
     serializer_class = StockingMethodSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
 
 class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
 
@@ -215,11 +219,12 @@ class StockingEventListAPIView(APIView):
             "stateProv": F('jurisdiction__stateprov__abbrev'),
         }
 
-        fields = [ "stock_id", "lake", "jurisdiction_code",
-            "stateProv", 'grid10', "dd_lat", 'dd_lon', 'year',
-            'month', 'st_site', 'date', 'month', 'mark', 'year_class',
-            "agency_code", "species_code", "strain", "lifestage_code",
-            "stockingMethod", "no_stocked", "yreq_stocked"]
+        fields = [
+            "stock_id", "lake", "jurisdiction_code", "stateProv", 'grid10',
+            "dd_lat", 'dd_lon', 'year', 'month', 'st_site', 'date', 'month',
+            'mark', 'year_class', "agency_code", "species_code", "strain",
+            "lifestage_code", "stockingMethod", "no_stocked", "yreq_stocked"
+        ]
 
         queryset = StockingEvent.objects\
                               .select_related('jurisdiction', 'agency',
@@ -236,3 +241,32 @@ class StockingEventListAPIView(APIView):
         maxEvents = settings.MAX_FILTERED_EVENT_COUNT
 
         return Response(filtered[:maxEvents])
+
+
+class StockingEventLookUpsAPIView(APIView):
+    """This api endpoint will return a json object that contains lookups
+     for the stocking model objects needed to label stocking events.
+     The api endpoint that returns the stocking events contains only
+     id's or slugs form most fields to that the payload is compact and
+     the javscript processing on the front end is as efficient as
+     possible.  This endpoint provides the lookup values so that the
+     stocking method 'b' can be displayed as "boat, offshore
+     stocking".  Originally, this information was collected through
+     separate api calls for each attribute.
+
+    """
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+
+        lifestages = LifeStage.objects.values('abbrev', 'description')
+        stockingmethods = StockingMethod.objects.values(
+            'stk_meth', 'description')
+
+        lookups = {
+            'stockingmethods': list(stockingmethods),
+            'lifestages': list(lifestages)
+        }
+
+        return Response(lookups)

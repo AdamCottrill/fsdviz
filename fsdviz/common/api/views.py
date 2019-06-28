@@ -6,6 +6,8 @@ The veiws in this file should all be publicly available as readonly.
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from fsdviz.common.models import (Agency, Species, Lake, CWT, Jurisdiction,
                                   StateProvince, ManagementUnit, Strain,
@@ -124,3 +126,75 @@ class MarkViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Mark.objects.all()
     serializer_class = MarkSerializer
     filterset_class = MarkFilter
+
+
+class CommonLookUpsAPIView(APIView):
+    """This api endpoint will return a json object that contains lookups
+     for the stocking model objects needed to label stocking events.
+     The api endpoint that returns the stocking events contains only
+     id's or slugs form most fields to that the payload is compact and
+     the JavaScript processing on the front end is as efficient as
+     possible.  This endpoint provides the lookup values so that the
+     stocking method 'LAT' can be displayed as "Lake Trout".
+     Originally, this information was collected through separate api
+     calls for each attribute.
+
+    TODOs:
+
+    - Add management unit to this list of lookup values.
+    - remove slug from strain when it is added as field on model.
+
+    """
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+
+        lakes = Lake.objects.values('abbrev', 'lake_name')
+        lakes_dict = {x['abbrev']: x for x in lakes}
+
+        stateprov = StateProvince.objects.values('abbrev', 'name', 'country',
+                                                 'description')
+        stateprov_dict = {x['abbrev']: x for x in stateprov}
+
+        jurisdictions = list(
+            Jurisdiction.objects.prefetch_related('lake', 'stateprov').values(
+                'slug', 'name', 'lake__abbrev', 'stateprov__abbrev',
+                'description'))
+        for jur in jurisdictions:
+            jur['lake'] = lakes_dict.get(jur.get('lake__abbrev'))
+            jur['stateprov'] = stateprov_dict.get(jur.get('stateprov__abbrev'))
+            jur.pop('lake__abbrev', None)
+            jur.pop('stateprov__abbrev', None)
+
+        agencies = Agency.objects.values('abbrev', 'agency_name')
+
+        species = Species.objects.values('abbrev', 'common_name',
+                                         'scientific_name', 'species_code',
+                                         'speciescommon')
+        species_dict = {x['abbrev']: x for x in species}
+
+        strains = list(Strain.objects.prefetch_related('strain_species')\
+                       .values('id', 'strain_code', 'strain_label',
+                               'strain_species__abbrev')\
+                       .distinct())
+
+        # now update the strains with the nested species dicts and add a slug
+        # while we are at it.
+        for strain in strains:
+            strain['strain_species'] = species_dict.get(
+                strain['strain_species__abbrev'])
+            strain['slug'] = "{strain_species__abbrev}-{strain_code}".format(
+                **strain)
+            strain.pop('strain_species__abbrev', None)
+
+        lookups = {
+            "lakes": list(lakes),
+            "agencies": list(agencies),
+            'jurisdictions': jurisdictions,
+            'stateprov': list(stateprov),
+            'species': list(species),
+            'strains': strains
+        }
+
+        return Response(lookups)

@@ -7,6 +7,9 @@ from django.db.models import Count, F, Sum, Min, Max
 from fsdviz.common.models import *
 from fsdviz.stocking.models import *
 
+from fsdviz.common.api.serializers import StrainSerializer
+
+
 from django.conf import settings
 settings.DEBUG = True
 from django.db import connection
@@ -300,3 +303,63 @@ formdata = {
     'agency': []
 
 }
+
+
+lakes = Lake.objects.values('abbrev', 'lake_name')
+lakes_dict = {x['abbrev']: x for x in lakes}
+
+stateprov = StateProvince.objects.values('abbrev', 'name', 'country',
+                                         'description')
+stateprov_dict = {x['abbrev']: x for x in stateprov}
+
+#stateprov= {k:v for (k,v) in stateprov}
+jurisdictions = list(
+    Jurisdiction.objects.prefetch_related('lake', 'stateprov').values('slug', 'name', 'lake__abbrev',
+                                'stateprov__abbrev',
+                                'description'))
+for jur in jurisdictions:
+    jur['lake'] = lakes_dict.get(jur.get('lake__abbrev'))
+    jur['stateprov'] = stateprov_dict.get(jur.get('stateprov__abbrev'))
+    jur.pop('lake__abbrev', None)
+    jur.pop('stateprov__abbrev', None)
+
+agencies = Agency.objects.values('abbrev', 'agency_name')
+#agencies = {k:v for (k,v) in agencies}
+
+species = Species.objects.values('abbrev', 'common_name', 'scientific_name',
+                                 'species_code', 'speciescommon')
+species_dict = {x['abbrev']: x for x in species}
+
+strains = list(Strain.objects.prefetch_related('strain_species')\
+                        .values ('id', 'strain_code', 'strain_label',
+                                 'strain_species__abbrev')\
+                             .distinct())
+
+
+
+#now update the strains with the nested species dicts and add a slug
+#while we are at it.
+for strain in strains:
+    strain['strain_species'] = species_dict.get(
+        strain['strain_species__abbrev'])
+    strain['slug'] = "{strain_species__abbrev}-{strain_code}".format(**strain)
+    strain.pop('strain_species__abbrev', None)
+
+lifestages = LifeStage.objects.values('abbrev', 'description')
+stockingmethods = StockingMethod.objects.values('stk_meth', 'description')
+
+
+lookups = {
+    "lakes": list(lakes),
+    "agencies": list(agencies),
+    'jurisdictions': jurisdictions,
+    'stateprov': list(stateprov),
+    'species': list(species),
+    'strains': strains,
+    'stockingmethods': list(stockingmethods),
+    'lifestages':list(lifestages)
+
+}
+
+
+foo = json.dumps(lookups)
