@@ -1,4 +1,4 @@
-'''=============================================================
+"""=============================================================
 ~/src/lwdb_utils.py
 Created: 10 Jun 2016 09:24:47
 
@@ -15,16 +15,45 @@ abbreviation or label)
 A. Cottrill
 =============================================================
 
-'''
+"""
 
 import re
 
 from collections import OrderedDict
 from django.core.exceptions import ObjectDoesNotExist
 
-from fsdviz.stocking.models import (Condition, StockingMethod)
+from fsdviz.stocking.models import Condition, StockingMethod
 
-from fsdviz.common.models import CWT, CWTsequence, Grid10, ManagementUnit
+from fsdviz.common.models import (
+    CWT,
+    CWTsequence,
+    Grid10,
+    ManagementUnit,
+    StrainRaw,
+    Strain,
+)
+
+
+def build_years_array(db_years, first_year=None, last_year=None):
+    """The database queries are parameterized to accept a single year of
+    data.  This function takes a two element array [db_years] (which
+    contains year first and last years in the target database) and two
+    optional arguments that specify the earliest and latest year to
+    subset that array by.  Ieturns an array of years that encapsulate
+    the years in the database, subsetted by the provided first_year and
+    last_year parameters.
+
+    Arguments:
+    - `db_years`: [min([year]), max([year])]
+    - `first_year`:
+    - `last_year`:
+
+    """
+
+    fyear = max(first_year, db_years[0]) if first_year else db_years[0]
+    lyear = min(last_year, db_years[1]) if last_year else db_years[1]
+
+    return list(range(fyear, lyear + 1))
 
 
 def grid_or_None(lake, grid):
@@ -109,7 +138,7 @@ def int_or_None(x):
 
     if x is None:
         return None
-    elif x in ('', ' '):
+    elif x in ("", " "):
         return None
     else:
         try:
@@ -129,7 +158,7 @@ def float_or_None(x):
 
     if x is None:
         return None
-    elif x in ('', ' '):
+    elif x in ("", " "):
         return None
     else:
         try:
@@ -168,16 +197,15 @@ def get_mark_codes(mark_string, valid_marks):
     problem = False
     return_dict = {}
 
-    if mark_string is None or mark_string == '':
+    if mark_string is None or mark_string == "":
         return return_dict
 
     matches = [
-        re.search(x, mark_string) for x in valid_marks
-        if re.search(x, mark_string)
+        re.search(x, mark_string) for x in valid_marks if re.search(x, mark_string)
     ]
     if matches:
         codes = [x.group() for x in matches]
-        return_dict['codes'] = codes
+        return_dict["codes"] = codes
         spans = [x.span() for x in matches]
         spans.sort()
         first_match = spans[0][0]
@@ -191,11 +219,11 @@ def get_mark_codes(mark_string, valid_marks):
                 else:
                     problem = True if spans[n][1] != spans[n + 1][0] else False
 
-    #if there is problem - try and figure out what it is:
+        # if there is problem - try and figure out what it is:
         if problem:
             for k in valid_marks:
-                mark_string = mark_string.replace(k, '-' * len(k))
-            return_dict['unmatched'] = mark_string
+                mark_string = mark_string.replace(k, "-" * len(k))
+            return_dict["unmatched"] = mark_string
     return return_dict
 
 
@@ -211,7 +239,7 @@ def pprint_dict(record):
 
     """
     for col, val in record.items():
-        print('{}: {}'.format(col, val))
+        print("{}: {}".format(col, val))
 
 
 def get_lake_abbrev(record):
@@ -220,7 +248,7 @@ def get_lake_abbrev(record):
     Arguments:
     - `record`:
     """
-    lake = record.get('lake')
+    lake = record.get("lake")
     if lake:
         lake = lake.strip()
         if len(lake) > 2:
@@ -253,52 +281,50 @@ def get_latlon(record, grid_pts=None, mu_pts=None, lake_pts=None):
 
     pt = None
 
-    if record['latitude'] and record['longitude']:
+    if record["latitude"] and record["longitude"]:
         pt = OrderedDict(
-            ddlat=record['latitude'],
-            ddlon=record['longitude'],
-            method='reported',
-            value=1)
-    if record['lake'] and record['grid'] and grid_pts and pt is None:
-        #lake = record['lake'].strip()
+            ddlat=record["latitude"],
+            ddlon=record["longitude"],
+            method="reported",
+            value=1,
+        )
+    if record["lake"] and record["grid"] and grid_pts and pt is None:
+        # lake = record['lake'].strip()
         lake = get_lake_abbrev(record)
-        grid_no = int(record['grid'])
+        grid_no = int(record["grid"])
         pt = grid_pts.get(lake).get(grid_no)
         if pt:
             pt = pt._asdict()
-            pt['method'] = 'grid centroid'
-            pt['value'] = 4
+            pt["method"] = "grid centroid"
+            pt["value"] = 4
 
-    if record['stat_dist'] and mu_pts and pt is None:
-        mu = record['stat_dist'].strip()
+    if record["stat_dist"] and mu_pts and pt is None:
+        mu = record["stat_dist"].strip()
         pt = mu_pts.get(mu)
         if pt:
             pt = pt._asdict()
-            pt['method'] = 'mu centroid'
-            pt['value'] = 5
+            pt["method"] = "mu centroid"
+            pt["value"] = 5
 
-    if record['lake'] and lake_pts and pt is None:
-        #lake = record['lake'].strip()
+    if record["lake"] and lake_pts and pt is None:
+        # lake = record['lake'].strip()
         lake = get_lake_abbrev(record)
         pt = lake_pts.get(lake)
         if pt:
             pt = pt._asdict()
-            pt['method'] = 'lake centroid'
-            pt['value'] = 6
+            pt["method"] = "lake centroid"
+            pt["value"] = 6
 
     if pt is None:
         msg = "No spatial information found for record {}"
-        print(msg.format(record['stock_id']))
+        print(msg.format(record["stock_id"]))
 
     return pt
 
 
-def associate_cwt(event,
-                  cwt_number,
-                  seq_start=1,
-                  seq_end=1,
-                  cwt_maker='nmt',
-                  tag_count=0):
+def associate_cwt(
+    event, cwt_number, seq_start=1, seq_end=1, cwt_maker="nmt", tag_count=0
+):
     """Given a stocking event, get or create an associated cwt and
     cwt_sequence object and save them to the database.
 
@@ -324,23 +350,25 @@ def associate_cwt(event,
     """
 
     if seq_start == 1 and seq_end == 1:
-        tag_type = 'cwt'
+        tag_type = "cwt"
     else:
-        tag_type = 'sequential'
+        tag_type = "sequential"
 
     cwt_obj, x = CWT.objects.get_or_create(
         cwt_number=cwt_number.strip(),
         tag_count=tag_count,
         manufacturer=cwt_maker,
-        tag_type=tag_type)
+        tag_type=tag_type,
+    )
 
     cwt_seq, x = CWTsequence.objects.get_or_create(
-        cwt=cwt_obj, seq_start=seq_start, seq_end=seq_end)
+        cwt=cwt_obj, seq_start=seq_start, seq_end=seq_end
+    )
 
     event.cwt_series.add(cwt_seq)
 
 
-def recode_mark(mark, mark_shouldbe, no_mark='XX'):
+def recode_mark(mark, mark_shouldbe, no_mark="XX"):
     """A little helper function to remap clips to standard values that can
     then be parsed.
 
@@ -356,7 +384,7 @@ def recode_mark(mark, mark_shouldbe, no_mark='XX'):
     any marking information.
 
     """
-    mark = no_mark if (mark is None or mark is '') else mark
+    mark = no_mark if (mark is None or mark is "") else mark
     for key, val in mark_shouldbe.items():
         mark = mark.replace(key, val)
     tmp = mark_shouldbe.get(mark)
@@ -386,11 +414,11 @@ def check_null_records(field, table, cursor, record_count, report_width):
     if len(rs):
         missing = [str(x[0]) for x in rs[:record_count]]
         msg = "Oh-oh! Found records where {} is null or empty(n={}) for example:\n\t"
-        msg = msg.format(field, len(rs)) + ',\n\t'.join(missing)
+        msg = msg.format(field, len(rs)) + ",\n\t".join(missing)
 
     else:
         msg = "Checking for records with null or empty {}".format(field)
-        msg = '{msg:.<{width}}OK'.format(width=report_width, msg=msg)
+        msg = "{msg:.<{width}}OK".format(width=report_width, msg=msg)
     print(msg)
 
 
@@ -408,16 +436,17 @@ def get_or_create_rawStrain(species, raw_strain):
 
     """
 
-    raw_strain = raw_strain if raw_strain else 'UNKN'
+    raw_strain = raw_strain if raw_strain else "UNKN"
 
     try:
-        mystrain = StrainRaw.objects.get(
-            species=species, raw_strain=raw_strain)
+        mystrain = StrainRaw.objects.get(species=species, raw_strain=raw_strain)
     except StrainRaw.DoesNotExist:
         unknown_strain, created = Strain.objects.get_or_create(
-            strain_species=species, strain_code='UNKN', strain_label='Unknown')
+            strain_species=species, strain_code="UNKN", strain_label="Unknown"
+        )
         mystrain = StrainRaw(
-            species=species, strain=unknown_strain, raw_strain=raw_strain)
+            species=species, strain=unknown_strain, raw_strain=raw_strain
+        )
         unknown_strain.save()
         mystrain.save()
 
@@ -449,16 +478,17 @@ def get_closest_ManagementUnit(event):
 
     # find management unit for points that fall within mu geometry
 
-    mu = ManagementUnit.objects.filter(
-        geom__contains=event.geom, primary=True).first()
+    mu = ManagementUnit.objects.filter(geom__contains=event.geom, primary=True).first()
 
     if mu is None:
         mu = ManagementUnit.objects.filter(
-            geom__contains=event.grid_10.centroid, primary=True).first()
+            geom__contains=event.grid_10.centroid, primary=True
+        ).first()
 
     if mu is None:
-        mus = ManagementUnit.objects.filter(lake=event.lake, primary=True).\
-            exclude(geom__isnull=True)
+        mus = ManagementUnit.objects.filter(lake=event.lake, primary=True).exclude(
+            geom__isnull=True
+        )
         mu_dist = []
         for mu in mus:
             mu_dist.append((mu.slug, event.geom.distance(mu.geom)))

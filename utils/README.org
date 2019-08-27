@@ -1,0 +1,11 @@
+* Steps to Rebuild FSDVIZ Database
+
+1. run ~/get_glfsdb_lookups.py
+2. upload spatial geometries using ~/shp2geojson.py (or just the
+   bottom half of this script if the management unit sql files already exist).
+3. run ~/Create_JurisdictionLake_Geometries.sql to build geometries that
+   are spatial unions of others
+4. run ~/check_stocking_data.py
+5. run ~/get_stocking_events.py
+6. run ~/get_recoveries.py
+

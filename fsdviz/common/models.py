@@ -71,7 +71,7 @@ class Lake(models.Model):
     abbrev = models.CharField(max_length=2, unique=True)
     lake_name = models.CharField(max_length=30, unique=True)
     shoreline = models.MultiPolygonField(srid=4326, blank=True, null=True)
-    #centroid = models.PointField(srid=4326)
+    # centroid = models.PointField(srid=4326)
 
     class Meta:
         ordering = ["abbrev"]
@@ -89,7 +89,7 @@ class Lake(models.Model):
 
         """
 
-        return self.lake_name.replace('Lake ', '')
+        return self.lake_name.replace("Lake ", "")
 
 
 class StateProvince(models.Model):
@@ -133,8 +133,7 @@ class Jurisdiction(models.Model):
     """
 
     lake = models.ForeignKey(Lake, default=1, on_delete=models.CASCADE)
-    stateprov = models.ForeignKey(
-        StateProvince, default=1, on_delete=models.CASCADE)
+    stateprov = models.ForeignKey(StateProvince, default=1, on_delete=models.CASCADE)
 
     slug = models.CharField(max_length=5, unique=True)
     name = models.CharField(max_length=30, unique=True)
@@ -152,16 +151,14 @@ class Jurisdiction(models.Model):
 
     def __str__(self):
         """ String representation for a State."""
-        return "{} - {} waters".format(self.lake.lake_name,
-                                       self.stateprov.name)
+        return "{} - {} waters".format(self.lake.lake_name, self.stateprov.name)
 
     def save(self, *args, **kwargs):
         """
         Populate slug when we save the object.
         """
         # if not self.slug:
-        self.slug = slugify("_".join([self.lake.abbrev,
-                                      self.stateprov.abbrev]))
+        self.slug = slugify("_".join([self.lake.abbrev, self.stateprov.abbrev]))
 
         super(Jurisdiction, self).save(*args, **kwargs)
 
@@ -180,7 +177,7 @@ class ManagementUnit(models.Model):
     slug = models.SlugField(blank=True, unique=True, editable=False)
     description = models.CharField(max_length=300)
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
-    #centroid = models.PointField(srid=4326)
+    # centroid = models.PointField(srid=4326, blank=True, null=True)
     lake = models.ForeignKey(Lake, default=1, on_delete=models.CASCADE)
 
     primary = models.BooleanField(
@@ -197,8 +194,7 @@ class ManagementUnit(models.Model):
         ("stat_dist", "Statistical District"),
     )
 
-    mu_type = models.CharField(
-        max_length=10, choices=MU_TYPE_CHOICES, default="mu")
+    mu_type = models.CharField(max_length=10, choices=MU_TYPE_CHOICES, default="mu")
 
     class Meta:
         ordering = ["lake__abbrev", "mu_type", "label"]
@@ -261,7 +257,6 @@ class Grid10(models.Model):
 
         return slugify("_".join([lake, self.grid]))
 
-
     def save(self, *args, **kwargs):
         """
         Populate slug when we save the object.
@@ -269,7 +264,6 @@ class Grid10(models.Model):
         # if not self.slug:
         self.slug = self.get_slug()
         super(Grid10, self).save(*args, **kwargs)
-
 
 
 class Species(models.Model):
@@ -281,14 +275,14 @@ class Species(models.Model):
 
     abbrev = models.CharField(max_length=5, unique=True)
     common_name = models.CharField(max_length=50, unique=True)
-    speciescommon = models.CharField(
-        max_length=50, unique=True, blank=True, null=True)
+    speciescommon = models.CharField(max_length=50, unique=True, blank=True, null=True)
     scientific_name = models.CharField(max_length=50, blank=True, null=True)
     # family = models.CharField(max_length=50)
     species_code = models.IntegerField(unique=True)
 
     strains = models.ManyToManyField(
-        "Strain", through="StrainRaw", related_name="species")
+        "Strain", through="StrainRaw", related_name="species"
+    )
 
     class Meta:
         verbose_name_plural = "Species"
@@ -324,8 +318,9 @@ class Strain(models.Model):
 
     def __str__(self):
         species_name = self.strain_species.common_name.title()
-        return "{} Strain {} ({})".format(self.strain_label, species_name,
-                                          self.strain_code)
+        return "{} Strain {} ({})".format(
+            self.strain_label, species_name, self.strain_code
+        )
 
 
 class StrainRaw(models.Model):
@@ -340,9 +335,11 @@ class StrainRaw(models.Model):
     """
 
     species = models.ForeignKey(
-        Species, on_delete=models.CASCADE, related_name="rawstrain")
+        Species, on_delete=models.CASCADE, related_name="rawstrain"
+    )
     strain = models.ForeignKey(
-        Strain, on_delete=models.CASCADE, related_name="rawstrain")
+        Strain, on_delete=models.CASCADE, related_name="rawstrain"
+    )
 
     # raw_strain_code = models.CharField(max_length=10)
     raw_strain = models.CharField(max_length=100)
@@ -375,7 +372,8 @@ class Mark(models.Model):
     clip_code = models.CharField(max_length=2)
     mark_code = models.CharField(max_length=4, unique=True)
     mark_type = models.CharField(
-        max_length=8, choices=MARK_TYPE_CHOICES, default="finclip")
+        max_length=8, choices=MARK_TYPE_CHOICES, default="finclip"
+    )
 
     description = models.CharField(max_length=100)
 
@@ -422,11 +420,11 @@ class CWT(models.Model):
     ]
 
     cwt_number = models.CharField(max_length=6)
-    tag_type = models.CharField(
-        max_length=10, choices=TAG_TYPE_CHOICES, default="cwt")
+    tag_type = models.CharField(max_length=10, choices=TAG_TYPE_CHOICES, default="cwt")
 
     manufacturer = models.CharField(
-        max_length=10, choices=TAG_MANUFACTURER_CHOICES, default="nmt")
+        max_length=10, choices=TAG_MANUFACTURER_CHOICES, default="nmt"
+    )
 
     tag_count = models.IntegerField()
     tag_reused = models.BooleanField(
@@ -477,8 +475,7 @@ class CWT(models.Model):
 
     def __str__(self):
         cwt_number = self.cwt_number
-        cwt_string = "{}-{}-{}".format(cwt_number[:2], cwt_number[2:4],
-                                       cwt_number[4:])
+        cwt_string = "{}-{}-{}".format(cwt_number[:2], cwt_number[2:4], cwt_number[4:])
         return cwt_string
 
 
@@ -491,11 +488,9 @@ class CWTsequence(models.Model):
     series deployed in the associated stocking event(s).
     """
 
-    cwt = models.ForeignKey(
-        "CWT", on_delete=models.CASCADE, related_name="cwt_series")
+    cwt = models.ForeignKey("CWT", on_delete=models.CASCADE, related_name="cwt_series")
 
-    events = models.ManyToManyField(
-        "stocking.StockingEvent", related_name="cwt_series")
+    events = models.ManyToManyField("stocking.StockingEvent", related_name="cwt_series")
 
     seq_start = models.IntegerField(default=1)
     seq_end = models.IntegerField(default=1)

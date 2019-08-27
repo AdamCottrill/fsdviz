@@ -1,5 +1,4 @@
-"""
-=============================================================
+"""=============================================================
 ~/FSDViz/utils/get_glfsdb_lookups.py
  Created: 12 Dec 2018 10:49:19
 
@@ -13,8 +12,16 @@ time.  Some fields in the existing database will require some custom
 logic to parse out required information that might break if the data
 in the database is edited in the future.
 
+This script is intended to run inside of a django shell and utilizes
+the django orm.  Make sure that the root directory of the application
+is in the PYTHONPATH of your virtualenv. After you import
+django_settings, all of the django models should be available for use
+in the script.
+
+
  A. Cottrill
 =============================================================
+
 """
 
 import datetime
@@ -66,12 +73,16 @@ what = "Lakes"
 my_list = []
 
 for item in common.LAKE:
-    obj = Lake(
-        abbrev=item[0],
-        lake_name=item[1])
+    obj = Lake(abbrev=item[0], lake_name=item[1])
     my_list.append(obj)
 Lake.objects.bulk_create(my_list, batch_size=10000)
 print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
+
+# Create a couple of dictionary lookups that will retrun the lake when
+# given the short name or the abbreviation.  Used to find associated
+# lake for future objects:
+lake_map = {lake.short_name(): lake for lake in Lake.objects.all()}
+lake_abbrev_map = {lake.abbrev: lake for lake in Lake.objects.all()}
 
 what = "Agencies"
 my_list = []
@@ -88,27 +99,28 @@ my_list = []
 
 for item in common.STATEPROV:
     obj = StateProvince(
-        abbrev=item[0],
-        name=item[1],
-        country="CAN" if item[2] == "Canada" else "USA")
+        abbrev=item[0], name=item[1], country="CAN" if item[2] == "Canada" else "USA"
+    )
     my_list.append(obj)
 
 StateProvince.objects.bulk_create(my_list, batch_size=10000)
 print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
 
+
 what = "Jurisdiction"
 
 for item in common.JURISDICTIONS:
-    lake = Lake.objects.get(lake_name__contains=item[1].split("-")[0])
+    # lake = Lake.objects.get(lake_name__contains=item[1].split("-")[0])
+    lake = lake_map[item[1].split("-")[0]]
     stateprov = StateProvince.objects.get(name__contains=item[1].split("-")[1])
 
     jurisdiction = Jurisdiction(
-        lake=lake, stateprov=stateprov, name=item[1], description=item[0])
+        lake=lake, stateprov=stateprov, name=item[1], description=item[0]
+    )
     # use save to create our slug:
     jurisdiction.save()
 
-print("\tDone adding {} records (n={:,})".format(what,
-                                                 len(common.JURISDICTIONS)))
+print("\tDone adding {} records (n={:,})".format(what, len(common.JURISDICTIONS)))
 
 what = "Management Units"
 
@@ -118,7 +130,7 @@ for item in common.MANAGEMENT_UNITS:
         mu_type=item[1],
         lake=Lake.objects.get(lake_name="Lake " + item[2]),
         description=item[3]
-        #centroid=Point(item[4], item[5]),
+        # centroid=Point(item[4], item[5]),
     )
     obj.save()
 
@@ -127,17 +139,26 @@ for item in common.MANAGEMENT_UNITS:
 n = len(common.MANAGEMENT_UNITS)
 print("\tDone adding {} records (n={:,})".format(what, n))
 
+
+# =============================
+
+
 what = "Grid10"
 my_list = []
 
 for lake_abbrev, grids in common.grid_centroids.items():
-    lake = Lake.objects.get(abbrev=lake_abbrev)
+    # lake = Lake.objects.get(abbrev=lake_abbrev)
+    lake = lake_abbrev_map[lake_abbrev]
     for grid, pt in grids.items():
-        obj = Grid10(grid=grid, centroid=Point(pt.ddlon, pt.ddlat), lake=lake)
+        slug = "{}_{}".format(lake_abbrev.lower(), grid)
+        obj = Grid10(
+            grid=grid, centroid=Point(pt.ddlon, pt.ddlat), slug=slug, lake=lake
+        )
         my_list.append(obj)
 
 Grid10.objects.bulk_create(my_list, batch_size=10000)
 print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
+
 
 what = "Species"
 my_list = []
@@ -164,8 +185,7 @@ my_list = []
 
 for item in common.STRAINS:
     species = Species.objects.get(abbrev=item[0])
-    obj = Strain(
-        strain_species=species, strain_code=item[1], strain_label=item[2])
+    obj = Strain(strain_species=species, strain_code=item[1], strain_label=item[2])
     my_list.append(obj)
 
 Strain.objects.bulk_create(my_list, batch_size=10000)
@@ -178,14 +198,13 @@ for item in common.RAW_STRAINS:
     species = Species.objects.get(abbrev=item[0])
     strain = Strain.objects.get(strain_code=item[1], strain_species=species)
     obj = StrainRaw(
-        species=species,
-        strain=strain,
-        raw_strain=item[2],
-        description=item[3])
+        species=species, strain=strain, raw_strain=item[2], description=item[3]
+    )
     my_list.append(obj)
 
 StrainRaw.objects.bulk_create(my_list, batch_size=10000)
 print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
+
 
 what = "LAT-LON FLAGS"
 my_list = []
@@ -223,10 +242,8 @@ print("\tDone adding {} records (n={:,})".format(what, n))
 what = "Marks"
 for item in common.MARKS:
     obj = Mark(
-        mark_code=item[0],
-        clip_code=item[1],
-        description=item[2],
-        mark_type=item[3])
+        mark_code=item[0], clip_code=item[1], description=item[2], mark_type=item[3]
+    )
     obj.save()
 n = len(common.MARKS)
 print("\tDone adding {} records (n={:,})".format(what, n))

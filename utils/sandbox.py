@@ -363,3 +363,31 @@ lookups = {
 
 
 foo = json.dumps(lookups)
+
+
+#=================================================
+# grid centroids from csv text file
+
+import csv
+from collections import namedtuple
+
+Centroid = namedtuple("Centroid", "ddlat, ddlon")
+
+fname = "Y:/File Transfer/Adam/fsdviz_data/grid10_centroids.txt"
+
+grids = {"ER": dict(),
+         "SU": dict(),
+         "MI": dict(),
+         "ON": dict(),
+         "HU": dict(),
+         "SC": dict()}
+
+
+
+with open(fname) as csvfile:
+    readCSV = csv.reader(csvfile, delimiter=',')
+    for row in readCSV:
+        lake_abbrev = row[0]
+        grid_no = row[1]
+        centroid = Centroid(ddlon=row[2], ddlat=row[3])
+        grids[lake_abbrev][grid_no] = centroid

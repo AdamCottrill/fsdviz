@@ -19,10 +19,10 @@ UPDATE common_managementunit
                WHERE mu2.label LIKE 'WM%')
 WHERE label = 'WM';
 
---update the centroid fo each management unit:
-UPDATE common_managementunit
-   SET centroid = st_centroid(geom)
-WHERE geom IS NOT NULL;
+-- --update the centroid fo each management unit:
+-- UPDATE common_managementunit
+--    SET centroid = st_centroid(geom)
+-- WHERE geom IS NOT NULL;
 
 -- ==========================================================
 --                  JURISDICTIONS
@@ -163,10 +163,10 @@ UPDATE common_jurisdiction
                     WHERE mu2.label LIKE 'IN%')
 WHERE name = 'Michigan-Indiana';
 
--- update the extents of each juristiction with its bountding box:
-UPDATE common_jurisdiction
-   SET extents = st_multi(st_envelope (shoreline));
-
+-- -- update the extents of each juristiction with its bountding box:
+-- UPDATE common_jurisdiction
+--    SET extents = st_multi(st_envelope (shoreline));
+ 
 COMMIT;
 
 ---===============================
@@ -181,9 +181,9 @@ FROM (SELECT lake.abbrev,
       GROUP BY abbrev) AS shoreline
 WHERE common_lake.abbrev = shoreline.abbrev;
 
--- update our lake centroid too:
-UPDATE common_lake
-   SET centroid = st_centroid(shoreline)
-WHERE shoreline IS NOT NULL;
+-- -- update our lake centroid too:
+-- UPDATE common_lake
+--    SET centroid = st_centroid(shoreline)
+-- WHERE shoreline IS NOT NULL;
 
 COMMIT;

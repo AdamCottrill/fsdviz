@@ -15,19 +15,19 @@ import os
 import psycopg2
 import shapefile
 
-#the location of our source shapefiles and associated output
+# the location of our source shapefiles and associated output
 
 SHP_DIR = "C:/Users/COTTRILLAD/Documents/1work/Python/geopy"
 
-SHP_SRC = os.path.join(SHP_DIR, 'shapefiles')
-SHP_TRG = os.path.join(SHP_DIR, 'output')
+SHP_SRC = os.path.join(SHP_DIR, "shapefiles")
+SHP_TRG = os.path.join(SHP_DIR, "output")
 
-#pg connections parameters
+# pg connections parameters
 con_pars = {
-    'HOST': 'localhost',
-    'NAME': 'fsdviz',
-    'USER': 'cottrillad',
-    'PASSWORD': os.getenv('PGPASS', 'password')
+    "HOST": "localhost",
+    "NAME": "fsdviz",
+    "USER": "cottrillad",
+    "PASSWORD": os.getenv("PGPASS", "password"),
 }
 
 pg_constring = """host='{HOST}' dbname='{NAME}' user='{USER}'
@@ -41,20 +41,16 @@ pg_constring = pg_constring.format(**con_pars)
 
 shapefiles = [
     # Lake Michigan
-    dict(shpfile="stat_dist.shp", srid='26916', labelIndex=0),
-
+    dict(shpfile="stat_dist.shp", srid="26916", labelIndex=0),
     # Lake Huron
-    dict(shpfile="lh_stat_dist_poly_IFR.shp", srid='4269', labelIndex=3),
-    dict(shpfile="qmas.shp", srid='26917', labelIndex=0),
-
+    dict(shpfile="lh_stat_dist_poly_IFR.shp", srid="4269", labelIndex=3),
+    dict(shpfile="qmas.shp", srid="26917", labelIndex=0),
     # Lake Ontario
-    dict(shpfile="lo_stat_dist_poly_IFR.shp", srid='4269', labelIndex=3),
-
+    dict(shpfile="lo_stat_dist_poly_IFR.shp", srid="4269", labelIndex=3),
     # Lake Superior
-    dict(shpfile="ls_stat_dist_poly_IFR.shp", srid='4269', labelIndex=3),
-
+    dict(shpfile="ls_stat_dist_poly_IFR.shp", srid="4269", labelIndex=3),
     # Lake Erie
-    dict(shpfile="le_stat_dist_poly_IFR.shp", srid='4269', labelIndex=3)
+    dict(shpfile="le_stat_dist_poly_IFR.shp", srid="4269", labelIndex=3),
 ]
 
 # check for our output directory:
@@ -62,8 +58,8 @@ if not os.path.isdir(SHP_TRG):
     print("Target Directory (SHP_TRG={}) Does not exist!".format(SHP_TRG))
 
 # create a sql sub-directory if one does not exist.
-if not os.path.isdir(os.path.join(SHP_TRG, 'sql')):
-    os.mkdir(os.path.join(SHP_TRG, 'sql'))
+if not os.path.isdir(os.path.join(SHP_TRG, "sql")):
+    os.mkdir(os.path.join(SHP_TRG, "sql"))
 
 # an empyt list to hold our mangement unit labels
 manUnits = []
@@ -71,9 +67,9 @@ manUnits = []
 for lake in shapefiles:
 
     # shpfile = os.path.join(ROOT_DIR, 'shapefiles', lake.get('shpfile'))
-    shpfile = os.path.join(SHP_SRC, lake.get('shpfile'))
-    labelIndex = lake.get('labelIndex')
-    spatialRef = lake.get('srid')
+    shpfile = os.path.join(SHP_SRC, lake.get("shpfile"))
+    labelIndex = lake.get("labelIndex")
+    spatialRef = lake.get("srid")
 
     sf = shapefile.Reader(shpfile)
 
@@ -83,13 +79,12 @@ for lake in shapefiles:
         manUnit = record[labelIndex]
         # this is a work-around (only qmas.shp has names with dashes
         # and lower case letters!)
-        if lake.get('shpfile') is not 'qmas.shp':
-            manUnit = manUnit.upper().replace('-', '').replace('.', '')
+        if lake.get("shpfile") is not "qmas.shp":
+            manUnit = manUnit.upper().replace("-", "").replace(".", "")
         manUnits.append(manUnit)
-        shpname = os.path.join(SHP_TRG, '{}.shp'.format(manUnit))
+        shpname = os.path.join(SHP_TRG, "{}.shp".format(manUnit))
         thisShape = sf.shapeRecord(i)
-        with shapefile.Writer(
-                shpname, shapeType=thisShape.shape.shapeType) as shpwtr:
+        with shapefile.Writer(shpname, shapeType=thisShape.shape.shapeType) as shpwtr:
             shpwtr.fields = sf.fields
             shpwtr.shape(thisShape.shape)
             shpwtr.record(*thisShape.record)
@@ -105,11 +100,11 @@ for lake in shapefiles:
     # mangement in the postgis table must match the names of the
     # sql_file!
 
-    cmd = ('shp2pgsql -s {SRID}:4326 -g "geom" "{source}" > "{target}"')
+    cmd = 'shp2pgsql -s {SRID}:4326 -g "geom" "{source}" > "{target}"'
 
     for mu in manUnits:
-        src_file = os.path.join(SHP_TRG, '{}.shp'.format(mu))
-        trg_file = os.path.join(SHP_TRG, 'sql/{}.sql'.format(mu))
+        src_file = os.path.join(SHP_TRG, "{}.shp".format(mu))
+        trg_file = os.path.join(SHP_TRG, "sql/{}.sql".format(mu))
         vals = dict(SRID=spatialRef, source=src_file, target=trg_file)
         os.system(cmd.format(**vals))
     print("Done creating sql for mu polygons.")
@@ -122,16 +117,23 @@ for lake in shapefiles:
     pg_cur = pg_conn.cursor()
 
     for mu in manUnits:
-        fname = os.path.join(SHP_TRG, 'sql/{}.sql'.format(mu))
+        fname = os.path.join(SHP_TRG, "sql/{}.sql".format(mu))
 
-        with open(fname, 'r') as sql_file:
+        with open(fname, "r") as sql_file:
             pg_cur.execute(sql_file.read())
         pg_conn.commit()
 
+        if mu == "IL":
+            label = "ILL"
+        elif mu == "IN":
+            label = "IND"
+        else:
+            label = mu
+
         # the update query:
-        sql = '''update common_managementunit set geom =(select geom from "{}")
-        where label=%s;'''
-        pg_cur.execute(sql.format(mu.lower()), (mu, ))
+        sql = """update common_managementunit set geom =(select geom from "{}")
+        where label=%s;"""
+        pg_cur.execute(sql.format(mu.lower()), (label,))
 
         # clean up our temporary table:
         sql = 'drop table "{}";'.format(mu.lower())
@@ -139,9 +141,9 @@ for lake in shapefiles:
         pg_conn.commit()
     pg_conn.close()
 
-print('Done updating mu geoms for;')
+print("Done updating mu geoms for;")
 
-# The sql script "Create_JurisdictionLake_Geometries.sql" constains a
+# The sql script "Create_JurisdictionLake_Geometries.sql" contains a
 # series sql statements that are exectuted by PostGis to:
 #
 # - create all of the jurisdictions from their memeber management
@@ -156,7 +158,7 @@ pg_conn = psycopg2.connect(pg_constring)
 pg_cur = pg_conn.cursor()
 
 fname = "Create_JurisdictionLake_Geometries.sql"
-with open(fname, 'r') as sql_file:
+with open(fname, "r") as sql_file:
     pg_cur.execute(sql_file.read())
 pg_conn.commit()
 pg_conn.close()
@@ -180,5 +182,12 @@ pg_conn.close()
 #  for mu in mus:
 #      mu.primary = True
 #      mu.save()
+
+# add spatial indexes to each of our spatial fields
+
+
+sql = """create index common_managementunit_gix on 
+         common_managementunit using GIST (geom);"""
+
 
 print("Done updating all spatial geometries.")

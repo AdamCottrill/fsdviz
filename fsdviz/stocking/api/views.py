@@ -13,14 +13,17 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 import json
 
-from fsdviz.stocking.models import (LifeStage, Condition, StockingMethod,
-                                    StockingEvent)
+from fsdviz.stocking.models import LifeStage, Condition, StockingMethod, StockingEvent
 
 from fsdviz.stocking.filters import StockingEventFilter
 
-from .serializers import (LifeStageSerializer, ConditionSerializer,
-                          StockingMethodSerializer, StockingEventSerializer,
-                          StockingEventFastSerializer)
+from .serializers import (
+    LifeStageSerializer,
+    ConditionSerializer,
+    StockingMethodSerializer,
+    StockingEventSerializer,
+    StockingEventFastSerializer,
+)
 
 
 class LifeStageViewSet(viewsets.ReadOnlyModelViewSet):
@@ -52,19 +55,27 @@ class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
 
-        lake_name = self.kwargs.get('lake_name')
-        year = self.kwargs.get('year')
-        jurisdiction = self.kwargs.get('jurisdiction')
+        lake_name = self.kwargs.get("lake_name")
+        year = self.kwargs.get("year")
+        jurisdiction = self.kwargs.get("jurisdiction")
 
         # get the value of q from the request kwargs
-        search_q = self.request.GET.get('q')
+        search_q = self.request.GET.get("q")
 
         queryset = StockingEvent.objects.all()
         queryset = queryset.select_related(
-            'agency', 'jurisdiction', 'jurisdiction__stateprov',
-            'jurisdiction__lake', 'species', 'lifestage', 'grid_10',
-            'grid_10__lake', 'latlong_flag', 'strain_raw__strain',
-            'stocking_method')
+            "agency",
+            "jurisdiction",
+            "jurisdiction__stateprov",
+            "jurisdiction__lake",
+            "species",
+            "lifestage",
+            "grid_10",
+            "grid_10__lake",
+            "latlong_flag",
+            "strain_raw__strain",
+            "stocking_method",
+        )
 
         if lake_name:
             # Return a filtered queryset
@@ -78,12 +89,12 @@ class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
 
         if search_q:
             queryset = queryset.filter(
-                Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q))
+                Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q)
+            )
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
-        #finally django-filter
-        filtered_list = StockingEventFilter(
-            self.request.GET, queryset=queryset)
+        # finally django-filter
+        filtered_list = StockingEventFilter(self.request.GET, queryset=queryset)
 
         return filtered_list.qs
 
@@ -111,47 +122,54 @@ class StockingEventMapListView(generics.ListAPIView):
     def get_queryset(self):
 
         # get any url parameters:
-        lake_name = self.kwargs.get('lake_name')
-        year = self.kwargs.get('year')
-        jurisdiction = self.kwargs.get('jurisdiction')
+        lake_name = self.kwargs.get("lake_name")
+        year = self.kwargs.get("year")
+        jurisdiction = self.kwargs.get("jurisdiction")
 
         # count our events and sum the yreq_stocked, give each field
         # that is from a child table as a simple label
         metrics = {
-            'stateprov': F('jurisdiction__stateprov__abbrev'),
-            'lake': F('jurisdiction__lake__abbrev'),
-            'jurisdiction_slug': F('jurisdiction__slug'),
-            'man_unit': F('management_unit__slug'),
-            'grid10': F('grid_10__slug'),
-            'stk_method': F('stocking_method__description'),
-            'life_stage': F('lifestage__description'),
-            'agency_abbrev': F('agency__abbrev'),
-            'species_name': F('species__common_name'),
-            'strain': F('strain_raw__strain__strain_label')
+            "stateprov": F("jurisdiction__stateprov__abbrev"),
+            "lake": F("jurisdiction__lake__abbrev"),
+            "jurisdiction_slug": F("jurisdiction__slug"),
+            "man_unit": F("management_unit__slug"),
+            "grid10": F("grid_10__slug"),
+            "stk_method": F("stocking_method__description"),
+            "life_stage": F("lifestage__description"),
+            "agency_abbrev": F("agency__abbrev"),
+            "species_name": F("species__common_name"),
+            "strain": F("strain_raw__strain__strain_label"),
         }
 
         aggregation_metrics = {
-            'events': Count('id'),
-            'yreq': Sum('yreq_stocked'),
-            'total_stocked': Sum('no_stocked')
+            "events": Count("id"),
+            "yreq": Sum("yreq_stocked"),
+            "total_stocked": Sum("no_stocked"),
         }
 
-        queryset = StockingEvent.objects.\
-            select_related('species', 'lifestage',
-                           'jurisdiction', 'jurisdiction__lake',
-                           'jurisdiction__stateprov',
-                           'grid_10',
-                           'management_unit', 'agency',
-                           'strain_raw__strain',
-                           'stocking_method'
-            ).prefetch_related('species', 'lifestage',
-                               'jurisdiction', 'jurisdiction__lake',
-                               'jurisdiction__stateprov',
-                               'grid_10',
-                               'management_unit', 'agency',
-                               'strain_raw__strain',
-                               'stocking_method'
-            )
+        queryset = StockingEvent.objects.select_related(
+            "species",
+            "lifestage",
+            "jurisdiction",
+            "jurisdiction__lake",
+            "jurisdiction__stateprov",
+            "grid_10",
+            "management_unit",
+            "agency",
+            "strain_raw__strain",
+            "stocking_method",
+        ).prefetch_related(
+            "species",
+            "lifestage",
+            "jurisdiction",
+            "jurisdiction__lake",
+            "jurisdiction__stateprov",
+            "grid_10",
+            "management_unit",
+            "agency",
+            "strain_raw__strain",
+            "stocking_method",
+        )
 
         # filter by lake, year and jurisdiction if they were included in the url
         if lake_name:
@@ -164,21 +182,28 @@ class StockingEventMapListView(generics.ListAPIView):
         if jurisdiction:
             queryset = queryset.filter(jurisdiction__slug=jurisdiction)
 
-        queryset= queryset.annotate(**metrics).\
-            values('dd_lat', 'dd_lon', 'month',
-                   'lake',
-                   'jurisdiction_slug',
-                   'man_unit',
-                   'stateprov',
-                   'grid10',
-                   'life_stage',
-                   'stk_method',
-                   'agency_abbrev',
-                   'species_name',
-                   'strain',
-                   'year_class',
-                   'mark'
-            ).order_by().annotate(**aggregation_metrics)
+        queryset = (
+            queryset.annotate(**metrics)
+            .values(
+                "dd_lat",
+                "dd_lon",
+                "month",
+                "lake",
+                "jurisdiction_slug",
+                "man_unit",
+                "stateprov",
+                "grid10",
+                "life_stage",
+                "stk_method",
+                "agency_abbrev",
+                "species_name",
+                "strain",
+                "year_class",
+                "mark",
+            )
+            .order_by()
+            .annotate(**aggregation_metrics)
+        )
 
         return queryset
 
@@ -208,35 +233,56 @@ class StockingEventListAPIView(APIView):
     def get(self, request):
 
         field_aliases = {
-            "agency_code": F('agency__abbrev'),
-            "species_code": F('species__abbrev'),
-            "strain": F('strain_raw__strain__strain_code'),
-            "grid10": F('grid_10__slug'),
-            "lifestage_code": F('lifestage__abbrev'),
-            "stockingMethod": F('stocking_method__stk_meth'),
-            "jurisdiction_code": F('jurisdiction__slug'),
-            "lake": F('jurisdiction__lake__abbrev'),
-            "stateProv": F('jurisdiction__stateprov__abbrev'),
+            "agency_code": F("agency__abbrev"),
+            "species_code": F("species__abbrev"),
+            "strain": F("strain_raw__strain__strain_code"),
+            "grid10": F("grid_10__slug"),
+            "lifestage_code": F("lifestage__abbrev"),
+            "stockingMethod": F("stocking_method__stk_meth"),
+            "jurisdiction_code": F("jurisdiction__slug"),
+            "lake": F("jurisdiction__lake__abbrev"),
+            "stateProv": F("jurisdiction__stateprov__abbrev"),
         }
 
         fields = [
-            "stock_id", "lake", "jurisdiction_code", "stateProv", 'grid10',
-            "dd_lat", 'dd_lon', 'year', 'month', 'st_site', 'date', 'month',
-            'mark', 'year_class', "agency_code", "species_code", "strain",
-            "lifestage_code", "stockingMethod", "no_stocked", "yreq_stocked"
+            "stock_id",
+            "lake",
+            "jurisdiction_code",
+            "stateProv",
+            "grid10",
+            "dd_lat",
+            "dd_lon",
+            "year",
+            "month",
+            "st_site",
+            "date",
+            "month",
+            "mark",
+            "year_class",
+            "agency_code",
+            "species_code",
+            "strain",
+            "lifestage_code",
+            "stockingMethod",
+            "no_stocked",
+            "yreq_stocked",
         ]
 
-        queryset = StockingEvent.objects\
-                              .select_related('jurisdiction', 'agency',
-                                              'species', 'strain', 'lifestage',
-                                              'grid_10',
-                                              'stocking_method',
-                                              'jurisdiction__lake',
-                                              'jurisdiction__stateprov')\
-                              .annotate(**field_aliases)
+        queryset = StockingEvent.objects.select_related(
+            "jurisdiction",
+            "agency",
+            "species",
+            "strain",
+            "lifestage",
+            "grid_10",
+            "stocking_method",
+            "jurisdiction__lake",
+            "jurisdiction__stateprov",
+        ).annotate(**field_aliases)
 
-        filtered = StockingEventFilter(
-            request.GET, queryset=queryset).qs.values(*fields)
+        filtered = StockingEventFilter(request.GET, queryset=queryset).qs.values(
+            *fields
+        )
 
         maxEvents = settings.MAX_FILTERED_EVENT_COUNT
 
@@ -260,13 +306,12 @@ class StockingEventLookUpsAPIView(APIView):
 
     def get(self, request):
 
-        lifestages = LifeStage.objects.values('abbrev', 'description')
-        stockingmethods = StockingMethod.objects.values(
-            'stk_meth', 'description')
+        lifestages = LifeStage.objects.values("abbrev", "description")
+        stockingmethods = StockingMethod.objects.values("stk_meth", "description")
 
         lookups = {
-            'stockingmethods': list(stockingmethods),
-            'lifestages': list(lifestages)
+            "stockingmethods": list(stockingmethods),
+            "lifestages": list(lifestages),
         }
 
         return Response(lookups)
