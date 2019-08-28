@@ -8,6 +8,7 @@ from .views import (
     StockingEventListLatestYear,
     find_events,
     filtered_events,
+    upload_events,
 )
 
 app_name = "stocking"
@@ -78,4 +79,5 @@ urlpatterns = [
         StockingEventDetailView.as_view(),
         name="stocking-event-detail",
     ),
+    path("upload_events/", upload_events, name="upload-stocking-events"),
 ]

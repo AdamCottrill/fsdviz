@@ -1,0 +1,46 @@
+{% extends 'fsdviz_base.html' %}
+
+
+{% block content %}
+    
+
+    <div class="ui container">
+
+        <h1>Upload Stocking Events</h1>
+
+        <div class="ui fluid card">  
+            <div class="content">
+
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="ui 
+                                    {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %} success {% else %} negative {% endif %}
+
+                                    message">
+                            <p> {{ message }} </p>
+                        </div>
+                        {% endfor %}
+                {% endif %}
+
+
+
+
+                
+                <form class="ui form" action="{% url "stocking:upload-stocking-events" %}" method="POST" enctype="multipart/form-data" class="form-horizontal"> 
+                    {% csrf_token %}
+                    <div class="inline fields">
+                        <div class="sixteen wide field">
+                            <label for="name">File: </label>
+                            <input type="file" name="data_file" id="data_file" required="True">            
+                        </div>
+                    </div>
+                    <button class="ui right floated primary button" type="submit">Upload</button>
+                </form>
+                
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}
