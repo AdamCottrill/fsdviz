@@ -9,14 +9,20 @@ import factory
 
 from django.contrib.gis.geos import GEOSGeometry
 
-#import common.models as common
-from ..stocking.models import (LifeStage, Condition, StockingMethod,
-                               StockingEvent)
+# import common.models as common
+from ..stocking.models import LifeStage, Condition, StockingMethod, StockingEvent
 
-from .common_factories import (LakeFactory, JurisdictionFactory,
-                               AgencyFactory, SpeciesFactory,
-                               StrainRawFactory, StateProvinceFactory,
-                               Grid10Factory, LatLonFlagFactory)
+from .common_factories import (
+    LakeFactory,
+    JurisdictionFactory,
+    AgencyFactory,
+    SpeciesFactory,
+    ManagementUnitFactory,
+    StrainRawFactory,
+    StateProvinceFactory,
+    Grid10Factory,
+    LatLonFlagFactory,
+)
 
 
 class LifeStageFactory(factory.DjangoModelFactory):
@@ -27,8 +33,8 @@ class LifeStageFactory(factory.DjangoModelFactory):
     class Meta:
         model = LifeStage
 
-    abbrev = 'y'
-    description = 'Yearling'
+    abbrev = "y"
+    description = "Yearling"
 
 
 class ConditionFactory(factory.DjangoModelFactory):
@@ -51,8 +57,8 @@ class StockingMethodFactory(factory.DjangoModelFactory):
     class Meta:
         model = StockingMethod
 
-    stk_meth = 'b'
-    description = 'boat, offshore stocking'
+    stk_meth = "b"
+    description = "boat, offshore stocking"
 
 
 class StockingEventFactory(factory.DjangoModelFactory):
@@ -63,39 +69,39 @@ class StockingEventFactory(factory.DjangoModelFactory):
     class Meta:
         model = StockingEvent
 
-
-    #foreign keys:
+    # foreign keys:
     species = factory.SubFactory(SpeciesFactory)
     strain_raw = factory.SubFactory(StrainRawFactory)
     agency = factory.SubFactory(AgencyFactory)
     jurisdiction = factory.SubFactory(JurisdictionFactory)
-    #lake = factory.SubFactory(LakeFactory)
+    # lake = factory.SubFactory(LakeFactory)
+    management_unit = factory.SubFactory(ManagementUnitFactory)
     grid_10 = factory.SubFactory(Grid10Factory)
-    #stateprov = factory.SubFactory(StateProvinceFactory)
+    # stateprov = factory.SubFactory(StateProvinceFactory)
     stocking_method = factory.SubFactory(StockingMethodFactory)
     lifestage = factory.SubFactory(LifeStageFactory)
     condition = factory.SubFactory(ConditionFactory)
 
     latlong_flag = factory.SubFactory(LatLonFlagFactory)
 
-    #event attributes:
-    stock_id = 'USFWS-1234'
+    # event attributes:
+    stock_id = "USFWS-1234"
 
     date = datetime(2016, 4, 20)
     day = 20
     month = 4
     year = 2016
-    site = 'The Reef'
+    site = "The Reef"
 
     dd_lat = 45.5
     dd_lon = -81.25
 
-    geom = GEOSGeometry('POINT(-81.25 45.5)', srid=4326)
+    geom = GEOSGeometry("POINT(-81.25 45.5)", srid=4326)
 
     no_stocked = 15000
     yreq_stocked = 15000
     year_class = 2015
     agemonth = 16
 
-    clipa = '14'
-    mark = 'RPLV'
+    clipa = "14"
+    mark = "RPLV"
