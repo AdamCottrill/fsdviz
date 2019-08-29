@@ -9,6 +9,7 @@ from .views import (
     find_events,
     filtered_events,
     upload_events,
+    xls_events,
 )
 
 app_name = "stocking"
@@ -80,4 +81,5 @@ urlpatterns = [
         name="stocking-event-detail",
     ),
     path("upload_events/", upload_events, name="upload-stocking-events"),
+    path("uploaded_events/", xls_events, name="xls-events-form"),
 ]

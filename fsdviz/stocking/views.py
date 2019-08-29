@@ -13,7 +13,11 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
+from django.forms import formset_factory
+
 import json
+
+from .helpers import get_events
 
 from ..common.models import (
     Lake,
@@ -27,7 +31,7 @@ from ..common.models import (
 from .models import StockingEvent, StockingMethod, LifeStage
 from .filters import StockingEventFilter
 
-from .forms import FindEventsForm
+from .forms import FindEventsForm, XlsEventForm
 from .utils import form2params
 
 
@@ -543,10 +547,30 @@ def upload_events(request):
         # pass it to a view of with a xls stocking event formset for
         # final editing, validation and event creation.
 
-        messages.success(request, "Looking good!")
-        return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
+        # verify that the xls data matches our schema, convert it to a
+        # list of dictionaries, and add the list of dicts for our session:
+
+        xls_events = get_events(data_file)
+        request.session["data"] = xls_events
+
+        return HttpResponseRedirect(reverse("stocking:xls-events-form"))
 
     except Exception as e:
         # logging.getLogger("error_logger").error("Unable to upload file. "+repr(e))
         messages.error(request, "Unable to upload file. " + repr(e))
         return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
+
+
+def xls_events(request):
+    """
+                   Arguments:
+        - `request`:
+        """
+    # get the data from our session
+    xls_events = request.session.get("data", {})
+
+    # for now - just print the evetns out to the template.
+    EventFormSet = formset_factory(XlsEventForm, extra=0)
+    formset = EventFormSet(initial=xls_events)
+
+    return render(request, "stocking/xls_events_form.html", {"formset": formset})

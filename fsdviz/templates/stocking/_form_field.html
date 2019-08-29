@@ -1,0 +1,15 @@
+
+<div class="field {% if field_obj.errors %} error{% endif %}">
+    <div class="ui mini input">
+        {{ field_obj }}
+    </div>
+</div>
+{% if field_obj.errors %}
+    <div class="ui warning message">
+        <ul class="list">
+            {% for error in field_obj.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}

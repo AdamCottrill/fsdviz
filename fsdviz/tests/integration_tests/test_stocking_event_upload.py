@@ -117,7 +117,7 @@ def test_not_xls_or_xlsx_files(client, user):
 
 
 @pytest.mark.django_db
-def test__xls_or_xlsx_files(client, user):
+def test_xls_or_xlsx_files(client, user):
     """If the uploaded form is an xlsx of xls file, it should be validated.
 
     This test works today (during developemnt, but will break when we

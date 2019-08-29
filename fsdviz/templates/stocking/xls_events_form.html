@@ -1,0 +1,237 @@
+{% extends 'fsdviz_base.html' %} {% block extra_head %}
+
+<style>
+  table {
+    width: 100%;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  td {
+    white-space: nowrap;
+  }
+
+  select {
+    min-width: 75px;
+  }
+</style>
+
+{% endblock %} {% block content %}
+
+<h1>Uploaded Stocking Events</h1>
+
+<div class="table-container">
+  <form class="ui form" method="post">
+    {{ formset.management_form }}
+    <table class="ui small very compact single line table">
+      <thead>
+        <tr class="center aligned">
+          <th>Agency</th>
+          <th>Lake</th>
+          <th>State/Prov</th>
+          <th>Year</th>
+          <th>Month</th>
+          <th>Day</th>
+          <th>Stat. Dist.</th>
+          <th>Grid</th>          
+          <th>Site</th>
+          <th>St.Site</th>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Species</th>
+          <th>Strain</th>
+          <th>Stage</th>
+          <th>AgeMonth</th>
+          <th>Year Class</th>
+          <th>Mark</th>
+          <th>Mark Eff.</th>
+          <th>Tag No.</th>
+          <th>Tag Ret.</th>
+          <th>Length</th>
+          <th>Weight</th>
+          <th>Condition</th>          
+          <th>Method</th>
+          <th>No. Stocked</th>
+          <th>Lot Code</th>
+          <th>Validation</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for form in formset %}
+        <tr>
+          <td>
+            <!-- AGENCY -->
+            {% include "stocking/_form_field.html" with field_obj=form.agency %}
+          </td>
+
+          <td>
+            <!-- LAKE -->
+            {% include "stocking/_form_field.html" with field_obj=form.lake %}
+          </td>
+
+          <td>
+            <!-- StateProv -->
+            {% include "stocking/_form_field.html" with field_obj=form.state_prov %}
+          </td>
+
+          <td>
+            <!-- YEAR -->
+            {% include "stocking/_form_field.html" with field_obj=form.year %}
+          </td>
+
+          <td>
+            <!-- MONTH -->
+            {% include "stocking/_form_field.html" with field_obj=form.month %}
+          </td>
+
+          <td>
+              <!-- DAY -->
+              {% include "stocking/_form_field.html" with field_obj=form.day %}
+          </td>
+
+          <td>
+              <!-- STAT_DIST -->
+              {% include "stocking/_form_field.html" with field_obj=form.stat_dist %}
+          </td>
+
+
+          <td>
+              <!-- GRID -->
+              {% include "stocking/_form_field.html" with field_obj=form.grid %}
+          </td>
+
+          <td>
+              <!-- SITE -->
+              {% include "stocking/_form_field.html" with field_obj=form.site %}
+          </td>
+
+          <td>
+              <!-- ST_SITE -->
+              {% include "stocking/_form_field.html" with field_obj=form.st_site %}
+          </td>
+
+          
+          <td>
+            <!-- LATITUDE -->
+            {% include "stocking/_form_field.html" with field_obj=form.latitude %}
+          </td>
+
+          <td>
+            <!-- LONGITUDE -->
+            {% include "stocking/_form_field.html" with field_obj=form.longitude %}
+          </td>
+
+          <td>
+            <!-- SPECIES -->
+            {% include "stocking/_form_field.html" with field_obj=form.species %}
+          </td>
+
+          <td>
+            <!-- STRAIN -->
+            {% include "stocking/_form_field.html" with field_obj=form.strain %}
+          </td>
+
+          <td>
+              <!-- STAGE -->
+              {% include "stocking/_form_field.html" with field_obj=form.stage %}
+          </td>
+
+
+          <td>
+              <!-- AGEMONTH -->
+              {% include "stocking/_form_field.html" with field_obj=form.agemonth %}
+          </td>
+
+
+          <td>
+              <!-- YEAR_CLASS -->
+              {% include "stocking/_form_field.html" with field_obj=form.year_class %}
+          </td>
+
+
+          <td>
+              <!-- mark -->
+              {% include "stocking/_form_field.html" with field_obj=form.mark %}
+          </td>
+
+          <td>
+              <!-- mark_eff -->
+              {% include "stocking/_form_field.html" with field_obj=form.mark_eff %}
+          </td>
+
+
+          <td>
+              <!-- tag_no -->
+              {% include "stocking/_form_field.html" with field_obj=form.tag_no %}
+          </td>
+
+          <td>
+              <!-- tag_ret -->
+              {% include "stocking/_form_field.html" with field_obj=form.tag_ret %}
+          </td>
+
+          <td>
+              <!-- length -->
+              {% include "stocking/_form_field.html" with field_obj=form.length %}
+          </td>
+
+          <td>
+              <!-- weight -->
+              {% include "stocking/_form_field.html" with field_obj=form.weight %}
+          </td>
+
+          <td>
+              <!-- condition -->
+              {% include "stocking/_form_field.html" with field_obj=form.condition %}
+          </td>
+                                      
+          <td>
+            <!-- STOCK_METH -->
+            {% include "stocking/_form_field.html" with field_obj=form.stock_meth %}
+          </td>
+
+          <td>
+              <!-- NO_STOCKED -->
+              {% include "stocking/_form_field.html" with field_obj=form.no_stocked %}
+          </td>
+
+
+          <td>
+              <!-- LOT_CODE -->
+              {% include "stocking/_form_field.html" with field_obj=form.lot_code %}
+          </td>
+
+          <td>
+              <!-- VALIDATION -->
+              {% include "stocking/_form_field.html" with field_obj=form.validation %}
+          </td>
+
+          
+          
+          <td>
+            <!-- NOTES -->
+            {% include "stocking/_form_field.html" with field_obj=form.notes %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+      <tfoot class="full-width">
+        <tr>
+          <th></th>
+          <th colspan="4">
+            <div class="ui right floated small primary labeled icon button">
+              <i class="cloud upload icon"></i> Upload Events
+            </div>
+          </th>
+        </tr>
+      </tfoot>
+    </table>
+  </form>
+</div>
+
+{% endblock %}
