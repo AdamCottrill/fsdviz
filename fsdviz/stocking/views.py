@@ -27,12 +27,13 @@ from ..common.models import (
     StateProvince,
     ManagementUnit,
     Agency,
+    Grid10,
 )
-from .models import StockingEvent, StockingMethod, LifeStage
+from .models import StockingEvent, StockingMethod, LifeStage, Condition
 from .filters import StockingEventFilter
 
 from .forms import FindEventsForm, XlsEventForm
-from .utils import form2params
+from .utils import form2params, to_lake_dict
 
 
 def find_events(request):
@@ -569,8 +570,48 @@ def xls_events(request):
     # get the data from our session
     xls_events = request.session.get("data", {})
 
+    # our lookups are of the form ('value', 'display')
+
+    # stat_dist and grids will be added to dictionaries that are keyed by lake:
+
+    stat_dist = (
+        ManagementUnit.objects.select_related("lake")
+        .filter(primary=True)
+        .values_list("lake__abbrev", "label")
+    )
+    stat_dist_dict = to_lake_dict(stat_dist)
+
+    grids = Grid10.objects.select_related("lake").values_list("lake__abbrev", "grid")
+    grid_dict = to_lake_dict(grids)
+
+    choices = {
+        "lakes": [(x, x) for x in Lake.objects.values_list("abbrev", flat=True)],
+        "agencies": [(x, x) for x in Agency.objects.values_list("abbrev", flat=True)],
+        "state_prov": [
+            (x, x) for x in StateProvince.objects.values_list("abbrev", flat=True)
+        ],
+        "stat_dist": stat_dist_dict,
+        "species": [x for x in Species.objects.values_list("abbrev", "common_name")],
+        "lifestage": [
+            (x, x) for x in LifeStage.objects.values_list("abbrev", flat=True)
+        ],
+        "condition": [
+            (x, x) for x in Condition.objects.values_list("condition", flat=True)
+        ],
+        "stocking_method": [
+            (x, x) for x in StockingMethod.objects.values_list("stk_meth", flat=True)
+        ],
+        "grids": grid_dict,
+    }
+
+    event_count = len(xls_events)
+
     # for now - just print the evetns out to the template.
     EventFormSet = formset_factory(XlsEventForm, extra=0)
-    formset = EventFormSet(initial=xls_events)
+    formset = EventFormSet(initial=xls_events, form_kwargs={"choices": choices})
 
-    return render(request, "stocking/xls_events_form.html", {"formset": formset})
+    return render(
+        request,
+        "stocking/xls_events_form.html",
+        {"formset": formset, "event_count": event_count},
+    )

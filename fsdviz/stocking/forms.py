@@ -139,7 +139,25 @@ class XlsEventForm(forms.Form):
     """A form to capture stocking events in spreadsheet form, validate
     them, and convert them to stocking event model instances."""
 
-    first_year = StockingEvent.objects.aggregate(Min("year"))
+    def __init__(self, *args, choices, **kwargs):
+        self.choices = choices
+        super().__init__(*args, **kwargs)
+
+        # we can actally use use self.initial.get('lake') to modify our
+        # lookup if we want:
+
+        lake = self.initial.get("lake")
+
+        self.fields["lake"].choices = choices.get("lakes")
+        self.fields["state_prov"].choices = choices.get("state_prov")
+        self.fields["stat_dist"].choices = choices.get("stat_dist").get(lake)
+        self.fields["grid"].choices = choices.get("grids").get(lake)
+
+        self.fields["agency"].choices = choices.get("agencies")
+        self.fields["species"].choices = choices.get("species")
+        self.fields["stock_meth"].choices = choices.get("stocking_method")
+        self.fields["stage"].choices = choices.get("lifestage")
+        self.fields["condition"].choices = choices.get("condition")
 
     MONTHS = (
         (1, "Jan"),
@@ -160,41 +178,46 @@ class XlsEventForm(forms.Form):
     # not sure if the the best approach:
     DAYS = [("", "Ukn")] + list(zip(range(1, 32), range(1, 32)))
 
-    # our lookups are of the form ('value', 'display')
+    # first_year = StockingEvent.objects.aggregate(Min("year"))
+    # # our lookups are of the form ('value', 'display')
 
-    LAKES = Lake.objects.all().values_list("abbrev", "abbrev")
-    AGENCIES = Agency.objects.all().values_list("abbrev", "abbrev")
-    STATE_PROV = StateProvince.objects.all().values_list("abbrev", "abbrev")
-    STAT_DIST = ManagementUnit.objects.filter(primary=True).values_list(
-        "label", "label"
+    # LAKES = Lake.objects.all().values_list("abbrev", "abbrev")
+    # AGENCIES = Agency.objects.all().values_list("abbrev", "abbrev")
+    # STATE_PROV = StateProvince.objects.all().values_list("abbrev", "abbrev")
+    # STAT_DIST = ManagementUnit.objects.filter(primary=True).values_list(
+    #     "label", "label"
+    # )
+    # SPECIES = Species.objects.all().values_list("abbrev", "common_name")
+
+    # LIFESTAGE = LifeStage.objects.all().values_list("abbrev", "abbrev")
+    # CONDITION = Condition.objects.all().values_list("condition", "condition")
+    # STOCKINGMETHOD = StockingMethod.objects.all().values_list("stk_meth", "stk_meth")
+
+    # GRIDS = Grid10.objects.all().values_list("grid", "grid")
+
+    agency = forms.ChoiceField(choices=[], required=True)
+    lake = forms.ChoiceField(choices=[], required=True)
+    state_prov = forms.ChoiceField(choices=[], required=True)
+    year = forms.IntegerField(
+        min_value=1950, max_value=datetime.now().year, required=True
     )
-    SPECIES = Species.objects.all().values_list("abbrev", "common_name")
-
-    LIFESTAGE = LifeStage.objects.all().values_list("abbrev", "abbrev")
-    CONDITION = Condition.objects.all().values_list("condition", "condition")
-    STOCKINGMETHOD = StockingMethod.objects.all().values_list("stk_meth", "stk_meth")
-
-    GRIDS = Grid10.objects.all().values_list("grid", "grid")
-
-    agency = forms.ChoiceField(choices=AGENCIES, required=True)
-    lake = forms.ChoiceField(required=True, choices=LAKES)
-    state_prov = forms.ChoiceField(choices=STATE_PROV, required=True)
-    year = forms.CharField(required=True)
     month = forms.ChoiceField(choices=MONTHS)
     day = forms.ChoiceField(choices=DAYS)
-    stat_dist = forms.ChoiceField(choices=STAT_DIST, required=True)
-    grid = forms.ChoiceField(choices=GRIDS, required=True)
+    stat_dist = forms.ChoiceField(choices=[], required=True)
+    grid = forms.ChoiceField(choices=[], required=True)
     site = forms.CharField(required=True)
     st_site = forms.CharField(required=True)
     ##{'bbox': (-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947)}
     latitude = forms.FloatField(min_value=41.3, max_value=49.1)
     longitude = forms.FloatField(min_value=-92.0, max_value=-76.0)
-    species = forms.ChoiceField(choices=SPECIES, required=True)
+    species = forms.ChoiceField(choices=[], required=True)
     strain = forms.CharField(required=True)
-    stock_meth = forms.ChoiceField(choices=STOCKINGMETHOD, required=True)
-    stage = forms.ChoiceField(choices=LIFESTAGE, required=True)
+    stock_meth = forms.ChoiceField(choices=[], required=True)
+    stage = forms.ChoiceField(choices=[], required=True)
     agemonth = forms.IntegerField(min_value=0, required=False)
-    year_class = forms.IntegerField(min_value=1950, max_value=2030, required=False)
+    year_class = forms.IntegerField(
+        min_value=1950, max_value=(datetime.now().year + 1), required=False
+    )
     mark = forms.CharField(required=False)
     mark_eff = forms.FloatField(min_value=0, max_value=100, required=False)
     tag_no = forms.CharField(required=False)
@@ -202,7 +225,7 @@ class XlsEventForm(forms.Form):
     length = forms.FloatField(min_value=0, required=False)
     weight = forms.FloatField(min_value=0, required=False)
     no_stocked = forms.IntegerField(required=True)
-    condition = forms.ChoiceField(choices=CONDITION, required=False)
+    condition = forms.ChoiceField(choices=[], required=False)
     lot_code = forms.CharField(required=False)
     validation = forms.IntegerField(min_value=0, max_value=10, required=False)
     notes = forms.CharField(required=False)
