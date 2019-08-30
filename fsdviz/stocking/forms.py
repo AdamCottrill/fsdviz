@@ -178,23 +178,6 @@ class XlsEventForm(forms.Form):
     # not sure if the the best approach:
     DAYS = [("", "Ukn")] + list(zip(range(1, 32), range(1, 32)))
 
-    # first_year = StockingEvent.objects.aggregate(Min("year"))
-    # # our lookups are of the form ('value', 'display')
-
-    # LAKES = Lake.objects.all().values_list("abbrev", "abbrev")
-    # AGENCIES = Agency.objects.all().values_list("abbrev", "abbrev")
-    # STATE_PROV = StateProvince.objects.all().values_list("abbrev", "abbrev")
-    # STAT_DIST = ManagementUnit.objects.filter(primary=True).values_list(
-    #     "label", "label"
-    # )
-    # SPECIES = Species.objects.all().values_list("abbrev", "common_name")
-
-    # LIFESTAGE = LifeStage.objects.all().values_list("abbrev", "abbrev")
-    # CONDITION = Condition.objects.all().values_list("condition", "condition")
-    # STOCKINGMETHOD = StockingMethod.objects.all().values_list("stk_meth", "stk_meth")
-
-    # GRIDS = Grid10.objects.all().values_list("grid", "grid")
-
     agency = forms.ChoiceField(choices=[], required=True)
     lake = forms.ChoiceField(choices=[], required=True)
     state_prov = forms.ChoiceField(choices=[], required=True)
@@ -230,59 +213,37 @@ class XlsEventForm(forms.Form):
     validation = forms.IntegerField(min_value=0, max_value=10, required=False)
     notes = forms.CharField(required=False)
 
-    #   LAKE
-    # lake = forms.ChoiceField(label="Lake", widget=forms.Select, required=True)
-    # lake.widget.attrs["class"] = "ui dropdown"
+    # flags for front end javascript validation for fields that are
+    # related to one another
+    year.widget.attrs["data-validate"] = "validate-year"
+    month.widget.attrs["data-validate"] = "validate-month"
+    day.widget.attrs["data-validate"] = "validate-day"
+    grid.widget.attrs["data-validate"] = "validate-grid"
+    stat_dist.widget.attrs["data-validate"] = "validate-stat_dist"
 
-    # #   STATEPROV
-    # state_prov = forms.ChoiceField(
-    #     label="State/Province", widget=forms.Select, required=True
-    # )
-    # state_prov.widget.attrs["class"] = "ui dropdown"
-
-    # year = forms.IntegerField(
-    #     label="Year",
-    #     min_value=first_year["year__min"],
-    #     max_value=datetime.now().year,
-    #     required=True,
-    # )
-
-    # month = forms.ChoiceField(label="Month", choices=MONTHS, required=False)
-
-    # day = forms.ChoiceField(label="Day", choices=list(range(1, 32)), required=False)
-    # day.widget.attrs["class"] = "ui dropdown"
-
-    # #   AGENCY
-    # agency = forms.ChoiceField(label="Agency", widget=forms.Select, required=True)
-    # agency.widget.attrs["class"] = "ui dropdown"
-
-    # #   MANGEMENT UNIT
-    # stat_dist = forms.ModelMultipleChoiceField(
-    #     queryset=ManagementUnit.objects.filter(primary=True),
-    #     to_field_name="slug",
-    #     required=False,
-    # )
-
-    # stat_dist.widget.attrs["class"] = "ui dropdown"
-
-    # #   SPECIES
-    # species = forms.ChoiceField(label="Species", widget=forms.Select, required=True)
-
-    # species.widget.attrs["class"] = "ui dropdown"
-
-    # strain = forms.ChoiceField(label="Strain", widget=forms.Select, required=True)
-
-    # strain.widget.attrs["class"] = "ui dropdown"
-
-    # stage = forms.ChoiceField(label="Life Stage", widget=forms.Select, required=True)
-
-    # stage.widget.attrs["class"] = "ui dropdown"
-
-    # stock_method = forms.ChoiceField(
-    #     label="Stocking Method", widget=forms.Select, required=True
-    # )
-
-    # stock_method.widget.attrs["class"] = "ui dropdown"
+    agency.widget.attrs["data-validate"] = "validate-agency"
+    lake.widget.attrs["data-validate"] = "validate-lake"
+    state_prov.widget.attrs["data-validate"] = "validate-state_prov"
+    site.widget.attrs["data-validate"] = "validate-site"
+    latitude.widget.attrs["data-validate"] = "validate-latitude"
+    longitude.widget.attrs["data-validate"] = "validate-longitude"
+    species.widget.attrs["data-validate"] = "validate-species"
+    strain.widget.attrs["data-validate"] = "validate-strain"
+    stock_meth.widget.attrs["data-validate"] = "validate-stock_meth"
+    stage.widget.attrs["data-validate"] = "validate-stage"
+    agemonth.widget.attrs["data-validate"] = "validate-agemonth"
+    year_class.widget.attrs["data-validate"] = "validate-year_class"
+    mark.widget.attrs["data-validate"] = "validate-mark"
+    mark_eff.widget.attrs["data-validate"] = "validate-mark_eff"
+    tag_no.widget.attrs["data-validate"] = "validate-tag_no"
+    tag_ret.widget.attrs["data-validate"] = "validate-tag_ret"
+    length.widget.attrs["data-validate"] = "validate-length"
+    weight.widget.attrs["data-validate"] = "validate-weight"
+    no_stocked.widget.attrs["data-validate"] = "validate-no_stocked"
+    condition.widget.attrs["data-validate"] = "validate-condition"
+    lot_code.widget.attrs["data-validate"] = "validate-lot_code"
+    validation.widget.attrs["data-validate"] = "validate-validation"
+    notes.widget.attrs["data-validate"] = "validate-notes"
 
     def clean(self):
         # check for:

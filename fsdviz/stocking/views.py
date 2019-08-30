@@ -570,10 +570,7 @@ def xls_events(request):
     # get the data from our session
     xls_events = request.session.get("data", {})
 
-    # our lookups are of the form ('value', 'display')
-
     # stat_dist and grids will be added to dictionaries that are keyed by lake:
-
     stat_dist = (
         ManagementUnit.objects.select_related("lake")
         .filter(primary=True)
@@ -593,13 +590,13 @@ def xls_events(request):
         "stat_dist": stat_dist_dict,
         "species": [x for x in Species.objects.values_list("abbrev", "common_name")],
         "lifestage": [
-            (x, x) for x in LifeStage.objects.values_list("abbrev", flat=True)
+            x for x in LifeStage.objects.values_list("abbrev", "description")
         ],
         "condition": [
             (x, x) for x in Condition.objects.values_list("condition", flat=True)
         ],
         "stocking_method": [
-            (x, x) for x in StockingMethod.objects.values_list("stk_meth", flat=True)
+            x for x in StockingMethod.objects.values_list("stk_meth", "description")
         ],
         "grids": grid_dict,
     }

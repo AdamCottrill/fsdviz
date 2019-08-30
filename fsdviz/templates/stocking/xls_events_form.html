@@ -1,237 +1,651 @@
 {% extends 'fsdviz_base.html' %} {% block extra_head %}
 
-<style>
-  table {
-    width: 100%;
-  }
+    <style>
+     table {
+         width: 100%;
+     }
 
-  .table-container {
-    overflow-x: auto;
-    white-space: nowrap;
-  }
+     .table-container {
+         overflow-x: auto;
+         white-space: nowrap;
+     }
 
-  td {
-    white-space: nowrap;
-  }
+     td {
+         white-space: nowrap;
+     }
 
-  select {
-    min-width: 75px;
-  }
-</style>
+     select {
+         min-width: 75px;
+     }
+    </style>
 
 {% endblock %} {% block content %}
 
-<h1>{{  event_count }} Uploaded Stocking Events</h1>
+    <h1>{{  event_count }} Uploaded Stocking Events</h1>
 
-<div class="table-container">
-  <form class="ui form" method="post">
-    {{ formset.management_form }}
-    <table class="ui small very compact single line table">
-      <thead>
-        <tr class="center aligned">
-          <th>Agency</th>
-          <th>Lake</th>
-          <th>State/Prov</th>
-          <th>Year</th>
-          <th>Month</th>
-          <th>Day</th>
-          <th>Stat. Dist.</th>
-          <th>Grid</th>          
-          <th>Site</th>
-          <th>St.Site</th>
-          <th>Latitude</th>
-          <th>Longitude</th>
-          <th>Species</th>
-          <th>Strain</th>
-          <th>Stage</th>
-          <th>AgeMonth</th>
-          <th>Year Class</th>
-          <th>Mark</th>
-          <th>Mark Eff.</th>
-          <th>Tag No.</th>
-          <th>Tag Ret.</th>
-          <th>Length</th>
-          <th>Weight</th>
-          <th>Condition</th>          
-          <th>Method</th>
-          <th>No. Stocked</th>
-          <th>Lot Code</th>
-          <th>Validation</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for form in formset %}
-        <tr>
-          <td>
-            <!-- AGENCY -->
-            {% include "stocking/_form_field.html" with field_obj=form.agency %}
-          </td>
+    <div class="table-container">
+        <form class="ui form" method="post">
+            {{ formset.management_form }}
+            <table class="ui small very compact single line table">
+                <thead>
+                    <tr class="center aligned">
+                        <th>Agency</th>
+                        <th>Lake</th>
+                        <th>State/Prov</th>
+                        <th>Year</th>
+                        <th>Month</th>
+                        <th>Day</th>
+                        <th>Stat. Dist.</th>
+                        <th>Grid</th>          
+                        <th>Site</th>
+                        <th>St.Site</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Species</th>
+                        <th>Strain</th>
+                        <th>Stage</th>
+                        <th>AgeMonth</th>
+                        <th>Year Class</th>
+                        <th>Mark</th>
+                        <th>Mark Eff.</th>
+                        <th>Tag No.</th>
+                        <th>Tag Ret.</th>
+                        <th>Length</th>
+                        <th>Weight</th>
+                        <th>Condition</th>          
+                        <th>Method</th>
+                        <th>No. Stocked</th>
+                        <th>Lot Code</th>
+                        <th>Validation</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in formset %}
+                        <tr>
+                            <td>
+                                <!-- AGENCY -->
 
-          <td>
-            <!-- LAKE -->
-            {% include "stocking/_form_field.html" with field_obj=form.lake %}
-          </td>
+                                <div class="field {% if form.agency.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.agency }}
+                                    </div>
+                                </div>
+                                {% if form.agency.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.agency.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
 
-          <td>
-            <!-- StateProv -->
-            {% include "stocking/_form_field.html" with field_obj=form.state_prov %}
-          </td>
+                                
+                            </td>
 
-          <td>
-            <!-- YEAR -->
-            {% include "stocking/_form_field.html" with field_obj=form.year %}
-          </td>
+                            <td>
+                                <!-- LAKE -->
+                                <div class="field {% if form.lake.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.lake }}
+                                    </div>
+                                </div>
+                                {% if form.lake.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.lake.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
 
-          <td>
-            <!-- MONTH -->
-            {% include "stocking/_form_field.html" with field_obj=form.month %}
-          </td>
+                            <td>
+                                <!-- StateProv -->
+                                <div class="field {% if form.state_prov.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.state_prov }}
+                                    </div>
+                                </div>
+                                {% if form.state_prov.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.state_prov.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
 
-          <td>
-              <!-- DAY -->
-              {% include "stocking/_form_field.html" with field_obj=form.day %}
-          </td>
+                            <td>
+                                <!-- YEAR -->
+                                <div class="field {% if form.year.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.year }}
+                                    </div>
+                                </div>
+                                {% if form.year.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.year.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
 
-          <td>
-              <!-- STAT_DIST -->
-              {% include "stocking/_form_field.html" with field_obj=form.stat_dist %}
-          </td>
+                            <td>
+                                <!-- MONTH -->
+                                <div class="field {% if form.month.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.month }}
+                                    </div>
+                                </div>
+                                {% if form.month.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.month.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
 
+                            <td>
+                                <!-- DAY -->
+                                <div class="field {% if form.day.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.day }}
+                                    </div>
+                                </div>
+                                {% if form.day.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.day.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
 
-          <td>
-              <!-- GRID -->
-              {% include "stocking/_form_field.html" with field_obj=form.grid %}
-          </td>
-
-          <td>
-              <!-- SITE -->
-              {% include "stocking/_form_field.html" with field_obj=form.site %}
-          </td>
-
-          <td>
-              <!-- ST_SITE -->
-              {% include "stocking/_form_field.html" with field_obj=form.st_site %}
-          </td>
-
-          
-          <td>
-            <!-- LATITUDE -->
-            {% include "stocking/_form_field.html" with field_obj=form.latitude %}
-          </td>
-
-          <td>
-            <!-- LONGITUDE -->
-            {% include "stocking/_form_field.html" with field_obj=form.longitude %}
-          </td>
-
-          <td>
-            <!-- SPECIES -->
-            {% include "stocking/_form_field.html" with field_obj=form.species %}
-          </td>
-
-          <td>
-            <!-- STRAIN -->
-            {% include "stocking/_form_field.html" with field_obj=form.strain %}
-          </td>
-
-          <td>
-              <!-- STAGE -->
-              {% include "stocking/_form_field.html" with field_obj=form.stage %}
-          </td>
-
-
-          <td>
-              <!-- AGEMONTH -->
-              {% include "stocking/_form_field.html" with field_obj=form.agemonth %}
-          </td>
-
-
-          <td>
-              <!-- YEAR_CLASS -->
-              {% include "stocking/_form_field.html" with field_obj=form.year_class %}
-          </td>
-
-
-          <td>
-              <!-- mark -->
-              {% include "stocking/_form_field.html" with field_obj=form.mark %}
-          </td>
-
-          <td>
-              <!-- mark_eff -->
-              {% include "stocking/_form_field.html" with field_obj=form.mark_eff %}
-          </td>
-
-
-          <td>
-              <!-- tag_no -->
-              {% include "stocking/_form_field.html" with field_obj=form.tag_no %}
-          </td>
-
-          <td>
-              <!-- tag_ret -->
-              {% include "stocking/_form_field.html" with field_obj=form.tag_ret %}
-          </td>
-
-          <td>
-              <!-- length -->
-              {% include "stocking/_form_field.html" with field_obj=form.length %}
-          </td>
-
-          <td>
-              <!-- weight -->
-              {% include "stocking/_form_field.html" with field_obj=form.weight %}
-          </td>
-
-          <td>
-              <!-- condition -->
-              {% include "stocking/_form_field.html" with field_obj=form.condition %}
-          </td>
-                                      
-          <td>
-            <!-- STOCK_METH -->
-            {% include "stocking/_form_field.html" with field_obj=form.stock_meth %}
-          </td>
-
-          <td>
-              <!-- NO_STOCKED -->
-              {% include "stocking/_form_field.html" with field_obj=form.no_stocked %}
-          </td>
+                            <td>
+                                <!-- STAT_DIST -->
+                                <div class="field {% if form.stat_dist.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.stat_dist }}
+                                    </div>
+                                </div>
+                                {% if form.stat_dist.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.stat_dist.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
 
 
-          <td>
-              <!-- LOT_CODE -->
-              {% include "stocking/_form_field.html" with field_obj=form.lot_code %}
-          </td>
 
-          <td>
-              <!-- VALIDATION -->
-              {% include "stocking/_form_field.html" with field_obj=form.validation %}
-          </td>
+                            <td>
+                                <!-- GRID -->
+                                <div class="field {% if form.grid.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.grid }}
+                                    </div>
+                                </div>
+                                {% if form.grid.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.grid.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
 
-          
-          
-          <td>
-            <!-- NOTES -->
-            {% include "stocking/_form_field.html" with field_obj=form.notes %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
+                            <td>
+                                <!-- SITE -->
+                                <div class="field {% if form.site.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.site }}
+                                    </div>
+                                </div>
+                                {% if form.site.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.site.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
 
-      <tfoot class="full-width">
-        <tr>
-          <th></th>
-          <th colspan="4">
-            <div class="ui right floated small primary labeled icon button">
-              <i class="cloud upload icon"></i> Upload Events
-            </div>
-          </th>
-        </tr>
-      </tfoot>
-    </table>
-  </form>
-</div>
+                            <td>
+                                <!-- ST_SITE -->
+                                <div class="field {% if form.st_site.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.st_site }}
+                                    </div>
+                                </div>
+                                {% if form.st_site.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.st_site.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            
+                            <td>
+                                <!-- LATITUDE -->
+                                <div class="field {% if form.latitude.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.latitude }}
+                                    </div>
+                                </div>
+                                {% if form.latitude.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.latitude.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- LONGITUDE -->
+                                <div class="field {% if form.longitude.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.longitude }}
+                                    </div>
+                                </div>
+                                {% if form.longitude.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.longitude.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- SPECIES -->
+                                <div class="field {% if form.species.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.species }}
+                                    </div>
+                                </div>
+                                {% if form.species.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.species.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- STRAIN -->
+                                <div class="field {% if form.strain.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.strain }}
+                                    </div>
+                                </div>
+                                {% if form.strain.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.strain.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- STAGE -->
+                                <div class="field {% if form.stage.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.stage }}
+                                    </div>
+                                </div>
+                                {% if form.stage.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.stage.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+
+                            <td>
+                                <!-- AGEMONTH -->
+                                <div class="field {% if form.agemonth.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.agemonth }}
+                                    </div>
+                                </div>
+                                {% if form.agemonth.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.agemonth.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+
+                            <td>
+                                <!-- YEAR_CLASS -->
+                                <div class="field {% if form.year_class.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.year_class }}
+                                    </div>
+                                </div>
+                                {% if form.year_class.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.year_class.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+
+                            <td>
+                                <!-- mark -->
+                                <div class="field {% if form.mark.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.mark }}
+                                    </div>
+                                </div>
+                                {% if form.mark.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.mark.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- mark_eff -->
+                                <div class="field {% if form.mark_eff.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.mark_eff }}
+                                    </div>
+                                </div>
+                                {% if form.mark_eff.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.mark_eff.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+
+                            <td>
+                                <!-- tag_no -->
+                                <div class="field {% if form.tag_no.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.tag_no }}
+                                    </div>
+                                </div>
+                                {% if form.tag_no.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.tag_no.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- tag_ret -->
+                                <div class="field {% if form.tag_ret.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.tag_ret }}
+                                    </div>
+                                </div>
+                                {% if form.tag_ret.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.tag_ret.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- length -->
+
+                                <div class="field {% if form.length.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.length }}
+                                    </div>
+                                </div>
+                                {% if form.length.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.length.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- weight -->
+
+                                <div class="field {% if form.weight.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.weight }}
+                                    </div>
+                                </div>
+                                {% if form.weight.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.weight.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- condition -->
+                                <div class="field {% if form.condition.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.condition }}
+                                    </div>
+                                </div>
+                                {% if form.condition.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.condition.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+                            
+                            <td>
+                                <!-- STOCK_METH -->
+                                <div class="field {% if form.stock_meth.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.stock_meth }}
+                                    </div>
+                                </div>
+                                {% if form.stock_meth.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.stock_meth.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- NO_STOCKED -->
+                                <div class="field {% if form.no_stocked.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.no_stock }}
+                                    </div>
+                                </div>
+                                {% if form.no_stock.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.no_stocked.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+                                <!-- LOT_CODE -->
+                                <div class="field {% if form.lot_code.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.lot_code }}
+                                    </div>
+                                </div>
+                                {% if form.lot_code.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.lot_code.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+                            <td>
+                                <!-- VALIDATION -->
+                                <div class="field {% if form.validation.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.validation }}
+                                    </div>
+                                </div>
+                                {% if form.validation.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.validation.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+
+                            </td>
+                            
+                            <td>
+                                <!-- NOTES -->
+                                <div class="field {% if form.notes.errors %} error{% endif %}">
+                                    <div class="ui mini input">
+                                        {{ form.notes }}
+                                    </div>
+                                </div>
+                                {% if form.notes.errors %}
+                                    <div class="ui warning message">
+                                        <ul class="list">
+                                            {% for error in form.notes.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                            </td>
+
+
+                            
+                          
+                        </tr>
+                    {% endfor %}
+                </tbody>
+
+                <tfoot class="full-width">
+                    <tr>
+                        <th></th>
+                        <th colspan="4">
+                            <div class="ui right floated small primary labeled icon button">
+                                <i class="cloud upload icon"></i> Upload Events
+                            </div>
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+        </form>
+    </div>
 
 {% endblock %}

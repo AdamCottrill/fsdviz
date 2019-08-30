@@ -12,6 +12,10 @@
             <div class="content">
 
 
+                <div class="ui inverted dimmer" id="event-loader">
+                    <div class="ui large text loader">Uploading Stocking Events...</div>
+                </div>
+
                 {% if messages %}
                     {% for message in messages %}
                         <div class="ui 
@@ -27,7 +31,7 @@
 
 
                 
-                <form class="ui form" action="{% url "stocking:upload-stocking-events" %}" method="POST" enctype="multipart/form-data" class="form-horizontal"> 
+                <form class="ui form" action="{% url "stocking:upload-stocking-events" %}" method="POST" enctype="multipart/form-data" class="form-horizontal" id="upload-form"> 
                     {% csrf_token %}
                     <div class="inline fields">
                         <div class="sixteen wide field">
@@ -43,4 +47,22 @@
 
     </div>
 
+
+    
+{% endblock %}
+
+
+{% block extra_js %}
+
+    <script>
+
+     $('#upload-form').form({
+         onSuccess: function(e) {
+             $('#event-loader').addClass('active');
+         }
+     });
+     
+    </script>
+
+    
 {% endblock %}
