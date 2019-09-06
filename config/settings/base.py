@@ -164,6 +164,9 @@ LOGOUT_REDIRECT_URL = "home"
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_mails")
 
+# for xls upload
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
+
 
 ## urls here as needed for cors:
 CORS_ORIGIN_ALLOW_ALL = True

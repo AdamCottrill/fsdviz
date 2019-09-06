@@ -139,25 +139,29 @@ class XlsEventForm(forms.Form):
     """A form to capture stocking events in spreadsheet form, validate
     them, and convert them to stocking event model instances."""
 
-    def __init__(self, *args, choices, **kwargs):
-        self.choices = choices
-        super().__init__(*args, **kwargs)
+    # def __init__(self, *args, choices, **kwargs):
+    #     self.choices = choices
+    #     super().__init__(*args, **kwargs)
+
+    def __init__(self, *args, **kwargs):
+        self.choices = kwargs.pop("choices", None)
+        super(XlsEventForm, self).__init__(*args, **kwargs)
 
         # we can actally use use self.initial.get('lake') to modify our
         # lookup if we want:
 
-        lake = self.initial.get("lake")
+        lake = self.initial.get("lake", "HU")
 
-        self.fields["lake"].choices = choices.get("lakes")
-        self.fields["state_prov"].choices = choices.get("state_prov")
-        self.fields["stat_dist"].choices = choices.get("stat_dist").get(lake)
-        self.fields["grid"].choices = choices.get("grids").get(lake)
+        self.fields["lake"].choices = self.choices.get("lakes")
+        self.fields["state_prov"].choices = self.choices.get("state_prov")
+        self.fields["stat_dist"].choices = self.choices.get("stat_dist").get(lake)
+        self.fields["grid"].choices = self.choices.get("grids").get(lake)
 
-        self.fields["agency"].choices = choices.get("agencies")
-        self.fields["species"].choices = choices.get("species")
-        self.fields["stock_meth"].choices = choices.get("stocking_method")
-        self.fields["stage"].choices = choices.get("lifestage")
-        self.fields["condition"].choices = choices.get("condition")
+        self.fields["agency"].choices = self.choices.get("agencies")
+        self.fields["species"].choices = self.choices.get("species")
+        self.fields["stock_meth"].choices = self.choices.get("stocking_method")
+        self.fields["stage"].choices = self.choices.get("lifestage")
+        self.fields["condition"].choices = self.choices.get("condition")
 
     MONTHS = (
         (1, "Jan"),
@@ -189,13 +193,12 @@ class XlsEventForm(forms.Form):
     stat_dist = forms.ChoiceField(choices=[], required=True)
     grid = forms.ChoiceField(choices=[], required=True)
     site = forms.CharField(required=True)
-    st_site = forms.CharField(required=True)
+    st_site = forms.CharField(required=False)
     ##{'bbox': (-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947)}
     latitude = forms.FloatField(min_value=41.3, max_value=49.1)
     longitude = forms.FloatField(min_value=-92.0, max_value=-76.0)
     species = forms.ChoiceField(choices=[], required=True)
     strain = forms.CharField(required=True)
-    stock_meth = forms.ChoiceField(choices=[], required=True)
     stage = forms.ChoiceField(choices=[], required=True)
     agemonth = forms.IntegerField(min_value=0, required=False)
     year_class = forms.IntegerField(
@@ -207,8 +210,9 @@ class XlsEventForm(forms.Form):
     tag_ret = forms.FloatField(min_value=0, max_value=100, required=False)
     length = forms.FloatField(min_value=0, required=False)
     weight = forms.FloatField(min_value=0, required=False)
-    no_stocked = forms.IntegerField(required=True)
     condition = forms.ChoiceField(choices=[], required=False)
+    stock_meth = forms.ChoiceField(choices=[], required=True)
+    no_stocked = forms.IntegerField(required=True)
     lot_code = forms.CharField(required=False)
     validation = forms.IntegerField(min_value=0, max_value=10, required=False)
     notes = forms.CharField(required=False)
@@ -245,10 +249,30 @@ class XlsEventForm(forms.Form):
     validation.widget.attrs["data-validate"] = "validate-validation"
     notes.widget.attrs["data-validate"] = "validate-notes"
 
+    def clean_grid(self):
+        lake = self.cleaned_data["lake"]
+        grid = self.cleaned_data["grid"]
+        grids = self.choices.get("grids").get(lake)
+        if grid not in [x[0] for x in grids]:
+            msg = "Grid {} is not valid for lake {}".format(grid, lake)
+            raise forms.ValidationError(msg, code="grid")
+        return grid
+
+    def clean_stat_dist(self):
+
+        lake = self.cleaned_data["lake"]
+        stat_dist = self.cleaned_data["stat_dist"]
+        stat_dists = self.choices.get("stat_dist").get(lake)
+        if stat_dist not in [x[0] for x in stat_dists]:
+            msg = "Stat_Dist {} is not valid for lake {}".format(stat_dist, lake)
+            raise forms.ValidationError(msg, code="stat_dist")
+        return stat_dist
+
     def clean(self):
         # check for:
         # valid dates
         # state - lake
         # statdist -lake
         # grid - lake
+
         pass

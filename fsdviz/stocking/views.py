@@ -16,14 +16,24 @@ from django.views.generic.list import ListView
 from django.forms import formset_factory
 
 import json
+from uuid import uuid1
 
-from .helpers import get_events
+from .utils import form2params, get_events, get_xls_form_choices
+from ..common.utils import (
+    to_lake_dict,
+    toLookup,
+    toChoices,
+    make_mu_id_lookup,
+    make_strain_id_lookup,
+)
+
 
 from ..common.models import (
     Lake,
     Jurisdiction,
     Species,
     Strain,
+    StrainRaw,
     StateProvince,
     ManagementUnit,
     Agency,
@@ -33,7 +43,6 @@ from .models import StockingEvent, StockingMethod, LifeStage, Condition
 from .filters import StockingEventFilter
 
 from .forms import FindEventsForm, XlsEventForm
-from .utils import form2params, to_lake_dict
 
 
 def find_events(request):
@@ -564,48 +573,171 @@ def upload_events(request):
 
 def xls_events(request):
     """
-                   Arguments:
+        Arguments:
         - `request`:
         """
-    # get the data from our session
-    xls_events = request.session.get("data", {})
 
-    # stat_dist and grids will be added to dictionaries that are keyed by lake:
-    stat_dist = (
-        ManagementUnit.objects.select_related("lake")
-        .filter(primary=True)
-        .values_list("lake__abbrev", "label")
+    EventFormSet = formset_factory(XlsEventForm, extra=0)
+
+    lakes = [x for x in Lake.objects.values_list("id", "abbrev")]
+    lake_choices = toChoices(lakes)
+
+    agencies = [x for x in Agency.objects.values_list("id", "abbrev")]
+    agency_choices = toChoices(agencies)
+
+    stateProvinces = [
+        x for x in StateProvince.objects.values_list("id", "abbrev", "name")
+    ]
+    stateProv_choices = toChoices(stateProvinces)
+
+    species = [x for x in Species.objects.values_list("id", "abbrev", "common_name")]
+    species_choices = toChoices(species)
+
+    # TODO - add strains to lookup.
+    strains = StrainRaw.objects.select_related("species").values_list(
+        "id", "species__abbrev", "raw_strain"
     )
-    stat_dist_dict = to_lake_dict(stat_dist)
 
-    grids = Grid10.objects.select_related("lake").values_list("lake__abbrev", "grid")
-    grid_dict = to_lake_dict(grids)
+    lifestages = [
+        x for x in LifeStage.objects.values_list("id", "abbrev", "description")
+    ]
+    lifestage_choices = toChoices(lifestages)
+
+    conditions = [x for x in Condition.objects.values_list("id", "condition")]
+    condition_choices = toChoices(conditions)
+
+    stocking_methods = [
+        x for x in StockingMethod.objects.values_list("id", "stk_meth", "description")
+    ]
+
+    stocking_method_choices = toChoices(stocking_methods)
+
+    # grid_id_lookup will be a dictionary keyed by slug:
+
+    grids = Grid10.objects.select_related("lake").values_list(
+        "id", "slug", "lake__abbrev", "grid"
+    )
+
+    # grid choices must match the values coming in from the spreadsheet.
+    # no slugs!
+    tmp = [[x[2], x[3]] for x in grids]
+    grid_choices = to_lake_dict(tmp)
+
+    mus = (
+        ManagementUnit.objects.filter(primary=True)
+        .select_related("lake")
+        .values_list("id", "slug", "lake__abbrev", "label")
+    )
+    tmp = [[x[2], x[3]] for x in mus]
+    mu_choices = to_lake_dict(tmp)
 
     choices = {
-        "lakes": [(x, x) for x in Lake.objects.values_list("abbrev", flat=True)],
-        "agencies": [(x, x) for x in Agency.objects.values_list("abbrev", flat=True)],
-        "state_prov": [
-            (x, x) for x in StateProvince.objects.values_list("abbrev", flat=True)
-        ],
-        "stat_dist": stat_dist_dict,
-        "species": [x for x in Species.objects.values_list("abbrev", "common_name")],
-        "lifestage": [
-            x for x in LifeStage.objects.values_list("abbrev", "description")
-        ],
-        "condition": [
-            (x, x) for x in Condition.objects.values_list("condition", flat=True)
-        ],
-        "stocking_method": [
-            x for x in StockingMethod.objects.values_list("stk_meth", "description")
-        ],
-        "grids": grid_dict,
+        "grids": grid_choices,
+        "stat_dist": mu_choices,
+        "lakes": lake_choices,
+        "agencies": agency_choices,
+        "state_prov": stateProv_choices,
+        "species": species_choices,
+        "lifestage": lifestage_choices,
+        "condition": condition_choices,
+        "stocking_method": stocking_method_choices,
     }
 
-    event_count = len(xls_events)
+    event_count = 0
 
-    # for now - just print the evetns out to the template.
-    EventFormSet = formset_factory(XlsEventForm, extra=0)
-    formset = EventFormSet(initial=xls_events, form_kwargs={"choices": choices})
+    if request.method == "POST":
+        formset = EventFormSet(request.POST, form_kwargs={"choices": choices})
+        event_count = formset.total_form_count()
+        if formset.is_valid():
+            # for form in formset - create our stocking events:
+            # Add them to our 'upload event table
+            # return to list of uploaded events.
+            # create our lookup dicts that relake abbrev to django objects:
+
+            # lake_id_lookup = toLookup(lakes)
+            agency_id_lookup = toLookup(agencies)
+
+            stocking_method_id_lookup = toLookup(stocking_methods)
+            grid_id_lookup = toLookup(grids)
+            mu_id_lookup = make_mu_id_lookup(mus)
+            condition_id_lookup = toLookup(conditions)
+            stateProv_id_lookup = toLookup(stateProvinces)
+            species_id_lookup = toLookup(species)
+            lifestage_id_lookup = toLookup(lifestages)
+
+            lakeStates = [x for x in Jurisdiction.objects.values_list("id", "slug")]
+            lakeState_id_lookup = toLookup(lakeStates)
+
+            strain_id_lookup = make_strain_id_lookup(strains)
+
+            events = []
+            for form in formset:
+                data = form.cleaned_data
+                lake = data.pop("lake")
+                agency = agency_id_lookup[data.pop("agency")]
+                spc_abbrev = data.pop("species")
+                species = species_id_lookup[spc_abbrev]
+                lifestage = lifestage_id_lookup[data.pop("stage")]
+                stocking_method = stocking_method_id_lookup[data.pop("stock_meth")]
+                condition = condition_id_lookup[int(data.pop("condition"))]
+                grid_slug = "{}_{}".format(lake.lower(), data.pop("grid"))
+                grid = grid_id_lookup[grid_slug]
+
+                stat_dist = data.pop("stat_dist")
+                mu = mu_id_lookup.get(lake).get(stat_dist)
+
+                lakeState_slug = "{}_{}".format(
+                    lake.lower(), data.pop("state_prov").lower()
+                )
+                lakeState = lakeState_id_lookup[lakeState_slug]
+
+                strain_label = data.pop("strain")
+                strain_id = strain_id_lookup.get(spc_abbrev).get(strain_label)
+
+                # Strain and StrainRaw???
+                # parse marks
+                # stock_id??
+
+                # ForeigmKeyFields
+                data["agency_id"] = agency
+                data["lifestage_id"] = lifestage
+                data["stocking_method_id"] = stocking_method
+                data["grid_10_id"] = grid
+                data["management_unit_id"] = mu
+                data["species_id"] = species
+                data["strain_raw_id"] = strain_id
+                data["jurisdiction_id"] = lakeState
+                data["condition_id"] = condition
+
+                # rename some of our fields (this is not very elegant,
+                # but works for now)
+                data["dd_lat"] = data.pop("latitude")
+                data["dd_lon"] = data.pop("longitude")
+                data["lotcode"] = data.pop("lot_code")
+
+                # this needs to be calcualted based on species, lifestage, and ...
+                data["yreq_stocked"] = data.get("no_stocked")
+
+                # this is also not right - just getting it to work ...
+                data["latlong_flag_id"] = 1
+
+                # another hack = ensures that stock
+                data["stock_id"] = uuid1()
+
+                event = StockingEvent(**data)
+                event.save()
+                # events.append(StockingEvent(**data))
+
+            #            StockingEvent.objects.bulk_create(events)
+
+            print("formset is valid!!")
+            return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
+    else:
+        # get the data from our session
+        xls_events = request.session.get("data", {})
+        event_count = len(xls_events)
+
+        formset = EventFormSet(initial=xls_events, form_kwargs={"choices": choices})
 
     return render(
         request,

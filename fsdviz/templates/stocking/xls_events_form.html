@@ -1,6 +1,14 @@
 {% extends 'fsdviz_base.html' %} {% block extra_head %}
 
     <style>
+
+
+     .ui.table thead tr:first-child > th {
+         position: sticky !important;
+         top: 0;
+         z-index: 2;
+     }
+     
      table {
          width: 100%;
      }
@@ -8,8 +16,9 @@
      .table-container {
          overflow-x: auto;
          white-space: nowrap;
+         height: 700px;
      }
-
+     
      td {
          white-space: nowrap;
      }
@@ -23,8 +32,13 @@
 
     <h1>{{  event_count }} Uploaded Stocking Events</h1>
 
+
+    {{ form.non_field_errors }}
+    
+    
     <div class="table-container">
-        <form class="ui form" method="post">
+        <form class="ui form" method="post"  action="{% url "stocking:xls-events-form" %}" >
+            {% csrf_token %}
             {{ formset.management_form }}
             <table class="ui small very compact single line table">
                 <thead>
@@ -63,573 +77,33 @@
                 <tbody>
                     {% for form in formset %}
                         <tr>
-                            <td>
-                                <!-- AGENCY -->
+                            {%  for field in form %}
+                               
+                                <td>
+                                    <div class="field {% if field.errors %} error{% endif %}" id="{{field.id_for_label}}-field">
+                                        <div class="ui mini input">
+                                            {{ field }}
+                                        </div>
+                                    </div>
 
-                                <div class="field {% if form.agency.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.agency }}
-                                    </div>
-                                </div>
-                                {% if form.agency.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.agency.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
+                                    {% if field.errors %} 
+                                        
+                                        <div class="ui popup" id="{{field.id_for_label}}-popup">
+                                            <div class="header">Errors:</div>
+                                            <div class="ui bulleted list">
+                                                {% for error in field.errors  %}
+                                                    <div class="item">{{ error|escape }}</div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
 
-                                
-                            </td>
+                                    
+                                </td>
 
-                            <td>
-                                <!-- LAKE -->
-                                <div class="field {% if form.lake.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.lake }}
-                                    </div>
-                                </div>
-                                {% if form.lake.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.lake.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- StateProv -->
-                                <div class="field {% if form.state_prov.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.state_prov }}
-                                    </div>
-                                </div>
-                                {% if form.state_prov.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.state_prov.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- YEAR -->
-                                <div class="field {% if form.year.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.year }}
-                                    </div>
-                                </div>
-                                {% if form.year.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.year.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- MONTH -->
-                                <div class="field {% if form.month.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.month }}
-                                    </div>
-                                </div>
-                                {% if form.month.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.month.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- DAY -->
-                                <div class="field {% if form.day.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.day }}
-                                    </div>
-                                </div>
-                                {% if form.day.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.day.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- STAT_DIST -->
-                                <div class="field {% if form.stat_dist.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.stat_dist }}
-                                    </div>
-                                </div>
-                                {% if form.stat_dist.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.stat_dist.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-
-
-                            <td>
-                                <!-- GRID -->
-                                <div class="field {% if form.grid.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.grid }}
-                                    </div>
-                                </div>
-                                {% if form.grid.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.grid.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- SITE -->
-                                <div class="field {% if form.site.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.site }}
-                                    </div>
-                                </div>
-                                {% if form.site.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.site.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- ST_SITE -->
-                                <div class="field {% if form.st_site.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.st_site }}
-                                    </div>
-                                </div>
-                                {% if form.st_site.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.st_site.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
+                            {% endfor %}
                             
-                            <td>
-                                <!-- LATITUDE -->
-                                <div class="field {% if form.latitude.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.latitude }}
-                                    </div>
-                                </div>
-                                {% if form.latitude.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.latitude.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- LONGITUDE -->
-                                <div class="field {% if form.longitude.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.longitude }}
-                                    </div>
-                                </div>
-                                {% if form.longitude.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.longitude.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- SPECIES -->
-                                <div class="field {% if form.species.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.species }}
-                                    </div>
-                                </div>
-                                {% if form.species.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.species.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- STRAIN -->
-                                <div class="field {% if form.strain.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.strain }}
-                                    </div>
-                                </div>
-                                {% if form.strain.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.strain.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- STAGE -->
-                                <div class="field {% if form.stage.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.stage }}
-                                    </div>
-                                </div>
-                                {% if form.stage.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.stage.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-
-                            <td>
-                                <!-- AGEMONTH -->
-                                <div class="field {% if form.agemonth.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.agemonth }}
-                                    </div>
-                                </div>
-                                {% if form.agemonth.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.agemonth.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-
-                            <td>
-                                <!-- YEAR_CLASS -->
-                                <div class="field {% if form.year_class.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.year_class }}
-                                    </div>
-                                </div>
-                                {% if form.year_class.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.year_class.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-
-                            <td>
-                                <!-- mark -->
-                                <div class="field {% if form.mark.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.mark }}
-                                    </div>
-                                </div>
-                                {% if form.mark.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.mark.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- mark_eff -->
-                                <div class="field {% if form.mark_eff.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.mark_eff }}
-                                    </div>
-                                </div>
-                                {% if form.mark_eff.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.mark_eff.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-
-                            <td>
-                                <!-- tag_no -->
-                                <div class="field {% if form.tag_no.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.tag_no }}
-                                    </div>
-                                </div>
-                                {% if form.tag_no.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.tag_no.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- tag_ret -->
-                                <div class="field {% if form.tag_ret.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.tag_ret }}
-                                    </div>
-                                </div>
-                                {% if form.tag_ret.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.tag_ret.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- length -->
-
-                                <div class="field {% if form.length.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.length }}
-                                    </div>
-                                </div>
-                                {% if form.length.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.length.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- weight -->
-
-                                <div class="field {% if form.weight.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.weight }}
-                                    </div>
-                                </div>
-                                {% if form.weight.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.weight.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- condition -->
-                                <div class="field {% if form.condition.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.condition }}
-                                    </div>
-                                </div>
-                                {% if form.condition.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.condition.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
                             
-                            <td>
-                                <!-- STOCK_METH -->
-                                <div class="field {% if form.stock_meth.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.stock_meth }}
-                                    </div>
-                                </div>
-                                {% if form.stock_meth.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.stock_meth.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- NO_STOCKED -->
-                                <div class="field {% if form.no_stocked.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.no_stock }}
-                                    </div>
-                                </div>
-                                {% if form.no_stock.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.no_stocked.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-
-                            </td>
-
-
-                            <td>
-                                <!-- LOT_CODE -->
-                                <div class="field {% if form.lot_code.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.lot_code }}
-                                    </div>
-                                </div>
-                                {% if form.lot_code.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.lot_code.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-                            <td>
-                                <!-- VALIDATION -->
-                                <div class="field {% if form.validation.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.validation }}
-                                    </div>
-                                </div>
-                                {% if form.validation.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.validation.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-
-                            </td>
-                            
-                            <td>
-                                <!-- NOTES -->
-                                <div class="field {% if form.notes.errors %} error{% endif %}">
-                                    <div class="ui mini input">
-                                        {{ form.notes }}
-                                    </div>
-                                </div>
-                                {% if form.notes.errors %}
-                                    <div class="ui warning message">
-                                        <ul class="list">
-                                            {% for error in form.notes.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                            </td>
-
-
-                            
-                          
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -638,10 +112,12 @@
                     <tr>
                         <th></th>
                         <th colspan="4">
-                            <div class="ui right floated small primary labeled icon button">
+                            <button class="ui right floated small primary labeled icon button"
+                                    type="submit" >
                                 <i class="cloud upload icon"></i> Upload Events
-                            </div>
+                            </button>
                         </th>
+                        <th colspan="11"></th>
                     </tr>
                 </tfoot>
             </table>
@@ -649,3 +125,22 @@
     </div>
 
 {% endblock %}
+
+
+{% block extra_js %}
+
+    <script>
+
+     // our form validation will go here.
+     $('.error')
+         .popup( {
+                 position : 'bottom center',
+                 inline: true
+         });
+
+     
+     
+    </script>
+
+
+{% endblock extra_js%}
