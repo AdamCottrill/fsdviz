@@ -10,6 +10,8 @@ from .views import (
     filtered_events,
     upload_events,
     xls_events,
+    DataUploadEventListView,
+    DataUploadEventDetailView,
 )
 
 app_name = "stocking"
@@ -82,4 +84,14 @@ urlpatterns = [
     ),
     path("upload_events/", upload_events, name="upload-stocking-events"),
     path("uploaded_events/", xls_events, name="xls-events-form"),
+    path(
+        "data_upload_events/",
+        DataUploadEventListView.as_view(),
+        name="data-upload-event-list",
+    ),
+    path(
+        "data_upload_event_detail/<pk>/",
+        DataUploadEventDetailView.as_view(),
+        name="data-upload-event-detail",
+    ),
 ]

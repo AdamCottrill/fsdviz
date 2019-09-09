@@ -73,7 +73,7 @@
                                         <th scope="col">Strain</th>
                                         <th scope="col">Year Class</th>
                                         <th scope="col">Life Stage</th>
-                                        <th scope="col">Stocking Methd</th>
+                                        <th scope="col">Stocking Method</th>
                                         <th scope="col">Mark</th>
                                         <th scope="col">Yr.Eq.</th>
                                     </tr>
@@ -91,7 +91,8 @@
                                             <td> {{ object.strain_raw__strain__strain_label }}</td>
                                             <td>{{ object.year_class }}</td>
                                             <td> {{ object.lifestage__description | title }}</td>
-                                            <td> {{ object.stocking_method__description | title }}</td>                    <td>{{object.mark}}</td>
+                                            <td> {{ object.stocking_method__description | title }}</td>
+                                            <td>{{object.mark}}</td>
                                             <td> {{ object.yreq_stocked | intcomma }}</td>
 
                                         </tr>

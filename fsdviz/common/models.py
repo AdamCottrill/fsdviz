@@ -54,6 +54,11 @@ class Agency(models.Model):
         verbose_name_plural = "Agencies"
         ordering = ["abbrev"]
 
+    def get_by_natural_key(self, abbrev):
+        """a helper method that will allow us to get agencies
+        using abbrev as the key."""
+        return self.get(abbrev=abbrev)
+
     def __str__(self):
         """ String representation for a agency."""
         return "{} ({})".format(self.agency_name, self.abbrev)

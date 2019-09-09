@@ -1,0 +1,61 @@
+{% extends 'fsdviz_base.html' %}
+
+{% load humanize %}
+
+{% block content %}
+
+    <div class="ui container" id="content">
+
+        <h2>Data Upload Events </h2>
+
+        {% if object_list %}
+
+
+            <table class="ui celled table">
+                <thead>
+                    <tr>
+                        <th>Details</th>
+                        <th>Lake</th>
+                        <th>Agency</th>
+                        <th>Uploaded By</th>
+                        <th>Timestamp</th>
+                        <th>Events (N)</th>
+                        <th>Total Stocked</th>
+                    </tr>                
+                </thead>
+                <tbody>
+
+                    {% for object in object_list %}
+                        <tr>
+                            <td><a href="{% url 'stocking:data-upload-event-detail' object.id %}"><i class="list icon"></i></a></td>
+
+                            <td>{{ object.lake }} </td>
+                            <td>{{ object.agency }} </td>                            
+                            <td>{{object.uploaded_by }} </td>
+                            <td>{{object.timestamp}}</td>
+                            <td>{{ object.event_count }}</td>
+                            <td>{{ object.total_stocked | intcomma  }}</td>
+                        </tr>
+                    {% endfor %}
+                    
+                    
+                </tbody>
+                
+                
+            </table>
+
+
+                
+
+            {% else %}
+
+            <h5>oops - no upload events are currently available.</h5>
+            
+            {% endif %}
+
+            
+
+        
+    </div>
+
+{% endblock %}

@@ -37,7 +37,12 @@
     
     
     <div class="table-container">
-        <form class="ui form" method="post"  action="{% url "stocking:xls-events-form" %}" >
+        <form class="ui form" method="post"  id="upload-form" action="{% url "stocking:xls-events-form" %}" >
+
+            <div class="ui inverted dimmer" id="event-loader">
+                <div class="ui large text loader">Uploading Stocking Events...</div>
+            </div>
+
             {% csrf_token %}
             {{ formset.management_form }}
             <table class="ui small very compact single line table">
@@ -78,7 +83,7 @@
                     {% for form in formset %}
                         <tr>
                             {%  for field in form %}
-                               
+                                
                                 <td>
                                     <div class="field {% if field.errors %} error{% endif %}" id="{{field.id_for_label}}-field">
                                         <div class="ui mini input">
@@ -134,9 +139,16 @@
      // our form validation will go here.
      $('.error')
          .popup( {
-                 position : 'bottom center',
-                 inline: true
+             position : 'bottom center',
+             inline: true
          });
+
+     $('#upload-form').form({
+         onSuccess: function(e) {
+             $('#event-loader').addClass('active');
+         }
+     });
+
 
      
      

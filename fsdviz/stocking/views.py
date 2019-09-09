@@ -5,7 +5,7 @@ Views associated with our stocking application.
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q, Max, F
+from django.db.models import Count, Q, Max, Sum, F
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
@@ -39,7 +39,7 @@ from ..common.models import (
     Agency,
     Grid10,
 )
-from .models import StockingEvent, StockingMethod, LifeStage, Condition
+from .models import StockingEvent, StockingMethod, LifeStage, Condition, DataUploadEvent
 from .filters import StockingEventFilter
 
 from .forms import FindEventsForm, XlsEventForm
@@ -654,7 +654,7 @@ def xls_events(request):
             # return to list of uploaded events.
             # create our lookup dicts that relake abbrev to django objects:
 
-            # lake_id_lookup = toLookup(lakes)
+            lake_id_lookup = toLookup(lakes)
             agency_id_lookup = toLookup(agencies)
 
             stocking_method_id_lookup = toLookup(stocking_methods)
@@ -669,6 +669,10 @@ def xls_events(request):
             lakeState_id_lookup = toLookup(lakeStates)
 
             strain_id_lookup = make_strain_id_lookup(strains)
+
+            # update values for lake and agency later:
+            data_upload_event = DataUploadEvent(uploaded_by=request.user)
+            data_upload_event.save()
 
             events = []
             for form in formset:
@@ -694,10 +698,6 @@ def xls_events(request):
                 strain_label = data.pop("strain")
                 strain_id = strain_id_lookup.get(spc_abbrev).get(strain_label)
 
-                # Strain and StrainRaw???
-                # parse marks
-                # stock_id??
-
                 # ForeigmKeyFields
                 data["agency_id"] = agency
                 data["lifestage_id"] = lifestage
@@ -708,6 +708,8 @@ def xls_events(request):
                 data["strain_raw_id"] = strain_id
                 data["jurisdiction_id"] = lakeState
                 data["condition_id"] = condition
+
+                data["upload_event"] = data_upload_event
 
                 # rename some of our fields (this is not very elegant,
                 # but works for now)
@@ -730,8 +732,13 @@ def xls_events(request):
 
             #            StockingEvent.objects.bulk_create(events)
 
-            print("formset is valid!!")
-            return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
+            # update the data update attributes from the last event on the form
+            data_upload_event.lake_id = lake_id_lookup[lake]
+            data_upload_event.agency_id = agency
+            data_upload_event.save()
+
+            url = reverse("stocking:data-upload-event-detail", data_upload_event.id)
+            return HttpResponseRedirect(url)
     else:
         # get the data from our session
         xls_events = request.session.get("data", {})
@@ -743,4 +750,65 @@ def xls_events(request):
         request,
         "stocking/xls_events_form.html",
         {"formset": formset, "event_count": event_count},
+    )
+
+
+class DataUploadEventDetailView(DetailView):
+    """
+
+    **Context**
+
+    ``object``
+        A :model:`stocking.DataUploadEvent` instance.
+
+    **Template:**
+
+    :template:`stocking/upload_event_detail.html`
+
+    """
+
+    model = DataUploadEvent
+    template_name = "stocking/upload_event_detail.html"
+
+    def get_context_data(self, **kwargs):
+        """add our associated stocking events to the context"""
+
+        context = super(DataUploadEventDetailView, self).get_context_data(**kwargs)
+
+        context["events"] = StockingEvent.objects.filter(
+            upload_event=self.get_object()
+        ).select_related(
+            "species", "lifestage", "strain_raw__strain", "stocking_method"
+        )
+
+        return context
+
+
+class DataUploadEventListView(ListView):
+    """
+    A generic list view that is used to display a list of upload events
+    events.
+
+    **Context**
+
+    ``object_list``
+        An list of :model:`stocking.DataUploadEvent` instances.
+
+    **Template:**
+
+    :template:`stocking/upload_event_list.html`
+
+    """
+
+    model = DataUploadEvent
+    paginate_by = 100
+    template_name = "stocking/upload_event_list.html"
+    queryset = (
+        DataUploadEvent.objects.prefetch_related("stocking_events__species")
+        .annotate(
+            event_count=Count("stocking_events"),
+            total_stocked=Sum("stocking_events__no_stocked"),
+        )
+        .order_by("-timestamp")
+        .all()
     )
