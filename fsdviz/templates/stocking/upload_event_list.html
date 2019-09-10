@@ -27,7 +27,7 @@
 
                     {% for object in object_list %}
                         <tr>
-                            <td><a href="{% url 'stocking:data-upload-event-detail' object.id %}"><i class="list icon"></i></a></td>
+                            <td><a href="{% url 'stocking:data-upload-event-detail' object.slug %}"><i class="list icon"></i></a></td>
 
                             <td>{{ object.lake }} </td>
                             <td>{{ object.agency }} </td>                            

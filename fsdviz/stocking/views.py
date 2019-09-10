@@ -5,6 +5,7 @@ Views associated with our stocking application.
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Count, Q, Max, Sum, F
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render, get_object_or_404
@@ -14,6 +15,8 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
 from django.forms import formset_factory
+
+from datetime import datetime
 
 import json
 from uuid import uuid1
@@ -670,75 +673,93 @@ def xls_events(request):
 
             strain_id_lookup = make_strain_id_lookup(strains)
 
-            # update values for lake and agency later:
-            data_upload_event = DataUploadEvent(uploaded_by=request.user)
-            data_upload_event.save()
+            with transaction.atomic():
 
-            events = []
-            for form in formset:
-                data = form.cleaned_data
-                lake = data.pop("lake")
-                agency = agency_id_lookup[data.pop("agency")]
-                spc_abbrev = data.pop("species")
-                species = species_id_lookup[spc_abbrev]
-                lifestage = lifestage_id_lookup[data.pop("stage")]
-                stocking_method = stocking_method_id_lookup[data.pop("stock_meth")]
-                condition = condition_id_lookup[int(data.pop("condition"))]
-                grid_slug = "{}_{}".format(lake.lower(), data.pop("grid"))
-                grid = grid_id_lookup[grid_slug]
+                # get values for for lake and agency from first row:
+                lake_abbrev = formset.data.get("form-0-lake", "HU")
+                agency_abbrev = formset.data.get("form-0-agency", "USFWS")
 
-                stat_dist = data.pop("stat_dist")
-                mu = mu_id_lookup.get(lake).get(stat_dist)
-
-                lakeState_slug = "{}_{}".format(
-                    lake.lower(), data.pop("state_prov").lower()
+                data_upload_event = DataUploadEvent(
+                    uploaded_by=request.user,
+                    lake_id=lake_abbrev,
+                    agency_id=agency_abbrev,
                 )
-                lakeState = lakeState_id_lookup[lakeState_slug]
+                data_upload_event.save()
 
-                strain_label = data.pop("strain")
-                strain_id = strain_id_lookup.get(spc_abbrev).get(strain_label)
+                events = []
+                for form in formset:
+                    data = form.cleaned_data
+                    lake_abbrev = data.pop("lake")
+                    agency_abbrev = data.pop("agency")
+                    agency = agency_id_lookup[agency_abbrev]
+                    spc_abbrev = data.pop("species")
+                    species = species_id_lookup[spc_abbrev]
+                    lifestage = lifestage_id_lookup[data.pop("stage")]
+                    stocking_method = stocking_method_id_lookup[data.pop("stock_meth")]
+                    condition = condition_id_lookup[int(data.pop("condition"))]
+                    grid_slug = "{}_{}".format(lake_abbrev.lower(), data.pop("grid"))
+                    grid = grid_id_lookup[grid_slug]
 
-                # ForeigmKeyFields
-                data["agency_id"] = agency
-                data["lifestage_id"] = lifestage
-                data["stocking_method_id"] = stocking_method
-                data["grid_10_id"] = grid
-                data["management_unit_id"] = mu
-                data["species_id"] = species
-                data["strain_raw_id"] = strain_id
-                data["jurisdiction_id"] = lakeState
-                data["condition_id"] = condition
+                    stat_dist = data.pop("stat_dist")
+                    mu = mu_id_lookup.get(lake_abbrev).get(stat_dist)
 
-                data["upload_event"] = data_upload_event
+                    lakeState_slug = "{}_{}".format(
+                        lake_abbrev.lower(), data.pop("state_prov").lower()
+                    )
+                    lakeState = lakeState_id_lookup[lakeState_slug]
 
-                # rename some of our fields (this is not very elegant,
-                # but works for now)
-                data["dd_lat"] = data.pop("latitude")
-                data["dd_lon"] = data.pop("longitude")
-                data["lotcode"] = data.pop("lot_code")
+                    strain_label = data.pop("strain")
+                    strain_id = strain_id_lookup.get(spc_abbrev).get(strain_label)
 
-                # this needs to be calcualted based on species, lifestage, and ...
-                data["yreq_stocked"] = data.get("no_stocked")
+                    if data.get("day") and data.get("month"):
+                        event_date = None
+                        try:
+                            event_date = datetime(
+                                data.get("year"),
+                                int(data.get("month", "0")),
+                                int(data.get("day", "0")),
+                            )
+                        except ValueError:
+                            pass
+                        if event_date:
+                            data["date"] = event_date
 
-                # this is also not right - just getting it to work ...
-                data["latlong_flag_id"] = 1
+                    # ForeigmKeyFields
+                    data["agency_id"] = agency
+                    data["lifestage_id"] = lifestage
+                    data["stocking_method_id"] = stocking_method
+                    data["grid_10_id"] = grid
+                    data["management_unit_id"] = mu
+                    data["species_id"] = species
+                    data["strain_raw_id"] = strain_id
+                    data["jurisdiction_id"] = lakeState
+                    data["condition_id"] = condition
 
-                # another hack = ensures that stock
-                data["stock_id"] = uuid1()
+                    data["upload_event"] = data_upload_event
 
-                event = StockingEvent(**data)
-                event.save()
-                # events.append(StockingEvent(**data))
+                    # rename some of our fields (this is not very elegant,
+                    # but works for now)
+                    data["dd_lat"] = data.pop("latitude")
+                    data["dd_lon"] = data.pop("longitude")
+                    data["lotcode"] = data.pop("lot_code")
 
-            #            StockingEvent.objects.bulk_create(events)
+                    # this needs to be calcualted based on species, lifestage, and ...
+                    data["yreq_stocked"] = data.get("no_stocked")
 
-            # update the data update attributes from the last event on the form
-            data_upload_event.lake_id = lake_id_lookup[lake]
-            data_upload_event.agency_id = agency
-            data_upload_event.save()
+                    # this is also not right - just getting it to work ...
+                    data["latlong_flag_id"] = 1
 
-            url = reverse("stocking:data-upload-event-detail", data_upload_event.id)
-            return HttpResponseRedirect(url)
+                    # another hack = ensures that stock
+                    data["stock_id"] = uuid1()
+
+                    event = StockingEvent(**data)
+                    event.save()
+                    # events.append(StockingEvent(**data))
+
+                #            StockingEvent.objects.bulk_create(events)
+
+                url = data_upload_event.get_absolute_url()
+                return HttpResponseRedirect(url)
     else:
         # get the data from our session
         xls_events = request.session.get("data", {})

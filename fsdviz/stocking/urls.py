@@ -90,7 +90,7 @@ urlpatterns = [
         name="data-upload-event-list",
     ),
     path(
-        "data_upload_event_detail/<pk>/",
+        "data_upload_event_detail/<slug>/",
         DataUploadEventDetailView.as_view(),
         name="data-upload-event-detail",
     ),

@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.contrib.gis.db import models
 from django.template.defaultfilters import slugify
+from django.urls import reverse
 
 from django.contrib.gis.geos import Point
 
@@ -54,19 +55,23 @@ class DataUploadEvent(models.Model):
         Populate slug when we save the object.
         """
 
-        #        lake = self.lake.abbrev
-        #        agency = self.agency.abbrev
-        #        if self.timestamp:
-        #            upload_date = self.timestamp
-        #        else:
-        #            upload_date = datetime.now()
-        #
-        #        date_string = upload_date.strftime("%b %d %Y %H:%M")
-        #
-        #        self.slug = slugify("{}-{} ({})".format(lake, agency, date_string))
-        #
-        self.slug = slugify(str(self))
+        self.slug = self.generate_slug()
+
         super(DataUploadEvent, self).save(*args, **kwargs)
+
+    def generate_slug(self):
+        """
+        """
+        lake = self.lake.abbrev
+        agency = self.agency.abbrev
+        if self.timestamp is None:
+            upload_date = datetime.now()
+        else:
+            upload_date = self.timestamp
+
+        date_string = upload_date.strftime("%b %d %Y %H:%M")
+
+        return slugify("-".join([lake, agency, date_string]))
 
     def __str__(self):
         lake = self.lake.abbrev
@@ -79,6 +84,10 @@ class DataUploadEvent(models.Model):
         date_string = upload_date.strftime("%b %d %Y %H:%M")
 
         return "{}-{} ({})".format(lake, agency, date_string)
+
+    def get_absolute_url(self):
+
+        return reverse("stocking:data-upload-event-detail", kwargs={"slug": self.slug})
 
 
 class LifeStage(models.Model):
