@@ -10,7 +10,13 @@ import factory
 from django.contrib.gis.geos import GEOSGeometry
 
 # import common.models as common
-from ..stocking.models import LifeStage, Condition, StockingMethod, StockingEvent
+from ..stocking.models import (
+    LifeStage,
+    Condition,
+    StockingMethod,
+    StockingEvent,
+    DataUploadEvent,
+)
 
 from .common_factories import (
     LakeFactory,
@@ -23,6 +29,8 @@ from .common_factories import (
     Grid10Factory,
     LatLonFlagFactory,
 )
+
+from .user_factory import UserFactory
 
 
 class LifeStageFactory(factory.DjangoModelFactory):
@@ -105,3 +113,16 @@ class StockingEventFactory(factory.DjangoModelFactory):
 
     clipa = "14"
     mark = "RPLV"
+
+
+class DataUploadEventFactory(factory.DjangoModelFactory):
+    """
+    A factory for DataUploadEvent objects.
+    """
+
+    class Meta:
+        model = DataUploadEvent
+
+    uploaded_by = factory.SubFactory(UserFactory)
+    lake = factory.SubFactory(LakeFactory)
+    agency = factory.SubFactory(AgencyFactory)

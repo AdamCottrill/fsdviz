@@ -21,7 +21,7 @@ from datetime import datetime
 import json
 from uuid import uuid1
 
-from .utils import form2params, get_events, get_xls_form_choices
+from .utils import form2params, xls2dicts, get_xls_form_choices
 from ..common.utils import (
     to_lake_dict,
     toLookup,
@@ -46,6 +46,8 @@ from .models import StockingEvent, StockingMethod, LifeStage, Condition, DataUpl
 from .filters import StockingEventFilter
 
 from .forms import FindEventsForm, XlsEventForm
+
+#
 
 
 def find_events(request):
@@ -563,7 +565,7 @@ def upload_events(request):
         # verify that the xls data matches our schema, convert it to a
         # list of dictionaries, and add the list of dicts for our session:
 
-        xls_events = get_events(data_file)
+        xls_events = xls2dicts(data_file)
         request.session["data"] = xls_events
 
         return HttpResponseRedirect(reverse("stocking:xls-events-form"))
@@ -575,10 +577,14 @@ def upload_events(request):
 
 
 def xls_events(request):
-    """
+    """This function is the workhorse of the data upload.  On a get
+    request it get the excel data from the session, along with all of the
+    associated lookup values.
+
         Arguments:
         - `request`:
-        """
+
+    """
 
     EventFormSet = formset_factory(XlsEventForm, extra=0)
 

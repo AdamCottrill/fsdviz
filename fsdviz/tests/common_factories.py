@@ -7,23 +7,35 @@ species, ect.
 import factory
 from django.contrib.gis.geos import GEOSGeometry
 
-#import common.models as common
-from ..common.models import (Lake, Agency, StateProvince, Jurisdiction,
-                             ManagementUnit, Grid10, Species, Strain,
-                             StrainRaw, Mark, LatLonFlag, CWT,
-                             CWTsequence)
+# import common.models as common
+from ..common.models import (
+    Lake,
+    Agency,
+    StateProvince,
+    Jurisdiction,
+    ManagementUnit,
+    Grid10,
+    Species,
+    Strain,
+    StrainRaw,
+    Mark,
+    LatLonFlag,
+    CWT,
+    CWTsequence,
+)
+
 
 class LakeFactory(factory.DjangoModelFactory):
     """
     A factory for Lake objects.
     """
+
     class Meta:
         model = Lake
-        django_get_or_create = ('abbrev',)
+        django_get_or_create = ("abbrev",)
 
     abbrev = "HU"
     lake_name = "Huron"
-
 
 
 class AgencyFactory(factory.DjangoModelFactory):
@@ -33,7 +45,7 @@ class AgencyFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Agency
-        django_get_or_create = ('abbrev',)
+        django_get_or_create = ("abbrev",)
 
     abbrev = factory.Sequence(lambda n: "MA-%03d" % n)
     agency_name = factory.Sequence(lambda n: "MyAgency-%03d" % n)
@@ -46,7 +58,7 @@ class StateProvinceFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = StateProvince
-        django_get_or_create = ('abbrev',)
+        django_get_or_create = ("abbrev",)
 
     abbrev = "ON"
     name = "Ontario"
@@ -63,7 +75,7 @@ class JurisdictionFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Jurisdiction
-        django_get_or_create = ('slug',)
+        django_get_or_create = ("slug",)
 
     lake = factory.SubFactory(LakeFactory)
     stateprov = factory.SubFactory(StateProvinceFactory)
@@ -80,11 +92,11 @@ class ManagementUnitFactory(factory.DjangoModelFactory):
     class Meta:
         model = ManagementUnit
 
-    label = 'MH-1'
-    description = 'A management unit in Lake Huron'
+    label = "MH-1"
+    description = "A management unit in Lake Huron"
     lake = factory.SubFactory(LakeFactory)
-    mu_type = 'mu'
-
+    mu_type = "mu"
+    primary = "True"
 
 
 class Grid10Factory(factory.DjangoModelFactory):
@@ -95,10 +107,9 @@ class Grid10Factory(factory.DjangoModelFactory):
     class Meta:
         model = Grid10
 
-    grid = '1234'
-    centroid = GEOSGeometry('POINT(-81.0 45.0)', srid=4326)
+    grid = "1234"
+    centroid = GEOSGeometry("POINT(-81.0 45.0)", srid=4326)
     lake = factory.SubFactory(LakeFactory)
-
 
 
 class SpeciesFactory(factory.DjangoModelFactory):
@@ -108,13 +119,12 @@ class SpeciesFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Species
-        django_get_or_create = ('abbrev',)
+        django_get_or_create = ("abbrev",)
 
-    abbrev = 'LAT'
-    common_name = 'Lake Trout'
-    scientific_name = 'Salvelinus namaycush'
+    abbrev = "LAT"
+    common_name = "Lake Trout"
+    scientific_name = "Salvelinus namaycush"
     species_code = 81
-
 
 
 class StrainFactory(factory.DjangoModelFactory):
@@ -125,11 +135,10 @@ class StrainFactory(factory.DjangoModelFactory):
     class Meta:
         model = Strain
 
-    strain_code = 'SEN'
-    strain_label = 'Seneca'
-    description = 'Lake trout orignally from Seneca Lake'
+    strain_code = "SEN"
+    strain_label = "Seneca"
+    description = "Lake trout orignally from Seneca Lake"
     strain_species = factory.SubFactory(SpeciesFactory)
-
 
 
 class StrainRawFactory(factory.DjangoModelFactory):
@@ -140,8 +149,8 @@ class StrainRawFactory(factory.DjangoModelFactory):
     class Meta:
         model = StrainRaw
 
-    raw_strain = 'Special Seneca'
-    description = 'extra special Lake trout orignally from Seneca Lake'
+    raw_strain = "Special Seneca"
+    description = "extra special Lake trout orignally from Seneca Lake"
     species = factory.SubFactory(SpeciesFactory)
     strain = factory.SubFactory(StrainFactory)
 
@@ -154,10 +163,10 @@ class MarkFactory(factory.DjangoModelFactory):
     class Meta:
         model = Mark
 
-    mark_code = 'AD'
-    mark_type = 'finclip'
-    clip_code = '5'
-    description = 'Adipose Fin'
+    mark_code = "AD"
+    mark_type = "finclip"
+    clip_code = "5"
+    description = "Adipose Fin"
 
 
 class LatLonFlagFactory(factory.DjangoModelFactory):
@@ -169,7 +178,7 @@ class LatLonFlagFactory(factory.DjangoModelFactory):
         model = LatLonFlag
 
     value = 1
-    description = 'Reported'
+    description = "Reported"
 
 
 class CWTFactory(factory.DjangoModelFactory):
@@ -180,9 +189,9 @@ class CWTFactory(factory.DjangoModelFactory):
     class Meta:
         model = CWT
 
-    cwt_number = '123456'
+    cwt_number = "123456"
     tag_count = 10000
-    #agency = factory.SubFactory(AgencyFactory)
+    # agency = factory.SubFactory(AgencyFactory)
 
 
 class CWTsequenceFactory(factory.DjangoModelFactory):

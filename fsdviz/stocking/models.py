@@ -60,7 +60,7 @@ class DataUploadEvent(models.Model):
         super(DataUploadEvent, self).save(*args, **kwargs)
 
     def generate_slug(self):
-        """
+        """ Create the slug from the lake, agency, and timestamp.
         """
         lake = self.lake.abbrev
         agency = self.agency.abbrev
@@ -74,6 +74,8 @@ class DataUploadEvent(models.Model):
         return slugify("-".join([lake, agency, date_string]))
 
     def __str__(self):
+        """A string representation of a data upload object"""
+
         lake = self.lake.abbrev
         agency = self.agency.abbrev
         if self.timestamp is None:

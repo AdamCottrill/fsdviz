@@ -20,7 +20,7 @@ from .models import StockingMethod, LifeStage, Condition
 from ..common.utils import to_lake_dict
 
 
-def get_events(data_file):
+def xls2dicts(data_file):
     """A helper function to read our excel file and return a list of
     dictionaries for each row in the spreadsheet.  The keys of the
     dictionaries are determined by the first row in the spreadsheet.

@@ -4,13 +4,21 @@ from django.core.exceptions import ValidationError
 
 from datetime import datetime
 
-from ..stocking.models import StockingEvent, LifeStage, StockingMethod, Condition
+from ..stocking.models import (
+    StockingEvent,
+    LifeStage,
+    StockingMethod,
+    Condition,
+    Strain,
+)
 from ..common.models import ManagementUnit, Lake, Agency, StateProvince, Species, Grid10
 
 
 class FindEventsForm(forms.Form):
 
-    year_range = StockingEvent.objects.aggregate(Min("year"), Max("year"))
+    # year_range = StockingEvent.objects.aggregate(Min("year"), Max("year"))
+
+    year_range = {"year__min": 1950, "year__max": 2020}
 
     MONTHS = (
         (1, "Jan"),
@@ -124,15 +132,28 @@ class FindEventsForm(forms.Form):
                 raise ValidationError("Earliest year occurs after latest year.")
         return self.cleaned_data
 
+    #   STRAIN
+    # this might need to be deactivated until at least one species is selected
+    strain = forms.ModelMultipleChoiceField(
+        queryset=Strain.objects.all(), to_field_name="strain_code"
+    )
 
-#    #   STRAIN
-#    #this might need to be deactivated until at least one species is selected
-#    strain = forms.ModelMultipleChoiceField(
-#        queryset=Strain.objects.all(), to_field_name='strain_code')
-#
-#    strain.widget.attrs['class'] = 'ui dropdown'
+    strain.widget.attrs["class"] = "ui dropdown"
+
 
 # validation: first year must be <= last year.
+
+
+class MySelect(forms.Select):
+    """A custom widget that will add 'disalbed' attribute to any select
+    options that don't have an id - mistakes passed in from Excel."""
+
+    def create_option(self, *args, **kwargs):
+        option = super().create_option(*args, **kwargs)
+        if option.get("value") == "":
+            option["attrs"]["selected"] = "selected"
+            option["attrs"]["disabled"] = "disabled"
+        return option
 
 
 class XlsEventForm(forms.Form):
@@ -152,16 +173,40 @@ class XlsEventForm(forms.Form):
 
         lake = self.initial.get("lake", "HU")
 
-        self.fields["lake"].choices = self.choices.get("lakes")
+        self.fields["lake"].choices = self.choices.get("lakes", [])
         self.fields["state_prov"].choices = self.choices.get("state_prov")
-        self.fields["stat_dist"].choices = self.choices.get("stat_dist").get(lake)
-        self.fields["grid"].choices = self.choices.get("grids").get(lake)
+        self.fields["stat_dist"].choices = self.choices.get("stat_dist", []).get(
+            lake, []
+        )
+        self.fields["grid"].choices = self.choices.get("grids", []).get(lake, [])
 
         self.fields["agency"].choices = self.choices.get("agencies")
         self.fields["species"].choices = self.choices.get("species")
         self.fields["stock_meth"].choices = self.choices.get("stocking_method")
         self.fields["stage"].choices = self.choices.get("lifestage")
         self.fields["condition"].choices = self.choices.get("condition")
+
+        # if our intitial data contains values that are not in our list of choices
+        # add it to front of each list with a "" as its id (that will automaticlly
+        # disable it in html when it is rendered).
+
+        fields = [
+            "lake",
+            "state_prov",
+            "stat_dist",
+            "grid",
+            "agency",
+            "species",
+            "stock_meth",
+            "stage",
+            "condition",
+        ]
+
+        if self.initial:
+            for fld in fields:
+                val = self.initial[fld]
+                if val not in [x[0] for x in self.fields[fld].choices]:
+                    self.fields[fld].choices.insert(0, ("", val))
 
     MONTHS = (
         (1, "Jan"),
@@ -182,24 +227,24 @@ class XlsEventForm(forms.Form):
     # not sure if the the best approach:
     DAYS = [("", "Ukn")] + list(zip(range(1, 32), range(1, 32)))
 
-    agency = forms.ChoiceField(choices=[], required=True)
-    lake = forms.ChoiceField(choices=[], required=True)
-    state_prov = forms.ChoiceField(choices=[], required=True)
+    agency = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    lake = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    state_prov = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     year = forms.IntegerField(
         min_value=1950, max_value=datetime.now().year, required=True
     )
     month = forms.ChoiceField(choices=MONTHS)
     day = forms.ChoiceField(choices=DAYS)
-    stat_dist = forms.ChoiceField(choices=[], required=True)
-    grid = forms.ChoiceField(choices=[], required=True)
+    stat_dist = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    grid = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     site = forms.CharField(required=True)
     st_site = forms.CharField(required=False)
     ##{'bbox': (-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947)}
     latitude = forms.FloatField(min_value=41.3, max_value=49.1)
     longitude = forms.FloatField(min_value=-92.0, max_value=-76.0)
-    species = forms.ChoiceField(choices=[], required=True)
+    species = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     strain = forms.CharField(required=True)
-    stage = forms.ChoiceField(choices=[], required=True)
+    stage = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     agemonth = forms.IntegerField(min_value=0, required=False)
     year_class = forms.IntegerField(
         min_value=1950, max_value=(datetime.now().year + 1), required=False
@@ -210,8 +255,8 @@ class XlsEventForm(forms.Form):
     tag_ret = forms.FloatField(min_value=0, max_value=100, required=False)
     length = forms.FloatField(min_value=0, required=False)
     weight = forms.FloatField(min_value=0, required=False)
-    condition = forms.ChoiceField(choices=[], required=False)
-    stock_meth = forms.ChoiceField(choices=[], required=True)
+    condition = forms.ChoiceField(choices=[], required=False, widget=MySelect)
+    stock_meth = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     no_stocked = forms.IntegerField(required=True)
     lot_code = forms.CharField(required=False)
     validation = forms.IntegerField(min_value=0, max_value=10, required=False)
@@ -268,11 +313,12 @@ class XlsEventForm(forms.Form):
             raise forms.ValidationError(msg, code="stat_dist")
         return stat_dist
 
-    def clean(self):
-        # check for:
-        # valid dates
-        # state - lake
-        # statdist -lake
-        # grid - lake
 
-        pass
+#    def clean(self):
+#        # check for:
+#        # valid dates
+#        # state - lake
+#        # statdist -lake
+#        # grid - lake
+#
+#        pass
