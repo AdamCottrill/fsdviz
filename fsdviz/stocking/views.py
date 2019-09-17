@@ -21,7 +21,7 @@ from datetime import datetime
 import json
 from uuid import uuid1
 
-from .utils import form2params, xls2dicts, get_xls_form_choices
+from .utils import form2params, xls2dicts, get_xls_form_choices, validate_upload
 from ..common.utils import (
     to_lake_dict,
     toLookup,
@@ -566,7 +566,17 @@ def upload_events(request):
         # list of dictionaries, and add the list of dicts for our session:
 
         xls_events = xls2dicts(data_file)
+
+        valid, msg = validate_upload(xls_events)
+        if not valid:
+            messages.error(request, msg)
+            return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
+
+        # check for errors here:
+        # xls_errors = validate_events(xls_events)
+
         request.session["data"] = xls_events
+        # request.session["errors"] = xls_errors
 
         return HttpResponseRedirect(reverse("stocking:xls-events-form"))
 

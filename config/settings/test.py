@@ -27,3 +27,5 @@ COVERAGE_MODULE_EXCLUDES = ["migrations", "fixtures", "admin$", "utils", "config
 COVERAGE_MODULE_EXCLUDES += THIRD_PARTY_APPS + DJANGO_APPS
 # COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(__file__, '../../../coverage')
 #
+
+MAX_UPLOAD_EVENT_COUNT = 5

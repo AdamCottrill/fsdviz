@@ -16,6 +16,7 @@ from ..common.models import ManagementUnit, Lake, Agency, StateProvince, Species
 
 class FindEventsForm(forms.Form):
 
+    # this is the right way, but causes pytest to complain....
     # year_range = StockingEvent.objects.aggregate(Min("year"), Max("year"))
 
     year_range = {"year__min": 1950, "year__max": 2020}

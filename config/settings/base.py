@@ -166,7 +166,7 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_mails")
 
 # for xls upload
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
-
+MAX_UPLOAD_EVENT_COUNT = 100
 
 ## urls here as needed for cors:
 CORS_ORIGIN_ALLOW_ALL = True

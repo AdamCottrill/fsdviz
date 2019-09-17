@@ -12,12 +12,47 @@
 """
 
 from openpyxl import load_workbook
-
+from django.conf import settings
 
 from ..common.models import Lake, Species, StateProvince, ManagementUnit, Agency, Grid10
 from .models import StockingMethod, LifeStage, Condition
 
 from ..common.utils import to_lake_dict
+
+# the fields from our upload template:
+XLS_FIELDS = [
+    "stock_id",
+    "lake",
+    "state_prov",
+    "year",
+    "month",
+    "day",
+    "site",
+    "st_site",
+    "latitude",
+    "longitude",
+    "grid",
+    "stat_dist",
+    "ls_mgmt",
+    "species",
+    "strain",
+    "no_stocked",
+    "year_class",
+    "stage",
+    "agemonth",
+    "mark",
+    "mark_eff",
+    "tag_no",
+    "tag_ret",
+    "length",
+    "weight",
+    "condition",
+    "lot_code",
+    "stock_meth",
+    "agency",
+    "validation",
+    "notes",
+]
 
 
 def xls2dicts(data_file):
@@ -32,18 +67,26 @@ def xls2dicts(data_file):
 
     data = []
 
-    for i, row in enumerate(ws.rows):
+    # process just one more than we need - keeps us from reading too many
+    # records into memory if they are going to be flagged anyway.
+    # add to max count - one for the header row, and one to trip the
+    # too many rows flag
+    maxrows = settings.MAX_UPLOAD_EVENT_COUNT + 2
+    for i, row in enumerate(ws.iter_rows(min_row=0, max_row=maxrows, values_only=True)):
         if i == 0:
-            keys = [x.value for x in row]
+            keys = [x for x in row]
         else:
-            vals = [x.value for x in row]
+            vals = [x for x in row]
+            # if we have a blank row - stop
+            if all(v is None for v in vals):
+                break
             tmp = {k: v for k, v in zip(keys, vals)}
             data.append(tmp)
     return data
 
 
 def get_xls_form_choices():
-    """A helper function used by xls_events_form for provide a list of
+    """A helper function used by events_form for provide a list of
     dictionaries that are use to populate the choice fields in the
     stocking event form.
     """
@@ -112,3 +155,82 @@ def form2params(formdata):
         return "?" + "&".join(params)
     else:
         return ""
+
+
+def validate_upload(events):
+    """A function to check the basic attributes of the uploaded
+    spreadsheet. the function checks to make sure that the uploaded
+    data has between 1 and the max number of rows, that all of the
+    required fields are included, but no more, and that the upload is
+    limited to a single, year, agency and lake.  If any of these
+    criteria fail, the events are considered invalid (valid=False),
+    and a meaningful message is returned.
+
+    """
+    valid = True
+    msg = None
+
+    if len(events) > settings.MAX_UPLOAD_EVENT_COUNT:
+        valid = False
+        msg = (
+            "Uploaded file has too many records. Please split it into"
+            + "smaller packets (e.g by species)."
+        )
+    elif len(events) == 0:
+        valid = False
+        msg = "The uploaded file does not appear to contain any stocking records!"
+
+    elif len(set([x["agency"] for x in events])) > 1:
+        valid = False
+        msg = (
+            "The uploaded file has more than one agency. "
+            + " Data submissions are limited to a single year, species, and agency. "
+        )
+    elif len(set([x["lake"] for x in events])) > 1:
+        valid = False
+        msg = (
+            "The uploaded file has more than one lake. "
+            + " Data submissions are limited to a single year, species, and agency. "
+        )
+    elif len(set([x["year"] for x in events])) > 1:
+        valid = False
+        msg = (
+            "The uploaded file has more than one year. "
+            + " Data submissions are limited to a single year, species, and agency. "
+        )
+
+    elif len(set(events[0].keys()) - set(XLS_FIELDS)) >= 1:
+        valid = False
+        # note - this should be a non-critical error
+        flds = list(set(events[0].keys()) - set(XLS_FIELDS))
+
+        if len(flds) == 1:
+            msg = (
+                "The uploaded file appears to have an additional field: {}. "
+                + "This field was ignored."
+            ).format(flds[0])
+        else:
+            field_list = ", ".join(flds)
+            msg = (
+                "The uploaded file appears to have {} additional field(s): {}. "
+                + "These fields were ignored."
+            ).format(len(flds), field_list)
+
+    elif len(set(XLS_FIELDS) - set(events[0].keys())) >= 1:
+        valid = False
+        # note - this should be a non-critical error
+        flds = list(set(XLS_FIELDS) - set(events[0].keys()))
+        flds.sort()
+        if len(flds) == 1:
+            msg = (
+                "The uploaded file appears to be missing the field: {}. "
+                + "This field is required in a valid data upload template."
+            ).format(flds[0])
+        else:
+            field_list = ", ".join(flds)
+            msg = (
+                "The uploaded file appears to be missing the fields: {}. "
+                + "These fields are required in a valid data upload template."
+            ).format(field_list)
+
+    return valid, msg
