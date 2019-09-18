@@ -1,7 +1,8 @@
 import pytest
 
 
-from ..stocking.utils import xls2dicts
+from ..stocking.utils import xls2dicts, validate_upload
+from fsdviz.tests.pytest_fixtures import invalid_xlsfiles
 
 
 class MockFile(str):
@@ -28,3 +29,28 @@ def test_xls2dicts():
     print("fname.open()={}".format(fname.open()))
 
     assert xls2dicts(fname) == expected
+
+
+@pytest.mark.parametrize("xlsfile, message", invalid_xlsfiles)
+def test_validate_upload(xlsfile, message):
+    """Before the data in the spreadsheet can be validated on a row-by-row
+    basis, the basic assimptions and shape of the data must be
+    confirmed.  If any of the basic tests fail, we need to return to
+    upload form and provide a meaningful message. This test is
+    paramaeterized and takes a list of two element tuples covering the
+    cases verifying that the uploaded data has between 1 and the max
+    number of rows, that all of the required fields are included, but
+    no more, and that the upload is limited to a single, year, agency
+    and lake.  If any of these criteria fail, the events are
+    considered invalid.  validate_upload returns a two element tuple,
+    the first is a boolean indicating the validation status of the
+    uploaded file, the second is a message decribing the problem.
+
+    """
+
+    fname = MockFile(xlsfile)
+    data = xls2dicts(fname)
+    status, msg = validate_upload(data)
+
+    assert status == False
+    assert msg == message

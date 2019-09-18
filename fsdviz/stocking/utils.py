@@ -203,7 +203,7 @@ def validate_upload(events):
         valid = False
         # note - this should be a non-critical error
         flds = list(set(events[0].keys()) - set(XLS_FIELDS))
-
+        flds.sort()
         if len(flds) == 1:
             msg = (
                 "The uploaded file appears to have an additional field: {}. "

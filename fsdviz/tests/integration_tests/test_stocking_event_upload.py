@@ -24,7 +24,7 @@ from django.urls import reverse
 
 from io import BytesIO
 
-from fsdviz.tests.pytest_fixtures import user
+from fsdviz.tests.pytest_fixtures import user, invalid_xlsfiles
 from fsdviz.tests.common_factories import (
     LakeFactory,
     StateProvinceFactory,
@@ -45,73 +45,10 @@ from fsdviz.tests.stocking_factories import (
 # testing here for now - should be somewhere else:
 from fsdviz.stocking.utils import get_xls_form_choices
 
-# our list of invalid spreadsheets and their associated messages
-test_args = [
-    (
-        "fsdviz/tests/xls_files/two_agencies.xlsx",
-        (
-            "The uploaded file has more than one agency. "
-            + " Data submissions are limited to a single year, species, and agency. "
-        ),
-    ),
-    (
-        "fsdviz/tests/xls_files/two_lakes.xlsx",
-        (
-            "The uploaded file has more than one lake. "
-            + " Data submissions are limited to a single year, species, and agency. "
-        ),
-    ),
-    (
-        "fsdviz/tests/xls_files/two_years.xlsx",
-        (
-            "The uploaded file has more than one year. "
-            + " Data submissions are limited to a single year, species, and agency. "
-        ),
-    ),
-    (
-        "fsdviz/tests/xls_files/too_many_records.xlsx",
-        "Uploaded file has too many records. Please split it into"
-        + "smaller packets (e.g by species).",
-    ),
-    (
-        "fsdviz/tests/xls_files/empty_template.xlsx",
-        "The uploaded file does not appear to contain any stocking records!",
-    ),
-    (
-        "fsdviz/tests/xls_files/missing_one_field.xlsx",
-        (
-            "The uploaded file appears to be missing the field: mark. "
-            + "This field is required in a valid data upload template."
-        ),
-    ),
-    (
-        "fsdviz/tests/xls_files/missing_two_fields.xlsx",
-        (
-            "The uploaded file appears to be missing the fields: mark, agemonth. "
-            + "These fields are required in a valid data upload template."
-        ),
-    ),
-    (
-        "fsdviz/tests/xls_files/one_extra_field.xlsx",
-        (
-            "The uploaded file appears to have an additional field: extraA. "
-            + "This field was ignored."
-        ),
-    ),
-    (
-        "fsdviz/tests/xls_files/two_extra_fields.xlsx",
-        (
-            "The uploaded file appears to have 2 additional field(s): extraA, extraB. "
-            + "These fields were ignored."
-        ),
-    ),
-]
 
-
-@pytest.mark.parametrize("xlsfile, message", test_args)
+@pytest.mark.parametrize("xlsfile, message", invalid_xlsfiles)
 def test_file_upload_invalid_spreadsheet(client, user, xlsfile, message):
-    """
-    Before the data in the spreadsheet can be validated on a
+    """Before the data in the spreadsheet can be validated on a
     row-by-row basis, the basic assimptions and shape of the data must
     be confirmed.  If any of the basic tests fail, we need to return
     to upload form and provide a meaningful messagek This test is
@@ -122,6 +59,12 @@ def test_file_upload_invalid_spreadsheet(client, user, xlsfile, message):
     and lake.  If any of these criteria fail, the events are
     considered invalid (valid=False), and a meaningful message should
     be returned in the response.
+
+    NOTE - this test verifies that the response contains the expected
+    message. If it is failing, check
+    test_utils.py::test_validate_upload() first. It is a lower level
+    function that verifies that the upload validation is working as
+    expected.
 
     """
 
@@ -137,10 +80,6 @@ def test_file_upload_invalid_spreadsheet(client, user, xlsfile, message):
 
         templates = [x.name for x in response.templates]
         assert "stocking/upload_stocking_events.html" in templates
-
-        fname = "c:/Users/COTTRILLAD/1work/scrapbook/wtf.html"
-        with open(fname, "wb") as f:
-            f.write(response.content)
 
         content = str(response.content)
         msg = message
