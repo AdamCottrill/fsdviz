@@ -8,3 +8,6 @@ __pycache__
 fsdviz/static/js/accessToken.js
 .tern-port
 *.accdb
+*sandbox*
+*htmlcov*
+*#*

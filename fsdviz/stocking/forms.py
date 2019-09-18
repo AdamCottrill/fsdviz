@@ -133,13 +133,14 @@ class FindEventsForm(forms.Form):
                 raise ValidationError("Earliest year occurs after latest year.")
         return self.cleaned_data
 
-    #   STRAIN
-    # this might need to be deactivated until at least one species is selected
-    strain = forms.ModelMultipleChoiceField(
-        queryset=Strain.objects.all(), to_field_name="strain_code"
-    )
 
-    strain.widget.attrs["class"] = "ui dropdown"
+#    #   STRAIN
+#    # this might need to be deactivated until at least one species is selected
+#    strain = forms.ModelMultipleChoiceField(
+#        queryset=Strain.objects.all(), to_field_name="strain_code"
+#    )
+#
+#    strain.widget.attrs["class"] = "ui dropdown"
 
 
 # validation: first year must be <= last year.

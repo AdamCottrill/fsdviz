@@ -217,7 +217,7 @@ class StockingEventListAPIView(APIView):
     returned queryest.
 
     To maximize performance, this view does not use a serializer and
-    instead returns just the values fom the queryset was recommended here:
+    instead returns just the values from the queryset was recommended here:
 
     https://www.dabapps.com/blog/api-performance-profiling-django-rest-framework/
 
