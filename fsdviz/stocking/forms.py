@@ -296,30 +296,60 @@ class XlsEventForm(forms.Form):
     notes.widget.attrs["data-validate"] = "validate-notes"
 
     def clean_grid(self):
-        lake = self.cleaned_data["lake"]
-        grid = self.cleaned_data["grid"]
+        lake = self.data.get("lake", "")
+        grid = self.data.get("grid", "")
         grids = self.choices.get("grids").get(lake)
+
+        if grids is None:
+            msg = "Unable to find any grids for lake '%(lake)s'"
+            raise forms.ValidationError(msg, params={"lake": lake}, code="grid")
+
         if grid not in [x[0] for x in grids]:
-            msg = "Grid {} is not valid for lake {}".format(grid, lake)
-            raise forms.ValidationError(msg, code="grid")
+            msg = "Grid %(grid)s is not valid for lake %(lake)s".format(grid, lake)
+            raise forms.ValidationError(
+                msg, params={"grid": grid, "lake": lake}, code="grid"
+            )
+
         return grid
 
     def clean_stat_dist(self):
-
-        lake = self.cleaned_data["lake"]
-        stat_dist = self.cleaned_data["stat_dist"]
+        lake = self.data.get("lake", "")
+        stat_dist = self.data.get("stat_dist", "")
         stat_dists = self.choices.get("stat_dist").get(lake)
+
+        if stat_dists is None:
+            msg = "Unable to find any Statistical Districts for lake '%(lake)s'"
+            raise forms.ValidationError(msg, params={"lake": lake}, code="stat_dist")
+
         if stat_dist not in [x[0] for x in stat_dists]:
-            msg = "Stat_Dist {} is not valid for lake {}".format(stat_dist, lake)
-            raise forms.ValidationError(msg, code="stat_dist")
+            msg = "Stat_Dist %(stat_dist)s is not valid for lake %(lake)s"
+            raise forms.ValidationError(
+                msg, params={"stat_dist": stat_dist, "lake": lake}, code="stat_dist"
+            )
         return stat_dist
 
+    def clean(self):
 
-#    def clean(self):
-#        # check for:
-#        # valid dates
-#        # state - lake
-#        # statdist -lake
-#        # grid - lake
-#
-#        pass
+        year = self.cleaned_data.get("year", "0")
+        month = self.cleaned_data.get("month")
+        day = self.cleaned_data.get("day")
+
+        if month and not day:
+            msg = "Please provide a day to complete the event date"
+            raise forms.ValidationError(msg, code="missing_day")
+        elif day and not month:
+            msg = "Please provide a month to complete the event date"
+            raise forms.ValidationError(msg, code="missing_month")
+
+        if month and day:
+            try:
+                event_date = datetime(int(year), int(month), int(day))
+            except ValueError:
+                msg = "Day, month, and year do not form a valid date."
+                raise forms.ValidationError(msg, code="invalid_date")
+
+        # check for:
+        # valid dates
+        # state - lake
+        # statdist -lake
+        # grid - lake

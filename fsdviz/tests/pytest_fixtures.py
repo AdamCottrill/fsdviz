@@ -1,14 +1,18 @@
-"""
-=============================================================
+"""=============================================================
 ~/fsdviz/fsdviz/tests/pytest_fixtures.py
  Created: 28 Aug 2019 11:09:58
 
  DESCRIPTION:
 
-
+This file contains a number of fixtures or objects that are used by
+our testing utilities.  The object include a user, a dictionary
+representing a complete xlsx stocking event, and a list of invalid
+excel files and associated error messages.  These objects are included
+here because they are used in several other places.
 
  A. Cottrill
 =============================================================
+
 """
 
 
@@ -28,6 +32,50 @@ def user(db):
     )
     homer.save()
     return homer
+
+
+@pytest.fixture(scope="function")
+def stocking_event_dict():
+    """return a dictionary representing a complete, valid upload event.
+    This dictionary is used directly to represent a stocking event, or
+    is modified to verify that invalid data is handled appropriately.
+
+    """
+
+    event_dict = {
+        "stock_id": None,
+        "lake": "HU",
+        "state_prov": "ON",
+        "year": 2015,
+        "month": 4,
+        "day": 20,
+        "site": "Barcelona",
+        "st_site": None,
+        "latitude": 42.3422418,
+        "longitude": -79.5962906,
+        "grid": "214",
+        "stat_dist": "NC2",
+        "species": "LAT",
+        "strain": "SLW",
+        "no_stocked": 18149,
+        "year_class": 2014,
+        "stage": "y",
+        "agemonth": 18,
+        "mark": "ADCWT",
+        "mark_eff": 99.5,
+        "tag_no": 640599,
+        "tag_ret": 99,
+        "length": 107.44,
+        "weight": 563.8153159,
+        "condition": 1,
+        "lot_code": "LAT-SLW-13",
+        "stock_meth": "b",
+        "agency": "MNRF",
+        "validation": None,
+        "notes": "FIS ID = 73699",
+    }
+
+    return event_dict
 
 
 # our list of invalid spreadsheets and their associated messages

@@ -82,6 +82,7 @@ def xls2dicts(data_file):
                 break
             tmp = {k: v for k, v in zip(keys, vals)}
             data.append(tmp)
+
     return data
 
 
