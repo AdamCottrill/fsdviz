@@ -8,6 +8,8 @@ omit =
     *.git/*,
     *htmlcov/*,
     *config/*,
+    *migrations/*,    
     *docs/*,
-    *utils/*
-    *fsdviz/tests/*
+    *utils/*,
+    *fsdviz/tests/*,
+    *myusers/tests/*
