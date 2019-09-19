@@ -40,6 +40,7 @@ class LifeStageFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = LifeStage
+        django_get_or_create = ("abbrev",)
 
     abbrev = "y"
     description = "Yearling"
@@ -52,6 +53,7 @@ class ConditionFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Condition
+        django_get_or_create = ("condition",)
 
     condition = 1
     description = '<1% mortality observed, "excellent"'
@@ -64,6 +66,7 @@ class StockingMethodFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = StockingMethod
+        django_get_or_create = ("stk_meth",)
 
     stk_meth = "b"
     description = "boat, offshore stocking"
@@ -93,7 +96,7 @@ class StockingEventFactory(factory.DjangoModelFactory):
     latlong_flag = factory.SubFactory(LatLonFlagFactory)
 
     # event attributes:
-    stock_id = "USFWS-1234"
+    stock_id = factory.Sequence(lambda n: "USFWS-%04d" % n)
 
     date = datetime(2016, 4, 20)
     day = 20

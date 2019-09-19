@@ -79,8 +79,8 @@ class JurisdictionFactory(factory.DjangoModelFactory):
 
     lake = factory.SubFactory(LakeFactory)
     stateprov = factory.SubFactory(StateProvinceFactory)
-    name = "Ontario"
-    slug = "tempslug"
+    name = factory.Sequence(lambda n: "Ontario-%03d" % n)
+    slug = "slug"
     description = "The waters of some entity"
 
 
@@ -91,8 +91,9 @@ class ManagementUnitFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = ManagementUnit
+        django_get_or_create = ("label",)
 
-    label = "MH-1"
+    label = factory.Sequence(lambda n: "MH-%03d" % n)
     description = "A management unit in Lake Huron"
     lake = factory.SubFactory(LakeFactory)
     mu_type = "mu"
@@ -106,8 +107,9 @@ class Grid10Factory(factory.DjangoModelFactory):
 
     class Meta:
         model = Grid10
+        django_get_or_create = ("grid",)
 
-    grid = "1234"
+    grid = factory.Sequence(lambda n: "%04d" % n)
     centroid = GEOSGeometry("POINT(-81.0 45.0)", srid=4326)
     lake = factory.SubFactory(LakeFactory)
 
@@ -124,7 +126,7 @@ class SpeciesFactory(factory.DjangoModelFactory):
     abbrev = "LAT"
     common_name = "Lake Trout"
     scientific_name = "Salvelinus namaycush"
-    species_code = 81
+    species_code = factory.Sequence(lambda n: "%03d" % n)
 
 
 class StrainFactory(factory.DjangoModelFactory):
@@ -176,6 +178,7 @@ class LatLonFlagFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = LatLonFlag
+        django_get_or_create = ("value",)
 
     value = 1
     description = "Reported"

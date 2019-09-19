@@ -18,6 +18,8 @@ here because they are used in several other places.
 
 import pytest
 from .user_factory import UserFactory
+from django.contrib.gis.geos import GEOSGeometry
+
 
 SCOPE = "function"
 
@@ -32,6 +34,29 @@ def user(db):
     )
     homer.save()
     return homer
+
+
+@pytest.fixture
+def roi():
+    """a region of interest that can be used in all of our tests.  Uses
+    corrdinates of grid 2826, a 5-minute grid in the middle of Lake
+    Huron located at the intersection of 44 degrees latitude and 82
+    degrees longitude..
+
+    inside the ROI: 'POINT(-82.0456637754061 44.0649121962459)'
+    outside the ROI: POINT'(-79.152543, 43.603609)'
+
+    """
+    grid = (
+        "MULTIPOLYGON(((-82.000000033378 43.9999999705306,"
+        + "-82.0833359084557 43.9999999705305,"
+        + "-82.0833359084557 44.0833320331081,"
+        + "-82.000000033378 44.0833320331082,"
+        + "-82.000000033378 43.9999999705306)))"
+    )
+    roi = GEOSGeometry(grid.replace("\n", ""), srid=4326)
+
+    return roi
 
 
 @pytest.fixture(scope="function")

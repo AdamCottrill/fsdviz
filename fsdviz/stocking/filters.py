@@ -27,12 +27,16 @@ class StockingEventFilter(django_filters.FilterSet):
     stateprov = ValueInFilter(
         field_name="jurisdiction__stateprov__abbrev", lookup_expr="in"
     )
+    jurisdiction = ValueInFilter(field_name="jurisdiction__slug", lookup_expr="in")
+
     # year will have more than one filter eventually
     # still need between, greater than and less than
 
     first_year = django_filters.NumberFilter(field_name="year", lookup_expr="gte")
     last_year = django_filters.NumberFilter(field_name="year", lookup_expr="lte")
     year = django_filters.CharFilter(field_name="year", lookup_expr="exact")
+
+    months = ValueInFilter(field_name="month", lookup_expr="in")
 
     species = ValueInFilter(field_name="species__abbrev", lookup_expr="in")
 
@@ -50,8 +54,6 @@ class StockingEventFilter(django_filters.FilterSet):
         field_name="stocking_method__stk_meth", lookup_expr="in"
     )
 
-    jurisdiction = ValueInFilter(field_name="jurisdiction__slug", lookup_expr="in")
-
     mark = ValueInFilter(field_name="mark", lookup_expr="in")
     mark_like = django_filters.CharFilter(field_name="mark", lookup_expr="icontains")
 
@@ -60,6 +62,7 @@ class StockingEventFilter(django_filters.FilterSet):
         fields = [
             "agency__abbrev",
             "year",
+            "month",
             "species__abbrev",
             "strain_raw__strain__strain_label",
             "lifestage__abbrev",

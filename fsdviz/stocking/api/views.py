@@ -286,6 +286,8 @@ class StockingEventListAPIView(APIView):
 
         maxEvents = settings.MAX_FILTERED_EVENT_COUNT
 
+        print("request.GET={}".format(request.GET))
+
         return Response(filtered[:maxEvents])
 
 
