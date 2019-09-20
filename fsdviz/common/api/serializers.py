@@ -6,28 +6,39 @@ needed).
   """
 
 from rest_framework import serializers
-from fsdviz.common.models import (Agency, Species, Lake, StateProvince,
-                                  Jurisdiction, ManagementUnit, Strain,
-                                  StrainRaw, CWT, Grid10, LatLonFlag, Mark)
+from fsdviz.common.models import (
+    Agency,
+    Species,
+    Lake,
+    StateProvince,
+    Jurisdiction,
+    ManagementUnit,
+    Strain,
+    StrainRaw,
+    CWT,
+    Grid10,
+    LatLonFlag,
+    Mark,
+)
 
 
 class AgencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Agency
-        fields = ('abbrev', 'agency_name')
+        fields = ("abbrev", "agency_name")
 
 
 class LakeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lake
-        fields = ('abbrev', 'lake_name')
-        lookup_field = 'abbrev'
+        fields = ("abbrev", "lake_name")
+        lookup_field = "abbrev"
 
 
 class StateProvinceSerializer(serializers.ModelSerializer):
     class Meta:
         model = StateProvince
-        fields = ('abbrev', 'name', 'country', 'description')
+        fields = ("abbrev", "name", "country", "description")
 
 
 class JurisdictionSerializer(serializers.ModelSerializer):
@@ -35,19 +46,18 @@ class JurisdictionSerializer(serializers.ModelSerializer):
     lake = LakeSerializer()
     stateprov = StateProvinceSerializer()
 
-    #lake = serializers.ReadOnlyField(source='lake.lake_name')
-    #stateprov = serializers.ReadOnlyField(source='stateprov.name')
+    # lake = serializers.ReadOnlyField(source='lake.lake_name')
+    # stateprov = serializers.ReadOnlyField(source='stateprov.name')
 
     class Meta:
         model = Jurisdiction
-        fields = ('slug', 'name', 'lake', 'stateprov', 'description')
+        fields = ("slug", "name", "lake", "stateprov", "description")
 
     @staticmethod
     def setup_eager_loading(queryset):
         """ Perform necessary eager loading of data. """
-        queryset = queryset.select_related('lake', 'stateprov')
+        queryset = queryset.select_related("lake", "stateprov")
         return queryset
-
 
 
 class ManagementUnitSerializer(serializers.ModelSerializer):
@@ -56,15 +66,26 @@ class ManagementUnitSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ManagementUnit
-        fields = ('label', 'lake', 'mu_type', 'centroid')
+        fields = ("label", "lake", "mu_type", "slug", "primary")
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """ Perform necessary eager loading of data. """
+        queryset = queryset.select_related("lake")
+        return queryset
 
 
 class SpeciesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Species
-        fields = ('abbrev', 'common_name', 'scientific_name', 'species_code',
-                  'speciescommon')
-        lookup_field = 'abbrev'
+        fields = (
+            "abbrev",
+            "common_name",
+            "scientific_name",
+            "species_code",
+            "speciescommon",
+        )
+        lookup_field = "abbrev"
 
 
 class StrainSerializer(serializers.ModelSerializer):
@@ -73,38 +94,46 @@ class StrainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Strain
-        fields = ('id', 'strain_code', 'strain_label', 'strain_species')
+        fields = ("id", "strain_code", "strain_label", "strain_species")
 
     @staticmethod
     def setup_eager_loading(queryset):
         """ Perform necessary eager loading of data. """
-        queryset = queryset.select_related('strain_species')
+        queryset = queryset.select_related("strain_species")
         return queryset
-
 
 
 class StrainRawSerializer(serializers.HyperlinkedModelSerializer):
 
     species = serializers.HyperlinkedRelatedField(
-        view_name='common_api:species-detail',
-        lookup_field='abbrev',
-        read_only=True)
+        view_name="common_api:species-detail", lookup_field="abbrev", read_only=True
+    )
 
     strain = serializers.HyperlinkedRelatedField(
-        view_name='common_api:strain-detail', read_only=True)
+        view_name="common_api:strain-detail", read_only=True
+    )
 
     class Meta:
         model = StrainRaw
-        fields = ('raw_strain', 'description', 'species', 'strain')
+        fields = ("raw_strain", "description", "species", "strain")
 
 
 class CWTSerializer(serializers.ModelSerializer):
     class Meta:
         model = CWT
-        fields = ('cwt_number', 'tag_type', 'manufacturer', 'tag_reused',
-                  'multiple_species', 'multiple_strains',
-                  'multiple_yearclasses', 'multiple_makers',
-                  'multiple_agencies', 'multiple_lakes', 'multiple_grid10s')
+        fields = (
+            "cwt_number",
+            "tag_type",
+            "manufacturer",
+            "tag_reused",
+            "multiple_species",
+            "multiple_strains",
+            "multiple_yearclasses",
+            "multiple_makers",
+            "multiple_agencies",
+            "multiple_lakes",
+            "multiple_grid10s",
+        )
 
 
 class Grid10Serializer(serializers.ModelSerializer):
@@ -117,16 +146,22 @@ class Grid10Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = Grid10
-        fields = ('grid', 'lake', 'centroid')
+        fields = ("grid", "lake", "centroid", "slug")
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """ Perform necessary eager loading of data. """
+        queryset = queryset.select_related("lake")
+        return queryset
 
 
 class LatLonFlagSerializer(serializers.ModelSerializer):
     class Meta:
         model = LatLonFlag
-        fields = ('value', 'description')
+        fields = ("value", "description")
 
 
 class MarkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mark
-        fields = ('clip_code', 'mark_code', 'mark_type', 'description')
+        fields = ("clip_code", "mark_code", "mark_type", "description")

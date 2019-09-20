@@ -297,8 +297,9 @@ class XlsEventForm(forms.Form):
     notes.widget.attrs["data-validate"] = "validate-notes"
 
     def clean_grid(self):
-        lake = self.data.get("lake", "")
-        grid = self.data.get("grid", "")
+
+        lake = self.cleaned_data.get("lake", "")
+        grid = self.cleaned_data.get("grid", "")
         grids = self.choices.get("grids").get(lake)
 
         if grids is None:
@@ -314,8 +315,9 @@ class XlsEventForm(forms.Form):
         return grid
 
     def clean_stat_dist(self):
-        lake = self.data.get("lake", "")
-        stat_dist = self.data.get("stat_dist", "")
+
+        lake = self.cleaned_data.get("lake", "")
+        stat_dist = self.cleaned_data.get("stat_dist", "")
         stat_dists = self.choices.get("stat_dist").get(lake)
 
         if stat_dists is None:
