@@ -42,7 +42,7 @@ from .serializers import (
     JurisdictionSerializer,
     CWTSerializer,
     ManagementUnitSerializer,
-    StrainSerializer,
+    StrainSpeciesSerializer,
     StrainRawSerializer,
     Grid10Serializer,
     LatLonFlagSerializer,
@@ -109,11 +109,11 @@ class SpeciesViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = "abbrev"
 
 
-class StrainViewSet(viewsets.ReadOnlyModelViewSet):
+class StrainSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Strain.objects.prefetch_related("species").distinct()
-    serializer_class = StrainSerializer
+    serializer_class = StrainSpeciesSerializer
     filterset_class = StrainFilter
 
     def get_queryset(self):
@@ -127,6 +127,7 @@ class StrainViewSet(viewsets.ReadOnlyModelViewSet):
 
 class StrainRawViewSet(viewsets.ReadOnlyModelViewSet):
 
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = StrainRaw.objects.all().distinct()
     serializer_class = StrainRawSerializer
     filterset_class = StrainRawFilter
@@ -134,8 +135,10 @@ class StrainRawViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CwtViewSet(viewsets.ReadOnlyModelViewSet):
 
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = CWT.objects.all()
     serializer_class = CWTSerializer
+    lookup_field = "slug"
 
 
 class Grid10ViewSet(viewsets.ReadOnlyModelViewSet):
@@ -160,6 +163,7 @@ class MarkViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Mark.objects.all()
     serializer_class = MarkSerializer
     filterset_class = MarkFilter
+    lookup_field = "mark_code"
 
 
 class CommonLookUpsAPIView(APIView):

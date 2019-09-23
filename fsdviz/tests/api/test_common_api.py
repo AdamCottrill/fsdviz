@@ -13,6 +13,8 @@ any views that test authenticated users.
 
 import pytest
 
+from collections import OrderedDict
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -23,9 +25,13 @@ from ..common_factories import (
     LakeFactory,
     Grid10Factory,
     AgencyFactory,
+    CWTFactory,
     SpeciesFactory,
+    StrainFactory,
+    StrainRawFactory,
     StateProvinceFactory,
     JurisdictionFactory,
+    MarkFactory,
     ManagementUnitFactory,
 )
 
@@ -455,3 +461,313 @@ class TestSpeciesAPI(APITestCase):
         assert response.status_code == status.HTTP_200_OK
 
         assert species_dict == response.data
+
+
+class TestStrainAPI(APITestCase):
+    """the strain api should return a dictionary (or list of dictionaries)
+    that correspond to the strains used.  The response for a single strain
+    should consist of a dictionary with keys for the strain_code,
+    strain_label, and species attributes (which will be a single
+    dictionary above)
+
+    """
+
+    def setUp(self):
+        """
+        """
+        self.species_dict = {
+            "abbrev": "LAT",
+            "common_name": "Lake Trout",
+            "scientific_name": "Salvelinus namaycush",
+            "species_code": 81,
+            "speciescommon": "1230101098",
+        }
+
+        self.species = SpeciesFactory(**self.species_dict)
+
+        # a Strain:
+        self.strain_dict = {
+            "strain_code": "SN",
+            "strain_label": "Seneca",
+            "strain_species": self.species,
+        }
+
+        self.strain = StrainFactory(**self.strain_dict)
+
+        # a Strain:
+        self.strain_dict2 = {
+            "strain_code": "BS",
+            "strain_label": "Big Sound",
+            "strain_species": self.species,
+        }
+        self.strain2 = StrainFactory(**self.strain_dict2)
+
+        self.strain_dict3 = {
+            "strain_code": "JL",
+            "strain_label": "Jenny Lake",
+            "strain_species": self.species,
+        }
+        self.strain3 = StrainFactory(**self.strain_dict3)
+
+        # create 3 raw strain objects - all are associated with the
+        # same strain and species.  The first one will be used in the
+        # list view and detail view, the remaining two will be uses in
+        # just the test of the list view.
+
+        # a raw strain:
+        self.strainraw_dict = {
+            "raw_strain": "SEN",
+            "description": "Seneca",
+            "species": self.species,
+            "strain": self.strain,
+        }
+
+        self.strainraw = StrainRawFactory(**self.strainraw_dict)
+
+        # a raw strain:
+        self.strainraw_dict2 = {
+            "raw_strain": "SEN-2",
+            "description": "Seneca-2",
+            "species": self.species,
+            "strain": self.strain,
+        }
+
+        self.strainraw2 = StrainRawFactory(**self.strainraw_dict2)
+
+        # a raw strain:
+        self.strainraw_dict3 = {
+            "raw_strain": "SEN-3",
+            "description": "Seneca-3",
+            "species": self.species,
+            "strain": self.strain,
+        }
+
+        self.strainraw3 = StrainRawFactory(**self.strainraw_dict3)
+
+    def test_strain_api_get_list(self):
+        """The strain api list view should return a list of nested objects,
+        each corresponding to a strain object.  All of the strain
+        labels and strain codes should be returned in the response.
+
+        """
+
+        url = reverse("common_api:strain-list")
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        assert len(response.data) == 3
+
+        values = [x.get("strain_code") for x in response.data]
+        for val in ["SN", "BS", "JL"]:
+            assert val in values
+
+        values = [x.get("strain_label") for x in response.data]
+        for val in ["Seneca", "Big Sound", "Jenny Lake"]:
+            assert val in values
+
+    def test_strain_api_get_detail(self):
+        """The strain api for a single strain object should return a nested
+        json object. the top level keys include the strain code,
+        strain label, as well as nested dictionaries for the related
+        species.
+
+        """
+
+        url = reverse("common_api:strain-detail", kwargs={"pk": self.strain.pk})
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        # build our response object - add the id where they are needed
+        expected = self.strain_dict.copy()
+        expected["id"] = self.strain.id
+        # add the nested dictionaries
+        expected["strain_species"] = self.species_dict
+
+        keys = ["strain_code", "strain_label", "strain_species"]
+        for key in keys:
+            assert key in response.data.keys()
+
+        assert expected == response.data
+
+    def test_strainraw_api_get_list(self):
+        """The rawstrain api list view should return a list of nested objects,
+        each corresponding to a rawstrain object."""
+
+        url = reverse("common_api:strainraw-list")
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        assert len(response.data) == 3
+
+        raw_strains = [x.get("raw_strain") for x in response.data]
+        for strain in ["SEN", "SEN-2", "SEN-3"]:
+            assert strain in raw_strains
+
+        descriptions = [x.get("description") for x in response.data]
+        for desc in ["Seneca", "Seneca-2", "Seneca-3"]:
+            assert desc in descriptions
+
+    def test_strain_raw_api_get_detail(self):
+        """The strainraw api for a single strain raw object should return a
+        nested json object. the top level keys include the key raw_strain and
+        description, as well as nested dictionaries for the related species
+        and strain.
+
+        """
+
+        url = reverse("common_api:strainraw-detail", kwargs={"pk": self.strainraw.pk})
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        # build our response object - add the id where they are needed
+        self.strain_dict["id"] = self.strain.id
+        self.strainraw_dict["id"] = self.strainraw.id
+
+        # add the nested dictionaries (after remvoving the nested
+        # species dict from the strain).
+        expected = self.strainraw_dict
+        expected["species"] = self.species_dict
+        self.strain_dict.pop("strain_species")
+        expected["strain"] = self.strain_dict
+
+        data = dict(response.data)
+
+        keys = ["raw_strain", "description", "species", "strain"]
+        for key in keys:
+            assert key in response.data.keys()
+
+        assert data["species"] == self.species_dict
+        assert data["strain"] == self.strain_dict
+
+        assert expected == data
+
+
+class TestMarkAPI(APITestCase):
+    def setUp(self):
+        """Create three marks that will be used in our api calls. THe first
+        will be used in both the list and detail views."""
+        self.mark1_dict = {
+            "clip_code": "5",
+            "mark_code": "AD",
+            "mark_type": "finclip",
+            "description": "Adipose Fin Clip",
+        }
+        self.mark1 = MarkFactory(**self.mark1_dict)
+
+        self.mark2_dict = {
+            "clip_code": "7",
+            "mark_code": "DO",
+            "mark_type": "finclip",
+            "description": "Anterior Dorsal Fin Clip",
+        }
+        self.mark2 = MarkFactory(**self.mark2_dict)
+
+        self.mark3_dict = {
+            "clip_code": "F",
+            "mark_code": "LM",
+            "mark_type": "finclip",
+            "description": "Left Maxilla Fin Clip",
+        }
+        self.mark3 = MarkFactory(**self.mark3_dict)
+
+    def test_mark_api_get_list(self):
+        """Our mark list api should return a list dictionaries, each
+        corresponding a mark object."""
+
+        url = reverse("common_api:mark-list")
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        assert len(response.data) == 3
+
+        for mark in [self.mark1_dict, self.mark2_dict, self.mark3_dict]:
+            assert mark in response.data
+
+    def test_mark_api_get_detail(self):
+        """Our mark detail api should return a dictionary corresponding to a
+        single mark object and should contian the keys clip_code,
+        mark_code, mark_type, description.  The mark detail uses the
+        mark code as the lookup field (unique identifier.)
+
+        """
+        url = reverse(
+            "common_api:mark-detail", kwargs={"mark_code": self.mark1.mark_code}
+        )
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        keys = ["clip_code", "mark_code", "mark_type", "description"]
+
+        for key in keys:
+            assert key in response.data.keys()
+
+        assert self.mark1_dict == response.data
+
+
+class TestCWTAPI(APITestCase):
+    def setUp(self):
+        """Create three cwts that will be used in our api calls. The first
+        will be used in both the list and detail views."""
+
+        self.cwt1_dict = {
+            "cwt_number": 111111,
+            "manufacturer": "nmt",
+            "tag_type": "cwt",
+            "slug": "111111_nmt",
+        }
+        self.cwt1 = CWTFactory(**self.cwt1_dict)
+
+        self.cwt2_dict = {
+            "cwt_number": 222222,
+            "manufacturer": "nmt",
+            "tag_type": "cwt",
+            "slug": "222222_nmt",
+        }
+        self.cwt2 = CWTFactory(**self.cwt2_dict)
+
+        self.cwt3_dict = {
+            "cwt_number": 333333,
+            "manufacturer": "mm",
+            "tag_type": "cwt",
+            "slug": "333333_mm",
+        }
+        self.cwt3 = CWTFactory(**self.cwt3_dict)
+
+    def test_cwt_api_get_list(self):
+        """Our cwt list api should return a list dictionaries, each
+        corresponding a cwt object."""
+
+        url = reverse("common_api:cwt-list")
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        assert len(response.data) == 3
+
+        for cwt in [self.cwt1_dict, self.cwt2_dict, self.cwt3_dict]:
+            expected = OrderedDict(
+                cwt_number=str(cwt.get("cwt_number")),
+                tag_type="cwt",
+                manufacturer=cwt.get("manufacturer"),
+                slug=cwt.get("slug"),
+            )
+            assert expected in response.data
+
+    def test_cwt_api_get_detail(self):
+
+        url = reverse("common_api:cwt-detail", kwargs={"slug": self.cwt1.slug})
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        keys = ["cwt_number", "tag_type", "manufacturer"]
+
+        for key in keys:
+            assert key in response.data.keys()
+
+        expected = self.cwt1_dict.copy()
+        expected["cwt_number"] = str(expected["cwt_number"])
+
+        assert expected == response.data

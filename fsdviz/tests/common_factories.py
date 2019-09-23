@@ -191,9 +191,13 @@ class CWTFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = CWT
+        django_get_or_create = ("slug",)
 
-    cwt_number = "123456"
+    cwt_number = factory.Sequence(lambda n: "%06d" % n)
     tag_count = 10000
+    tag_type = "cwt"
+    manufacturer = "nmt"
+    slug = factory.LazyAttribute(lambda x: "{}_{}".format(x.cwt_number, x.manufacturer))
     # agency = factory.SubFactory(AgencyFactory)
 
 

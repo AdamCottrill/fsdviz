@@ -431,6 +431,8 @@ class CWT(models.Model):
         max_length=10, choices=TAG_MANUFACTURER_CHOICES, default="nmt"
     )
 
+    slug = models.CharField(max_length=10, unique=True)
+
     tag_count = models.IntegerField()
     tag_reused = models.BooleanField(
         "True if this cwt has been stocked by more than one species, strain, or yearclass",
@@ -477,6 +479,14 @@ class CWT(models.Model):
     class Meta:
         ordering = ["cwt_number"]
         unique_together = ("cwt_number", "manufacturer")
+
+    def save(self, *args, **kwargs):
+        """
+        Populate slug when we save the object.
+        """
+        # if not self.slug:
+        self.slug = slugify("{}_{}".format(self.cwt_number, self.manufacturer))
+        super(CWT, self).save(*args, **kwargs)
 
     def __str__(self):
         cwt_number = self.cwt_number

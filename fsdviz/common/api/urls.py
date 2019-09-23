@@ -3,36 +3,43 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 
-from .views import (AgencyViewSet, SpeciesViewSet, JurisdictionViewSet,
-                    CwtViewSet, StateProvinceViewSet, LakeViewSet,
-                    ManagementUnitViewSet, StrainViewSet, StrainRawViewSet,
-                    Grid10ViewSet, LatLonFlagViewSet, MarkViewSet,
-                    CommonLookUpsAPIView)
+from .views import (
+    AgencyViewSet,
+    SpeciesViewSet,
+    JurisdictionViewSet,
+    CwtViewSet,
+    StateProvinceViewSet,
+    LakeViewSet,
+    ManagementUnitViewSet,
+    StrainSpeciesViewSet,
+    StrainRawViewSet,
+    Grid10ViewSet,
+    LatLonFlagViewSet,
+    MarkViewSet,
+    CommonLookUpsAPIView,
+)
 
 app_name = "common"
 
 router = SimpleRouter()
 
-router.register('lake', LakeViewSet)
-router.register('agency', AgencyViewSet)
-router.register('jurisdiction', JurisdictionViewSet)
-router.register('management_unit', ManagementUnitViewSet)
-router.register('state_province', StateProvinceViewSet)
-router.register('grid10', Grid10ViewSet)
-router.register('latlonflag', LatLonFlagViewSet)
-router.register('mark', MarkViewSet)
-router.register('species', SpeciesViewSet)
-router.register('strain', StrainViewSet)
-router.register('strainraw', StrainRawViewSet)
-router.register('cwt', CwtViewSet)
+router.register("lake", LakeViewSet)
+router.register("agency", AgencyViewSet)
+router.register("jurisdiction", JurisdictionViewSet)
+router.register("management_unit", ManagementUnitViewSet)
+router.register("state_province", StateProvinceViewSet)
+router.register("grid10", Grid10ViewSet)
+router.register("latlonflag", LatLonFlagViewSet)
+router.register("mark", MarkViewSet)
+router.register("species", SpeciesViewSet)
+router.register("strain", StrainSpeciesViewSet)
+router.register("strainraw", StrainRawViewSet)
+router.register("cwt", CwtViewSet)
 
 urlpatterns = router.urls
 
 urlpatterns += [
-    path(
-        'lookups/',
-        CommonLookUpsAPIView.as_view(),
-        name='api-get-common-lookups'),
+    path("lookups/", CommonLookUpsAPIView.as_view(), name="api-get-common-lookups")
 ]
 
 # urlpatterns = [

@@ -64,7 +64,7 @@ class JurisdictionFilter(django_filters.FilterSet):
 
 class StrainFilter(django_filters.FilterSet):
 
-    strain_species = django_filters.CharFilter(
+    species = django_filters.CharFilter(
         field_name="strain_species__abbrev", lookup_expr="iexact"
     )
 

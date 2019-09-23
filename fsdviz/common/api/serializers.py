@@ -88,9 +88,13 @@ class SpeciesSerializer(serializers.ModelSerializer):
         lookup_field = "abbrev"
 
 
-class StrainSerializer(serializers.ModelSerializer):
+class StrainSpeciesSerializer(serializers.ModelSerializer):
+    """A serialicer for strain objects that also includes attributes of
+    the related species.  There can only be one related species
+    object. for each strain.
+    """
 
-    strain_species = SpeciesSerializer()
+    strain_species = SpeciesSerializer(many=False)
 
     class Meta:
         model = Strain
@@ -103,19 +107,37 @@ class StrainSerializer(serializers.ModelSerializer):
         return queryset
 
 
-class StrainRawSerializer(serializers.HyperlinkedModelSerializer):
+class StrainSerializer(serializers.ModelSerializer):
+    """A simplified serializer for strain objects - used in the strainRaw
+    Serializers.  This version does *not* include the species serializer as
+    it is already included in the StrainRawSerializer.
+    """
 
-    species = serializers.HyperlinkedRelatedField(
-        view_name="common_api:species-detail", lookup_field="abbrev", read_only=True
-    )
+    class Meta:
+        model = Strain
+        fields = ("id", "strain_code", "strain_label")
 
-    strain = serializers.HyperlinkedRelatedField(
-        view_name="common_api:strain-detail", read_only=True
-    )
+
+class StrainRawSerializer(serializers.ModelSerializer):
+    """A serializer for Strain Raw objects. Includes nested serializers
+    for both species and strain objects.  Uses the simplified strain
+    serializer that does not include species.  StrainRaw is
+    effectively an association table between species and strain -
+    there can only be one species and one strain fro each record.
+    """
+
+    species = SpeciesSerializer(many=False)
+    strain = StrainSerializer(many=False)
 
     class Meta:
         model = StrainRaw
-        fields = ("raw_strain", "description", "species", "strain")
+        fields = ("id", "raw_strain", "description", "species", "strain")
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """ Perform necessary eager loading of data. """
+        queryset = queryset.select_related("species", "strain")
+        return queryset
 
 
 class CWTSerializer(serializers.ModelSerializer):
@@ -125,14 +147,15 @@ class CWTSerializer(serializers.ModelSerializer):
             "cwt_number",
             "tag_type",
             "manufacturer",
-            "tag_reused",
-            "multiple_species",
-            "multiple_strains",
-            "multiple_yearclasses",
-            "multiple_makers",
-            "multiple_agencies",
-            "multiple_lakes",
-            "multiple_grid10s",
+            "slug",
+            # "tag_reused",
+            # "multiple_species",
+            # "multiple_strains",
+            # "multiple_yearclasses",
+            # "multiple_makers",
+            # "multiple_agencies",
+            # "multiple_lakes",
+            # "multiple_grid10s",
         )
 
 
