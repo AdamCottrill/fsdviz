@@ -77,6 +77,9 @@ THIRD_PARTY_APPS = [
     "rest_framework.authtoken",
     "rest_auth",
     "rest_framework_swagger",
+    "crispy_forms",
+    "taggit",
+    "tickets",
 ]
 
 MY_APPS = ["fsdviz.myusers", "fsdviz.common", "fsdviz.stocking", "fsdviz.recovery"]
@@ -190,3 +193,8 @@ SWAGGER_SETTINGS = {
     "LOGIN_URL": "rest_framework:login",
     "LOGOUT_URL": "rest_framework:logout",
 }
+
+# ticket tracker:
+LINK_PATTERNS = [
+    {"pattern": r"ticket:\s?(\d+)", "url": r'<a href="/ticket/\1">ticket \1</a>'}
+]

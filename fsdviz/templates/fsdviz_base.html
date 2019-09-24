@@ -139,8 +139,13 @@
                         Admin
                         <div class="menu">
                             <div class="item"><a href="{% url 'password_change' %}">Change Your Password</a></div>
-                            <div class="item"><a href="{% url 'admin:index' %}" >Django Admin</a></div>
+                            <div class="item"><a href="{% url 'admin:index' %}" >Django Admin</a></div>                            
                             <div class="ui divider"></div>
+
+                            <div class="item"><a href="{% url 'tickets:ticket_list' %}">TicketTracker</a></div>
+
+                            <div class="ui divider"></div>
+                            
                             <div class="item"><a href="{% url 'stocking:data-upload-event-list' %}" >Data Upload List</a></div>
                             <div class="item"><a href="{% url 'stocking:upload-stocking-events' %}" >Upload Data</a></div>                            
                             <div class="ui divider"></div>
