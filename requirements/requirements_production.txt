@@ -11,16 +11,22 @@ coreapi-cli==1.0.9
 coreapi==2.3.3
 coreschema==0.0.4         # via coreapi
 django-cors-headers==2.5.2
+django-crispy-forms==1.7.2
 django-filter==2.0.0
 django-rest-auth==0.9.3
 django-rest-swagger==2.2.0
+django-taggit==1.1.0
 django==2.2
 djangorestframework==3.9.0
+et-xmlfile==1.0.1         # via openpyxl
 idna==2.8                 # via requests
 itypes==1.1.0             # via coreapi
+jdcal==1.4.1              # via openpyxl
 jinja2==2.10.1            # via coreschema
+markdown2==2.3.8
 markupsafe==1.1.1         # via jinja2
 openapi-codec==1.3.2      # via django-rest-swagger
+openpyxl==2.6.3
 psycopg2==2.7.6.1
 pytz==2018.9              # via django
 pyyaml==5.1

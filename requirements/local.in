@@ -6,7 +6,7 @@ django-debug-toolbar==1.11
 Markdown==3.0.1
 Sphinx==1.8.2
 docutils==0.14
-pip-tools==3.4.0
+pip-tools==4.1.0
 pyodbc==4.0.25
 pylint==2.2.2
 pylint-django==2.0.5
