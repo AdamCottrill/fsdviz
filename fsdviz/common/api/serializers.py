@@ -91,14 +91,14 @@ class SpeciesSerializer(serializers.ModelSerializer):
 class StrainSpeciesSerializer(serializers.ModelSerializer):
     """A serialicer for strain objects that also includes attributes of
     the related species.  There can only be one related species
-    object. for each strain.
+    object for each strain.
     """
 
     strain_species = SpeciesSerializer(many=False)
 
     class Meta:
         model = Strain
-        fields = ("id", "strain_code", "strain_label", "strain_species")
+        fields = ("id", "strain_code", "strain_label", "strain_species", "slug")
 
     @staticmethod
     def setup_eager_loading(queryset):
@@ -115,7 +115,7 @@ class StrainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Strain
-        fields = ("id", "strain_code", "strain_label")
+        fields = ("id", "strain_code", "strain_label", "slug")
 
 
 class StrainRawSerializer(serializers.ModelSerializer):

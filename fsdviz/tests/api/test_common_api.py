@@ -579,15 +579,15 @@ class TestStrainAPI(APITestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
+        keys = set(["id", "slug", "strain_code", "strain_label", "strain_species"])
+        assert keys == set(response.data.keys())
+
         # build our response object - add the id where they are needed
         expected = self.strain_dict.copy()
         expected["id"] = self.strain.id
+        expected["slug"] = self.strain.slug
         # add the nested dictionaries
         expected["strain_species"] = self.species_dict
-
-        keys = ["strain_code", "strain_label", "strain_species"]
-        for key in keys:
-            assert key in response.data.keys()
 
         assert expected == response.data
 
@@ -623,27 +623,32 @@ class TestStrainAPI(APITestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
-        # build our response object - add the id where they are needed
-        self.strain_dict["id"] = self.strain.id
-        self.strainraw_dict["id"] = self.strainraw.id
+        # verify that we have the keys we think we have:
+        keys = set(["id", "raw_strain", "description", "species", "strain"])
+        assert keys == set(response.data.keys())
+
+        obs = dict(response.data)
+
+        # build our expected objects - add the id and slug attrs where
+        # they are needed:
+        strain_dict = self.strain_dict.copy()
+        strain_dict["id"] = self.strain.id
+        strain_dict["slug"] = self.strain.slug
+        strain_dict.pop("strain_species")
+
+        species_dict = self.species_dict.copy()
 
         # add the nested dictionaries (after remvoving the nested
         # species dict from the strain).
-        expected = self.strainraw_dict
-        expected["species"] = self.species_dict
-        self.strain_dict.pop("strain_species")
-        expected["strain"] = self.strain_dict
+        expected = self.strainraw_dict.copy()
+        expected["id"] = self.strainraw.id
+        expected["species"] = species_dict
+        expected["strain"] = strain_dict
 
-        data = dict(response.data)
+        assert obs["species"] == species_dict
+        assert obs["strain"] == strain_dict
 
-        keys = ["raw_strain", "description", "species", "strain"]
-        for key in keys:
-            assert key in response.data.keys()
-
-        assert data["species"] == self.species_dict
-        assert data["strain"] == self.strain_dict
-
-        assert expected == data
+        assert expected == obs
 
 
 class TestMarkAPI(APITestCase):
@@ -700,10 +705,8 @@ class TestMarkAPI(APITestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
-        keys = ["clip_code", "mark_code", "mark_type", "description"]
-
-        for key in keys:
-            assert key in response.data.keys()
+        keys = set(["clip_code", "mark_code", "mark_type", "description"])
+        assert keys == set(response.data.keys())
 
         assert self.mark1_dict == response.data
 
@@ -762,10 +765,8 @@ class TestCWTAPI(APITestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
-        keys = ["cwt_number", "tag_type", "manufacturer"]
-
-        for key in keys:
-            assert key in response.data.keys()
+        keys = set(["cwt_number", "tag_type", "manufacturer", "slug"])
+        assert keys == set(response.data.keys())
 
         expected = self.cwt1_dict.copy()
         expected["cwt_number"] = str(expected["cwt_number"])

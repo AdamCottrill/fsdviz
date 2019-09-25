@@ -317,9 +317,21 @@ class Strain(models.Model):
 
     strain_species = models.ForeignKey("Species", on_delete=models.CASCADE)
 
+    slug = models.CharField(max_length=20, unique=True, null=True)
+
     class Meta:
         ordering = ["species__abbrev", "strain_code"]
         unique_together = ("strain_species", "strain_code")
+
+    def save(self, *args, **kwargs):
+        """
+        Populate slug when we save the object.
+        """
+        # if not self.slug:
+        self.slug = slugify(
+            "{}-{}".format(self.strain_species.abbrev, self.strain_code)
+        )
+        super(Strain, self).save(*args, **kwargs)
 
     def __str__(self):
         species_name = self.strain_species.common_name.title()

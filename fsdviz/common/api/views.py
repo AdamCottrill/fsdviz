@@ -216,18 +216,17 @@ class CommonLookUpsAPIView(APIView):
 
         strains = list(
             Strain.objects.prefetch_related("strain_species")
-            .values("id", "strain_code", "strain_label", "strain_species__abbrev")
+            .values(
+                "id", "strain_code", "strain_label", "slug", "strain_species__abbrev"
+            )
             .distinct()
         )
 
         # now update the strains with the nested species dicts and add a slug
         # while we are at it.
         for strain in strains:
-            strain["strain_species"] = species_dict.get(
-                strain["strain_species__abbrev"]
-            )
-            strain["slug"] = "{strain_species__abbrev}-{strain_code}".format(**strain)
-            strain.pop("strain_species__abbrev", None)
+            spc = strain.pop("strain_species__abbrev")
+            strain["strain_species"] = species_dict.get(spc)
 
         lookups = {
             "lakes": list(lakes),
