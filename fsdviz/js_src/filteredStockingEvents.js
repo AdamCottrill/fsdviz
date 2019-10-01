@@ -23,6 +23,7 @@ import { update_stats_panel } from "./stats_panel";
 import { get_coordinates } from "./utils";
 import { piechart_overlay } from "./piechart_overlay";
 import { stockingAdd, stockingRemove, stockingInitial } from "./reducers";
+import { month_lookup } from "./constants";
 
 // import dc from "dc";
 
@@ -46,22 +47,6 @@ let ylabel = "Yearly Equivalents";
 // a global object that will hold slug:label pairs for the labels of
 // the currently selected spatial unit.
 const labelLookup = {};
-
-const month_lookup = {
-  "1": "Jan",
-  "2": "Feb",
-  "3": "Mar",
-  "4": "Apr",
-  "5": "May",
-  "6": "Jun",
-  "7": "Jul",
-  "8": "Aug",
-  "9": "Sept",
-  "10": "Oct",
-  "11": "Nov",
-  "12": "Dec",
-  "0": "Unkn"
-};
 
 // these assume the clip-lookup script has already been loaded.  these
 // will need to moved below promise() when we update the database and
@@ -264,9 +249,7 @@ Promise.all([
   const strainMap = common.strains.reduce((accumulator, d) => {
     let key = `${d.strain_code}-${d.strain_species.abbrev}`;
     accumulator[key] = {
-      long: `${d.strain_species.common_name} - ${d.strain_label}(${
-        d.strain_code
-      })`,
+      long: `${d.strain_species.common_name} - ${d.strain_label}(${d.strain_code})`,
       short: `${d.strain_code}-${d.strain_species.abbrev}`
     };
     return accumulator;

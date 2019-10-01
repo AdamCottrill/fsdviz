@@ -1422,7 +1422,13 @@
 	  reduceSubtract: crossfilter_reduceSubtract
 	};
 
-	var _from = "crossfilter2@^1.4.7";
+	var _args = [
+		[
+			"crossfilter2@1.4.7",
+			"C:\\Users\\COTTRILLAD\\1work\\LakeTrout\\Stocking\\GLFSD_Datavis\\fsdviz"
+		]
+	];
+	var _from = "crossfilter2@1.4.7";
 	var _id = "crossfilter2@1.4.7";
 	var _inBundle = false;
 	var _integrity = "sha512-9swxPbMBSO4AjednWnEwlidQQxjYllWmnKkY1hs+QRxbAjsO6QsUYf3GkTDA/KLO1K0FlbWvmMsKxTXZVqp1vw==";
@@ -1430,22 +1436,22 @@
 	var _phantomChildren = {
 	};
 	var _requested = {
-		type: "range",
+		type: "version",
 		registry: true,
-		raw: "crossfilter2@^1.4.7",
+		raw: "crossfilter2@1.4.7",
 		name: "crossfilter2",
 		escapedName: "crossfilter2",
-		rawSpec: "^1.4.7",
+		rawSpec: "1.4.7",
 		saveSpec: null,
-		fetchSpec: "^1.4.7"
+		fetchSpec: "1.4.7"
 	};
 	var _requiredBy = [
-		"/"
+		"/",
+		"/dc"
 	];
 	var _resolved = "https://registry.npmjs.org/crossfilter2/-/crossfilter2-1.4.7.tgz";
-	var _shasum = "ab9372b46f36fb7b5da25f725b1e2838f2877987";
-	var _spec = "crossfilter2@^1.4.7";
-	var _where = "C:\\Users\\COTTRILLAD\\Documents\\1work\\LakeTrout\\Stocking\\GLFSD_Datavis\\fsdviz";
+	var _spec = "1.4.7";
+	var _where = "C:\\Users\\COTTRILLAD\\1work\\LakeTrout\\Stocking\\GLFSD_Datavis\\fsdviz";
 	var author = {
 		name: "Mike Bostock",
 		url: "http://bost.ocks.org/mike"
@@ -1453,7 +1459,6 @@
 	var bugs = {
 		url: "https://github.com/crossfilter/crossfilter/issues"
 	};
-	var bundleDependencies = false;
 	var contributors = [
 		{
 			name: "Jason Davies",
@@ -1463,7 +1468,6 @@
 	var dependencies = {
 		"lodash.result": "^4.4.0"
 	};
-	var deprecated = false;
 	var description = "Fast multidimensional filtering for coordinated views.";
 	var devDependencies = {
 		browserify: "^13.0.0",
@@ -1531,6 +1535,7 @@
 	var unpkg = "./crossfilter.min.js";
 	var version = "1.4.7";
 	var _package = {
+		_args: _args,
 		_from: _from,
 		_id: _id,
 		_inBundle: _inBundle,
@@ -1540,15 +1545,12 @@
 		_requested: _requested,
 		_requiredBy: _requiredBy,
 		_resolved: _resolved,
-		_shasum: _shasum,
 		_spec: _spec,
 		_where: _where,
 		author: author,
 		bugs: bugs,
-		bundleDependencies: bundleDependencies,
 		contributors: contributors,
 		dependencies: dependencies,
-		deprecated: deprecated,
 		description: description,
 		devDependencies: devDependencies,
 		eslintConfig: eslintConfig,
@@ -1567,6 +1569,7 @@
 	};
 
 	var _package$1 = /*#__PURE__*/Object.freeze({
+		_args: _args,
 		_from: _from,
 		_id: _id,
 		_inBundle: _inBundle,
@@ -1576,15 +1579,12 @@
 		_requested: _requested,
 		_requiredBy: _requiredBy,
 		_resolved: _resolved,
-		_shasum: _shasum,
 		_spec: _spec,
 		_where: _where,
 		author: author,
 		bugs: bugs,
-		bundleDependencies: bundleDependencies,
 		contributors: contributors,
 		dependencies: dependencies,
-		deprecated: deprecated,
 		description: description,
 		devDependencies: devDependencies,
 		eslintConfig: eslintConfig,
@@ -7309,7 +7309,7 @@
 	      : "");
 	}
 
-	function dsv(delimiter) {
+	function dsvFormat(delimiter) {
 	  var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
 	      DELIMITER = delimiter.charCodeAt(0);
 
@@ -7413,21 +7413,11 @@
 	  };
 	}
 
-	var csv = dsv(",");
+	var csv = dsvFormat(",");
 
 	var csvParse = csv.parse;
-	var csvParseRows = csv.parseRows;
-	var csvFormat = csv.format;
-	var csvFormatBody = csv.formatBody;
-	var csvFormatRows = csv.formatRows;
 
-	var tsv = dsv("\t");
-
-	var tsvParse = tsv.parse;
-	var tsvParseRows = tsv.parseRows;
-	var tsvFormat = tsv.format;
-	var tsvFormatBody = tsv.formatBody;
-	var tsvFormatRows = tsv.formatRows;
+	var tsv = dsvFormat("\t");
 
 	function responseText(response) {
 	  if (!response.ok) throw new Error(response.status + " " + response.statusText);
@@ -24847,7 +24837,7 @@
 	window.L = exports;
 
 	})));
-
+	//# sourceMappingURL=leaflet-src.js.map
 	});
 
 	const checkBoxes = (selection$$1, props) => {
@@ -27588,6 +27578,11 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  update_summary_table(current, props);
 	};
 
+	// 19 colours
+	let speciesColours = ["#3cb44b", "#4363d8", "#e6194b", "#f58231", "#46f0f0", "#ffe119", "#f032e6", "#911eb4", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080", "#ffffff"]; //19 species
+
+	const all_species = ["Lake Trout", "Chinook Salmon", "Rainbow Trout", "Brown Trout", "Coho Salmon", "Walleye", "Lake Trout Backcross", "Atlantic Salmon", "Splake", "Brook Trout", "Sockeye Salmon", "Yellow Perch", "Lake Herring (Cisco)", "Bloater", "Lake Sturgeon", "Muskellunge", "Smallmouth Bass", "Esox Sp.", "Northern Pike"];
+
 	/* global accessToken,  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
 	const log$2 = browser("app:log");
 
@@ -27614,11 +27609,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  maxZoom: 18,
 	  id: "mapbox.streets",
 	  accessToken: accessToken
-	}).addTo(mymap); // 19 colours
-
-	let speciesColours = ["#3cb44b", "#4363d8", "#e6194b", "#f58231", "#46f0f0", "#ffe119", "#f032e6", "#911eb4", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080", "#ffffff"]; //19 species
-
-	let all_species = ["Lake Trout", "Chinook Salmon", "Rainbow Trout", "Brown Trout", "Coho Salmon", "Walleye", "Lake Trout Backcross", "Atlantic Salmon", "Splake", "Brook Trout", "Sockeye Salmon", "Yellow Perch", "Lake Herring (Cisco)", "Bloater", "Lake Sturgeon", "Muskellunge", "Smallmouth Bass", "Esox Sp.", "Northern Pike"];
+	}).addTo(mymap);
 	const speciesColourScale = ordinal().range(speciesColours).domain(all_species); // intantiation our polygon overlay
 
 	let polygons = polygon_overlay().leafletMap(mymap); //// Add a svg layer to the map

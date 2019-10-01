@@ -715,7 +715,13 @@
 	  reduceSubtract: crossfilter_reduceSubtract
 	};
 
-	var _from = "crossfilter2@^1.4.7";
+	var _args = [
+		[
+			"crossfilter2@1.4.7",
+			"C:\\Users\\COTTRILLAD\\1work\\LakeTrout\\Stocking\\GLFSD_Datavis\\fsdviz"
+		]
+	];
+	var _from = "crossfilter2@1.4.7";
 	var _id = "crossfilter2@1.4.7";
 	var _inBundle = false;
 	var _integrity = "sha512-9swxPbMBSO4AjednWnEwlidQQxjYllWmnKkY1hs+QRxbAjsO6QsUYf3GkTDA/KLO1K0FlbWvmMsKxTXZVqp1vw==";
@@ -723,22 +729,22 @@
 	var _phantomChildren = {
 	};
 	var _requested = {
-		type: "range",
+		type: "version",
 		registry: true,
-		raw: "crossfilter2@^1.4.7",
+		raw: "crossfilter2@1.4.7",
 		name: "crossfilter2",
 		escapedName: "crossfilter2",
-		rawSpec: "^1.4.7",
+		rawSpec: "1.4.7",
 		saveSpec: null,
-		fetchSpec: "^1.4.7"
+		fetchSpec: "1.4.7"
 	};
 	var _requiredBy = [
-		"/"
+		"/",
+		"/dc"
 	];
 	var _resolved = "https://registry.npmjs.org/crossfilter2/-/crossfilter2-1.4.7.tgz";
-	var _shasum = "ab9372b46f36fb7b5da25f725b1e2838f2877987";
-	var _spec = "crossfilter2@^1.4.7";
-	var _where = "C:\\Users\\COTTRILLAD\\Documents\\1work\\LakeTrout\\Stocking\\GLFSD_Datavis\\fsdviz";
+	var _spec = "1.4.7";
+	var _where = "C:\\Users\\COTTRILLAD\\1work\\LakeTrout\\Stocking\\GLFSD_Datavis\\fsdviz";
 	var author = {
 		name: "Mike Bostock",
 		url: "http://bost.ocks.org/mike"
@@ -746,7 +752,6 @@
 	var bugs = {
 		url: "https://github.com/crossfilter/crossfilter/issues"
 	};
-	var bundleDependencies = false;
 	var contributors = [
 		{
 			name: "Jason Davies",
@@ -756,7 +761,6 @@
 	var dependencies = {
 		"lodash.result": "^4.4.0"
 	};
-	var deprecated = false;
 	var description = "Fast multidimensional filtering for coordinated views.";
 	var devDependencies = {
 		browserify: "^13.0.0",
@@ -824,6 +828,7 @@
 	var unpkg = "./crossfilter.min.js";
 	var version = "1.4.7";
 	var _package = {
+		_args: _args,
 		_from: _from,
 		_id: _id,
 		_inBundle: _inBundle,
@@ -833,15 +838,12 @@
 		_requested: _requested,
 		_requiredBy: _requiredBy,
 		_resolved: _resolved,
-		_shasum: _shasum,
 		_spec: _spec,
 		_where: _where,
 		author: author,
 		bugs: bugs,
-		bundleDependencies: bundleDependencies,
 		contributors: contributors,
 		dependencies: dependencies,
-		deprecated: deprecated,
 		description: description,
 		devDependencies: devDependencies,
 		eslintConfig: eslintConfig,
@@ -860,6 +862,7 @@
 	};
 
 	var _package$1 = /*#__PURE__*/Object.freeze({
+		_args: _args,
 		_from: _from,
 		_id: _id,
 		_inBundle: _inBundle,
@@ -869,15 +872,12 @@
 		_requested: _requested,
 		_requiredBy: _requiredBy,
 		_resolved: _resolved,
-		_shasum: _shasum,
 		_spec: _spec,
 		_where: _where,
 		author: author,
 		bugs: bugs,
-		bundleDependencies: bundleDependencies,
 		contributors: contributors,
 		dependencies: dependencies,
-		deprecated: deprecated,
 		description: description,
 		devDependencies: devDependencies,
 		eslintConfig: eslintConfig,
@@ -7218,7 +7218,6 @@
 	    return (end - start) / k;
 	  });
 	};
-	var milliseconds = millisecond.range;
 
 	var durationSecond = 1e3;
 	var durationMinute = 6e4;
@@ -7235,7 +7234,6 @@
 	}, function(date) {
 	  return date.getUTCSeconds();
 	});
-	var seconds = second.range;
 
 	var minute = newInterval(function(date) {
 	  date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond);
@@ -7246,7 +7244,6 @@
 	}, function(date) {
 	  return date.getMinutes();
 	});
-	var minutes = minute.range;
 
 	var hour = newInterval(function(date) {
 	  date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond - date.getMinutes() * durationMinute);
@@ -7257,7 +7254,6 @@
 	}, function(date) {
 	  return date.getHours();
 	});
-	var hours = hour.range;
 
 	var day = newInterval(function(date) {
 	  date.setHours(0, 0, 0, 0);
@@ -7268,7 +7264,6 @@
 	}, function(date) {
 	  return date.getDate() - 1;
 	});
-	var days = day.range;
 
 	function weekday(i) {
 	  return newInterval(function(date) {
@@ -7289,8 +7284,6 @@
 	var friday = weekday(5);
 	var saturday = weekday(6);
 
-	var sundays = sunday.range;
-
 	var month = newInterval(function(date) {
 	  date.setDate(1);
 	  date.setHours(0, 0, 0, 0);
@@ -7301,7 +7294,6 @@
 	}, function(date) {
 	  return date.getMonth();
 	});
-	var months = month.range;
 
 	var year = newInterval(function(date) {
 	  date.setMonth(0, 1);
@@ -7324,7 +7316,6 @@
 	    date.setFullYear(date.getFullYear() + step * k);
 	  });
 	};
-	var years = year.range;
 
 	var utcMinute = newInterval(function(date) {
 	  date.setUTCSeconds(0, 0);
@@ -7335,7 +7326,6 @@
 	}, function(date) {
 	  return date.getUTCMinutes();
 	});
-	var utcMinutes = utcMinute.range;
 
 	var utcHour = newInterval(function(date) {
 	  date.setUTCMinutes(0, 0, 0);
@@ -7346,7 +7336,6 @@
 	}, function(date) {
 	  return date.getUTCHours();
 	});
-	var utcHours = utcHour.range;
 
 	var utcDay = newInterval(function(date) {
 	  date.setUTCHours(0, 0, 0, 0);
@@ -7357,7 +7346,6 @@
 	}, function(date) {
 	  return date.getUTCDate() - 1;
 	});
-	var utcDays = utcDay.range;
 
 	function utcWeekday(i) {
 	  return newInterval(function(date) {
@@ -7378,8 +7366,6 @@
 	var utcFriday = utcWeekday(5);
 	var utcSaturday = utcWeekday(6);
 
-	var utcSundays = utcSunday.range;
-
 	var utcMonth = newInterval(function(date) {
 	  date.setUTCDate(1);
 	  date.setUTCHours(0, 0, 0, 0);
@@ -7390,7 +7376,6 @@
 	}, function(date) {
 	  return date.getUTCMonth();
 	});
-	var utcMonths = utcMonth.range;
 
 	var utcYear = newInterval(function(date) {
 	  date.setUTCMonth(0, 1);
@@ -7413,7 +7398,6 @@
 	    date.setUTCFullYear(date.getUTCFullYear() + step * k);
 	  });
 	};
-	var utcYears = utcYear.range;
 
 	function localDate(d) {
 	  if (0 <= d.y && d.y < 100) {

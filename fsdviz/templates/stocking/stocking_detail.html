@@ -253,10 +253,10 @@
 {% endblock %}
 
 {% block extra_js %}
-
+    
 
     {{ object.lake.shoreline.extent|json_script:"map-bounds" }}
-
+    
     <script type="text/javascript" src="{% static "js/accessToken.js" %}"></script>
 
     <script type="text/javascript">
@@ -305,12 +305,12 @@
          }
      ).addTo(mymap);
 
-
-     var circle = L.circle([ {{ object.geom.y }}, {{ object.geom.x }}], {
+     
+     var circle = L.circleMarker([ {{ object.geom.y }}, {{ object.geom.x }}], {
          color: 'red',
          fillColor: '#f03',
          fillOpacity: 0.5,
-         radius: 2500
+         radius: 5
      }).addTo(mymap);
 
 

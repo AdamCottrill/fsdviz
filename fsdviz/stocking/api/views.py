@@ -96,7 +96,7 @@ class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
         # finally django-filter
         filtered_list = StockingEventFilter(self.request.GET, queryset=queryset)
 
-        return filtered_list.qs
+        return filtered_list.qs[:100]
 
 
 class StockingEventMapListView(generics.ListAPIView):
@@ -125,6 +125,7 @@ class StockingEventMapListView(generics.ListAPIView):
         lake_name = self.kwargs.get("lake_name")
         year = self.kwargs.get("year")
         jurisdiction = self.kwargs.get("jurisdiction")
+        upload_event = self.kwargs.get("upload_event_slug")
 
         # count our events and sum the yreq_stocked, give each field
         # that is from a child table as a simple label
@@ -182,8 +183,14 @@ class StockingEventMapListView(generics.ListAPIView):
         if jurisdiction:
             queryset = queryset.filter(jurisdiction__slug=jurisdiction)
 
-        queryset = (
-            queryset.annotate(**metrics)
+        if upload_event:
+            queryset = queryset.filter(upload_event__slug=upload_event)
+
+        # finally django-filter
+        filtered_list = StockingEventFilter(self.request.GET, queryset=queryset)
+
+        qs = (
+            filtered_list.qs.annotate(**metrics)
             .values(
                 "dd_lat",
                 "dd_lon",
@@ -205,7 +212,7 @@ class StockingEventMapListView(generics.ListAPIView):
             .annotate(**aggregation_metrics)
         )
 
-        return queryset
+        return qs
 
 
 class StockingEventListAPIView(APIView):
@@ -213,7 +220,7 @@ class StockingEventListAPIView(APIView):
     called from find_events view and should always return a reasonable
     subset of the database (say less than 5000 records?).
 
-    query parmeters are parsed from the url and used to filtered the
+    query parmeters are parsed from the url and used to filter the
     returned queryest.
 
     To maximize performance, this view does not use a serializer and

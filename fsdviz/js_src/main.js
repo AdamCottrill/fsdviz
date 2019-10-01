@@ -14,6 +14,7 @@ import {
   initialize_filter,
   get_coordinates
 } from "./utils";
+
 import { stockingAdd, stockingRemove, stockingInitial } from "./reducers";
 
 import { piechart_overlay } from "./piechart_overlay";
@@ -21,6 +22,8 @@ import { polygon_overlay } from "./polygon_overlay";
 import { spatialRadioButtons } from "./RadioButtons";
 import { RadioButtons } from "./semanticRadioButtons";
 import { update_stats_panel } from "./stats_panel";
+
+import { speciesColours, all_species } from "./constants";
 
 const log = debug("app:log");
 
@@ -58,54 +61,6 @@ Leaflet.tileLayer(
     accessToken: accessToken
   }
 ).addTo(mymap);
-
-// 19 colours
-let speciesColours = [
-  "#3cb44b",
-  "#4363d8",
-  "#e6194b",
-  "#f58231",
-  "#46f0f0",
-  "#ffe119",
-  "#f032e6",
-  "#911eb4",
-  "#bcf60c",
-  "#fabebe",
-  "#008080",
-  "#e6beff",
-  "#9a6324",
-  "#fffac8",
-  "#800000",
-  "#aaffc3",
-  "#808000",
-  "#ffd8b1",
-  "#000075",
-  "#808080",
-  "#ffffff"
-];
-
-//19 species
-let all_species = [
-  "Lake Trout",
-  "Chinook Salmon",
-  "Rainbow Trout",
-  "Brown Trout",
-  "Coho Salmon",
-  "Walleye",
-  "Lake Trout Backcross",
-  "Atlantic Salmon",
-  "Splake",
-  "Brook Trout",
-  "Sockeye Salmon",
-  "Yellow Perch",
-  "Lake Herring (Cisco)",
-  "Bloater",
-  "Lake Sturgeon",
-  "Muskellunge",
-  "Smallmouth Bass",
-  "Esox Sp.",
-  "Northern Pike"
-];
 
 const speciesColourScale = scaleOrdinal()
   .range(speciesColours)

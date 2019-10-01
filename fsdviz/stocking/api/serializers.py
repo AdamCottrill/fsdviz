@@ -6,32 +6,34 @@ needed).
   """
 
 from rest_framework import serializers
-from fsdviz.stocking.models import (LifeStage, Condition, StockingMethod,
-                                    StockingEvent)
+from fsdviz.stocking.models import LifeStage, Condition, StockingMethod, StockingEvent
 
 from fsdviz.common.api.serializers import (
-    AgencySerializer, JurisdictionSerializer, LakeSerializer,
-    SpeciesSerializer, Grid10Serializer, LatLonFlagSerializer)
+    AgencySerializer,
+    JurisdictionSerializer,
+    LakeSerializer,
+    SpeciesSerializer,
+    Grid10Serializer,
+    LatLonFlagSerializer,
+)
 
 
 class LifeStageSerializer(serializers.ModelSerializer):
     class Meta:
         model = LifeStage
-        fields = ('abbrev', 'description')
+        fields = ("abbrev", "description")
 
 
 class ConditionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Condition
-        fields = ('condition', 'description')
+        fields = ("condition", "description")
 
 
 class StockingMethodSerializer(serializers.ModelSerializer):
     class Meta:
         model = StockingMethod
-        fields = ('stk_meth', 'description')
-
-
+        fields = ("stk_meth", "description")
 
 
 class StockingEventFastSerializer(serializers.Serializer):
@@ -91,15 +93,43 @@ class StockingEventSerializer(serializers.ModelSerializer):
     def setup_eager_loading(queryset):
         """ Perform necessary eager loading of data. """
         queryset = queryset.prefetch_related(
-            'species', 'agency', 'condition', 'stocking_method', 'grid_10',
-            'grid_10__lake', 'jurisdiction', 'jurisdiction__lake',
-            'jurisdiction__stateprov', 'latlong_flag', 'lifestage')
+            "species",
+            "agency",
+            "condition",
+            "stocking_method",
+            "grid_10",
+            "grid_10__lake",
+            "jurisdiction",
+            "jurisdiction__lake",
+            "jurisdiction__stateprov",
+            "latlong_flag",
+            "lifestage",
+        )
         return queryset
 
     class Meta:
         model = StockingEvent
-        fields = ('stock_id', 'day', 'month', 'year', 'site', 'st_site',
-                  'geom', 'no_stocked', 'year_class', 'agemonth', 'tag_no',
-                  'clipa', 'mark', 'agency', 'condition', 'grid_10',
-                  'latlong_flag', 'lifestage', 'species', 'stocking_method',
-                  'yreq_stocked', 'jurisdiction')
+        fields = (
+            "stock_id",
+            "day",
+            "month",
+            "year",
+            "site",
+            "st_site",
+            "geom",
+            "no_stocked",
+            "year_class",
+            "agemonth",
+            "tag_no",
+            "clipa",
+            "mark",
+            "agency",
+            "condition",
+            "grid_10",
+            "latlong_flag",
+            "lifestage",
+            "species",
+            "stocking_method",
+            "yreq_stocked",
+            "jurisdiction",
+        )

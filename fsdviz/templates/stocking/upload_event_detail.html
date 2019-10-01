@@ -1,91 +1,151 @@
 {% extends 'fsdviz_base.html' %}
 {% load humanize %}
+{% load fsdviz_tags %}
+{% load static %}
+
+{% block extra_head %}
+
+    
+    <style type="text/css" media="screen">
+     .small {
+         font-size: 0.8rem;         
+     }
+
+     .active-marker {
+         stroke: black;
+         stroke-opacity: 1.0;
+         fill-opacity: 1.0;
+     }
+
+     #stocking-events {
+         min-height: 500px;
+     }
+     
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+    <script src= "https://unpkg.com/leaflet@1.5.1/dist/leaflet-src.js"></script>
+
+
+    
+{% endblock %}
+
 
 {% block content %}
 
     <div class="ui container" id="content">
-        <h2>Data Upload Event Details</h2>        
-        <a href="{% url 'stocking:data-upload-event-list' %}">Back to Upload Event List</a>
 
-        <table class="ui definition table">
-            <tbody>
-                <tr>
-                    <td>Uploaded By:</td>
-                    <td>{{object.uploaded_by.first_name}} {{ object.uploaded_by.last_name }}</td>
-                </tr>
-                <tr>
-                    <td>Uploaded On:</td>
-                    <td>{{ object.timestamp }}</td>
-                </tr>
-                <tr>
-                    <td>Agency:</td>
-                    <td>{{ object.agency }}</td>
-                </tr>
-                <tr>
-                    <td>Lake:</td>
-                    <td>{{ object.lake }}</td>
-                </tr>
-            </tbody>
-        </table>
+        <div  class="ui grid"  >
+            <div class="six wide column">
 
+                <h2>Data Upload Event Details</h2>        
+                <a href="{% url 'stocking:data-upload-event-list' %}">Back to Upload Event List</a>
 
-        <h4>Stocking Events</h4>
-        
-        {% if events %}
-            <table class="ui compact single line celled table tablesorter" style="font-size: 0.9em">
-                <thead>
-                    <tr>
-                        <th scope="col">Stock ID</th>
-                        <th scope="col">Stocking Site</th>
-                        <th scope="col">Date</th>
-                        <th scope="col">Species</th>
-                        <th scope="col">Strain</th>
-                        <th scope="col">Year Class</th>
-                        <th scope="col">Life Stage</th>
-                        <th scope="col">Stocking Method</th>
-                        <th scope="col">Mark</th>
-                        <th scope="col">Yr.Eq.</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for event in events %}
+                <table class="ui definition table">
+                    <tbody>
                         <tr>
-                            <td> <a href="{% url 'stocking:stocking-event-detail' event.stock_id %}">{{ event.stock_id }}</a></td>
-                            <td title="{{ event.site }}"> {{ event.site }}</td>
-                            <td> {{ event.date|date:"M-d-y" }}</td>
-                            <td> {{ event.species.common_name | title}}</td>
-                            <td> {{ event.strain_raw.strain.strain_label }}</td>
-                            <td> {{ event.year_class }}</td>
-                            <td> {{ event.lifestage.description | title }}</td>
-                            <td> {{ event.stocking_method.description | title }}</td>
-                            <td> {{event.mark}}</td>
-                            <td> {{ event.yreq_stocked | intcomma }}</td>
+                            <td>Uploaded By:</td>
+                            <td>{{object.uploaded_by.first_name}} {{ object.uploaded_by.last_name }}</td>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        <tr>
+                            <td>Uploaded On:</td>
+                            <td>{{ object.timestamp }}</td>
+                        </tr>
+                        <tr>
+                            <td>Agency:</td>
+                            <td>{{ object.agency }}</td>
+                        </tr>
+                        <tr>
+                            <td>Lake:</td>
+                            <td>{{ object.lake }}</td>
+                        </tr>
 
-         
-        {% else %}
-            <h5>
-                oops - no stocking events appear to be related with this upload event.
-            </h5>
-        {% endif %}
-        
-  </ul>
+                        <tr>
+                            <td>Comment:</td>
+                            <td>Coming Soon</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+
+                
+            </div>
+            <div  class="ten wide column" >
+                <div class="ui segment">
+
+                    <div id="mapid" style='width: 700px; height: 700px;'></div>
+
+                </div>
+            </div>
+
+            
+            <div class="ui row" id="stocking-events">
+
+                <div class="ui  basic segment">
+                    
+                    <h4>Stocking Events</h4>
+                    
+                    {% if events %}
+                        <table class="ui compact single line celled table tablesorter" style="font-size: 0.9em">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Stock ID</th>
+                                    <th scope="col">Stocking Site</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Species</th>
+                                    <th scope="col">Strain</th>
+                                    <th scope="col">Year Class</th>
+                                    <th scope="col">Life Stage</th>
+                                    <th scope="col">Stocking Method</th>
+                                    <th scope="col">Mark</th>
+                                    <th scope="col">Yr.Eq.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in events %}
+                                    <tr data-coord="{{event.dd_lat}}; {{ event.dd_lon }}" >
+                                        <td> <a href="{% url 'stocking:stocking-event-detail' event.stock_id %}">{{ event.stock_id }}</a></td>
+                                        <td title="{{ event.site }}"> {{ event.site }}</td>
+                                        <td> {{ event.date|date:"M-d-y" }}</td>
+                                        <td> {{ event.species.common_name | title}}</td>
+                                        <td> {{ event.strain_raw.strain.strain_label }}</td>
+                                        <td> {{ event.year_class }}</td>
+                                        <td> {{ event.lifestage.description | title }}</td>
+                                        <td> {{ event.stocking_method.description | title }}</td>
+                                        <td> {{event.mark}}</td>
+                                        <td> {{ event.yreq_stocked | intcomma }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        
+                    {% else %}
+                        <h5>
+                            oops - no stocking events appear to be related with this upload event.
+                        </h5>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
     </div>
-
+    
 {% endblock %}
 
 
 {% block extra_js%}
 
+
+
+    
     <!-- tablesorter plugin-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js"></script>
 
     <!-- tablesorter widget file - loaded after the plugin -->
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
-
+   
     <script>
 
      $(".tablesorter").tablesorter({
@@ -102,5 +162,16 @@
          }
      });
 
+
     </script>
+
+    {{ object.lake.shoreline.extent|json_script:"map-bounds" }}
+    <script src="{% static "js/accessToken.js" %}"></script>
+    <script>
+     const dataURL = "{% url 'api:api-stocking-event-upload-map' object.slug %}";
+    </script>
+
+    <script src="{% static "js/upload_event_detail.js" %}"></script>
+   
+
 {% endblock %}

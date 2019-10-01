@@ -3,110 +3,116 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 
-from .views import (LifeStageViewSet, ConditionViewSet, StockingMethodViewSet,
-                    StockingEventViewSet, StockingEventMapListView,
-                    StockingEventListAPIView, StockingEventLookUpsAPIView)
+from .views import (
+    LifeStageViewSet,
+    ConditionViewSet,
+    StockingMethodViewSet,
+    StockingEventViewSet,
+    StockingEventMapListView,
+    StockingEventListAPIView,
+    StockingEventLookUpsAPIView,
+)
 
 
 app_name = "api"
 
 router = SimpleRouter()
 
-router.register('lifestage', LifeStageViewSet)
-router.register('condition', ConditionViewSet)
-router.register('stocking_method', StockingMethodViewSet)
+router.register("lifestage", LifeStageViewSet)
+router.register("condition", ConditionViewSet)
+router.register("stocking_method", StockingMethodViewSet)
 
 urlpatterns = router.urls
 
-#we will explicilty set the api urls for stocking events so they match the
+# we will explicilty set the api urls for stocking events so they match the
 # urls for the template views.
 
 urlpatterns += [
-
-
     path(
-        'lookups/',
+        "lookups/",
         StockingEventLookUpsAPIView.as_view(),
-        name='api-get-stocking-lookups'),
-
-
+        name="api-get-stocking-lookups",
+    ),
     path(
-        'get_events/',
+        "get_events/",
         StockingEventListAPIView.as_view(),
-        name='api-get-stocking-events'),
-
+        name="api-get-stocking-events",
+    ),
     path(
-        'events/',
-        StockingEventViewSet.as_view({'get': 'list'}),
-        name='api-stocking-event-list'),
+        "events/",
+        StockingEventViewSet.as_view({"get": "list"}),
+        name="api-stocking-event-list",
+    ),
     path(
-        'events/<int:year>/',
-        StockingEventViewSet.as_view({'get': 'list'}),
-        name='api-stocking-event-list-year'),
+        "events/<int:year>/",
+        StockingEventViewSet.as_view({"get": "list"}),
+        name="api-stocking-event-list-year",
+    ),
     path(
-        'events/<lake_name>/',
-        StockingEventViewSet.as_view({'get': 'list'}),
-        name='api-stocking-event-list-lake'),
+        "events/<lake_name>/",
+        StockingEventViewSet.as_view({"get": "list"}),
+        name="api-stocking-event-list-lake",
+    ),
     path(
-        'events/<lake_name>/<int:year>/',
-        StockingEventViewSet.as_view({'get': 'list'}),
-        name='api-stocking-event-list-lake-year'),
+        "events/<lake_name>/<int:year>/",
+        StockingEventViewSet.as_view({"get": "list"}),
+        name="api-stocking-event-list-lake-year",
+    ),
     path(
-        'events/jurisdiction/<jurisdiction>/',
-        StockingEventViewSet.as_view({'get': 'list'}),
-        name='api-stocking-event-list-jurisdiction'),
+        "events/jurisdiction/<jurisdiction>/",
+        StockingEventViewSet.as_view({"get": "list"}),
+        name="api-stocking-event-list-jurisdiction",
+    ),
     path(
-        'events/jurisdiction/<jurisdiction>/<int:year>',
-        StockingEventViewSet.as_view({'get': 'list'}),
-        name='api-stocking-event-list-jurisdiction-year'),
+        "events/jurisdiction/<jurisdiction>/<int:year>",
+        StockingEventViewSet.as_view({"get": "list"}),
+        name="api-stocking-event-list-jurisdiction-year",
+    ),
     path(
-        'events/<lake_name>/<int:year>/',
-        StockingEventViewSet.as_view({'get': 'list'}),
-        name='api-stocking-event-list-lake-year'),
+        "events/<lake_name>/<int:year>/",
+        StockingEventViewSet.as_view({"get": "list"}),
+        name="api-stocking-event-list-lake-year",
+    ),
     path(
-        'stocking_event/<stock_id>/',
-        StockingEventViewSet.as_view({'get': 'retrieve'}),
-        name='api-stocking-event-detail'),
-
-    #========================================
+        "stocking_event/<stock_id>/",
+        StockingEventViewSet.as_view({"get": "retrieve"}),
+        name="api-stocking-event-detail",
+    ),
+    # ========================================
     # simplified map serializers:
-
     path(
-        'mapdata/events/',
+        "mapdata/events/",
         StockingEventMapListView.as_view(),
-        name='api-stocking-event-map-list'),
+        name="api-stocking-event-map-list",
+    ),
     path(
-        'mapdata/events/<int:year>/',
+        "mapdata/events/<int:year>/",
         StockingEventMapListView.as_view(),
-        name='api-stocking-event-map-list-year'),
+        name="api-stocking-event-map-list-year",
+    ),
     path(
-        'mapdata/events/<lake_name>/',
+        "mapdata/events/<lake_name>/",
         StockingEventMapListView.as_view(),
-        name='api-stocking-event-map-list-lake'),
+        name="api-stocking-event-map-list-lake",
+    ),
     path(
-        'mapdata/events/<lake_name>/<int:year>/',
+        "mapdata/events/upload_event/<upload_event_slug>/",
         StockingEventMapListView.as_view(),
-        name='api-stocking-event-map-list-lake-year'),
+        name="api-stocking-event-upload-map",
+    ),
     path(
-        'mapdata/events/jurisdiction/<jurisdiction>/',
+        "mapdata/events/<lake_name>/<int:year>/",
         StockingEventMapListView.as_view(),
-        name='api-stocking-event-map-list-jurisdiction'),
+        name="api-stocking-event-map-list-lake-year",
+    ),
     path(
-        'mapdata/events/jurisdiction/<jurisdiction>/<int:year>',
+        "mapdata/events/jurisdiction/<jurisdiction>/",
         StockingEventMapListView.as_view(),
-        name='api-stocking-event-map-list-jurisdiction-year'),
-
-
+        name="api-stocking-event-map-list-jurisdiction",
+    ),
+    path(
+        "mapdata/events/jurisdiction/<jurisdiction>/<int:year>",
+        StockingEventMapListView.as_view(),
+        name="api-stocking-event-map-list-jurisdiction-year",
+    ),
 ]
-
-# urlpatterns = [
-
-#     path('species/', SpeciesAPI.as_view()),
-#     path('agency/', AgencyAPI.as_view()),
-#     path('jurisdiction/', JurisdictionAPI.as_view()),
-#     path('lake/', LakeAPI.as_view()),
-#     path('state_province/', StateProvinceAPI.as_view()),
-#     path('cwt/', CwtAPI.as_view()),
-#     path('management_unit/', ManagementUnitAPI.as_view()),
-
-# ]

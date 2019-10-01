@@ -83,5 +83,22 @@ export default [
       }
     },
     plugins: plugins
+  },
+
+  {
+    input: "fsdviz/js_src/upload_event_detail.js",
+    onwarn: onwarn,
+    output: {
+      name: "UploadEvent",
+      file: "fsdviz/static/js/upload_event_detail.js",
+      format: "iife",
+      sourceMap: "inline",
+      globals: {
+        crossfilter2: "crossfilter",
+        d3: "d3",
+        dc: "dc"
+      }
+    },
+    plugins: plugins
   }
 ];

@@ -715,7 +715,13 @@
 	  reduceSubtract: crossfilter_reduceSubtract
 	};
 
-	var _from = "crossfilter2@^1.4.7";
+	var _args = [
+		[
+			"crossfilter2@1.4.7",
+			"C:\\Users\\COTTRILLAD\\1work\\LakeTrout\\Stocking\\GLFSD_Datavis\\fsdviz"
+		]
+	];
+	var _from = "crossfilter2@1.4.7";
 	var _id = "crossfilter2@1.4.7";
 	var _inBundle = false;
 	var _integrity = "sha512-9swxPbMBSO4AjednWnEwlidQQxjYllWmnKkY1hs+QRxbAjsO6QsUYf3GkTDA/KLO1K0FlbWvmMsKxTXZVqp1vw==";
@@ -723,22 +729,22 @@
 	var _phantomChildren = {
 	};
 	var _requested = {
-		type: "range",
+		type: "version",
 		registry: true,
-		raw: "crossfilter2@^1.4.7",
+		raw: "crossfilter2@1.4.7",
 		name: "crossfilter2",
 		escapedName: "crossfilter2",
-		rawSpec: "^1.4.7",
+		rawSpec: "1.4.7",
 		saveSpec: null,
-		fetchSpec: "^1.4.7"
+		fetchSpec: "1.4.7"
 	};
 	var _requiredBy = [
-		"/"
+		"/",
+		"/dc"
 	];
 	var _resolved = "https://registry.npmjs.org/crossfilter2/-/crossfilter2-1.4.7.tgz";
-	var _shasum = "ab9372b46f36fb7b5da25f725b1e2838f2877987";
-	var _spec = "crossfilter2@^1.4.7";
-	var _where = "C:\\Users\\COTTRILLAD\\Documents\\1work\\LakeTrout\\Stocking\\GLFSD_Datavis\\fsdviz";
+	var _spec = "1.4.7";
+	var _where = "C:\\Users\\COTTRILLAD\\1work\\LakeTrout\\Stocking\\GLFSD_Datavis\\fsdviz";
 	var author = {
 		name: "Mike Bostock",
 		url: "http://bost.ocks.org/mike"
@@ -746,7 +752,6 @@
 	var bugs = {
 		url: "https://github.com/crossfilter/crossfilter/issues"
 	};
-	var bundleDependencies = false;
 	var contributors = [
 		{
 			name: "Jason Davies",
@@ -756,7 +761,6 @@
 	var dependencies = {
 		"lodash.result": "^4.4.0"
 	};
-	var deprecated = false;
 	var description = "Fast multidimensional filtering for coordinated views.";
 	var devDependencies = {
 		browserify: "^13.0.0",
@@ -824,6 +828,7 @@
 	var unpkg = "./crossfilter.min.js";
 	var version = "1.4.7";
 	var _package = {
+		_args: _args,
 		_from: _from,
 		_id: _id,
 		_inBundle: _inBundle,
@@ -833,15 +838,12 @@
 		_requested: _requested,
 		_requiredBy: _requiredBy,
 		_resolved: _resolved,
-		_shasum: _shasum,
 		_spec: _spec,
 		_where: _where,
 		author: author,
 		bugs: bugs,
-		bundleDependencies: bundleDependencies,
 		contributors: contributors,
 		dependencies: dependencies,
-		deprecated: deprecated,
 		description: description,
 		devDependencies: devDependencies,
 		eslintConfig: eslintConfig,
@@ -860,6 +862,7 @@
 	};
 
 	var _package$1 = /*#__PURE__*/Object.freeze({
+		_args: _args,
 		_from: _from,
 		_id: _id,
 		_inBundle: _inBundle,
@@ -869,15 +872,12 @@
 		_requested: _requested,
 		_requiredBy: _requiredBy,
 		_resolved: _resolved,
-		_shasum: _shasum,
 		_spec: _spec,
 		_where: _where,
 		author: author,
 		bugs: bugs,
-		bundleDependencies: bundleDependencies,
 		contributors: contributors,
 		dependencies: dependencies,
-		deprecated: deprecated,
 		description: description,
 		devDependencies: devDependencies,
 		eslintConfig: eslintConfig,
@@ -3396,7 +3396,7 @@
 	  return [min, max];
 	}
 
-	function range(start, stop, step) {
+	function sequence(start, stop, step) {
 	  start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
 
 	  var i = -1,
@@ -7583,15 +7583,15 @@
 
 	// normalize(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
 	// interpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding range value x in [a,b].
-	function bimap(domain, range$$1, interpolate$$1) {
-	  var d0 = domain[0], d1 = domain[1], r0 = range$$1[0], r1 = range$$1[1];
+	function bimap(domain, range, interpolate$$1) {
+	  var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
 	  if (d1 < d0) d0 = normalize(d1, d0), r0 = interpolate$$1(r1, r0);
 	  else d0 = normalize(d0, d1), r0 = interpolate$$1(r0, r1);
 	  return function(x) { return r0(d0(x)); };
 	}
 
-	function polymap(domain, range$$1, interpolate$$1) {
-	  var j = Math.min(domain.length, range$$1.length) - 1,
+	function polymap(domain, range, interpolate$$1) {
+	  var j = Math.min(domain.length, range.length) - 1,
 	      d = new Array(j),
 	      r = new Array(j),
 	      i = -1;
@@ -7599,12 +7599,12 @@
 	  // Reverse descending domains.
 	  if (domain[j] < domain[0]) {
 	    domain = domain.slice().reverse();
-	    range$$1 = range$$1.slice().reverse();
+	    range = range.slice().reverse();
 	  }
 
 	  while (++i < j) {
 	    d[i] = normalize(domain[i], domain[i + 1]);
-	    r[i] = interpolate$$1(range$$1[i], range$$1[i + 1]);
+	    r[i] = interpolate$$1(range[i], range[i + 1]);
 	  }
 
 	  return function(x) {
@@ -7624,7 +7624,7 @@
 
 	function transformer$1() {
 	  var domain = unit,
-	      range$$1 = unit,
+	      range = unit,
 	      interpolate$$1 = interpolateValue,
 	      transform,
 	      untransform,
@@ -7635,17 +7635,17 @@
 	      input;
 
 	  function rescale() {
-	    piecewise$$1 = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
+	    piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
 	    output = input = null;
 	    return scale;
 	  }
 
 	  function scale(x) {
-	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range$$1, interpolate$$1)))(transform(clamp(x)));
+	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range, interpolate$$1)))(transform(clamp(x)));
 	  }
 
 	  scale.invert = function(y) {
-	    return clamp(untransform((input || (input = piecewise$$1(range$$1, domain.map(transform), interpolateNumber)))(y)));
+	    return clamp(untransform((input || (input = piecewise$$1(range, domain.map(transform), interpolateNumber)))(y)));
 	  };
 
 	  scale.domain = function(_) {
@@ -7653,11 +7653,11 @@
 	  };
 
 	  scale.range = function(_) {
-	    return arguments.length ? (range$$1 = slice$5.call(_), rescale()) : range$$1.slice();
+	    return arguments.length ? (range = slice$5.call(_), rescale()) : range.slice();
 	  };
 
 	  scale.rangeRound = function(_) {
-	    return range$$1 = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
+	    return range = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
 	  };
 
 	  scale.clamp = function(_) {
@@ -7986,8 +7986,6 @@
 	var saturday = weekday(6);
 
 	var sundays = sunday.range;
-	var mondays = monday.range;
-	var thursdays = thursday.range;
 
 	var month = newInterval(function(date) {
 	  date.setDate(1);
@@ -8077,8 +8075,6 @@
 	var utcSaturday = utcWeekday(6);
 
 	var utcSundays = utcSunday.range;
-	var utcMondays = utcMonday.range;
-	var utcThursdays = utcThursday.range;
 
 	var utcMonth = newInterval(function(date) {
 	  date.setUTCDate(1);
@@ -23667,7 +23663,7 @@
 	window.L = exports;
 
 	})));
-
+	//# sourceMappingURL=leaflet-src.js.map
 	});
 
 	const RadioButtons = () => {
@@ -24154,6 +24150,23 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  return {};
 	};
 
+	// 19 colours
+	const month_lookup = {
+	  "1": "Jan",
+	  "2": "Feb",
+	  "3": "Mar",
+	  "4": "Apr",
+	  "5": "May",
+	  "6": "Jun",
+	  "7": "Jul",
+	  "8": "Aug",
+	  "9": "Sept",
+	  "10": "Oct",
+	  "11": "Nov",
+	  "12": "Dec",
+	  "0": "Unkn"
+	};
+
 	/* global values dc, dataURL, maxEvents, all_species, speciesColours, markLookup, tagLookup, clipLookup */
 
 	const dateParser = timeParse("%Y-%m-%d");
@@ -24172,22 +24185,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	let ylabel = "Yearly Equivalents"; // a global object that will hold slug:label pairs for the labels of
 	// the currently selected spatial unit.
 
-	const labelLookup = {};
-	const month_lookup = {
-	  "1": "Jan",
-	  "2": "Feb",
-	  "3": "Mar",
-	  "4": "Apr",
-	  "5": "May",
-	  "6": "Jun",
-	  "7": "Jul",
-	  "8": "Aug",
-	  "9": "Sept",
-	  "10": "Oct",
-	  "11": "Nov",
-	  "12": "Dec",
-	  "0": "Unkn"
-	}; // these assume the clip-lookup script has already been loaded.  these
+	const labelLookup = {}; // these assume the clip-lookup script has already been loaded.  these
 	// will need to moved below promise() when we update the database and
 	// serializers to include mark, clips, tags:
 
@@ -24522,7 +24520,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 
 	  let first_year = yearDim.bottom(1)[0].year;
 	  let last_year = yearDim.top(1)[0].year;
-	  let years$$1 = range(first_year, last_year);
+	  let years$$1 = sequence(first_year, last_year);
 	  years$$1.push(last_year); //=========================================
 	  //      helper functions
 
