@@ -165,6 +165,8 @@ class StockingEvent(models.Model):
         (10, "level 10, data entered and verified at OMNR"),
     ]
 
+    marks = models.ManyToManyField(Mark)
+
     species = models.ForeignKey(
         Species, on_delete=models.CASCADE, related_name="stocking_events"
     )
@@ -174,8 +176,6 @@ class StockingEvent(models.Model):
     strain_raw = models.ForeignKey(
         StrainRaw, on_delete=models.CASCADE, related_name="stocking_events"
     )
-
-    marks = models.ManyToManyField(Mark)
 
     agency = models.ForeignKey(
         Agency, on_delete=models.CASCADE, related_name="stocking_events"
@@ -325,17 +325,23 @@ class StockingEvent(models.Model):
 
     @property
     def lake(self):
-        """
+        """A shortcut to return the lake associated with a
+        stocking event as a property of the object.
 
         """
         return self.jurisdiction.lake
 
     @property
     def stateprov(self):
-        """
+        """A shortcut to return the state or Province associated with a
+        stocking event as a property of the object.
 
         """
         return self.jurisdiction.stateprov
+
+    def get_abosolute_url(self):
+        """return the url for this stocking event"""
+        return reverse("stocking:stocking-event-detail", {"stock_id": self.stock_id})
 
     def get_mark_code(self):
         """Return a string containing the Mark codes associated with this

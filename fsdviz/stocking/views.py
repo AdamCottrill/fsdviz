@@ -21,14 +21,15 @@ from datetime import datetime
 import json
 from uuid import uuid1
 
-from .utils import form2params, xls2dicts, get_xls_form_choices, validate_upload
-from ..common.utils import (
-    to_lake_dict,
-    toLookup,
-    toChoices,
-    make_mu_id_lookup,
-    make_strain_id_lookup,
+from .utils import (
+    form2params,
+    xls2dicts,
+    get_xls_form_choices,
+    get_event_model_form_choices,
+    validate_upload,
+    get_choices,
 )
+from ..common.utils import toLookup, make_mu_id_lookup, make_strain_id_lookup, toChoices
 
 
 from ..common.models import (
@@ -45,7 +46,7 @@ from ..common.models import (
 from .models import StockingEvent, StockingMethod, LifeStage, Condition, DataUploadEvent
 from .filters import StockingEventFilter
 
-from .forms import FindEventsForm, XlsEventForm
+from .forms import FindEventsForm, XlsEventForm, StockingEventForm
 
 #
 
@@ -598,69 +599,7 @@ def xls_events(request):
 
     EventFormSet = formset_factory(XlsEventForm, extra=0)
 
-    lakes = [x for x in Lake.objects.values_list("id", "abbrev")]
-    lake_choices = toChoices(lakes)
-
-    agencies = [x for x in Agency.objects.values_list("id", "abbrev")]
-    agency_choices = toChoices(agencies)
-
-    stateProvinces = [
-        x for x in StateProvince.objects.values_list("id", "abbrev", "name")
-    ]
-    stateProv_choices = toChoices(stateProvinces)
-
-    species = [x for x in Species.objects.values_list("id", "abbrev", "common_name")]
-    species_choices = toChoices(species)
-
-    # TODO - add strains to lookup.
-    strains = StrainRaw.objects.select_related("species").values_list(
-        "id", "species__abbrev", "raw_strain"
-    )
-
-    lifestages = [
-        x for x in LifeStage.objects.values_list("id", "abbrev", "description")
-    ]
-    lifestage_choices = toChoices(lifestages)
-
-    conditions = [x for x in Condition.objects.values_list("id", "condition")]
-    condition_choices = toChoices(conditions)
-
-    stocking_methods = [
-        x for x in StockingMethod.objects.values_list("id", "stk_meth", "description")
-    ]
-
-    stocking_method_choices = toChoices(stocking_methods)
-
-    # grid_id_lookup will be a dictionary keyed by slug:
-
-    grids = Grid10.objects.select_related("lake").values_list(
-        "id", "slug", "lake__abbrev", "grid"
-    )
-
-    # grid choices must match the values coming in from the spreadsheet.
-    # no slugs!
-    tmp = [[x[2], x[3]] for x in grids]
-    grid_choices = to_lake_dict(tmp)
-
-    mus = (
-        ManagementUnit.objects.filter(primary=True)
-        .select_related("lake")
-        .values_list("id", "slug", "lake__abbrev", "label")
-    )
-    tmp = [[x[2], x[3]] for x in mus]
-    mu_choices = to_lake_dict(tmp)
-
-    choices = {
-        "grids": grid_choices,
-        "stat_dist": mu_choices,
-        "lakes": lake_choices,
-        "agencies": agency_choices,
-        "state_prov": stateProv_choices,
-        "species": species_choices,
-        "lifestage": lifestage_choices,
-        "condition": condition_choices,
-        "stocking_method": stocking_method_choices,
-    }
+    choices = get_choices()
 
     event_count = 0
 
@@ -787,6 +726,39 @@ def xls_events(request):
         request,
         "stocking/xls_events_form.html",
         {"formset": formset, "event_count": event_count},
+    )
+
+
+def edit_stocking_event(request, stock_id):
+    """A view that will present a form that will allow authorized users to
+    edit the attibutes of a stocking event."""
+
+    event = get_object_or_404(StockingEvent, stock_id=stock_id)
+
+    choices = get_event_model_form_choices(event)
+
+    if request.method == "POST":
+
+        form = StockingEventForm(request.POST, choices=choices)
+
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            return HttpResponseRedirect(event.get_absolute_url())
+    else:
+        # covert our event object to a dictionary and add some
+        # additional attributes we weill need in the form:
+        event_dict = event.__dict__
+        event_dict["lake_id"] = event.lake.id
+        event_dict["state_prov_id"] = event.stateprov.id
+
+        form = StockingEventForm(event_dict, choices=choices)
+
+    return render(
+        request,
+        "stocking/stocking_event_form.html",
+        {"form": form, "stock_id": stock_id},
     )
 
 

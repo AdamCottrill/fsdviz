@@ -1,6 +1,7 @@
 
 <div class="field {% if field_obj.errors %} error{% endif %}">
-    <div class="ui mini input">
+    {{ field_obj.label_tag }}
+    <div class="ui input">
         {{ field_obj }}
     </div>
 </div>

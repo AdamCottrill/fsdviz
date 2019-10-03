@@ -41,126 +41,126 @@
                             <div class="summary">
                                 <table class="ui very basic compact  table" id="details-table">
                                     <tr>
-                                    <td><strong>Stock Id:</strong></td>
-                                    <td>{{ object.stock_id}}</td>
-                        </tr>
+                                        <td><strong>Stock Id:</strong></td>
+                                        <td>{{ object.stock_id}}</td>
+                                    </tr>
                                     <tr>
-                                    <td><strong>Species:</strong></td>
-                                    <td>{{ object.species.common_name|title}}
-                                    ({{ object.species.abbrev }})</td>
-                        </tr>
+                                        <td><strong>Species:</strong></td>
+                                        <td>{{ object.species.common_name|title}}
+                                            ({{ object.species.abbrev }})</td>
+                                    </tr>
 
                                     <tr>
-                                    <td><strong>Strain:</strong></td>
-                                    <td>{{ object.strain_raw.strain.strain_label}}
-                                    ({{ object.strain_raw.strain.strain_code}})</td>
-                        </tr>
-
-                                    <tr class="secondary">
-                                    <td><strong>Reported Strain:</strong></td>
-                                    <td>{{ object.strain_raw.description}}(
-                                    {{ object.strain_raw.raw_strain}}
-                                    )</td>
-                        </tr>
-
-
-                                    <tr>
-                                    <td><strong>Agency:</strong></td>
-                                    <td>{{ object.agency }}</td>
-                        </tr>
-                                    <tr>
-                                    <td><strong>Lake:</strong></td>
-                                    <td>{{ object.lake }}</td>
-                        </tr>
-                                    <tr>
-                                    <td><strong>State/Prov:</strong></td>
-                                    <td>{{ object.stateprov }}</td>
-                        </tr>
-                                    <tr>
-                                    <td><strong>Site:</strong></td>
-                                    <td>{{ object.site|title }}</td>
-                        </tr>
-                                    <tr>
-                                    <td><strong>10-Min. Grid:</strong></td>
-                                    <td>{{ object.grid_10 }}</td>
-                        </tr>
-                                    <tr class="secondary">
-                                    <td><strong>LatLon Flag:</strong></td>
-                                    <td>{{ object.latlong_flag }}</td>
-                        </tr>
-                                    <tr>
-                                    <td><strong>Date:</strong></td>
-                                    <td>{{ object.date }}</td>
-                        </tr>
-                                    <tr>
-                                    <td><strong>Method:</strong></td>
-                                    <td>{{ object.stocking_method }}</td>
-                        </tr>
-                                    <tr>
-                                    <td><strong>Life Stage:</strong></td>
-                                    <td>{{ object.lifestage }}</td>
-                        </tr>
-
-                                    <tr>
-                                    <td><strong>Age(months):</strong></td>
-                                    <td>{{ object.agemonth }}</td>
-                        </tr>
-
-                                    <tr>
-                                    <td><strong>Year Class:</strong></td>
-                                    <td>{{ object.year_class }}</td>
-                        </tr>
+                                        <td><strong>Strain:</strong></td>
+                                        <td>{{ object.strain_raw.strain.strain_label}}
+                                            ({{ object.strain_raw.strain.strain_code}})</td>
+                                    </tr>
 
                                     <tr class="secondary">
-                                    <td><strong>Length(mm):</strong></td>
-                                    <td>{{ object.length|default_if_none:'Not Reported' }}</td>
-                        </tr>
+                                        <td><strong>Reported Strain:</strong></td>
+                                        <td>{{ object.strain_raw.description}}(
+                                            {{ object.strain_raw.raw_strain}}
+                                            )</td>
+                                    </tr>
+
+
+                                    <tr>
+                                        <td><strong>Agency:</strong></td>
+                                        <td>{{ object.agency }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Lake:</strong></td>
+                                        <td>{{ object.lake }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>State/Prov:</strong></td>
+                                        <td>{{ object.stateprov }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Site:</strong></td>
+                                        <td>{{ object.site|title }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>10-Min. Grid:</strong></td>
+                                        <td>{{ object.grid_10 }}</td>
+                                    </tr>
+                                    <tr class="secondary">
+                                        <td><strong>LatLon Flag:</strong></td>
+                                        <td>{{ object.latlong_flag }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Date:</strong></td>
+                                        <td>{{ object.date }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Method:</strong></td>
+                                        <td>{{ object.stocking_method }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Life Stage:</strong></td>
+                                        <td>{{ object.lifestage }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td><strong>Age(months):</strong></td>
+                                        <td>{{ object.agemonth }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td><strong>Year Class:</strong></td>
+                                        <td>{{ object.year_class }}</td>
+                                    </tr>
 
                                     <tr class="secondary">
-                                    <td><strong>Weight(g):</strong></td>
-                                    <td>{{ object.weight|default_if_none:'Not Reported' }}</td>
-                        </tr>
-
-                                    <tr>
-                                    <td><strong>Mark:</strong></td>
-                                    <td>{{ object.mark }} ({{object.clipa}})</td>
-                        </tr>
-
+                                        <td><strong>Length(mm):</strong></td>
+                                        <td>{{ object.length|default_if_none:'Not Reported' }}</td>
+                                    </tr>
 
                                     <tr class="secondary">
-                                    <td><strong>Mark Eff:</strong></td>
-                                    <td>{{ object.mark_eff|default_if_none:'Not Reported' }}</td>
-                        </tr>
-
-                                    <tr class="secondary">
-                                    <td><strong>Tag Reten.:</strong></td>
-                                    <td>{{ object.tag_ret|default_if_none:'Not Reported' }}</td>
-                        </tr>
+                                        <td><strong>Weight(g):</strong></td>
+                                        <td>{{ object.weight|default_if_none:'Not Reported' }}</td>
+                                    </tr>
 
                                     <tr>
-                                    <td><strong>Condition:</strong></td>
-                                    <td>{{ object.condition }}</td>
-                        </tr>
-
-                                    <tr>
-                                    <td><strong>Number Stocked:</strong></td>
-                                    <td>{{ object.no_stocked|intcomma }}</td>
-                        </tr>
-                                    <tr>
-                                    <td><strong>Yearling Equiv.:</strong></td>
-                                    <td>{{ object.yreq_stocked|intcomma }}</td>
-                        </tr>
+                                        <td><strong>Mark:</strong></td>
+                                        <td>{{ object.mark }} ({{object.clipa}})</td>
+                                    </tr>
 
 
                                     <tr class="secondary">
-                                    <td><strong>Lot Code:</strong></td>
-                                    <td>{{ object.lotcode|default_if_none:'Not Reported' }}</td>
-                        </tr>
+                                        <td><strong>Mark Eff:</strong></td>
+                                        <td>{{ object.mark_eff|default_if_none:'Not Reported' }}</td>
+                                    </tr>
 
                                     <tr class="secondary">
-                                    <td><strong>Validation:</strong></td>
-                                    <td>{{ object.get_validation_display|default_if_none:'Not Reported' }}</td>
-                        </tr>
+                                        <td><strong>Tag Reten.:</strong></td>
+                                        <td>{{ object.tag_ret|default_if_none:'Not Reported' }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td><strong>Condition:</strong></td>
+                                        <td>{{ object.condition }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td><strong>Number Stocked:</strong></td>
+                                        <td>{{ object.no_stocked|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Yearling Equiv.:</strong></td>
+                                        <td>{{ object.yreq_stocked|intcomma }}</td>
+                                    </tr>
+
+
+                                    <tr class="secondary">
+                                        <td><strong>Lot Code:</strong></td>
+                                        <td>{{ object.lotcode|default_if_none:'Not Reported' }}</td>
+                                    </tr>
+
+                                    <tr class="secondary">
+                                        <td><strong>Validation:</strong></td>
+                                        <td>{{ object.get_validation_display|default_if_none:'Not Reported' }}</td>
+                                    </tr>
 
                                 </table>
 
@@ -190,7 +190,15 @@
                     <div id="mapid" style='width: 650px; height: 600px;'></div>
 
                 </div>
+
+                {% if user.is_authenticated %} 
+                    <a class="ui primary button" href="{% url 'stocking:edit-stocking-event' stock_id=object.stock_id %}">Edit Event</a>
+                {% endif %}
+                
+
+                
             </div>
+
         </div>
 
 

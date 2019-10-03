@@ -356,3 +356,93 @@ class XlsEventForm(forms.Form):
         # state - lake
         # statdist -lake
         # grid - lake
+
+
+class StockingEventForm(forms.Form):
+    """A form to capture stocking events.  Given the custom logic required
+    to populate related fields, a model form seemed too restrictive."""
+
+    def __init__(self, *args, **kwargs):
+        self.choices = kwargs.pop("choices", None)
+        super(StockingEventForm, self).__init__(*args, **kwargs)
+
+        self.fields["lake_id"].choices = self.choices.get("lakes", [])
+        self.fields["state_prov_id"].choices = self.choices.get("state_provs")
+        self.fields["management_unit_id"].choices = self.choices.get("managementUnits")
+        self.fields["grid_10_id"].choices = self.choices.get("grids")
+        self.fields["agency_id"].choices = self.choices.get("agencies")
+        self.fields["species_id"].choices = self.choices.get("species")
+        self.fields["strain_raw_id"].choices = self.choices.get("strains")
+        self.fields["stocking_method_id"].choices = self.choices.get("stocking_methods")
+        self.fields["lifestage_id"].choices = self.choices.get("lifestages")
+        self.fields["condition_id"].choices = self.choices.get("conditions")
+
+        # if our intitial data contains values that are not in our list of choices
+        # add it to front of each list with a "" as its id (that will automaticlly
+        # disable it in html when it is rendered).
+
+    MONTHS = (
+        (1, "Jan"),
+        (2, "Feb"),
+        (3, "Mar"),
+        (4, "Apr"),
+        (5, "May"),
+        (6, "Jun"),
+        (7, "Jul"),
+        (8, "Aug"),
+        (9, "Sep"),
+        (10, "Oct"),
+        (11, "Nov"),
+        (12, "Dec"),
+        ("", "Unk"),
+    )
+
+    # not sure if the the best approach:
+    DAYS = [("", "Ukn")] + list(zip(range(1, 32), range(1, 32)))
+
+    #  ** WHO **
+    agency_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+
+    #  ** WHAT **
+    species_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    strain_raw_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    # strain = forms.CharField(required=True)
+
+    #  ** WHEN **
+    year = forms.IntegerField(
+        min_value=1950, max_value=datetime.now().year, required=True
+    )
+    month = forms.ChoiceField(choices=MONTHS)
+    day = forms.ChoiceField(choices=DAYS)
+    date = forms.DateField()
+
+    #  ** WHERE **
+    lake_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    state_prov_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    # jurisdiction_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    management_unit_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    grid_10_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    dd_lat = forms.FloatField(min_value=41.3, max_value=49.1)
+    dd_lon = forms.FloatField(min_value=-92.0, max_value=-76.0)
+
+    site = forms.CharField(required=True)
+    st_site = forms.CharField(required=False)
+
+    no_stocked = forms.IntegerField(required=True)
+    stocking_method_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    year_class = forms.IntegerField(
+        min_value=1950, max_value=(datetime.now().year + 1), required=False
+    )
+    lifestage_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    agemonth = forms.IntegerField(min_value=0, required=False)
+
+    mark = forms.CharField(required=False)
+    mark_eff = forms.FloatField(min_value=0, max_value=100, required=False)
+    tag_no = forms.CharField(required=False)
+    tag_ret = forms.FloatField(min_value=0, max_value=100, required=False)
+    length = forms.FloatField(min_value=0, required=False)
+    weight = forms.FloatField(min_value=0, required=False)
+    condition_id = forms.ChoiceField(choices=[], required=False, widget=MySelect)
+    validation = forms.IntegerField(min_value=0, max_value=10, required=False)
+    lot_code = forms.CharField(required=False)
+    notes = forms.CharField(required=False)

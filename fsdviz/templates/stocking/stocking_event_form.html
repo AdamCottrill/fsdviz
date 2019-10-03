@@ -1,0 +1,163 @@
+{% extends 'fsdviz_base.html' %}
+
+{% block extra_head %}
+
+    <style type="text/css" media="screen">
+     .small {
+         font-size: 0.8rem;
+     }
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+    <script src= "https://unpkg.com/leaflet@1.5.1/dist/leaflet-src.js"></script>
+
+{% endblock %}
+
+{% block content %}
+
+    <div  class="ui container" >
+        <h2>Edit Stocking Event {{ stock_id }}</h2>
+        
+        <form class="ui form" action="" method="post">
+            {% csrf_token %}
+
+            {{ form.non_field_errors }}
+
+            <div class="ui fluid card">
+                <div class="content">
+                    <div class="header">Agency, Species and Strain</div>
+                </div>
+                <div class="content">
+
+                    <div class="three fields">
+
+                        {% include "stocking/_form_field.html" with field_obj=form.agency_id %}
+                        {% include "stocking/_form_field.html" with field_obj=form.species_id %}
+                        {% include "stocking/_form_field.html" with field_obj=form.strain_raw_id %}                
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="ui fluid card">
+                <div class="content">
+                    <div class="header">Event Date</div>
+                </div>
+                <div class="content">
+                    
+                    
+                    <div class="four fields">
+
+                        {% include "stocking/_form_field.html" with field_obj=form.date %}
+                        {% include "stocking/_form_field.html" with field_obj=form.year %}
+                        {% include "stocking/_form_field.html" with field_obj=form.month %}
+                        {% include "stocking/_form_field.html" with field_obj=form.day %}
+                        
+                    </div>
+
+                </div>
+            </div>
+            
+            <div class="ui fluid card">
+                <div class="content">
+                    <div class="header">Event Location</div>
+                </div>
+                <div class="content">
+                    
+                    
+                    <div class="ui grid">
+                        <div class="four wide column">
+
+                            {% include "stocking/_form_field.html" with field_obj=form.lake_id %}
+                            {% include "stocking/_form_field.html" with field_obj=form.state_prov_id %}
+                            {% include "stocking/_form_field.html" with field_obj=form.management_unit_id %}
+                            {% include "stocking/_form_field.html" with field_obj=form.grid_10_id %}
+
+                            <div class="ui segment">
+                                {% include "stocking/_form_field.html" with field_obj=form.dd_lat %}
+                                {% include "stocking/_form_field.html" with field_obj=form.dd_lon %}                        
+                            </div>
+                            
+                        </div>
+
+                        <div class="twelve wide column">
+                            <div class="ui placeholder segment">
+                                <h5>Map</h5>
+                                
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="ui fluid card">
+                <div class="content">
+                    <div class="header">Event Attributes</div>
+                </div>
+                <div class="content">
+                    
+                    <div class="field">
+
+                        {% include "stocking/_form_field.html" with field_obj=form.no_stocked %}
+                        
+                    </div>                
+
+                    
+                    <div class="four fields">
+
+                        {% include "stocking/_form_field.html" with field_obj=form.year_class %}
+                        {% include "stocking/_form_field.html" with field_obj=form.stocking_method_id %}                
+                        {% include "stocking/_form_field.html" with field_obj=form.lifestage_id %}
+                        {% include "stocking/_form_field.html" with field_obj=form.condition_id %}                                               
+                    </div>
+
+                    <div class="four fields">
+
+                        {% include "stocking/_form_field.html" with field_obj=form.mark %}
+                        {% include "stocking/_form_field.html" with field_obj=form.mark_eff %}                
+                        {% include "stocking/_form_field.html" with field_obj=form.tag_no %}
+                        {% include "stocking/_form_field.html" with field_obj=form.tag_ret %}                                               
+                    </div>
+
+                    <div class="five fields">
+
+                        {% include "stocking/_form_field.html" with field_obj=form.length %}
+                        {% include "stocking/_form_field.html" with field_obj=form.weight %}                
+                        {% include "stocking/_form_field.html" with field_obj=form.condition_id %}
+                        {% include "stocking/_form_field.html" with field_obj=form.validation %}
+                        {% include "stocking/_form_field.html" with field_obj=form.lot_code %}
+                        
+                    </div>
+
+
+                    <div class="field">
+
+                        {% include "stocking/_form_field.html" with field_obj=form.notes %}
+                        
+                    </div>                
+
+
+                    
+                </div>
+            </div>
+
+
+            <div class="row">
+                <a class="ui small red right floated button" href="{% url 'stocking:stocking-event-detail' stock_id=stock_id %}">Cancel</a>
+                
+                <a class="ui small grey right floated  button" href="{% url 'stocking:edit-stocking-event' stock_id=stock_id %}">Reset Form</a>
+                
+                <input class="ui small primary right floated button" type="submit" value="Submit">
+                
+            </div>
+
+            
+        </form>        
+    </div>
+    
+{% endblock %}

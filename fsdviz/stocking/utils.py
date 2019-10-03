@@ -14,10 +14,18 @@
 from openpyxl import load_workbook
 from django.conf import settings
 
-from ..common.models import Lake, Species, StateProvince, ManagementUnit, Agency, Grid10
+from ..common.models import (
+    Lake,
+    StrainRaw,
+    Species,
+    StateProvince,
+    ManagementUnit,
+    Agency,
+    Grid10,
+)
 from .models import StockingMethod, LifeStage, Condition
 
-from ..common.utils import to_lake_dict
+from ..common.utils import to_lake_dict, toChoices
 
 # the fields from our upload template:
 XLS_FIELDS = [
@@ -121,6 +129,88 @@ def get_xls_form_choices():
             x for x in StockingMethod.objects.values_list("stk_meth", "description")
         ],
         "grids": grid_dict,
+    }
+
+    return choices
+
+
+def get_event_model_form_choices(event):
+    """A helper function used by eventsForm to provide a dictionary of
+    lists that are use to populate the choice fields in the stocking
+    event model form (not the xls event form). - the single biggest
+    difference is that the model form requires elements to be in the
+    form (id, label), while the xls form requires them to be (abbrev,
+    label) - where abbrev is the value in the spreadsheet.
+
+    """
+
+    lakes = [
+        (x[0], "{} ({})".format(x[1], x[2]))
+        for x in Lake.objects.values_list("id", "lake_name", "abbrev")
+    ]
+
+    agencies = [
+        (x[0], "{} ({})".format(x[1], x[2]))
+        for x in Agency.objects.values_list("id", "agency_name", "abbrev")
+    ]
+
+    state_provs = [
+        (x[0], "{} ({})".format(x[1], x[2]))
+        for x in StateProvince.objects.values_list("id", "name", "abbrev")
+    ]
+
+    # filtered by the lake associated with this event:
+    man_units = [
+        (x[0], x[1])
+        for x in ManagementUnit.objects.filter(
+            lake=event.lake, primary=True
+        ).values_list("id", "label")
+    ]
+
+    # filtered by the lake associated with this event:
+    grids = [
+        (x[0], x[1])
+        for x in Grid10.objects.filter(lake=event.lake).values_list("id", "grid")
+    ]
+
+    species = [
+        (x[0], "{} ({})".format(x[2], x[1]))
+        for x in Species.objects.values_list("id", "abbrev", "common_name")
+    ]
+
+    # filterd by the species associated with this strain:
+    strains = StrainRaw.objects.filter(species=event.species).values_list(
+        "id", "description", "raw_strain"
+    )
+    strains = sorted(strains, key=lambda x: x[2])
+    strain_choices = [(x[0], "{} ({})".format(x[2], x[1])) for x in strains]
+
+    stocking_methods = [
+        (x[0], "{} ({})".format(x[2], x[1]))
+        for x in StockingMethod.objects.values_list("id", "stk_meth", "description")
+    ]
+
+    lifestages = [
+        (x[0], "{} ({})".format(x[2], x[1]))
+        for x in LifeStage.objects.values_list("id", "abbrev", "description")
+    ]
+
+    conditions = [
+        (x[0], "{} ({})".format(x[2], x[1]))
+        for x in Condition.objects.values_list("id", "condition", "description")
+    ]
+
+    choices = {
+        "lakes": lakes,
+        "agencies": agencies,
+        "state_provs": state_provs,
+        "species": species,
+        "lifestages": lifestages,
+        "conditions": conditions,
+        "stocking_methods": stocking_methods,
+        "grids": grids,
+        "strains": strain_choices,
+        "managementUnits": man_units,
     }
 
     return choices
@@ -235,3 +325,74 @@ def validate_upload(events):
             ).format(field_list)
 
     return valid, msg
+
+
+def get_choices():
+    """a helper function used to create a dictionary of dictionaries
+    containing the choices for each field in a stocking event form."""
+
+    lakes = [x for x in Lake.objects.values_list("id", "abbrev")]
+    lake_choices = toChoices(lakes)
+
+    agencies = [x for x in Agency.objects.values_list("id", "abbrev")]
+    agency_choices = toChoices(agencies)
+
+    stateProvinces = [
+        x for x in StateProvince.objects.values_list("id", "abbrev", "name")
+    ]
+    stateProv_choices = toChoices(stateProvinces)
+
+    species = [x for x in Species.objects.values_list("id", "abbrev", "common_name")]
+    species_choices = toChoices(species)
+
+    # TODO - add strains to lookup.
+    strains = StrainRaw.objects.select_related("species").values_list(
+        "id", "species__abbrev", "raw_strain"
+    )
+
+    lifestages = [
+        x for x in LifeStage.objects.values_list("id", "abbrev", "description")
+    ]
+    lifestage_choices = toChoices(lifestages)
+
+    conditions = [x for x in Condition.objects.values_list("id", "condition")]
+    condition_choices = toChoices(conditions)
+
+    stocking_methods = [
+        x for x in StockingMethod.objects.values_list("id", "stk_meth", "description")
+    ]
+
+    stocking_method_choices = toChoices(stocking_methods)
+
+    # grid_id_lookup will be a dictionary keyed by slug:
+
+    grids = Grid10.objects.select_related("lake").values_list(
+        "id", "slug", "lake__abbrev", "grid"
+    )
+
+    # grid choices must match the values coming in from the spreadsheet.
+    # no slugs!
+    tmp = [[x[2], x[3]] for x in grids]
+    grid_choices = to_lake_dict(tmp)
+
+    mus = (
+        ManagementUnit.objects.filter(primary=True)
+        .select_related("lake")
+        .values_list("id", "slug", "lake__abbrev", "label")
+    )
+    tmp = [[x[2], x[3]] for x in mus]
+    mu_choices = to_lake_dict(tmp)
+
+    choices = {
+        "grids": grid_choices,
+        "stat_dist": mu_choices,
+        "lakes": lake_choices,
+        "agencies": agency_choices,
+        "state_prov": stateProv_choices,
+        "species": species_choices,
+        "lifestage": lifestage_choices,
+        "condition": condition_choices,
+        "stocking_method": stocking_method_choices,
+    }
+
+    return choices

@@ -10,6 +10,7 @@ from .views import (
     filtered_events,
     upload_events,
     xls_events,
+    edit_stocking_event,
     DataUploadEventListView,
     DataUploadEventDetailView,
 )
@@ -82,6 +83,7 @@ urlpatterns = [
         StockingEventDetailView.as_view(),
         name="stocking-event-detail",
     ),
+    path("edit_event/<stock_id>/", edit_stocking_event, name="edit-stocking-event"),
     path("upload_events/", upload_events, name="upload-stocking-events"),
     path("uploaded_events/", xls_events, name="xls-events-form"),
     path(
