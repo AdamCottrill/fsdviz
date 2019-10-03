@@ -758,7 +758,7 @@ def edit_stocking_event(request, stock_id):
     return render(
         request,
         "stocking/stocking_event_form.html",
-        {"form": form, "stock_id": stock_id},
+        {"form": form, "stock_id": stock_id, "lake": event.lake},
     )
 
 

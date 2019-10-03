@@ -401,11 +401,17 @@ class StockingEventForm(forms.Form):
     DAYS = [("", "Ukn")] + list(zip(range(1, 32), range(1, 32)))
 
     #  ** WHO **
-    agency_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    agency_id = forms.ChoiceField(
+        label="Agency", choices=[], required=True, widget=MySelect
+    )
 
     #  ** WHAT **
-    species_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    strain_raw_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    species_id = forms.ChoiceField(
+        label="Species", choices=[], required=True, widget=MySelect
+    )
+    strain_raw_id = forms.ChoiceField(
+        label="Strain", choices=[], required=True, widget=MySelect
+    )
     # strain = forms.CharField(required=True)
 
     #  ** WHEN **
@@ -414,35 +420,70 @@ class StockingEventForm(forms.Form):
     )
     month = forms.ChoiceField(choices=MONTHS)
     day = forms.ChoiceField(choices=DAYS)
-    date = forms.DateField()
+    date = forms.DateField(required=False)
 
     #  ** WHERE **
-    lake_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    state_prov_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    lake_id = forms.ChoiceField(
+        label="Lake", choices=[], required=True, widget=MySelect
+    )
+    state_prov_id = forms.ChoiceField(
+        label="StateProvince", choices=[], required=True, widget=MySelect
+    )
     # jurisdiction_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    management_unit_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    grid_10_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    dd_lat = forms.FloatField(min_value=41.3, max_value=49.1)
-    dd_lon = forms.FloatField(min_value=-92.0, max_value=-76.0)
+    management_unit_id = forms.ChoiceField(
+        label="Statistical District", choices=[], required=True, widget=MySelect
+    )
+    grid_10_id = forms.ChoiceField(
+        label="10-Minute Grid", choices=[], required=True, widget=MySelect
+    )
+    dd_lat = forms.FloatField(
+        label="Latitude (Decimal Degrees)", min_value=41.3, max_value=49.1
+    )
+    dd_lon = forms.FloatField(
+        label="Longitude (Decimal Degrees)", min_value=-92.0, max_value=-76.0
+    )
+
+    latlong_flag_id = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     site = forms.CharField(required=True)
     st_site = forms.CharField(required=False)
 
     no_stocked = forms.IntegerField(required=True)
-    stocking_method_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    year_class = forms.IntegerField(
-        min_value=1950, max_value=(datetime.now().year + 1), required=False
+    stocking_method_id = forms.ChoiceField(
+        label="Stocking Method", choices=[], required=True, widget=MySelect
     )
-    lifestage_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    agemonth = forms.IntegerField(min_value=0, required=False)
+    year_class = forms.IntegerField(
+        label="Year Class",
+        min_value=1950,
+        max_value=(datetime.now().year + 1),
+        required=False,
+    )
+    lifestage_id = forms.ChoiceField(
+        label="Life Stage", choices=[], required=True, widget=MySelect
+    )
+    agemonth = forms.IntegerField(label="Age (months)", min_value=0, required=False)
 
-    mark = forms.CharField(required=False)
-    mark_eff = forms.FloatField(min_value=0, max_value=100, required=False)
-    tag_no = forms.CharField(required=False)
-    tag_ret = forms.FloatField(min_value=0, max_value=100, required=False)
-    length = forms.FloatField(min_value=0, required=False)
-    weight = forms.FloatField(min_value=0, required=False)
-    condition_id = forms.ChoiceField(choices=[], required=False, widget=MySelect)
-    validation = forms.IntegerField(min_value=0, max_value=10, required=False)
+    mark = forms.CharField(label="Marks Applied", required=False)
+    mark_eff = forms.FloatField(
+        label="Marking Efficiency", min_value=0, max_value=100, required=False
+    )
+    tag_no = forms.CharField(label="Tag Numbers", required=False)
+    tag_ret = forms.FloatField(
+        label="Tag Retention", min_value=0, max_value=100, required=False
+    )
+    length = forms.FloatField(label="Avg. Length (mm)", min_value=0, required=False)
+    weight = forms.FloatField(label="Avg. Weight (g)", min_value=0, required=False)
+    condition_id = forms.ChoiceField(
+        label="General Condition", choices=[], required=False, widget=MySelect
+    )
+    validation = forms.ChoiceField(
+        label="Data Entry Validation",
+        choices=StockingEvent.VALIDATION_CODE_CHOICES,
+        required=False,
+    )
     lot_code = forms.CharField(required=False)
-    notes = forms.CharField(required=False)
+    notes = forms.CharField(
+        label="Additional Notes",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )
