@@ -729,6 +729,7 @@ def xls_events(request):
     )
 
 
+@login_required
 def edit_stocking_event(request, stock_id):
     """A view that will present a form that will allow authorized users to
     edit the attibutes of a stocking event."""
