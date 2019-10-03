@@ -8,15 +8,17 @@
      .small {
          font-size: 0.8rem;
      }
+
+     
     </style>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
-    <script src= "https://unpkg.com/leaflet@1.5.1/dist/leaflet-src.js"></script>
+
 
 {% endblock %}
 
 {% block content %}
-    
+
     <div  class="ui container" >
         <h2>Edit Stocking Event {{ stock_id }}</h2>
 
@@ -76,11 +78,15 @@
                                 {% include "stocking/_form_field.html" with field_obj=form.dd_lon %}
                                 {{form.latlong_flag_id}}
                             </div>
-                            
+
+                            {% include "stocking/_form_field.html" with field_obj=form.site %}
+                            {% include "stocking/_form_field.html" with field_obj=form.st_site %}
+                            {% include "stocking/_form_field.html" with field_obj=form.site_type %}
+
                         </div>
                         <div class="twelve wide column">
                             <div class="ui segment">
-                                <div id="mapid" style='width: 700px; height: 600px;'></div>
+                                <div id="mapid" style='width: 750px; height: 700px;'></div>
                             </div>
                         </div>
                     </div>
@@ -150,56 +156,13 @@
 
 
 {% block extra_js %}
-    
+
 
     {{ lake.shoreline.extent|json_script:"map-bounds" }}
-    
-    <script type="text/javascript" src="{% static "js/accessToken.js" %}"></script>
 
-    <script type="text/javascript">
+    <script src="{% static "js/accessToken.js" %}"></script>
 
-     $(document).ready(function(){
+    <script src="{% static "js/stocking_event_form.js" %}"></script>
 
-         let bbox = JSON.parse(document.getElementById('map-bounds').textContent);
-         let mapBounds = [bbox.slice(0,2), bbox.slice(2)];
-
-         // setup the map with rough bounds (need to get pies to plot first,
-         // this will be tweaked later):
-         const mymap = L.map("mapid", {
-             zoomDelta: 0.25,
-             zoomSnap: 0
-         }).fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
-
-         L.tileLayer(
-             "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}",
-             {
-                 attribution:
-      'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery � <a href="https://www.mapbox.com/">Mapbox</a>',
-                 maxZoom: 18,
-                 id: "mapbox.streets",
-                 accessToken: accessToken
-             }
-         ).addTo(mymap);
-
-         let lat = $('#id_dd_lat').val();
-         let lon = $('#id_dd_lon').val();         
-         
-         var circle = L.circleMarker([ parseFloat(lat), parseFloat(lon)], {
-             color: 'red',
-             fillColor: '#f03',
-             fillOpacity: 0.5,
-             radius: 5
-         }).addTo(mymap);
-
-
-         
-     }
-     );
-
-
-
-
-    </script>
 
 {% endblock %}
-

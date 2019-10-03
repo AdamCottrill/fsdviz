@@ -1,6 +1,6 @@
 /* global accessToken,  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
 
-import crossfilter from "crossfilter2";
+//import crossfilter from "crossfilter2";
 import { json, scaleOrdinal, extent } from "d3";
 
 import Leaflet from "leaflet";
@@ -12,8 +12,6 @@ const speciesColourScale = scaleOrdinal()
   .domain(all_species);
 
 let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
-
-let mapBounds = [bbox.slice(0, 2), bbox.slice(2)];
 
 let selectedPt;
 

@@ -94,9 +94,23 @@ export default [
       format: "iife",
       sourceMap: "inline",
       globals: {
-        crossfilter2: "crossfilter",
-        d3: "d3",
-        dc: "dc"
+        leaflet: "leaflet",
+        d3: "d3"
+      }
+    },
+    plugins: plugins
+  },
+
+  {
+    input: "fsdviz/js_src/stocking_event_form.js",
+    onwarn: onwarn,
+    output: {
+      name: "UploadEvent",
+      file: "fsdviz/static/js/stocking_event_form.js",
+      format: "iife",
+      sourceMap: "inline",
+      globals: {
+        leaflet: "leaflet"
       }
     },
     plugins: plugins

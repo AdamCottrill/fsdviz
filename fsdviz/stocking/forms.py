@@ -437,16 +437,27 @@ class StockingEventForm(forms.Form):
         label="10-Minute Grid", choices=[], required=True, widget=MySelect
     )
     dd_lat = forms.FloatField(
-        label="Latitude (Decimal Degrees)", min_value=41.3, max_value=49.1
+        label="Latitude (Decimal Degrees)",
+        min_value=41.3,
+        max_value=49.1,
+        widget=forms.TextInput(),
     )
     dd_lon = forms.FloatField(
-        label="Longitude (Decimal Degrees)", min_value=-92.0, max_value=-76.0
+        label="Longitude (Decimal Degrees)",
+        min_value=-92.0,
+        max_value=-76.0,
+        widget=forms.TextInput(),
     )
 
     latlong_flag_id = forms.CharField(widget=forms.HiddenInput(), required=False)
 
-    site = forms.CharField(required=True)
-    st_site = forms.CharField(required=False)
+    site = forms.CharField(label="Site Name (General)", required=True)
+    st_site = forms.CharField(label="Site Name (Specific)", required=False)
+    site_type = forms.ChoiceField(
+        label="Site Type",
+        choices=[("lake", "Lake"), ("trib", "Tributary")],
+        required=False,
+    )
 
     no_stocked = forms.IntegerField(required=True)
     stocking_method_id = forms.ChoiceField(
@@ -471,8 +482,8 @@ class StockingEventForm(forms.Form):
     tag_ret = forms.FloatField(
         label="Tag Retention", min_value=0, max_value=100, required=False
     )
-    length = forms.FloatField(label="Avg. Length (mm)", min_value=0, required=False)
-    weight = forms.FloatField(label="Avg. Weight (g)", min_value=0, required=False)
+    length = forms.IntegerField(label="Avg. Length (mm)", min_value=0, required=False)
+    weight = forms.IntegerField(label="Avg. Weight (g)", min_value=0, required=False)
     condition_id = forms.ChoiceField(
         label="General Condition", choices=[], required=False, widget=MySelect
     )
