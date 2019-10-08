@@ -4,10 +4,16 @@ The veiws in this file should all be publicly available as readonly.
 
 """
 
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
+from django.contrib.gis.db.models.functions import Distance
+
+from rest_framework import status, viewsets
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from fsdviz.common.utils import parse_point
 
 from fsdviz.common.models import (
     Agency,
@@ -56,6 +62,193 @@ class AgencyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Agency.objects.all()
     serializer_class = AgencySerializer
     lookup_field = "abbrev"
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def get_lake_from_pt(request):
+    """This function accepts post requests that contain a geojson
+    representation of a point.  The view returns a dictionary contianing
+    the id, abbreviation, name, centroid and bounds (extent) of the lake
+    containing the point, or an empty dictionary if the dat is not geojson
+    or falls outside of any lake.
+
+    TODO: add options for 'pure' and 'plus' geometries
+
+    """
+
+    pt = parse_point(request.data.get("point"))
+    if pt is None:
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+    lake = Lake.objects.filter(geom__contains=pt).first()
+
+    if lake:
+        ret = dict(
+            id=lake.id,
+            abbrev=lake.abbrev,
+            lake_name=lake.lake_name,
+            centroid=lake.geom.centroid.wkt,
+            extent=lake.geom.extent,
+        )
+        return Response(ret, status=status.HTTP_200_OK)
+    else:
+        # no lake object could be associated with that point.
+        # 400
+        return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def get_jurisdiction_from_pt(request):
+    """This function accepts post requests that contain a geojson
+    representation of a point.  The view returns a dictionary contianing
+    the id, abbreviation, name, centroid and bounds (extent) of the jurisdiction
+    containing the point, or an empty dictionary if the dat is not geojson
+    or falls outside of any jurisdiction.
+
+    TODO: add options for 'pure' and 'plus' geometries
+
+    """
+    pt = parse_point(request.data.get("point"))
+    if pt is None:
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+    jurisdiction = (
+        Jurisdiction.objects.select_related("lake", "stateprov")
+        .filter(geom__contains=pt)
+        .first()
+    )
+
+    if jurisdiction:
+        ret = dict(
+            id=jurisdiction.id,
+            # lake attributes:
+            lake_id=jurisdiction.lake.id,
+            lake_abbrev=jurisdiction.lake.abbrev,
+            lake_name=jurisdiction.lake.lake_name,
+            # state prov. attributes:
+            stateprov_id=jurisdiction.stateprov.id,
+            stateprov_abbrev=jurisdiction.stateprov.abbrev,
+            stateprov_name=jurisdiction.stateprov.name,
+            # jurisdiciton attributes
+            jurisdiction_name=jurisdiction.name,
+            centroid=jurisdiction.geom.centroid.wkt,
+            extent=jurisdiction.geom.extent,
+        )
+        return Response(ret, status=status.HTTP_200_OK)
+    else:
+        # no jurisdiction object could be associated with that point.
+        # 400
+        return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+
+def manUnit_dict(obj):
+    """Serialize a management unit to a python dictionary
+
+    Arguments:
+    - `obj`: a ManagementUnit instance
+    """
+
+    item = dict(
+        id=obj.id,
+        label=obj.label,
+        mu_type=obj.mu_type,
+        centroid=obj.geom.centroid.wkt,
+        extent=obj.geom.extent,
+    )
+    return item
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def get_management_unit_from_pt(request):
+    """This function accepts post requests that contains a geojson
+    representation of a point.  The view returns a dictionary contianing
+    the id, label, mu_type, centroid and bounds (extent) of the management_unit
+    containing the point, or an empty dictionary if the data is not geojson
+    or falls outside of any management_unit.
+
+    This function takes an additional argument (mu_type) as a query
+    parameter that controls what type of managemnet unit is returned -
+    current options are stat_dist, mu, qma, ltrz.  Others could be
+    added in the future.  If the mu_type argument is not included in
+    the request, the management_unit with primary=True is returned by
+    default.
+
+    TODO: add options for 'pure' and 'plus' geometries
+
+    """
+
+    pt = parse_point(request.data.get("point"))
+    if pt is None:
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+    qs = ManagementUnit.objects.filter(geom__contains=pt)
+
+    mu_type = request.query_params.get("mu_type")
+
+    all_mus = request.query_params.get("all")
+
+    if all_mus:
+        qs = qs.all()
+    elif mu_type:
+        qs = qs.filter(mu_type=mu_type).first()
+    else:
+        qs = qs.filter(primary=True).first()
+
+    if qs:
+        if all_mus:
+            ret = [manUnit_dict(x) for x in qs]
+        else:
+            ret = manUnit_dict(qs)
+
+        return Response(ret, status=status.HTTP_200_OK)
+    else:
+        # no qs object could be associated with that point.
+        # 400
+        return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def get_grid10_from_pt(request):
+    """This function accepts post requests that contain a geojson
+    representation of a point.  The view returns a dictionary contianing
+    the id, abbreviation, name, centroid and bounds (extent) of the grid10
+    containing the point, or an empty dictionary if the dat is not geojson
+    or falls outside of any grid10.
+
+    TODO: Add polygon field for grid10 objects so that we can find out
+    which grid the point falls in. This function finds the closest
+    centroid which is slower and likely to have lots of failing edge
+    cases.
+
+    """
+
+    pt = parse_point(request.data.get("point"))
+    if pt is None:
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+    grid10 = Grid10.objects.select_related("lake").filter(geom__contains=pt).first()
+
+    if grid10:
+        ret = dict(
+            id=grid10.id,
+            grid=grid10.grid,
+            slug=grid10.slug,
+            centroid=grid10.geom.centroid.wkt,
+            extent=grid10.geom.extent,
+            # lake attributes:
+            lake_id=grid10.lake.id,
+            lake_abbrev=grid10.lake.abbrev,
+            lake_name=grid10.lake.lake_name,
+        )
+        return Response(ret, status=status.HTTP_200_OK)
+    else:
+        # no grid10 object could be associated with that point.
+        # 400
+        return Response({}, status=status.HTTP_404_NOT_FOUND)
 
 
 class LakeViewSet(viewsets.ReadOnlyModelViewSet):

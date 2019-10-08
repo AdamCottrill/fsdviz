@@ -158,7 +158,7 @@
 {% block extra_js %}
 
 
-    {{ lake.shoreline.extent|json_script:"map-bounds" }}
+    {{ lake.geom.extent|json_script:"map-bounds" }}
 
     <script src="{% static "js/accessToken.js" %}"></script>
 

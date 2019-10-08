@@ -263,7 +263,7 @@
 {% block extra_js %}
     
 
-    {{ object.lake.shoreline.extent|json_script:"map-bounds" }}
+    {{ object.lake.geom.extent|json_script:"map-bounds" }}
     
     <script type="text/javascript" src="{% static "js/accessToken.js" %}"></script>
 

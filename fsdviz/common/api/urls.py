@@ -17,6 +17,10 @@ from .views import (
     LatLonFlagViewSet,
     MarkViewSet,
     CommonLookUpsAPIView,
+    get_lake_from_pt,
+    get_jurisdiction_from_pt,
+    get_management_unit_from_pt,
+    get_grid10_from_pt,
 )
 
 app_name = "common"
@@ -39,7 +43,21 @@ router.register("cwt", CwtViewSet)
 urlpatterns = router.urls
 
 urlpatterns += [
-    path("lookups/", CommonLookUpsAPIView.as_view(), name="api-get-common-lookups")
+    path("lookups/", CommonLookUpsAPIView.as_view(), name="api-get-common-lookups"),
+    path("spatial_lookup/lake/", get_lake_from_pt, name="api-lookup-lake-from-pt"),
+    path(
+        "spatial_lookup/jurisdiction/",
+        get_jurisdiction_from_pt,
+        name="api-lookup-jurisdiction-from-pt",
+    ),
+    path(
+        "spatial_lookup/management_unit/",
+        get_management_unit_from_pt,
+        name="api-lookup-management-unit-from-pt",
+    ),
+    path(
+        "spatial_lookup/grid10/", get_grid10_from_pt, name="api-lookup-grid10-from-pt"
+    ),
 ]
 
 # urlpatterns = [

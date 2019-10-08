@@ -69,14 +69,14 @@ class Lake(models.Model):
     A lookup table for lakes where fish were stocked, cwts either
     deployed or recovered, or where management/spatial units are located.
 
-    We could add a geometry here for the shoreline some day.
-
     """
 
     abbrev = models.CharField(max_length=2, unique=True)
     lake_name = models.CharField(max_length=30, unique=True)
-    shoreline = models.MultiPolygonField(srid=4326, blank=True, null=True)
-    # centroid = models.PointField(srid=4326)
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+
+    # geom including associated watersheds
+    # geom_plus = models.MultiPolygonField(srid=4326, blank=True, null=True)
 
     class Meta:
         ordering = ["abbrev"]
@@ -145,11 +145,9 @@ class Jurisdiction(models.Model):
     description = models.CharField(max_length=300)
 
     # complete geometry of shoreline and state/province boundaries
-    shoreline = models.MultiPolygonField(srid=4326, blank=True, null=True)
-
-    # bounding box of all stocking events - including tributaries and
-    # self.shoreline
-    # extents = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    # juristiction including associated watersheds
+    # geom_plus = models.MultiPolygonField(srid=4326, blank=True, null=True)
 
     class Meta:
         ordering = ["name"]
@@ -167,6 +165,15 @@ class Jurisdiction(models.Model):
 
         super(Jurisdiction, self).save(*args, **kwargs)
 
+    @property
+    def centroid():
+        """Return the centroid for this grid - used by the serializer.
+        """
+        if self.geom:
+            return self.geom.centroid
+        else:
+            return None
+
 
 class ManagementUnit(models.Model):
     """
@@ -182,6 +189,9 @@ class ManagementUnit(models.Model):
     slug = models.SlugField(blank=True, unique=True, editable=False)
     description = models.CharField(max_length=300)
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    # geom including associated watersheds
+    # geom_plus = models.MultiPolygonField(srid=4326, blank=True, null=True)
+
     # centroid = models.PointField(srid=4326, blank=True, null=True)
     lake = models.ForeignKey(Lake, default=1, on_delete=models.CASCADE)
 
@@ -241,10 +251,11 @@ class Grid10(models.Model):
 
     """
 
+    lake = models.ForeignKey(Lake, default=1, on_delete=models.CASCADE)
     grid = models.CharField(max_length=4)
     slug = models.SlugField(blank=False, unique=True, editable=False)
-    centroid = models.PointField(srid=4326)
-    lake = models.ForeignKey(Lake, default=1, on_delete=models.CASCADE)
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
 
     class Meta:
         ordering = ["lake__abbrev", "grid"]
@@ -263,9 +274,14 @@ class Grid10(models.Model):
         return slugify("_".join([lake, self.grid]))
 
     def save(self, *args, **kwargs):
+        """Populate slug and centroid when we save the object.  Grid10
+        centroids are used in dynamic maps so it makes sense to
+        pre-caclulate them when they are created or updated.
         """
-        Populate slug when we save the object.
-        """
+        # update out centroid if there is a geom
+        if self.geom:
+            self.centroid = self.geom.centroid
+
         # if not self.slug:
         self.slug = self.get_slug()
         super(Grid10, self).save(*args, **kwargs)

@@ -165,7 +165,7 @@
 
     </script>
 
-    {{ object.lake.shoreline.extent|json_script:"map-bounds" }}
+    {{ object.lake.geom.extent|json_script:"map-bounds" }}
     <script src="{% static "js/accessToken.js" %}"></script>
     <script>
      const dataURL = "{% url 'api:api-stocking-event-upload-map' object.slug %}";

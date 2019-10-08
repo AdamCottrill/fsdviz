@@ -11,6 +11,37 @@
 =============================================================
 """
 
+from django.contrib.gis.geos import Point, GEOSGeometry
+
+
+def parse_point(data):
+    """A helper function used by the spatial lookup api views to convert
+    the reqest data to a GEOSGeometry Point object.  If it cannot be
+    coerced to a Point object return None.
+
+    TODOs:
+
+    + consider including a meaningful error message if it cannot be
+    converted to geometry object, or is not a Point.
+
+
+    """
+
+    if data is None:
+        return None
+
+    try:
+        pt = GEOSGeometry(data, srid=4326)
+    except:
+        # the data could not be converted to a valid geometry object
+        return None
+
+    if isinstance(pt, Point):
+        return pt
+    else:
+        # the data was not a valid Point in either geojson or wkt
+        return None
+
 
 def to_lake_dict(object_list, has_id=False):
     """A little helper function that takes a list of objects and returns a

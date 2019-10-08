@@ -17,10 +17,7 @@ endpoint.
 """
 
 import json
-from fsdviz.common.models import (Lake,
-                                  Jurisdiction,
-                                  ManagementUnit,
-                                  Grid10)
+from fsdviz.common.models import Lake, Jurisdiction, ManagementUnit, Grid10
 
 # we will also need a list dictionaries that include the centroids with
 # keys for:
@@ -29,36 +26,32 @@ from fsdviz.common.models import (Lake,
 # management_unit (slug)
 # grid_10 (slug)
 
-lakes = Lake.objects.exclude(shoreline__isnull=True).all()
-lake_centroids = {
-    x.abbrev: [x.shoreline.centroid.x, x.shoreline.centroid.y]
-    for x in lakes
-}
+lakes = Lake.objects.exclude(geom__isnull=True).all()
+lake_centroids = {x.abbrev: [x.geom.centroid.x, x.geom.centroid.y] for x in lakes}
 
 
 # sometimes old school sql is easier:
-# select stateProv.abbrev as abbrev, st_astext(st_centroid(st_union(shoreline))) as centroid
+# select stateProv.abbrev as abbrev, st_astext(st_centroid(st_union(geom))) as centroid
 # from common_jurisdiction as jurisdiction
 # join common_stateProvince stateProv on stateProv.id=jurisdiction.stateProv_id
 # group by stateProv.abbrev;
 
 stateProv_centroids = {
-    "ON":[-82.960, 45.551],
-    "PA":[-80.167, 42.250],
-    "MN":[-90.606, 47.411],
-    "WI":[-88.079, 44.664],
-    "IL":[-87.422, 42.173],
-    "OH":[-81.800, 41.817],
-    "IN":[-87.223, 41.704],
-    "NY":[-77.732, 43.401],
-    "MI":[-86.163, 45.643]
+    "ON": [-82.960, 45.551],
+    "PA": [-80.167, 42.250],
+    "MN": [-90.606, 47.411],
+    "WI": [-88.079, 44.664],
+    "IL": [-87.422, 42.173],
+    "OH": [-81.800, 41.817],
+    "IN": [-87.223, 41.704],
+    "NY": [-77.732, 43.401],
+    "MI": [-86.163, 45.643],
 }
 
 
 jurisdictions = Jurisdiction.objects.all()
 jurisdiction_centroids = {
-    x.slug: [x.shoreline.centroid.x, x.shoreline.centroid.y]
-    for x in jurisdictions
+    x.slug: [x.geom.centroid.x, x.geom.centroid.y] for x in jurisdictions
 }
 
 #
@@ -71,13 +64,13 @@ grid_centroids = {x.slug: [x.centroid.x, x.centroid.y] for x in grids}
 
 # bundle them all up into a single dictionary:
 centroids = {
-    'lake': lake_centroids,
-    'stateProv': stateProv_centroids,
-    'jurisdiction': jurisdiction_centroids,
-    'manUnit': mus_centroids,
-    'grid10': grid_centroids
+    "lake": lake_centroids,
+    "stateProv": stateProv_centroids,
+    "jurisdiction": jurisdiction_centroids,
+    "manUnit": mus_centroids,
+    "grid10": grid_centroids,
 }
 
-fname = './fsdviz/static/data/centroids.json'
-with open(fname, 'w') as fp:
+fname = "./fsdviz/static/data/centroids.json"
+with open(fname, "w") as fp:
     json.dump(centroids, fp)

@@ -7309,7 +7309,7 @@
 	      : "");
 	}
 
-	function dsvFormat(delimiter) {
+	function dsv(delimiter) {
 	  var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
 	      DELIMITER = delimiter.charCodeAt(0);
 
@@ -7413,11 +7413,21 @@
 	  };
 	}
 
-	var csv = dsvFormat(",");
+	var csv = dsv(",");
 
 	var csvParse = csv.parse;
+	var csvParseRows = csv.parseRows;
+	var csvFormat = csv.format;
+	var csvFormatBody = csv.formatBody;
+	var csvFormatRows = csv.formatRows;
 
-	var tsv = dsvFormat("\t");
+	var tsv = dsv("\t");
+
+	var tsvParse = tsv.parse;
+	var tsvParseRows = tsv.parseRows;
+	var tsvFormat = tsv.format;
+	var tsvFormatBody = tsv.formatBody;
+	var tsvFormatRows = tsv.formatRows;
 
 	function responseText(response) {
 	  if (!response.ok) throw new Error(response.status + " " + response.statusText);
@@ -8699,7 +8709,7 @@
 	var array$4 = Array.prototype;
 
 	var map$2 = array$4.map;
-	var slice$5 = array$4.slice;
+	var slice$6 = array$4.slice;
 
 	var implicit = {name: "implicit"};
 
@@ -8727,7 +8737,7 @@
 	  };
 
 	  scale.range = function(_) {
-	    return arguments.length ? (range = slice$5.call(_), scale) : range.slice();
+	    return arguments.length ? (range = slice$6.call(_), scale) : range.slice();
 	  };
 
 	  scale.unknown = function(_) {
@@ -8773,15 +8783,15 @@
 
 	// normalize(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
 	// interpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding range value x in [a,b].
-	function bimap(domain, range, interpolate$$1) {
-	  var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
+	function bimap(domain, range$$1, interpolate$$1) {
+	  var d0 = domain[0], d1 = domain[1], r0 = range$$1[0], r1 = range$$1[1];
 	  if (d1 < d0) d0 = normalize(d1, d0), r0 = interpolate$$1(r1, r0);
 	  else d0 = normalize(d0, d1), r0 = interpolate$$1(r0, r1);
 	  return function(x) { return r0(d0(x)); };
 	}
 
-	function polymap(domain, range, interpolate$$1) {
-	  var j = Math.min(domain.length, range.length) - 1,
+	function polymap(domain, range$$1, interpolate$$1) {
+	  var j = Math.min(domain.length, range$$1.length) - 1,
 	      d = new Array(j),
 	      r = new Array(j),
 	      i = -1;
@@ -8789,12 +8799,12 @@
 	  // Reverse descending domains.
 	  if (domain[j] < domain[0]) {
 	    domain = domain.slice().reverse();
-	    range = range.slice().reverse();
+	    range$$1 = range$$1.slice().reverse();
 	  }
 
 	  while (++i < j) {
 	    d[i] = normalize(domain[i], domain[i + 1]);
-	    r[i] = interpolate$$1(range[i], range[i + 1]);
+	    r[i] = interpolate$$1(range$$1[i], range$$1[i + 1]);
 	  }
 
 	  return function(x) {
@@ -8814,7 +8824,7 @@
 
 	function transformer$1() {
 	  var domain = unit,
-	      range = unit,
+	      range$$1 = unit,
 	      interpolate$$1 = interpolateValue,
 	      transform,
 	      untransform,
@@ -8825,17 +8835,17 @@
 	      input;
 
 	  function rescale() {
-	    piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
+	    piecewise$$1 = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
 	    output = input = null;
 	    return scale;
 	  }
 
 	  function scale(x) {
-	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range, interpolate$$1)))(transform(clamp(x)));
+	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range$$1, interpolate$$1)))(transform(clamp(x)));
 	  }
 
 	  scale.invert = function(y) {
-	    return clamp(untransform((input || (input = piecewise$$1(range, domain.map(transform), interpolateNumber)))(y)));
+	    return clamp(untransform((input || (input = piecewise$$1(range$$1, domain.map(transform), interpolateNumber)))(y)));
 	  };
 
 	  scale.domain = function(_) {
@@ -8843,11 +8853,11 @@
 	  };
 
 	  scale.range = function(_) {
-	    return arguments.length ? (range = slice$5.call(_), rescale()) : range.slice();
+	    return arguments.length ? (range$$1 = slice$6.call(_), rescale()) : range$$1.slice();
 	  };
 
 	  scale.rangeRound = function(_) {
-	    return range = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
+	    return range$$1 = slice$6.call(_), interpolate$$1 = interpolateRound, rescale();
 	  };
 
 	  scale.clamp = function(_) {
@@ -24837,7 +24847,7 @@
 	window.L = exports;
 
 	})));
-	//# sourceMappingURL=leaflet-src.js.map
+
 	});
 
 	const checkBoxes = (selection$$1, props) => {

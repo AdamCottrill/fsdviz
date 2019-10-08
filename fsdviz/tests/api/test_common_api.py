@@ -14,7 +14,6 @@ any views that test authenticated users.
 import pytest
 
 from collections import OrderedDict
-
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -34,6 +33,23 @@ from ..common_factories import (
     MarkFactory,
     ManagementUnitFactory,
 )
+
+
+# @pytest.fixture
+# def polygon_fixture(scope="class", autouse=True):
+#     """create a default polygone with simple coordinates
+#     (centroid = POINT(-82.25 44.25))
+#     """
+#     grid = (
+#         "MULTIPOLYGON(((-82.0 44.0,"
+#         + "-82.5 44.0,"
+#         + "-82.5 44.5,"
+#         + "-82.0 44.5,"
+#         + "-82.0 44.0)))"
+#     )
+#     polygon = GEOSGeometry(grid.replace("\n", ""), srid=4326)
+
+#     return polygon
 
 
 class TestLakeAPI(APITestCase):

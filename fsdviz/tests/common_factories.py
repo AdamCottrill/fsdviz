@@ -5,6 +5,7 @@ species, ect.
 """
 
 import factory
+
 from django.contrib.gis.geos import GEOSGeometry
 
 # import common.models as common
@@ -24,6 +25,15 @@ from ..common.models import (
     CWTsequence,
 )
 
+# centroid_WKT = POINT(-82.25, 44.25)
+polygon_wkt = (
+    "MULTIPOLYGON(((-82.0 44.0,"
+    + "-82.5 44.0,"
+    + "-82.5 44.5,"
+    + "-82.0 44.5,"
+    + "-82.0 44.0)))"
+).replace("\n", "")
+
 
 class LakeFactory(factory.DjangoModelFactory):
     """
@@ -36,6 +46,7 @@ class LakeFactory(factory.DjangoModelFactory):
 
     abbrev = "HU"
     lake_name = "Huron"
+    geom = GEOSGeometry(polygon_wkt)
 
 
 class AgencyFactory(factory.DjangoModelFactory):
@@ -96,6 +107,7 @@ class ManagementUnitFactory(factory.DjangoModelFactory):
     label = factory.Sequence(lambda n: "MH-%03d" % n)
     description = "A management unit in Lake Huron"
     lake = factory.SubFactory(LakeFactory)
+    geom = GEOSGeometry(polygon_wkt)
     mu_type = "mu"
     primary = "True"
 
@@ -107,11 +119,14 @@ class Grid10Factory(factory.DjangoModelFactory):
 
     class Meta:
         model = Grid10
-        django_get_or_create = ("grid",)
+        django_get_or_create = ("grid", "lake")
 
     grid = factory.Sequence(lambda n: "%04d" % n)
-    centroid = GEOSGeometry("POINT(-81.0 45.0)", srid=4326)
+
+    geom = GEOSGeometry(polygon_wkt)
+    centroid = GEOSGeometry("POINT(-82.5 44.25)", srid=4326)
     lake = factory.SubFactory(LakeFactory)
+    geom = GEOSGeometry(polygon_wkt)
 
 
 class SpeciesFactory(factory.DjangoModelFactory):

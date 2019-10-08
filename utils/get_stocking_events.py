@@ -72,8 +72,8 @@ REPORT_WIDTH = 80
 Centroid = namedtuple("Centroid", "ddlat, ddlon")
 lakes = Lake.objects.all()
 lake_centroids = {
-    x.abbrev: Centroid(ddlat=x.shoreline.centroid.y, ddlon=x.shoreline.centroid.x)
-    for x in Lake.objects.exclude(shoreline__isnull=True)
+    x.abbrev: Centroid(ddlat=x.geom.centroid.y, ddlon=x.geom.centroid.x)
+    for x in Lake.objects.exclude(geom__isnull=True)
 }
 
 mus = ManagementUnit.objects.all()
