@@ -1426,15 +1426,15 @@ MI_GRIDS = {
     # #there were in US Stocking DB - not in shapefile. Real or Not?
     801: Centroid(ddlon=-87.77536, ddlat=44.9041),
     206: Centroid(ddlon=-87.08333, ddlat=42.91667),
-    2702: Centroid(ddlon=-87.41667, ddlat=41.72939),
     208: Centroid(ddlon=-86.75, ddlat=42.91667),
     209: Centroid(ddlon=-86.58333, ddlat=42.91667),
-    2703: Centroid(ddlon=-87.41667, ddlat=41.72939),
     307: Centroid(ddlon=-86.81537, ddlat=45.76665),
+    2002: Centroid(ddlon=-87.77696, ddlat=42.91757),
+    2702: Centroid(ddlon=-87.41667, ddlat=41.72939),
+    2703: Centroid(ddlon=-87.41667, ddlat=41.72939),
     2804: Centroid(ddlon=-87.41667, ddlat=41.72939),
     2805: Centroid(ddlon=-87.25, ddlat=41.72622),
     2806: Centroid(ddlon=-87.08333, ddlat=41.73199),
-    2002: Centroid(ddlon=-87.77696, ddlat=42.91757),
 }
 
 

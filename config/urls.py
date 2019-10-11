@@ -36,6 +36,7 @@ urlpatterns = [
     path("coregonusclupeaformis/", admin.site.urls),
     path("users/", include("fsdviz.myusers.urls")),
     path("users/", include("django.contrib.auth.urls")),
+    path("shared/", include("fsdviz.common.urls", namespace="common")),
     path("stocking/", include("fsdviz.stocking.urls", namespace="stocking")),
     # path("cwt/", include("cwt.urls")),
     # API's

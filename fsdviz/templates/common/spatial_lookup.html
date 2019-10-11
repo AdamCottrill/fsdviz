@@ -1,0 +1,239 @@
+{% extends 'fsdviz_base.html' %}
+
+{% load static %}
+
+{% block extra_head %}
+
+    <style type="text/css" media="screen">
+     .small {
+         font-size: 0.8rem;
+     }
+
+     
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+
+
+{% endblock %}
+
+
+{% block title %}Spatial Lookup{% endblock %}
+
+{% block content %}
+
+    <div class="ui container">
+
+        <div class="ui fluid card">
+            <div class="content">
+                <div class="header">Spatial Lookup</div>
+            </div>
+            <div class="content">
+
+                <div class="ui grid">
+                    <div class="four wide column">
+
+                        <div class="ui small form">
+                            
+                            <div class="ui fluid card">
+                                <div class="content">
+                                    <div class="header">Lake:</div>
+                                </div>
+                                <div class="content">
+
+                                    <div class="ui radio checkbox">
+                                        <input type="radio" name="show-geom" tabindex="0" class="hidden">
+                                        <label id="lake-label"></label>
+                                    </div>
+                                    
+
+                                </div>
+                            </div>
+
+                            <div class="ui fluid card">
+                                <div class="content">
+                                    <div class="header">The waters of State/Province:</div>
+                                </div>
+                                <div class="content">
+
+                                    <div class="ui radio checkbox">
+                                        <input type="radio" name="show-geom" tabindex="0" class="hidden">
+                                        <label id="jurisdiction-label"></label>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+
+                            <div class="ui fluid card">
+                                <div class="content">
+                                    <div class="header">Management Unit(s):</div>
+                                </div>
+                                <div class="content">
+                                    <div class="grouped fields">
+                                        
+                                        <div class="field">
+                                            <div class="ui radio checkbox">
+                                                <input type="radio" name="show-geom" tabindex="0" class="hidden">
+                                                <label>OH-5 (Stat Dist)</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="field">
+                                            <div class="ui radio checkbox">
+                                                <input type="radio" name="show-geom" tabindex="0" class="hidden">
+                                                <label>4-5 (QMA)</label>
+                                            </div>
+
+                                        </div>
+                                        <div class="field">
+                                            <div class="ui radio checkbox">
+                                                <input type="radio" name="show-geom" tabindex="0" class="hidden">
+                                                <label>LTRZ-11 (LTRZ)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="ui fluid card">
+                                <div class="content">
+                                    <div class="header">10-Minute Grid:</div>
+                                </div>
+                                <div class="content">
+
+                                    <div class="ui radio checkbox">
+                                        <input type="radio" name="show-geom" tabindex="0" class="hidden">
+                                        <label id="grid-label"></label>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            
+
+                            <div class="ui fluid card">
+                                <div class="content">
+                                    <div class="header">Coordinates:</div>
+                                </div>
+                                <div class="content">
+                                    
+
+                                    <div class="ui top attached tabular menu">
+                                        <a class="active item" data-tab="dd">DD</a>
+                                        <a class="item" data-tab="ddm">DDM</a>
+                                        <a class="item" data-tab="dms">DMS</a>
+                                    </div>
+                                    <div class="ui bottom attached active tab segment" data-tab="dd">
+                                        <div class="field">
+                                            <input type="text" id="id_dd_lat" placeholder="Latitude (degrees)">
+                                        </div>
+                                        <div class="field">
+                                            <input type="text" id="id_dd_lon" placeholder="Longitude (degrees)">
+                                        </div>
+                                    </div>
+                                    <div class="ui bottom attached tab segment" data-tab="ddm">
+                                        <div class="two fields">
+                                            <div class="field">
+                                                <input type="text" id="ddm-degrees-lat" placeholder="Degrees">
+                                            </div>
+                                            <div class="field">
+                                                <input type="text" id="ddm-minutes-lat" placeholder="Minutes">
+                                            </div>
+                                            <p>N</p>
+                                        </div>
+
+                                        <div class="two fields">
+                                            <div class="field">
+                                                <input type="text" id="ddm-degrees-lon" placeholder="Degrees">
+                                            </div>
+                                            <div class="field">
+                                                <input type="text" id="ddm-minutes-lon" placeholder="Minutes">
+                                            </div>
+                                            <p>W</p>
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="ui bottom attached tab segment" data-tab="dms">
+
+                                        <div class="three fields">
+                                            <div class="field">
+                                                <input type="text" id="dms-degrees-lat" placeholder="Degrees">
+                                            </div>
+                                            <div class="field">
+                                                <input type="text" id="dms-minutes-lat" placeholder="Minutes">
+                                            </div>
+                                            <div class="field">
+                                                <input type="text" id="dms-seconds-lat" placeholder="Seconds">
+                                            </div>                                            
+                                            <p>N</p>
+                                        </div>
+
+                                        <div class="three fields">
+                                            <div class="field">
+                                                <input type="text" id="dms-degrees-lon" placeholder="Degrees">
+                                            </div>
+                                            <div class="field">
+                                                <input type="text" id="dms-minutes-lon" placeholder="Minutes">
+                                            </div>
+                                            <div class="field">
+                                                <input type="text" id="dms-seconds-lon" placeholder="Seconds">
+                                            </div>
+                                            
+                                            <p>W</p>
+                                        </div>
+
+
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="twelve wide column">
+                        <div class="ui segment">
+                            <div id="mapid" style='width: 750px; height: 700px;'></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+    <script>
+
+     $('.menu .item')
+         .tab()
+     ;
+
+     $('.ui.radio.checkbox')
+         .checkbox()
+     ;
+
+     const lakeURL = "{% url 'common_api:api-lookup-lake-from-pt' %}";
+     const jurisdictionURL = "{% url 'common_api:api-lookup-jurisdiction-from-pt' %}";     
+     const manUnitURL = "{% url 'common_api:api-lookup-management-unit-from-pt' %}";
+     const grid10URL = "{% url 'common_api:api-lookup-grid10-from-pt' %}";
+     const csrf_token = "{{ csrf_token }}";
+     
+    </script>
+
+    
+    
+
+    {{ map_bounds|json_script:"map-bounds" }}
+    
+    <script src="{% static "js/accessToken.js" %}"></script>
+
+    <script src="{% static "js/spatial_lookup.js" %}"></script>
+
+
+{% endblock %}

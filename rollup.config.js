@@ -105,12 +105,29 @@ export default [
     input: "fsdviz/js_src/stocking_event_form.js",
     onwarn: onwarn,
     output: {
-      name: "UploadEvent",
+      name: "StockingEventForm",
       file: "fsdviz/static/js/stocking_event_form.js",
       format: "iife",
       sourceMap: "inline",
       globals: {
         leaflet: "leaflet"
+      }
+    },
+    plugins: plugins
+  },
+
+  {
+    input: "fsdviz/js_src/spatial_lookup.js",
+    onwarn: onwarn,
+    output: {
+      name: "SpatialLookup",
+      file: "fsdviz/static/js/spatial_lookup.js",
+      format: "iife",
+      sourceMap: "inline",
+      globals: {
+        leaflet: "leaflet",
+        d3: "d3",
+        turf: "turf"
       }
     },
     plugins: plugins

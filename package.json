@@ -33,6 +33,9 @@
   },
   "dependencies": {
     "@turf/bbox": "^6.0.1",
+    "@turf/boolean-point-in-polygon": "^6.0.1",
+    "@turf/helpers": "^6.1.4",
+    "@turf/turf": "^5.1.6",
     "crossfilter2": "^1.4.7",
     "d3": "^5.9.2",
     "dc": "^3.0.12",

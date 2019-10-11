@@ -116,8 +116,19 @@
                 </div>
 
                 <div class="ui dropdown icon item">
-                    Resources
+                    Utilities
                     <div class="menu">
+                        
+                        <div class="item"><a href="{% url 'stocking:data-upload-event-list' %}" >Data Upload List</a></div>
+                        <div class="item"><a href="{% url 'stocking:upload-stocking-events' %}" >Upload Data</a></div>                            
+                        <div class="ui divider"></div>                        
+                        <div class="item"><a href="{% url 'common:spatial-lookup' %}" >Spatial Lookup</a></div>                                                        
+                    </div>
+                </div>
+                
+                <div class="ui dropdown icon item">
+                    Resources
+                    <div class="menu">                        
                         <div class="item">
                             <span class="text">Documentation</span>
                         </div>
@@ -144,10 +155,7 @@
 
                             <div class="item"><a href="{% url 'tickets:ticket_list' %}">TicketTracker</a></div>
 
-                            <div class="ui divider"></div>
-                            
-                            <div class="item"><a href="{% url 'stocking:data-upload-event-list' %}" >Data Upload List</a></div>
-                            <div class="item"><a href="{% url 'stocking:upload-stocking-events' %}" >Upload Data</a></div>                            
+
                             <div class="ui divider"></div>
                             <div class="item"><a href="{% url 'logout' %}">Logout</a></div>
 

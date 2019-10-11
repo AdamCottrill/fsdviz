@@ -77,6 +77,7 @@ def get_lake_from_pt(request):
 
     """
 
+    geom = request.query_params.get("geom")
     pt = parse_point(request.data.get("point"))
     if pt is None:
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
@@ -91,6 +92,10 @@ def get_lake_from_pt(request):
             centroid=lake.geom.centroid.wkt,
             extent=lake.geom.extent,
         )
+
+        if geom == "geom":
+            ret["geom"] = lake.geom.geojson
+
         return Response(ret, status=status.HTTP_200_OK)
     else:
         # no lake object could be associated with that point.
@@ -110,6 +115,8 @@ def get_jurisdiction_from_pt(request):
     TODO: add options for 'pure' and 'plus' geometries
 
     """
+
+    geom = request.query_params.get("geom")
     pt = parse_point(request.data.get("point"))
     if pt is None:
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
@@ -136,6 +143,10 @@ def get_jurisdiction_from_pt(request):
             centroid=jurisdiction.geom.centroid.wkt,
             extent=jurisdiction.geom.extent,
         )
+
+        if geom == "geom":
+            ret["geom"] = jurisdiction.geom.geojson
+
         return Response(ret, status=status.HTTP_200_OK)
     else:
         # no jurisdiction object could be associated with that point.
@@ -143,7 +154,7 @@ def get_jurisdiction_from_pt(request):
         return Response({}, status=status.HTTP_404_NOT_FOUND)
 
 
-def manUnit_dict(obj):
+def manUnit_dict(obj, geom=None):
     """Serialize a management unit to a python dictionary
 
     Arguments:
@@ -157,6 +168,10 @@ def manUnit_dict(obj):
         centroid=obj.geom.centroid.wkt,
         extent=obj.geom.extent,
     )
+
+    if geom == "geom":
+        item["geom"] = obj.geom.geojson
+
     return item
 
 
@@ -179,6 +194,7 @@ def get_management_unit_from_pt(request):
     TODO: add options for 'pure' and 'plus' geometries
 
     """
+    geom = request.query_params.get("geom")
 
     pt = parse_point(request.data.get("point"))
     if pt is None:
@@ -199,9 +215,9 @@ def get_management_unit_from_pt(request):
 
     if qs:
         if all_mus:
-            ret = [manUnit_dict(x) for x in qs]
+            ret = [manUnit_dict(x, geom) for x in qs]
         else:
-            ret = manUnit_dict(qs)
+            ret = manUnit_dict(qs, geom)
 
         return Response(ret, status=status.HTTP_200_OK)
     else:
@@ -232,6 +248,8 @@ def get_grid10_from_pt(request):
 
     grid10 = Grid10.objects.select_related("lake").filter(geom__contains=pt).first()
 
+    geom = request.query_params.get("geom")
+
     if grid10:
         ret = dict(
             id=grid10.id,
@@ -244,6 +262,9 @@ def get_grid10_from_pt(request):
             lake_abbrev=grid10.lake.abbrev,
             lake_name=grid10.lake.lake_name,
         )
+        if geom == "geom":
+            ret["geom"] = grid10.geom.geojson
+
         return Response(ret, status=status.HTTP_200_OK)
     else:
         # no grid10 object could be associated with that point.
