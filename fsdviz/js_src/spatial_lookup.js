@@ -4,7 +4,7 @@ import Leaflet from "leaflet";
 import helpers from "@turf/helpers";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 //import * as turf from "@turf/turf";
-import { selectAll } from "d3";
+import { select, selectAll } from "d3";
 
 let grid10, grid10Geom;
 let lake, lakeGeom;
@@ -158,21 +158,19 @@ const get_manUnits = (dd_lat, dd_lon) => {
       csrfmiddlewaretoken: csrf_token
     },
     success: data => {
-      manUnit = data;
+      manUnits = data;
       //manUnitGeom = helpers.feature(JSON.parse(manUnit.geom));
-      update_manUnit_label(manUnit);
+      update_manUnit_label(manUnits);
     },
     error: data => {
-      manUnit = "";
+      manUnits = "";
       //manUnitGeom = undefined;
-      update_manUnit_label(manUnit);
+      update_manUnit_label(manUnits);
     }
   });
 };
 
 let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
-
-console.log("bbox = ", bbox);
 
 // get our initial lat-lon values from the form:
 let lat = $("#id_dd_lat").val();
@@ -183,7 +181,11 @@ let lon = $("#id_dd_lon").val();
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
   zoomSnap: 0
-}).fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
+}).fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], {
+  padding: [50, 50]
+});
+
+var geomLayer = Leaflet.geoJSON().addTo(mymap);
 
 // set up a cross hair on our map - better for clicking
 $(".leaflet-container").css("cursor", "default");
@@ -211,16 +213,19 @@ const drawPt = (lat, lon) => {
   }).addTo(mymap);
 };
 
-// if we click on the map, update the lat-lon inputs:
-mymap.on("click", function(e) {
-  lat = e.latlng.lat;
-  lon = e.latlng.lng;
+const update_widgets = (lat, lon) => {
   drawPt(lat, lon);
   get_grid10(lat, lon);
   get_manUnits(lat, lon);
   get_jurisdiction(lat, lon);
   get_lake(lat, lon);
+};
 
+// if we click on the map, update the lat-lon inputs:
+mymap.on("click", function(e) {
+  lat = e.latlng.lat;
+  lon = e.latlng.lng;
+  update_widgets(lat, lon);
   $("#id_dd_lat").val(Number(lat).toFixed(4));
   $("#id_dd_lon").val(Number(lon).toFixed(4));
 });
@@ -228,13 +233,47 @@ mymap.on("click", function(e) {
 //watch our lat-lon inputs and update the point if they change:
 $("#id_dd_lat").on("change", function(e) {
   lat = parseFloat(e.target.value);
-  drawPt(lat, lon);
+  update_widgets(lat, lon);
 });
 
 $("#id_dd_lon").on("change", function(e) {
   lon = parseFloat(e.target.value);
-  drawPt(lat, lon);
+  update_widgets(lat, lon);
 });
+
+const updatePolygon = (obj, geom) => {
+  // set the bounds of our map to the bounds of the selected lake object,
+  // remove any existing polygon layers and add a new one with the
+  // geometry for our lake:
+  if (typeof obj !== "undefined") {
+    bbox = obj.extent;
+    mymap.flyToBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], {
+      padding: [50, 50]
+    });
+  }
+
+  if (typeof obj !== "undefined") {
+    geomLayer.remove();
+    geomLayer = Leaflet.geoJSON().addTo(mymap);
+    geomLayer.addData(geom);
+  }
+};
+
+const changeGeom = () => {
+  let what = select('input[name="show-geom"]:checked').property("value");
+  if (what === "lake") {
+    updatePolygon(lake, lakeGeom);
+  } else if (what === "jurisdiction") {
+    updatePolygon(jurisdiction, jurisdictionGeom);
+  } else if (what === "grid10") {
+    updatePolygon(grid10, grid10Geom);
+  } else {
+    console.log("show Mangement Unit..." + what);
+    // lookup the object and geom from our management unit array using the value/slug
+  }
+};
+
+selectAll('input[name="show-geom"]').on("change", changeGeom);
 
 // draw our initail point:
 //drawPt(lat, lon);
