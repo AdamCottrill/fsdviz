@@ -163,6 +163,7 @@ def manUnit_dict(obj, geom=None):
 
     item = dict(
         id=obj.id,
+        slug=obj.slug,
         label=obj.label,
         mu_type=obj.mu_type,
         centroid=obj.geom.centroid.wkt,
@@ -195,6 +196,8 @@ def get_management_unit_from_pt(request):
 
     """
     geom = request.query_params.get("geom")
+    mu_type = request.query_params.get("mu_type")
+    all_mus = request.query_params.get("all")
 
     pt = parse_point(request.data.get("point"))
     if pt is None:
@@ -202,11 +205,7 @@ def get_management_unit_from_pt(request):
 
     qs = ManagementUnit.objects.filter(geom__contains=pt)
 
-    mu_type = request.query_params.get("mu_type")
-
-    all_mus = request.query_params.get("all")
-
-    if all_mus:
+    if all_mus and all_mus in ["T", "t", "TRUE", "True", "true"]:
         qs = qs.all()
     elif mu_type:
         qs = qs.filter(mu_type=mu_type).first()

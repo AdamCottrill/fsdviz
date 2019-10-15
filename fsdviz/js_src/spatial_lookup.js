@@ -10,6 +10,38 @@ let grid10, grid10Geom;
 let lake, lakeGeom;
 let jurisdiction, jurisdictionGeom;
 let manUnits = [];
+let manUnitGeoms = {};
+
+const updatePolygon = (obj, geom) => {
+  // set the bounds of our map to the bounds of the selected lake object,
+  // remove any existing polygon layers and add a new one with the
+  // geometry for our lake:
+  if (typeof obj !== "undefined") {
+    bbox = obj.extent;
+    mymap.flyToBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], {
+      padding: [50, 50]
+    });
+  }
+
+  if (typeof obj !== "undefined") {
+    geomLayer.remove();
+    geomLayer = Leaflet.geoJSON().addTo(mymap);
+    geomLayer.addData(geom);
+  }
+};
+
+const changeGeom = () => {
+  let what = select('input[name="show-geom"]:checked').property("value");
+  if (what === "lake") {
+    updatePolygon(lake, lakeGeom);
+  } else if (what === "jurisdiction") {
+    updatePolygon(jurisdiction, jurisdictionGeom);
+  } else if (what === "grid10") {
+    updatePolygon(grid10, grid10Geom);
+  } else {
+    updatePolygon(manUnits.filter(d => d.slug == what)[0], manUnitGeoms[what]);
+  }
+};
 
 const update_grid_label = obj => {
   let text = "";
@@ -109,7 +141,7 @@ const get_jurisdiction = (dd_lat, dd_lon) => {
   let turfpt = helpers.point([dd_lon, dd_lat]);
 
   if (typeof lakeGeom !== "undefined") {
-    contained = booleanPointInPolygon(turfpt, lakeGeom);
+    contained = booleanPointInPolygon(turfpt, jurisdictionGeom);
   }
 
   if (!contained) {
@@ -136,18 +168,50 @@ const get_jurisdiction = (dd_lat, dd_lon) => {
   }
 };
 
-const update_manUnit_label = obj => {
+const update_manUnit_label = mus => {
   let text = "";
   // if (obj.id) {
   //   text = `${obj.manUnit_name} (${obj.abbrev})`;
   // }
   //selectAll("#manUnit-label").text(text);
+
+  let muButtonsDiv = select("#mu-radio-buttons");
+
+  let muButtons = muButtonsDiv.selectAll(".mu-btn").data(mus, d => d.slug);
+
+  // enter
+  let newButtons = muButtons
+    .enter()
+    .append("div")
+    .attr("class", "field mu-btn")
+    .attr("id", d => d.slug)
+    .append("div")
+    .attr("class", "ui radio checkbox");
+
+  newButtons
+    .append("input")
+    .attr("type", "radio")
+    .attr("name", "show-geom")
+    .attr("tabindex", "0")
+    .attr("class", "hidden")
+    .attr("value", d => d.slug)
+    .on("change", changeGeom);
+
+  newButtons.append("label").text(d => `${d.label} (${d.mu_type})`);
+
+  muButtons.merge(newButtons);
+
+  muButtons.exit().remove();
+
+  //refresh semantic checkboxes again
+  $(".ui.radio.checkbox").checkbox();
 };
 
 const get_manUnits = (dd_lat, dd_lon) => {
   let pt = `POINT(${dd_lon} ${dd_lat})`;
 
-  let url = manUnitURL + "?geom=geom";
+  let url = manUnitURL + "?all=true&geom=geom";
+  console.log("url = ", url);
 
   $.ajax({
     type: "POST",
@@ -159,12 +223,14 @@ const get_manUnits = (dd_lat, dd_lon) => {
     },
     success: data => {
       manUnits = data;
-      //manUnitGeom = helpers.feature(JSON.parse(manUnit.geom));
+      manUnits.forEach(mu => {
+        manUnitGeoms[mu.slug] = helpers.feature(JSON.parse(mu.geom));
+      });
       update_manUnit_label(manUnits);
     },
     error: data => {
       manUnits = "";
-      //manUnitGeom = undefined;
+      manUnitGeoms = {};
       update_manUnit_label(manUnits);
     }
   });
@@ -240,38 +306,6 @@ $("#id_dd_lon").on("change", function(e) {
   lon = parseFloat(e.target.value);
   update_widgets(lat, lon);
 });
-
-const updatePolygon = (obj, geom) => {
-  // set the bounds of our map to the bounds of the selected lake object,
-  // remove any existing polygon layers and add a new one with the
-  // geometry for our lake:
-  if (typeof obj !== "undefined") {
-    bbox = obj.extent;
-    mymap.flyToBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], {
-      padding: [50, 50]
-    });
-  }
-
-  if (typeof obj !== "undefined") {
-    geomLayer.remove();
-    geomLayer = Leaflet.geoJSON().addTo(mymap);
-    geomLayer.addData(geom);
-  }
-};
-
-const changeGeom = () => {
-  let what = select('input[name="show-geom"]:checked').property("value");
-  if (what === "lake") {
-    updatePolygon(lake, lakeGeom);
-  } else if (what === "jurisdiction") {
-    updatePolygon(jurisdiction, jurisdictionGeom);
-  } else if (what === "grid10") {
-    updatePolygon(grid10, grid10Geom);
-  } else {
-    console.log("show Mangement Unit..." + what);
-    // lookup the object and geom from our management unit array using the value/slug
-  }
-};
 
 selectAll('input[name="show-geom"]').on("change", changeGeom);
 

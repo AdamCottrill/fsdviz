@@ -272,7 +272,7 @@ def test_get_manUnit_from_point_pure_wo_param(client, polygonA, polygonB):
     response = client.post(url, {"point": centroid.wkt})
     assert response.status_code == status.HTTP_200_OK
 
-    expected_keys = ["id", "label", "mu_type", "centroid", "extent"]
+    expected_keys = ["id", "slug", "label", "mu_type", "centroid", "extent"]
 
     for key in expected_keys:
         assert key in response.data.keys()
@@ -307,7 +307,7 @@ def test_get_manUnit_from_point_pure_w_param(client, polygonA, polygonB):
     response = client.post(url + "?mu_type=qma", {"point": centroid.wkt})
     assert response.status_code == status.HTTP_200_OK
 
-    expected_keys = ["id", "label", "mu_type", "centroid", "extent"]
+    expected_keys = ["id", "slug", "label", "mu_type", "centroid", "extent"]
 
     for key in expected_keys:
         assert key in response.data.keys()
