@@ -43,12 +43,46 @@ const changeGeom = () => {
   }
 };
 
-const update_grid_label = obj => {
-  let text = "";
-  if (obj.grid) {
-    text = `${obj.grid} (${obj.lake_abbrev})`;
-  }
-  selectAll("#grid-label").text(text);
+const add_radio_buttons = (data, label, value, label_function) => {
+  //data, #mu-radio-button, mu-btn, label_function
+
+  let radioButtonsDiv = select(`#${label}-radio-buttons`);
+
+  let radioButtons = radioButtonsDiv
+    .selectAll(`.${label}-btn`)
+    .data(data, d => d.id);
+
+  // enter
+  let newButtons = radioButtons
+    .enter()
+    .append("div")
+    .attr("class", `field ${label}-btn`)
+    .attr("id", d => d.id)
+    .append("div")
+    .attr("class", "ui radio checkbox");
+
+  newButtons
+    .append("input")
+    .attr("type", "radio")
+    .attr("name", "show-geom")
+    .attr("tabindex", "0")
+    .attr("class", "hidden")
+    .attr("value", value)
+    .on("change", changeGeom);
+
+  newButtons.append("label").text(label_function);
+
+  radioButtons.merge(newButtons);
+
+  radioButtons.exit().remove();
+
+  //refresh semantic checkboxes again
+  $(".ui.radio.checkbox").checkbox();
+};
+
+const update_grid_radio = obj => {
+  const label_function = d => `${d.grid} (${d.lake_abbrev})`;
+  add_radio_buttons([obj], "grid10", "grid10", label_function);
 };
 
 const get_grid10 = (dd_lat, dd_lon) => {
@@ -72,23 +106,21 @@ const get_grid10 = (dd_lat, dd_lon) => {
       success: data => {
         grid10 = data;
         grid10Geom = helpers.feature(JSON.parse(grid10.geom));
-        update_grid_label(grid10);
+        update_grid_radio(grid10);
       },
       error: data => {
         grid10 = "";
         grid10Geom = undefined;
-        update_grid_label(grid10);
+        update_grid_radio(grid10);
       }
     });
   }
 };
 
-const update_lake_label = obj => {
-  let text = "";
-  if (obj.id) {
-    text = `${obj.lake_name} (${obj.abbrev})`;
-  }
-  selectAll("#lake-label").text(text);
+const update_lake_radio = obj => {
+  const label_function = d => `${d.lake_name} (${d.abbrev})`;
+
+  add_radio_buttons([obj], "lake", "lake", label_function);
 };
 
 const get_lake = (dd_lat, dd_lon) => {
@@ -115,23 +147,21 @@ const get_lake = (dd_lat, dd_lon) => {
       success: data => {
         lake = data;
         lakeGeom = helpers.feature(JSON.parse(lake.geom));
-        update_lake_label(lake);
+        update_lake_radio(lake);
       },
       error: data => {
         lake = "";
         lakeGeom = undefined;
-        update_lake_label(lake);
+        update_lake_radio(lake);
       }
     });
   }
 };
 
-const update_jurisdiction_label = obj => {
-  let text = "";
-  if (obj.id) {
-    text = `${obj.stateprov_name} (${obj.stateprov_abbrev})`;
-  }
-  selectAll("#jurisdiction-label").text(text);
+const update_jurisdiction_radio = obj => {
+  const label_function = d => `${d.stateprov_name} (${d.stateprov_abbrev})`;
+
+  add_radio_buttons([obj], "jurisdiction", "jurisdiction", label_function);
 };
 
 const get_jurisdiction = (dd_lat, dd_lon) => {
@@ -157,61 +187,27 @@ const get_jurisdiction = (dd_lat, dd_lon) => {
       success: data => {
         jurisdiction = data;
         jurisdictionGeom = helpers.feature(JSON.parse(jurisdiction.geom));
-        update_jurisdiction_label(jurisdiction);
+        update_jurisdiction_radio(jurisdiction);
       },
       error: data => {
         jurisdiction = "";
         jurisdictionGeom = undefined;
-        update_jurisdiction_label(jurisdiction);
+        update_jurisdiction_radio(jurisdiction);
       }
     });
   }
 };
 
-const update_manUnit_label = mus => {
-  let text = "";
-  // if (obj.id) {
-  //   text = `${obj.manUnit_name} (${obj.abbrev})`;
-  // }
-  //selectAll("#manUnit-label").text(text);
-
-  let muButtonsDiv = select("#mu-radio-buttons");
-
-  let muButtons = muButtonsDiv.selectAll(".mu-btn").data(mus, d => d.slug);
-
-  // enter
-  let newButtons = muButtons
-    .enter()
-    .append("div")
-    .attr("class", "field mu-btn")
-    .attr("id", d => d.slug)
-    .append("div")
-    .attr("class", "ui radio checkbox");
-
-  newButtons
-    .append("input")
-    .attr("type", "radio")
-    .attr("name", "show-geom")
-    .attr("tabindex", "0")
-    .attr("class", "hidden")
-    .attr("value", d => d.slug)
-    .on("change", changeGeom);
-
-  newButtons.append("label").text(d => `${d.label} (${d.mu_type})`);
-
-  muButtons.merge(newButtons);
-
-  muButtons.exit().remove();
-
-  //refresh semantic checkboxes again
-  $(".ui.radio.checkbox").checkbox();
+const update_manUnit_radio = mus => {
+  const label_function = d => `${d.label} (${d.mu_type})`;
+  const value = d => d.slug;
+  add_radio_buttons(mus, "mu", value, label_function);
 };
 
 const get_manUnits = (dd_lat, dd_lon) => {
   let pt = `POINT(${dd_lon} ${dd_lat})`;
 
   let url = manUnitURL + "?all=true&geom=geom";
-  console.log("url = ", url);
 
   $.ajax({
     type: "POST",
@@ -226,17 +222,25 @@ const get_manUnits = (dd_lat, dd_lon) => {
       manUnits.forEach(mu => {
         manUnitGeoms[mu.slug] = helpers.feature(JSON.parse(mu.geom));
       });
-      update_manUnit_label(manUnits);
+      update_manUnit_radio(manUnits);
     },
     error: data => {
-      manUnits = "";
+      manUnits = [];
       manUnitGeoms = {};
-      update_manUnit_label(manUnits);
+      update_manUnit_radio(manUnits);
     }
   });
 };
 
 let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
+
+// min_lon, min_lat, max_lon, max_lat
+//[-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947]
+
+let min_lon = bbox[0];
+let min_lat = bbox[1];
+let max_lon = bbox[2];
+let max_lat = bbox[3];
 
 // get our initial lat-lon values from the form:
 let lat = $("#id_dd_lat").val();
@@ -280,11 +284,20 @@ const drawPt = (lat, lon) => {
 };
 
 const update_widgets = (lat, lon) => {
-  drawPt(lat, lon);
-  get_grid10(lat, lon);
-  get_manUnits(lat, lon);
-  get_jurisdiction(lat, lon);
-  get_lake(lat, lon);
+  if ((lat !== "") & (lon !== "")) {
+    if (
+      (lat >= min_lat) &
+      (lat <= max_lat) &
+      (lon >= min_lon) &
+      (lon <= max_lon)
+    ) {
+      drawPt(lat, lon);
+      get_grid10(lat, lon);
+      get_manUnits(lat, lon);
+      get_jurisdiction(lat, lon);
+      get_lake(lat, lon);
+    }
+  }
 };
 
 // if we click on the map, update the lat-lon inputs:
@@ -308,6 +321,3 @@ $("#id_dd_lon").on("change", function(e) {
 });
 
 selectAll('input[name="show-geom"]').on("change", changeGeom);
-
-// draw our initail point:
-//drawPt(lat, lon);
