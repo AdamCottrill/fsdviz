@@ -51,7 +51,7 @@ class JurisdictionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Jurisdiction
-        fields = ("slug", "name", "lake", "stateprov", "description")
+        fields = ("id", "slug", "name", "lake", "stateprov", "description")
 
     @staticmethod
     def setup_eager_loading(queryset):
@@ -66,7 +66,7 @@ class ManagementUnitSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ManagementUnit
-        fields = ("label", "lake", "mu_type", "slug", "primary")
+        fields = ("id", "label", "lake", "mu_type", "slug", "primary")
 
     @staticmethod
     def setup_eager_loading(queryset):

@@ -341,7 +341,7 @@ class StrainSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
 class StrainRawViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = StrainRaw.objects.all().distinct()
+    queryset = StrainRaw.objects.prefetch_related("species", "strain").all().distinct()
     serializer_class = StrainRawSerializer
     filterset_class = StrainRawFilter
 

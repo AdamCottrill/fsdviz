@@ -62,3 +62,84 @@ $("#id_dd_lon").on("change", function(e) {
 
 // draw our initail point:
 drawPt(lat, lon);
+
+let strains;
+
+const update_selector = (selectorID, newOptions) => {
+  var $el = $(`#${selectorID}`);
+  $el.empty(); // remove old options
+  $el.append(
+    $("<option></option>")
+      .attr("value", "")
+      .text("---------------")
+  );
+  $.each(newOptions, (value, label) => {
+    $el.append(
+      $("<option></option>")
+        .attr("value", value)
+        .text(label)
+    );
+  });
+};
+
+$("#id_species_id").on("change", function(e) {
+  let url = "/api/v1/common/strainraw/?species_id=" + e.target.value;
+
+  const reducer = (accumulator, d) => {
+    accumulator[d.id] = `${d.raw_strain} (${d.description})`;
+    return accumulator;
+  };
+
+  $.ajax({
+    url: url,
+    dataType: "json",
+    success: data => {
+      strains = data.reduce(reducer, {});
+      update_selector("id_strain_raw_id", strains);
+    },
+    error: data => {
+      console.log("ajax error getting strains!");
+    }
+  });
+});
+
+$("#id_lake_id").on("change", function(e) {
+  let url = "/api/v1/common/jurisdiction/?lake_id=" + e.target.value;
+  const reducer = (accumulator, d) => {
+    accumulator[d.id] = `${d.stateprov.name} (${d.stateprov.abbrev})`;
+    return accumulator;
+  };
+
+  $.ajax({
+    url: url,
+    dataType: "json",
+    success: data => {
+      let options = data.reduce(reducer, {});
+      update_selector("id_state_prov_id", options);
+    },
+    error: data => {
+      console.log("ajax error getting states and provinces!");
+    }
+  });
+
+  url =
+    "/api/v1/common/management_unit/?mu_type=stat_dist&lake_id=" +
+    e.target.value;
+
+  const manUnitReducer = (accumulator, d) => {
+    accumulator[d.id] = d.label;
+    return accumulator;
+  };
+
+  $.ajax({
+    url: url,
+    dataType: "json",
+    success: data => {
+      let options = data.reduce(manUnitReducer, {});
+      update_selector("id_management_unit_id", options);
+    },
+    error: data => {
+      console.log("ajax error getting mangement units!");
+    }
+  });
+});

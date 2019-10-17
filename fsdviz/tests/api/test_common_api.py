@@ -237,6 +237,7 @@ class TestJurisdictionAPI(APITestCase):
 
         expected = [
             {
+                "id": huron_jurisdiction.id,
                 "slug": huron_jurisdiction.slug,
                 "stateprov": ontario,
                 "lake": huron,
@@ -244,6 +245,7 @@ class TestJurisdictionAPI(APITestCase):
                 "description": huron_jurisdiction.description,
             },
             {
+                "id": erie_jurisdiction.id,
                 "slug": erie_jurisdiction.slug,
                 "stateprov": ontario,
                 "lake": erie,
@@ -251,6 +253,7 @@ class TestJurisdictionAPI(APITestCase):
                 "description": erie_jurisdiction.description,
             },
             {
+                "id": superior_jurisdiction.id,
                 "slug": superior_jurisdiction.slug,
                 "stateprov": ontario,
                 "lake": superior,
@@ -290,6 +293,7 @@ class TestJurisdictionAPI(APITestCase):
         assert response.status_code == status.HTTP_200_OK
 
         expected = {
+            "id": jurisdiction.id,
             "slug": jurisdiction.slug,
             "stateprov": ontario,
             "lake": huron,
@@ -375,6 +379,7 @@ class TestManagementUnitAPI(APITestCase):
 
         for mu in [mu1, mu2, mu3]:
             obj = {
+                "id": mu.id,
                 "label": mu.label,
                 "lake": erie_dict,
                 "mu_type": mu.mu_type,
@@ -402,6 +407,7 @@ class TestManagementUnitAPI(APITestCase):
         assert response.status_code == status.HTTP_200_OK
 
         expected = {
+            "id": mu.id,
             "label": mu.label,
             "lake": erie_dict,
             "mu_type": mu.mu_type,

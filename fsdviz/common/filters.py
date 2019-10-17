@@ -20,6 +20,7 @@ class ManagementUnitFilter(django_filters.FilterSet):
 
     mu_type = django_filters.CharFilter(field_name="mu_type", lookup_expr="iexact")
 
+    lake_id = django_filters.NumberFilter(field_name="lake_id")
     lake = django_filters.CharFilter(field_name="lake__abbrev", lookup_expr="iexact")
 
     primary = django_filters.BooleanFilter(field_name="primary")
@@ -51,6 +52,8 @@ class StateProvinceFilter(django_filters.FilterSet):
 
 class JurisdictionFilter(django_filters.FilterSet):
 
+    lake_id = django_filters.NumberFilter(field_name="lake_id")
+
     stateprov = django_filters.CharFilter(
         field_name="stateprov__abbrev", lookup_expr="iexact"
     )
@@ -78,6 +81,8 @@ class StrainFilter(django_filters.FilterSet):
 
 
 class StrainRawFilter(django_filters.FilterSet):
+
+    species_id = django_filters.NumberFilter(field_name="species_id")
 
     species = django_filters.CharFilter(
         field_name="species__abbrev", lookup_expr="iexact"

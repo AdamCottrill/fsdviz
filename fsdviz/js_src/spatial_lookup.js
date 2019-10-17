@@ -16,18 +16,21 @@ let jurisdiction, jurisdictionGeom;
 let manUnits = [];
 let manUnitGeoms = {};
 
-const updatePolygon = (obj, geom) => {
-  // set the bounds of our map to the bounds of the selected lake object,
+const updatePolygon = (item, geom) => {
+  // set the bounds of our map to the bounds of the selected item,
   // remove any existing polygon layers and add a new one with the
-  // geometry for our lake:
-  if (typeof obj !== "undefined") {
-    bbox = obj.extent;
+  // if itme is an object, use it, otherwise use the first element of
+  // the array
+  let myobj = Array.isArray(item) ? item[0] : item;
+
+  if (typeof myobj !== "undefined") {
+    bbox = myobj.extent;
     mymap.flyToBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], {
       padding: [50, 50]
     });
   }
 
-  if (typeof obj !== "undefined") {
+  if (typeof geom !== "undefined") {
     geomLayer.remove();
     geomLayer = Leaflet.geoJSON().addTo(mymap);
     geomLayer.addData(geom);

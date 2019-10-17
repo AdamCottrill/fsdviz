@@ -199,7 +199,6 @@
 
 
      let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
-     console.log(bbox)
      // min_lon, min_lat, max_lon, max_lat
      //[-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947]
 
@@ -298,6 +297,7 @@
 
      
      $("#spatial-lookup-form").form({
+         onSuccess:function(e){e.preventDefault()},
          on: "blur",
          inline: true,
          fields: {
