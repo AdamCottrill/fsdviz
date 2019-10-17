@@ -52,6 +52,8 @@ const add_radio_buttons = (data, label, value, label_function) => {
     .selectAll(`.${label}-btn`)
     .data(data, d => d.id);
 
+  radioButtons.exit().remove();
+
   // enter
   let newButtons = radioButtons
     .enter()
@@ -74,15 +76,13 @@ const add_radio_buttons = (data, label, value, label_function) => {
 
   radioButtons.merge(newButtons);
 
-  radioButtons.exit().remove();
-
   //refresh semantic checkboxes again
   $(".ui.radio.checkbox").checkbox();
 };
 
 const update_grid_radio = obj => {
   const label_function = d => `${d.grid} (${d.lake_abbrev})`;
-  add_radio_buttons([obj], "grid10", "grid10", label_function);
+  add_radio_buttons(obj, "grid10", "grid10", label_function);
 };
 
 const get_grid10 = (dd_lat, dd_lon) => {
@@ -104,12 +104,12 @@ const get_grid10 = (dd_lat, dd_lon) => {
         csrfmiddlewaretoken: csrf_token
       },
       success: data => {
-        grid10 = data;
-        grid10Geom = helpers.feature(JSON.parse(grid10.geom));
+        grid10 = [data];
+        grid10Geom = helpers.feature(JSON.parse(data.geom));
         update_grid_radio(grid10);
       },
       error: data => {
-        grid10 = "";
+        grid10 = [];
         grid10Geom = undefined;
         update_grid_radio(grid10);
       }
@@ -120,7 +120,7 @@ const get_grid10 = (dd_lat, dd_lon) => {
 const update_lake_radio = obj => {
   const label_function = d => `${d.lake_name} (${d.abbrev})`;
 
-  add_radio_buttons([obj], "lake", "lake", label_function);
+  add_radio_buttons(obj, "lake", "lake", label_function);
 };
 
 const get_lake = (dd_lat, dd_lon) => {
@@ -145,12 +145,12 @@ const get_lake = (dd_lat, dd_lon) => {
         csrfmiddlewaretoken: csrf_token
       },
       success: data => {
-        lake = data;
-        lakeGeom = helpers.feature(JSON.parse(lake.geom));
+        lake = [data];
+        lakeGeom = helpers.feature(JSON.parse(data.geom));
         update_lake_radio(lake);
       },
       error: data => {
-        lake = "";
+        lake = [];
         lakeGeom = undefined;
         update_lake_radio(lake);
       }
@@ -160,8 +160,7 @@ const get_lake = (dd_lat, dd_lon) => {
 
 const update_jurisdiction_radio = obj => {
   const label_function = d => `${d.stateprov_name} (${d.stateprov_abbrev})`;
-
-  add_radio_buttons([obj], "jurisdiction", "jurisdiction", label_function);
+  add_radio_buttons(obj, "jurisdiction", "jurisdiction", label_function);
 };
 
 const get_jurisdiction = (dd_lat, dd_lon) => {
@@ -170,7 +169,7 @@ const get_jurisdiction = (dd_lat, dd_lon) => {
   let contained = false;
   let turfpt = helpers.point([dd_lon, dd_lat]);
 
-  if (typeof lakeGeom !== "undefined") {
+  if (typeof jurisdictionGeom !== "undefined") {
     contained = booleanPointInPolygon(turfpt, jurisdictionGeom);
   }
 
@@ -185,12 +184,12 @@ const get_jurisdiction = (dd_lat, dd_lon) => {
         csrfmiddlewaretoken: csrf_token
       },
       success: data => {
-        jurisdiction = data;
-        jurisdictionGeom = helpers.feature(JSON.parse(jurisdiction.geom));
+        jurisdiction = [data];
+        jurisdictionGeom = helpers.feature(JSON.parse(data.geom));
         update_jurisdiction_radio(jurisdiction);
       },
       error: data => {
-        jurisdiction = "";
+        jurisdiction = [];
         jurisdictionGeom = undefined;
         update_jurisdiction_radio(jurisdiction);
       }
