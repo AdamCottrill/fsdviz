@@ -6,6 +6,10 @@ import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 //import * as turf from "@turf/turf";
 import { select, selectAll } from "d3";
 
+// get our initial lat-lon values from the form:
+let lat;
+let lon;
+
 let grid10, grid10Geom;
 let lake, lakeGeom;
 let jurisdiction, jurisdictionGeom;
@@ -241,10 +245,6 @@ let min_lat = bbox[1];
 let max_lon = bbox[2];
 let max_lat = bbox[3];
 
-// get our initial lat-lon values from the form:
-let lat = $("#id_dd_lat").val();
-let lon = $("#id_dd_lon").val();
-
 // setup the map with rough bounds (need to get pies to plot first,
 // this will be tweaked later):
 const mymap = Leaflet.map("mapid", {
@@ -290,6 +290,7 @@ const update_widgets = (lat, lon) => {
       (lon >= min_lon) &
       (lon <= max_lon)
     ) {
+      update_text_inputs(lat, lon);
       drawPt(lat, lon);
       get_grid10(lat, lon);
       get_manUnits(lat, lon);
@@ -320,3 +321,91 @@ $("#id_dd_lon").on("change", function(e) {
 });
 
 selectAll('input[name="show-geom"]').on("change", changeGeom);
+
+const update_text_inputs = (ddlat, ddlon) => {
+  // latitude inputs
+  var lat_idegrees = Math.floor(ddlat);
+  var lat_dminutes = (ddlat - lat_idegrees) * 60;
+  var lat_iminutes = Math.floor(lat_dminutes);
+  var lat_seconds = (lat_dminutes - lat_iminutes) * 60;
+
+  $('input[id="id_dd_lat"]').val(ddlat);
+  $('input[id="ddm_lat_deg"]').val(lat_idegrees);
+  $('input[id="ddm_lat_min"]').val(lat_dminutes.toFixed(3));
+
+  $('input[id="dms_lat_deg"]').val(lat_idegrees);
+  $('input[id="dms_lat_min"]').val(lat_iminutes);
+  $('input[id="dms_lat_sec"]').val(lat_seconds.toFixed(3));
+
+  // longitude inputs
+  ddlon = Math.abs(ddlon);
+  var lon_idegrees = Math.floor(ddlon);
+  var lon_dminutes = (ddlon - lon_idegrees) * 60;
+  var lon_iminutes = Math.floor(lon_dminutes);
+  var lon_seconds = (lon_dminutes - lon_iminutes) * 60;
+
+  $('input[id="id_dd_lon"]').val(ddlon * -1);
+
+  $('input[id="ddm_lon_deg"]').val(lon_idegrees * -1);
+  $('input[id="ddm_lon_min"]').val(lon_dminutes.toFixed(3));
+
+  $('input[id="dms_lon_deg"]').val(lon_idegrees * -1);
+  $('input[id="dms_lon_min"]').val(lon_iminutes);
+  $('input[id="dms_lon_sec"]').val(lon_seconds.toFixed(3));
+};
+
+$('input[name="ddm_lat"]').change(function() {
+  //if any of the latitude elements on the ddm page change, update the other formats.
+  var lat_idegrees = parseFloat($('input[id="ddm_lat_deg"]').val());
+  var lat_dminutes = parseFloat($('input[id="ddm_lat_min"]').val());
+
+  // try and calculate a ddlat - if it is a number between lat-min and
+  // lat max update our widgets
+  if ((lat_idegrees !== "") & (lat_dminutes !== "")) {
+    lat = lat_idegrees + lat_dminutes / 60;
+    update_widgets(lat, lon);
+  }
+});
+
+$('input[name="ddm_lon"]').change(function() {
+  let lon_idegrees = parseFloat($('input[id="ddm_lon_deg"]').val());
+  let lon_dminutes = parseFloat($('input[id="ddm_lon_min"]').val());
+
+  // try and calculate a ddlat - if it is a number between lat-min and
+  // lat max update our widgets
+  if ((lon_idegrees !== "") & (lon_dminutes !== "")) {
+    lon_idegrees = Math.abs(lon_idegrees);
+    lon = (lon_idegrees + lon_dminutes / 60) * -1;
+    update_widgets(lat, lon);
+  }
+});
+
+$('input[name="dms_lat"]').change(function() {
+  //if any of the latitude elements on the dms page change, update the other formats.
+
+  let lat_idegrees = parseFloat($('input[id="dms_lat_deg"]').val());
+  let lat_iminutes = parseFloat($('input[id="dms_lat_min"]').val());
+  let lat_seconds = parseFloat($('input[id="dms_lat_sec"]').val());
+
+  if ((lat_idegrees !== "") & (lat_iminutes !== "") & (lat_seconds !== "")) {
+    let lat_dminutes = lat_iminutes + lat_seconds / 60;
+    lat = lat_idegrees + lat_dminutes / 60;
+    update_widgets(lat, lon);
+  }
+});
+
+$('input[name="dms_lon"]').change(function() {
+  //if any of the longitude elements on the dms page change, update the other formats.
+
+  let lon_idegrees = parseFloat($('input[id="dms_lon_deg"]').val());
+
+  let lon_iminutes = parseFloat($('input[id="dms_lon_min"]').val());
+  let lon_seconds = parseFloat($('input[id="dms_lon_sec"]').val());
+
+  if ((lon_idegrees !== "") & (lon_iminutes !== "") & (lon_seconds !== "")) {
+    lon_idegrees = Math.abs(lon_idegrees);
+    let lon_dminutes = lon_iminutes + lon_seconds / 60;
+    lon = (lon_idegrees + lon_dminutes / 60) * -1;
+    update_widgets(lat, lon);
+  }
+});

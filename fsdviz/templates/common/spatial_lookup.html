@@ -98,20 +98,20 @@
                                     <div class="ui bottom attached tab segment" data-tab="ddm">
                                         <div class="two fields">
                                             <div class="field">
-                                                <input type="text" id="ddm-degrees-lat" placeholder="Degrees">
+                                                <input type="text" id="ddm_lat_deg" placeholder="Degrees" name="ddm_lat">
                                             </div>
                                             <div class="field">
-                                                <input type="text" id="ddm-minutes-lat" placeholder="Minutes">
+                                                <input type="text" id="ddm_lat_min"  data-validate="numeric_minutes"placeholder="Minutes" name="ddm_lat">
                                             </div>
                                             <p>N</p>
                                         </div>
 
                                         <div class="two fields">
                                             <div class="field">
-                                                <input type="text" id="ddm-degrees-lon" placeholder="Degrees">
+                                                <input type="text" id="ddm_lon_deg" placeholder="Degrees" name="ddm_lon">
                                             </div>
                                             <div class="field">
-                                                <input type="text" id="ddm-minutes-lon" placeholder="Minutes">
+                                                <input type="text" id="ddm_lon_min" data-validate="numeric_minutes" placeholder="Minutes" name="ddm_lon">
                                             </div>
                                             <p>W</p>
                                         </div>
@@ -121,32 +121,30 @@
 
                                         <div class="three fields">
                                             <div class="field">
-                                                <input type="text" id="dms-degrees-lat" placeholder="Degrees">
+                                                <input type="text" id="dms_lat_deg" placeholder="Degrees" name="dms_lat">
                                             </div>
                                             <div class="field">
-                                                <input type="text" id="dms-minutes-lat" placeholder="Minutes">
+                                                <input type="text" id="dms_lat_min" data-validate="integer_minutes"placeholder="Minutes" name="dms_lat">
                                             </div>
                                             <div class="field">
-                                                <input type="text" id="dms-seconds-lat" placeholder="Seconds">
-                                            </div>                                            
-                                            <p>N</p>
+                                                <input type="text" id="dms_lat_sec" data-validate="numeric_seconds" placeholder="Seconds" name="dms_lat">
+                                            </div>
+                                            <p>N</p>                                            
                                         </div>
 
                                         <div class="three fields">
                                             <div class="field">
-                                                <input type="text" id="dms-degrees-lon" placeholder="Degrees">
+                                                <input name="dms_lon" type="text" id="dms_lon_deg" placeholder="Degrees">
                                             </div>
                                             <div class="field">
-                                                <input type="text" id="dms-minutes-lon" placeholder="Minutes">
+                                                <input name="dms_lon" type="text" id="dms_lon_min" data-validate="integer_minutes" placeholder="Minutes">
                                             </div>
                                             <div class="field">
-                                                <input type="text" id="dms-seconds-lon" placeholder="Seconds">
+                                                <input name="dms_lon" type="text" id="dms_lon_sec"  data-validate="numeric_seconds" placeholder="Seconds">
                                             </div>
                                             
                                             <p>W</p>
                                         </div>
-
-
                                         
                                     </div>
                                     
@@ -189,8 +187,8 @@
      const csrf_token = "{{ csrf_token }}";
      
     </script>
-   
-  
+    
+    
     {{ map_bounds|json_script:"map-bounds" }}
     
     <script src="{% static "js/accessToken.js" %}"></script>
@@ -201,7 +199,7 @@
 
 
      let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
-
+     console.log(bbox)
      // min_lon, min_lat, max_lon, max_lat
      //[-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947]
 
@@ -221,6 +219,84 @@
          return parseFloat(inputValue) <= validationValue;
      };
 
+
+     const integer_minutes = [
+         { type: "empty", prompt: "This field is required." },
+         { type: "integer", prompt: "Please enter an integer." },
+         {
+             type: "greaterThan",
+             value: 0,
+             prompt: "Minutes cannot be less than 0."
+         },
+         {
+             type: "lessThan",
+             value: 59,
+             prompt: "Minutes must be less than 60."                         
+         }
+     ]
+
+     const numeric_minutes = [
+         { type: "empty", prompt: "This field is required." },
+         { type: "number", prompt: "Please enter a numeric value." },
+         {
+             type: "greaterThan",
+             value: 0,
+             prompt: "Minutes cannot be less than 0."
+         },
+         {
+             type: "lessThan",
+             value: 59.999999,
+             prompt: "Minutes must be less than 60."                         
+         }
+     ]
+
+
+     const numeric_seconds = [
+         { type: "empty", prompt: "This field is required." },
+         { type: "number", prompt: "Please enter a numeric value." },
+         {
+             type: "greaterThan",
+             value: 0,
+             prompt: "Seconds cannot be less than 0."
+         },
+         {
+             type: "lessThan",
+             value: 59.999999,
+             prompt: "Seconds must be less than 60."                         
+         }
+     ]
+
+     const integer_latitude = [
+         { type: "empty", prompt: "This field is required." },
+         { type: "integer", prompt: "Please enter an integer." },
+         {
+             type: "greaterThan",
+             value: min_lat-1,
+             prompt: `Latitude cannot be less than ${Math.floor(min_lat)} degrees.`
+         },
+         {
+             type: "lessThan",
+             value: max_lat,
+             prompt: `Latitude cannot be more than ${Math.floor(max_lat)} degrees.`
+         }
+     ]
+     
+     const integer_longitude =  [
+         { type: "empty", prompt: "This field is required." },
+         { type: "integer", prompt: "Please enter an integer." },
+         {
+             type: `lessThan`,
+             value: (Math.floor(max_lon)+1),
+             prompt: `Longitude cannot be greater than ${Math.floor(max_lon)+1} degrees.`
+         },
+         {
+             type: `greaterThan`,
+             value: Math.floor(min_lon+1),
+             prompt: `Longitude cannot be less than ${Math.floor(min_lon)+1} degrees.`
+         }
+     ]
+
+     
      $("#spatial-lookup-form").form({
          on: "blur",
          inline: true,
@@ -233,12 +309,12 @@
                      {
                          type: "greaterThan",
                          value: min_lat,
-                         prompt: `Latitude cannot be less than ${min_lat} degrees.`
+                         prompt: `Latitude cannot be less than ${min_lat.toFixed(2)} degrees.`
                      },
                      {
                          type: "lessThan",
                          value: max_lat,
-                         prompt: `Latitude cannot be more than ${max_lat} degrees.`
+                         prompt: `Latitude cannot be more than ${max_lat.toFixed(2)} degrees.`
                      }
                  ]
              },
@@ -250,14 +326,76 @@
                      { type: "number", prompt: "Please enter a numeric value." },
                      {
                          type: `lessThan[${max_lon}]`,
-                         prompt: `Longitude cannot be greater than ${max_lon} degrees.`
+                         prompt: `Longitude cannot be greater than ${max_lon.toFixed(2)} degrees.`
                      },
                      {
                          type: `greaterThan[${min_lon}]`,
-                         prompt: `Longitude cannot be less than ${min_lon} degrees.`
+                         prompt: `Longitude cannot be less than ${min_lon.toFixed(2)} degrees.`
                      }
                  ]
-             }
+             },
+
+
+
+             //----------------------------
+             //  Degrees-Decimal-Minutes
+
+             ddm_lat_deg: {
+                 identifier: "ddm_lat_deg",
+                 rules: integer_latitude
+             },
+
+             ddm_lat_min: {
+                 identifier: "ddm_lat_min",
+                 rules: numeric_minutes
+             },
+
+             ddm_lon_deg: {
+                 identifier: "ddm_lon_deg",
+                 rules: integer_longitude
+             },
+
+             
+             ddm_lon_min: {
+                 identifier: "ddm_lon_min",
+                 rules: numeric_minutes
+             },
+
+
+             //----------------------------
+             //  Degrees-Minutes-Seconds
+             dms_lat_deg: {
+                 identifier: "dms_lat_deg",
+                 rules: integer_latitude
+             },
+             
+             dms_lat_min: {
+                 identifier: "dms_lat_min",
+                 rules: integer_minutes
+             },
+             
+             dms_lat_sec: {
+                 identifier: "dms_lat_sec",
+                 rules: numeric_seconds
+             },
+
+             
+             dms_lon_deg: {
+                 identifier: "dms_lon_deg",
+                 rules: integer_longitude
+             },
+
+             dms_lon_min: {
+                 identifier: "dms_lon_min",
+                 rules: integer_minutes
+             },
+
+             dms_lon_sec: {
+                 identifier: "dms_lon_sec",
+                 rules: numeric_seconds
+             },
+             
+             
          }
      });
 
