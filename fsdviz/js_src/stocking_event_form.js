@@ -65,22 +65,67 @@ drawPt(lat, lon);
 
 let strains;
 
-const update_selector = (selectorID, newOptions) => {
-  var $el = $(`#${selectorID}`);
-  $el.empty(); // remove old options
-  $el.append(
-    $("<option></option>")
-      .attr("value", "")
-      .text("---------------")
-  );
+const checkChoice = (myId, parentId) => {
+  // verify that the selected option has a value, flag the select
+  // box if it doesn't and add a meaning ful message
+
+  const el = $(`#${myId}`);
+  const selected_val = $(`#${myId} option:selected`).val();
+  const selected_text = $(`#${myId} option:selected`).text();
+  const parent_text = $(`#${parentId} option:selected`).text();
+
+  if (selected_val === "-999") {
+    const msg = `'${selected_text}' is not a valid choice for ${parent_text}`;
+    setInvalid(el, msg);
+  } else {
+    setValid(el);
+  }
+};
+
+const update_selector = (selectorID, parentID, newOptions) => {
+  const el = $(`#${selectorID}`);
+
+  const previous_val = $(`#${selectorID} option:selected`).val();
+  const previous_text = $(`#${selectorID} option:selected`).text();
+  const parent_text = $(`#${parentID} option:selected`).text();
+
+  el.empty(); // remove old options
+
+  console.log(previous_text);
+  console.log(previous_val);
+  console.log(newOptions);
+
+  if (!Object.values(newOptions).includes(previous_text)) {
+    el.append(
+      $("<option></option>")
+        .attr("value", "-999")
+        .text(previous_text)
+    );
+
+    console.log("-999");
+
+    const msg = `'${previous_text}' is not a valid choice for ${parent_text}`;
+    setInvalid(el, msg);
+  } else {
+    setValid(el);
+  }
+
   $.each(newOptions, (value, label) => {
-    $el.append(
+    el.append(
       $("<option></option>")
         .attr("value", value)
         .text(label)
     );
   });
+
+  if (Object.values(newOptions).includes(previous_text)) {
+    const idx = Object.values(newOptions).indexOf(previous_text);
+    el.val(Object.keys(newOptions)[idx]);
+  }
 };
+
+// when species changes, update the list of strains - if there is a
+// strain selected, keep it but flag it as invalid
 
 $("#id_species_id").on("change", function(e) {
   let url = "/api/v1/common/strainraw/?species_id=" + e.target.value;
@@ -95,12 +140,21 @@ $("#id_species_id").on("change", function(e) {
     dataType: "json",
     success: data => {
       strains = data.reduce(reducer, {});
-      update_selector("id_strain_raw_id", strains);
+      update_selector("id_strain_raw_id", this.id, strains);
     },
     error: data => {
       console.log("ajax error getting strains!");
     }
   });
+});
+
+$("#id_strain_raw_id").on("change", function(e) {
+  console.log("strain changed!!");
+  // if the selected value is not null, it is valid, if it is null, flag it.
+
+  const myId = this.id;
+  const parentId = "id_species_id";
+  checkChoice(myId, parentId);
 });
 
 $("#id_lake_id").on("change", function(e) {
@@ -115,7 +169,7 @@ $("#id_lake_id").on("change", function(e) {
     dataType: "json",
     success: data => {
       let options = data.reduce(reducer, {});
-      update_selector("id_state_prov_id", options);
+      update_selector("id_state_prov_id", this.id, options);
     },
     error: data => {
       console.log("ajax error getting states and provinces!");
@@ -136,7 +190,7 @@ $("#id_lake_id").on("change", function(e) {
     dataType: "json",
     success: data => {
       let options = data.reduce(manUnitReducer, {});
-      update_selector("id_management_unit_id", options);
+      update_selector("id_management_unit_id", this.id, options);
     },
     error: data => {
       console.log("ajax error getting mangement units!");
@@ -157,7 +211,7 @@ $("#id_management_unit_id").on("change", function(e) {
     dataType: "json",
     success: data => {
       let options = data.reduce(reducer, {});
-      update_selector("id_grid_10_id", options);
+      update_selector("id_grid_10_id", this.id, options);
     },
     error: data => {
       console.log("ajax error getting grids!");
@@ -166,18 +220,18 @@ $("#id_management_unit_id").on("change", function(e) {
 });
 
 function setInvalid(field, errMsg) {
-  let id = field.id;
+  let id = field.id ? field.id : field[0].id;
   let wrapper = $("#" + id + "-field");
   wrapper.addClass("error");
-  let input = wrapper.find(".input");
+  let input = wrapper.find(".ui.input");
   input.attr("data-tooltip", errMsg).attr("data-position", "top center");
 }
 
 function setValid(field) {
-  let id = field.id;
+  let id = field.id ? field.id : field[0].id;
   let wrapper = $("#" + id + "-field");
   wrapper.removeClass("error");
-  let input = wrapper.find(".input");
+  let input = wrapper.find(".ui.input");
   input.removeAttr("data-tooltip").removeAttr("data-position");
 }
 
