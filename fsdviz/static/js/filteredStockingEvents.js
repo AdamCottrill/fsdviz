@@ -6584,7 +6584,7 @@
 	      : "");
 	}
 
-	function dsv(delimiter) {
+	function dsvFormat(delimiter) {
 	  var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
 	      DELIMITER = delimiter.charCodeAt(0);
 
@@ -6688,21 +6688,11 @@
 	  };
 	}
 
-	var csv = dsv(",");
+	var csv = dsvFormat(",");
 
 	var csvParse = csv.parse;
-	var csvParseRows = csv.parseRows;
-	var csvFormat = csv.format;
-	var csvFormatBody = csv.formatBody;
-	var csvFormatRows = csv.formatRows;
 
-	var tsv = dsv("\t");
-
-	var tsvParse = tsv.parse;
-	var tsvParseRows = tsv.parseRows;
-	var tsvFormat = tsv.format;
-	var tsvFormatBody = tsv.formatBody;
-	var tsvFormatRows = tsv.formatRows;
+	var tsv = dsvFormat("\t");
 
 	function responseText(response) {
 	  if (!response.ok) throw new Error(response.status + " " + response.statusText);
@@ -7996,6 +7986,8 @@
 	var saturday = weekday(6);
 
 	var sundays = sunday.range;
+	var mondays = monday.range;
+	var thursdays = thursday.range;
 
 	var month = newInterval(function(date) {
 	  date.setDate(1);
@@ -8085,6 +8077,8 @@
 	var utcSaturday = utcWeekday(6);
 
 	var utcSundays = utcSunday.range;
+	var utcMondays = utcMonday.range;
+	var utcThursdays = utcThursday.range;
 
 	var utcMonth = newInterval(function(date) {
 	  date.setUTCDate(1);

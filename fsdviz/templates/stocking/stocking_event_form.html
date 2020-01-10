@@ -50,7 +50,8 @@
 
                     <div class="four fields">
 
-                        {% include "stocking/_form_field.html" with field_obj=form.date %}
+                        {% include "stocking/_calendar_field.html" with field_obj=form.date %}
+                        
                         {% include "stocking/_form_field.html" with field_obj=form.year %}
                         {% include "stocking/_form_field.html" with field_obj=form.month %}
                         {% include "stocking/_form_field.html" with field_obj=form.day %}
@@ -149,6 +150,9 @@
             </div>
 
 
+            
+            
+
         </form>
     </div>
 
@@ -157,6 +161,20 @@
 
 {% block extra_js %}
 
+    <script>
+
+//     //instantiate the calendar and add an onChange function
+//     $(".ui.calendar").calendar({
+//         type: "date",
+//         maxDate: new Date(),
+//         onChange: function() {             
+//             console.log(this);
+//             debugger;
+//         }     
+//     });
+//     
+    </script>
+    
 
     {{ lake.geom.extent|json_script:"map-bounds" }}
 
@@ -164,5 +182,6 @@
 
     <script src="{% static "js/stocking_event_form.js" %}"></script>
 
+    
 
 {% endblock %}

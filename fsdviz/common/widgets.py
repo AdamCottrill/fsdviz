@@ -13,16 +13,18 @@ class SemanticDatePicker(DateTimeInput):
     how-to-use-date-picker-with-django.html
 
 """
-    template_name = 'widgets/semantic_calendar.html'
+
+    template_name = "widgets/semantic_calendar.html"
 
     def get_context(self, name, value, attrs):
-        datetimepicker_id = 'id_{name}'.format(name=name)
+        datetimepicker_id = "id_{name}".format(name=name)
         if attrs is None:
             attrs = dict()
 
-        attrs['class'] = 'ui calendar'
+        attrs["class"] = "ui calendar"
+
         context = super().get_context(name, value, attrs)
-        context['widget']['datetimepicker_id'] = datetimepicker_id
+        context["widget"]["datetimepicker_id"] = datetimepicker_id
         return context
 
     def render(self, name, value, attrs=None, renderer=None):

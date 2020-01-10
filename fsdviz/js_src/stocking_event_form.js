@@ -1,4 +1,4 @@
-/* global accessToken,  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
+/* global accessToken,  $, dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
 
 import Leaflet from "leaflet";
 
@@ -143,3 +143,217 @@ $("#id_lake_id").on("change", function(e) {
     }
   });
 });
+
+$("#id_management_unit_id").on("change", function(e) {
+  let url = "/api/v1/common/grid10/?manUnit_id=" + e.target.value;
+
+  const reducer = (accumulator, d) => {
+    accumulator[d.id] = `${d.grid} (${d.lake.abbrev})`;
+    return accumulator;
+  };
+
+  $.ajax({
+    url: url,
+    dataType: "json",
+    success: data => {
+      let options = data.reduce(reducer, {});
+      update_selector("id_grid_10_id", options);
+    },
+    error: data => {
+      console.log("ajax error getting grids!");
+    }
+  });
+});
+
+function setInvalid(field, errMsg) {
+  let id = field.id;
+  let wrapper = $("#" + id + "-field");
+  wrapper.addClass("error");
+  let input = wrapper.find(".input");
+  input.attr("data-tooltip", errMsg).attr("data-position", "top center");
+}
+
+function setValid(field) {
+  let id = field.id;
+  let wrapper = $("#" + id + "-field");
+  wrapper.removeClass("error");
+  let input = wrapper.find(".input");
+  input.removeAttr("data-tooltip").removeAttr("data-position");
+}
+
+//=====================================================
+//         EVENT DATE
+
+$(".ui.calendar").calendar({
+  type: "date",
+  maxDate: new Date(),
+  onChange: function(date, text) {
+    const myDate = new Date(text);
+
+    let yr = myDate.getFullYear();
+    let month = myDate.getMonth();
+    let day = myDate.getDate();
+
+    if (isValidDate(yr, month, day)) {
+      let yearField = document.getElementById(this.id.replace("date", "year"));
+      let monthField = document.getElementById(
+        this.id.replace("date", "month")
+      );
+      let dayField = document.getElementById(this.id.replace("date", "day"));
+
+      dayField.value = day;
+      setValid(dayField);
+      yearField.value = yr;
+      setValid(yearField);
+      monthField.value = month + 1;
+      setValid(monthField);
+    }
+  }
+});
+
+// from https://stackoverflow.com/questions/21188420/
+// catch April 31, ect.
+// if the input is the same as the output we are good:
+const isValidDate = function(year, month, day) {
+  let d = new Date(year, month, day);
+  let now = new Date();
+
+  if (
+    d.getFullYear() == year &&
+    d.getMonth() == month &&
+    d.getDate() == day &&
+    d < now
+  ) {
+    return true;
+  }
+  return false;
+};
+
+const updateCalendar = function() {
+  // set the calendar widget to the date represented by the day,
+  // month and year fields.
+  const yearElement = document.getElementById("id_year");
+  const monthElement = document.getElementById("id_month");
+  const dayElement = document.getElementById("id_day");
+
+  const yr = parseInt(yearElement.value);
+  const month = parseInt(monthElement.value);
+  const day = parseInt(dayElement.value);
+
+  const myDate = new Date(yr, month - 1, day);
+
+  if (isValidDate(yr, month - 1, day)) {
+    $("#id_date").calendar("set date", myDate);
+  } else {
+    $("#id_date").calendar("clear");
+  }
+};
+updateCalendar();
+
+$("#id_day").on("change", function(e) {
+  updateCalendar();
+  checkDate();
+});
+
+$("#id_month").on("change", function(e) {
+  if (validate_month(this)) checkDate();
+});
+
+$("#id_year").on("change", function(e) {
+  if (validate_year(this)) checkDate();
+});
+
+function validate_month(field) {
+  // if month is provided, it must be between 1 and 12
+  // get the day, month, and year from the same row and see if it
+  // forms a valid date;
+
+  let day = $("#" + field.id.replace("month", "day"));
+
+  if (day.val()) {
+    if (checkEmpty(field)) {
+      setInvalid(field, "Month is required if Day is populated.");
+      return false;
+    }
+  }
+
+  setValid(field);
+  return true;
+}
+
+function validate_year(field) {
+  // year is required and must be >1950 and less than or equal to the the current year
+  const thisYear = new Date().getFullYear();
+  if (checkEmpty(field)) return false;
+  if (!checkIntegerRange(field, 1950, thisYear)) return false;
+  setValid(field);
+  return true;
+}
+
+// General Uitlity functions - apply to any field -
+function checkIntegerRange(field, lower, upper) {
+  if (field.value >= lower && field.value <= upper) {
+    setValid(field);
+    return true;
+  } else {
+    let msg = `${field.name} must be an integer bewteen ${lower} and ${upper}.`;
+    setInvalid(field, msg);
+    return false;
+  }
+}
+
+function isEmpty(value) {
+  if (value === "") return true;
+  return false;
+}
+
+function checkEmpty(field) {
+  if (isEmpty(field.value.trim())) {
+    //set field invalid
+    setInvalid(field, `${field.name} must not be empty`);
+    return true;
+  } else {
+    //set field to valid
+    setValid(field);
+    return false;
+  }
+}
+
+const checkDate = function() {
+  let yearElement = document.getElementById("id_year");
+  let monthElement = document.getElementById("id_month");
+  let dayElement = document.getElementById("id_day");
+
+  let yr = yearElement.value;
+  let month = monthElement.value;
+  let day = dayElement.value;
+
+  //clear calendar
+  updateCalendar("id_date");
+
+  if (yr !== "" && month !== "" && day !== "") {
+    const myDate = new Date(yr, month - 1, day);
+
+    if (isValidDate(yr, month - 1, day)) {
+      // update calendar
+      updateCalendar("id_date", myDate);
+      setValid(yearElement);
+      setValid(monthElement);
+      setValid(dayElement);
+    } else {
+      let msg = `${yr}-${month}-${day} is an invalid date or occurs in the future.`;
+      setInvalid(yearElement, msg);
+      setInvalid(monthElement, msg);
+      setInvalid(dayElement, msg);
+    }
+  } else if (yr !== "" && month === "" && day !== "") {
+    // day is not  populated, month and year are valid - OK
+    setValid(yearElement);
+    setValid(dayElement);
+  } else if (yr !== "" && month === "" && day === "") {
+    // day and month are not populated,year are valid - OK
+    setValid(yearElement);
+    setValid(monthElement);
+    setValid(dayElement);
+  }
+};

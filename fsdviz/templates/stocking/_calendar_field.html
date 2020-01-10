@@ -1,9 +1,8 @@
-
-<div class="{%  if width %} {{ width }} wide {% endif %}field {% if field_obj.errors %} error{% endif %}" id="{{field_obj.auto_id}}-field">
+<div class="{%  if width %} {{ width }} wide {% endif %}field{% if field_obj.errors %} error{% endif %}">
     {{ field_obj.label_tag }}
-    <div class="ui input">
-        {{ field_obj }}
-    </div>
+
+    {{ field_obj }}
+    
     {% if field_obj.errors %}
         <div class="ui warning message">
             <ul class="list">
@@ -14,3 +13,5 @@
         </div>
     {% endif %}
 </div>
+
+
