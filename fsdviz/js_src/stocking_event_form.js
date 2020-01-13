@@ -2,6 +2,20 @@
 
 import Leaflet from "leaflet";
 
+import {
+  checkChoice,
+  update_selector,
+  setValid,
+  setInvalid,
+  isValidDate,
+  checkRange,
+  isEmpty,
+  checkEmpty,
+  checkDdLat,
+  checkDdLon,
+  checkLatLon
+} from "./form_utils";
+
 let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
 
 // get our initial lat-lon values from the form:
@@ -32,12 +46,15 @@ Leaflet.tileLayer(
 const drawPt = (lat, lon) => {
   // remove the last one - there can only ever be one point for an event:
   $("path.leaflet-interactive").remove();
-  let circle = Leaflet.circleMarker([parseFloat(lat), parseFloat(lon)], {
-    color: "red",
-    fillColor: "#f03",
-    fillOpacity: 0.5,
-    radius: 5
-  }).addTo(mymap);
+
+  if (lat !== "" && lon !== "") {
+    let circle = Leaflet.circleMarker([parseFloat(lat), parseFloat(lon)], {
+      color: "red",
+      fillColor: "#f03",
+      fillOpacity: 0.5,
+      radius: 5
+    }).addTo(mymap);
+  }
 };
 
 // if we click on the map, update the lat-lon inputs:
@@ -51,111 +68,24 @@ mymap.on("click", function(e) {
 
 //watch our lat-lon inputs and update the point if they change:
 $("#id_dd_lat").on("change", function(e) {
-  lat = parseFloat(e.target.value);
-  drawPt(lat, lon);
+  if (!checkDdLat(this, bbox)) return false;
+  if (!checkLatLon(this)) return false;
 });
 
 $("#id_dd_lon").on("change", function(e) {
-  lon = parseFloat(e.target.value);
-  drawPt(lat, lon);
+  if (!checkDdLon(this, bbox)) return false;
+  if (!checkLatLon(this)) return false;
+  updateMapPt();
 });
+
+const updateMapPt = () => {
+  let ddlat = document.getElementById("id_dd_lat").value;
+  let ddlon = document.getElementById("id_dd_lon").value;
+  drawPt(ddlat, ddlon);
+};
 
 // draw our initail point:
 drawPt(lat, lon);
-
-let strains;
-
-const checkChoice = (myId, parentId) => {
-  // verify that the selected option has a value, flag the select
-  // box if it doesn't and add a meaning ful message
-
-  const el = $(`#${myId}`);
-  const selected_val = $(`#${myId} option:selected`).val();
-  const selected_text = $(`#${myId} option:selected`).text();
-  const parent_text = $(`#${parentId} option:selected`).text();
-
-  if (selected_val === "-999") {
-    const msg = `'${selected_text}' is not a valid choice for ${parent_text}`;
-    setInvalid(el, msg);
-  } else {
-    setValid(el);
-  }
-};
-
-const update_selector = (selectorID, parentID, newOptions) => {
-  const el = $(`#${selectorID}`);
-
-  const previous_val = $(`#${selectorID} option:selected`).val();
-  const previous_text = $(`#${selectorID} option:selected`).text();
-  const parent_text = $(`#${parentID} option:selected`).text();
-
-  el.empty(); // remove old options
-
-  console.log(previous_text);
-  console.log(previous_val);
-  console.log(newOptions);
-
-  if (!Object.values(newOptions).includes(previous_text)) {
-    el.append(
-      $("<option></option>")
-        .attr("value", "-999")
-        .text(previous_text)
-    );
-
-    console.log("-999");
-
-    const msg = `'${previous_text}' is not a valid choice for ${parent_text}`;
-    setInvalid(el, msg);
-  } else {
-    setValid(el);
-  }
-
-  $.each(newOptions, (value, label) => {
-    el.append(
-      $("<option></option>")
-        .attr("value", value)
-        .text(label)
-    );
-  });
-
-  if (Object.values(newOptions).includes(previous_text)) {
-    const idx = Object.values(newOptions).indexOf(previous_text);
-    el.val(Object.keys(newOptions)[idx]);
-  }
-};
-
-// when species changes, update the list of strains - if there is a
-// strain selected, keep it but flag it as invalid
-
-$("#id_species_id").on("change", function(e) {
-  let url = "/api/v1/common/strainraw/?species_id=" + e.target.value;
-
-  const reducer = (accumulator, d) => {
-    accumulator[d.id] = `${d.raw_strain} (${d.description})`;
-    return accumulator;
-  };
-
-  $.ajax({
-    url: url,
-    dataType: "json",
-    success: data => {
-      strains = data.reduce(reducer, {});
-      update_selector("id_strain_raw_id", this.id, strains);
-    },
-    error: data => {
-      console.log("ajax error getting strains!");
-    }
-  });
-});
-
-$("#id_strain_raw_id").on("change", function(e) {
-  console.log("strain changed!!");
-  // if the selected value is not null, it is valid, if it is null, flag it.
-
-  const myId = this.id;
-  const parentId = "id_species_id";
-  checkChoice(myId, parentId);
-});
 
 $("#id_lake_id").on("change", function(e) {
   let url = "/api/v1/common/jurisdiction/?lake_id=" + e.target.value;
@@ -219,21 +149,40 @@ $("#id_management_unit_id").on("change", function(e) {
   });
 });
 
-function setInvalid(field, errMsg) {
-  let id = field.id ? field.id : field[0].id;
-  let wrapper = $("#" + id + "-field");
-  wrapper.addClass("error");
-  let input = wrapper.find(".ui.input");
-  input.attr("data-tooltip", errMsg).attr("data-position", "top center");
-}
+//=====================================================
+//              SPECIES AND STRAINS
 
-function setValid(field) {
-  let id = field.id ? field.id : field[0].id;
-  let wrapper = $("#" + id + "-field");
-  wrapper.removeClass("error");
-  let input = wrapper.find(".ui.input");
-  input.removeAttr("data-tooltip").removeAttr("data-position");
-}
+// when species changes, update the list of strains - if there is a
+// strain selected, keep it but flag it as invalid
+
+$("#id_species_id").on("change", function(e) {
+  let url = "/api/v1/common/strainraw/?species_id=" + e.target.value;
+
+  const reducer = (accumulator, d) => {
+    accumulator[d.id] = `${d.raw_strain} (${d.description})`;
+    return accumulator;
+  };
+
+  $.ajax({
+    url: url,
+    dataType: "json",
+    success: data => {
+      let strains = data.reduce(reducer, {});
+      update_selector("id_strain_raw_id", this.id, strains);
+    },
+    error: data => {
+      console.log("ajax error getting strains!");
+    }
+  });
+});
+
+$("#id_strain_raw_id").on("change", function(e) {
+  // if the selected value is not null, it is valid, if it is null, flag it.
+
+  const myId = this.id;
+  const parentId = "id_species_id";
+  checkChoice(myId, parentId);
+});
 
 //=====================================================
 //         EVENT DATE
@@ -264,24 +213,6 @@ $(".ui.calendar").calendar({
     }
   }
 });
-
-// from https://stackoverflow.com/questions/21188420/
-// catch April 31, ect.
-// if the input is the same as the output we are good:
-const isValidDate = function(year, month, day) {
-  let d = new Date(year, month, day);
-  let now = new Date();
-
-  if (
-    d.getFullYear() == year &&
-    d.getMonth() == month &&
-    d.getDate() == day &&
-    d < now
-  ) {
-    return true;
-  }
-  return false;
-};
 
 const updateCalendar = function() {
   // set the calendar widget to the date represented by the day,
@@ -339,38 +270,9 @@ function validate_year(field) {
   // year is required and must be >1950 and less than or equal to the the current year
   const thisYear = new Date().getFullYear();
   if (checkEmpty(field)) return false;
-  if (!checkIntegerRange(field, 1950, thisYear)) return false;
+  if (!checkRange(field, 1950, thisYear)) return false;
   setValid(field);
   return true;
-}
-
-// General Uitlity functions - apply to any field -
-function checkIntegerRange(field, lower, upper) {
-  if (field.value >= lower && field.value <= upper) {
-    setValid(field);
-    return true;
-  } else {
-    let msg = `${field.name} must be an integer bewteen ${lower} and ${upper}.`;
-    setInvalid(field, msg);
-    return false;
-  }
-}
-
-function isEmpty(value) {
-  if (value === "") return true;
-  return false;
-}
-
-function checkEmpty(field) {
-  if (isEmpty(field.value.trim())) {
-    //set field invalid
-    setInvalid(field, `${field.name} must not be empty`);
-    return true;
-  } else {
-    //set field to valid
-    setValid(field);
-    return false;
-  }
 }
 
 const checkDate = function() {
