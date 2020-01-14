@@ -73,6 +73,149 @@ def polygonB():
 
 
 @pytest.mark.django_db
+def test_get_spatial_attributes(client, polygonA):
+    """If we pass coordinates to our spatial attributes endpoint, we
+    should recieve a dictionary with the keys lake, jurisdiction,
+    manUnit, and grid10.  Each element of those keys, should also be a
+    dictionary with the basic information required to ensure that the
+    spatial widgets on a html form match the coordinates derived from
+    ddlat and ddlon.
+
+    This endpoint is intended to serve form validation, so it only
+    returns the attributes (and management unit types) included in
+    those forms.
+
+    """
+
+    # get a point inside our polygon we wil use to select our geometries
+    centroid = polygonA.centroid
+
+    assert polygonA.contains(centroid) is True
+
+    # create a lake, jurisdiciton, management_unit and a grid (they all
+    # share the same polygon, but that doesn't matter here)
+    huron = dict(abbrev="HU", lake_name="Lake Huron", geom=polygonA)
+    huron_obj = LakeFactory(**huron)
+
+    # province of ontario
+    ontario = dict(
+        abbrev="ON",
+        name="Ontario",
+        country="CAN",
+        description="The Province of Ontario",
+    )
+    ontario_obj = StateProvinceFactory(**ontario)
+
+    JurisdictionFactory(
+        lake=huron_obj, stateprov=ontario_obj, name="Huron-Ontario", geom=polygonA
+    )
+
+    ManagementUnitFactory(
+        label="OH-3", lake=huron_obj, geom=polygonA, mu_type="stat_dist"
+    )
+
+    Grid10Factory(grid="1234", lake=huron_obj, geom=polygonA)
+
+    url = reverse("common_api:api-lookup-spatial-attrs")
+
+    response = client.post(url, {"point": centroid.wkt})
+    assert response.status_code == status.HTTP_200_OK
+
+    expected_keys = ["lake", "jurisdiction", "manUnit", "grid10"]
+    for key in expected_keys:
+        assert key in response.data.keys()
+
+    # verify that we got thte right objects back:
+
+    observed = response.data.get("lake")
+    assert observed != ""
+    assert observed.get("abbrev") == "HU"
+    assert observed.get("lake_name") == "Lake Huron"
+
+    observed = response.data.get("jurisdiction")
+    assert observed != ""
+
+    assert observed.get("lake_abbrev") == "HU"
+    assert observed.get("lake_name") == "Lake Huron"
+    assert observed.get("stateprov_abbrev") == "ON"
+    assert observed.get("stateprov_name") == "Ontario"
+    assert observed.get("jurisdiction_name") == "Huron-Ontario"
+
+    observed = response.data.get("manUnit")
+    assert observed != ""
+    assert observed.get("slug") == "hu_stat_dist_oh-3"
+    assert observed.get("label") == "OH-3"
+
+    observed = response.data.get("grid10")
+    assert observed != ""
+    assert observed.get("grid") == "1234"
+    assert observed.get("lake_abbrev") == "HU"
+    assert observed.get("slug") == "hu_1234"
+
+
+@pytest.mark.django_db
+def test_get_spatial_attributes_empty(client, polygonA, polygonB):
+    """If we pass coordinates to our spatial attributes endpoint that fall
+    OUTSIDE of any the geometry, we should recieve a dictionary with
+    keys lake, jurisdiction, manUnit, and grid10, but elements of each
+    key will be an empty string.
+
+    """
+
+    # get a point outside of the polygon we will use to build our data elements
+    centroid = polygonB.centroid
+
+    assert polygonA.contains(centroid) is False
+
+    # create a lake, jurisdiciton, management_unit and a grid (they all
+    # share the same polygon, but that doesn't matter here)
+    huron = dict(abbrev="HU", lake_name="Lake Huron", geom=polygonA)
+    huron_obj = LakeFactory(**huron)
+
+    # province of ontario
+    ontario = dict(
+        abbrev="ON",
+        name="Ontario",
+        country="CAN",
+        description="The Province of Ontario",
+    )
+    ontario_obj = StateProvinceFactory(**ontario)
+
+    JurisdictionFactory(
+        lake=huron_obj, stateprov=ontario_obj, name="Huron-Ontario", geom=polygonA
+    )
+
+    ManagementUnitFactory(
+        label="OH-3", lake=huron_obj, geom=polygonA, mu_type="stat_dist"
+    )
+
+    Grid10Factory(grid="1234", lake=huron_obj, geom=polygonA)
+
+    url = reverse("common_api:api-lookup-spatial-attrs")
+
+    response = client.post(url, {"point": centroid.wkt})
+    assert response.status_code == status.HTTP_200_OK
+
+    expected_keys = ["lake", "jurisdiction", "manUnit", "grid10"]
+    for key in expected_keys:
+        assert key in response.data.keys()
+
+    # verify that we got thte right objects back:
+
+    observed = response.data.get("lake")
+    assert observed == ""
+
+    observed = response.data.get("jurisdiction")
+    assert observed == ""
+
+    observed = response.data.get("manUnit")
+    assert observed == ""
+
+    observed = response.data.get("grid10")
+    assert observed == ""
+
+
+@pytest.mark.django_db
 def test_get_lake_from_point_pure(client, polygonA, polygonB):
     """If we pass coordinates to our endpoint that fall within the geometry
     of a lake object, we should get a response back that contains the

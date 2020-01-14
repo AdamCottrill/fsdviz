@@ -21,6 +21,7 @@ from .views import (
     get_jurisdiction_from_pt,
     get_management_unit_from_pt,
     get_grid10_from_pt,
+    pt_spatial_attrs,
 )
 
 app_name = "common"
@@ -58,6 +59,7 @@ urlpatterns += [
     path(
         "spatial_lookup/grid10/", get_grid10_from_pt, name="api-lookup-grid10-from-pt"
     ),
+    path("spatial_lookup/", pt_spatial_attrs, name="api-lookup-spatial-attrs"),
 ]
 
 # urlpatterns = [
