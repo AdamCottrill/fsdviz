@@ -1,12 +1,17 @@
-/* global accessToken,  $, dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
+/* global accessToken,  $, spatialAttrURL, csrf_token */
 
 import Leaflet from "leaflet";
+
+import helpers from "@turf/helpers";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 
 import {
   checkChoice,
   update_selector,
   setValid,
   setInvalid,
+  addError,
+  removeError,
   isValidDate,
   checkRange,
   isEmpty,
@@ -16,11 +21,82 @@ import {
   checkLatLon
 } from "./form_utils";
 
+import { checkPointInPoly, getPolygon, getSpatialAttrs } from "./spatial_utils";
+
 let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
 
 // get our initial lat-lon values from the form:
 let lat = $("#id_dd_lat").val();
 let lon = $("#id_dd_lon").val();
+
+// an object to hold the spatial attrubutes predicted by lat-long.
+let spatialAttrs = {
+  grid10: "",
+  jurisdiction: "",
+  lake: "",
+  manUnit: ""
+};
+
+const updateSpatialAttrs = (lat, lon) => {
+  let success = data => (spatialAttrs = data);
+  let error = () => {
+    spatialAttrs = {};
+  };
+  let pt = { dd_lat: lat, dd_lon: lon };
+  getSpatialAttrs(pt, spatialAttrURL, csrf_token, success, error).then(() =>
+    checkSpatialWidgets()
+  );
+};
+
+const checkSpatialWidgets = () => {
+  // grid10
+  let gridShouldbe;
+  let manUnitShouldbe;
+  let stateProvShouldbe;
+  let lakeShouldbe;
+  // statDist
+  // state/Prov
+  // lake
+
+  gridShouldbe =
+    spatialAttrs["grid10"] !== "" ? spatialAttrs["grid10"].grid : "";
+  validateSpatialField(gridShouldbe, "id_grid_10_id");
+
+  manUnitShouldbe =
+    spatialAttrs["manUnit"] !== "" ? spatialAttrs["manUnit"].label : "";
+  validateSpatialField(manUnitShouldbe, "id_management_unit_id");
+
+  if (spatialAttrs["jurisdiction"] !== "") {
+    stateProvShouldbe = `${spatialAttrs["jurisdiction"].stateprov_name} (${spatialAttrs["jurisdiction"].stateprov_abbrev})`;
+  } else {
+    stateProvShouldbe = "";
+  }
+  validateSpatialField(stateProvShouldbe, "id_state_prov_id");
+
+  if (spatialAttrs["lake"] !== "") {
+    lakeShouldbe = `${spatialAttrs["lake"].lake_name} (${spatialAttrs["lake"].abbrev})`;
+  } else {
+    lakeShouldbe = "";
+  }
+  validateSpatialField(lakeShouldbe, "id_lake_id");
+};
+
+const validateSpatialField = (shouldbe, fieldid) => {
+  //see if the selected value is the same as shouldbe
+  // if so, setvalid(feild);
+  // if not, see if there is already an error:
+  // if there is an error - tack this one to it
+  // if not - add popup html to the dom.
+  const selected = $(`#${fieldid} option:selected`).html();
+  let field = $(`#${fieldid}`);
+
+  if (selected === shouldbe || shouldbe === "") {
+    removeError(fieldid, "latlon");
+  } else {
+    let msg = "Oh snap! lat-long says " + shouldbe;
+    addError(fieldid, "latlon", msg);
+  }
+};
 
 // setup the map with rough bounds (need to get pies to plot first,
 // this will be tweaked later):
@@ -64,12 +140,14 @@ mymap.on("click", function(e) {
   drawPt(lat, lon);
   $("#id_dd_lat").val(Number(lat).toFixed(4));
   $("#id_dd_lon").val(Number(lon).toFixed(4));
+  updateSpatialAttrs(lat, lon);
 });
 
 //watch our lat-lon inputs and update the point if they change:
 $("#id_dd_lat").on("change", function(e) {
   if (!checkDdLat(this, bbox)) return false;
   if (!checkLatLon(this)) return false;
+  updateMapPt();
 });
 
 $("#id_dd_lon").on("change", function(e) {
@@ -78,11 +156,12 @@ $("#id_dd_lon").on("change", function(e) {
   updateMapPt();
 });
 
-const updateMapPt = () => {
-  let ddlat = document.getElementById("id_dd_lat").value;
-  let ddlon = document.getElementById("id_dd_lon").value;
-  drawPt(ddlat, ddlon);
-};
+function updateMapPt() {
+  lat = document.getElementById("id_dd_lat").value;
+  lon = document.getElementById("id_dd_lon").value;
+  drawPt(lat, lon);
+  updateSpatialAttrs(lat, lon);
+}
 
 // draw our initail point:
 drawPt(lat, lon);
@@ -177,8 +256,6 @@ $("#id_species_id").on("change", function(e) {
 });
 
 $("#id_strain_raw_id").on("change", function(e) {
-  // if the selected value is not null, it is valid, if it is null, flag it.
-
   const myId = this.id;
   const parentId = "id_species_id";
   checkChoice(myId, parentId);
@@ -258,11 +335,16 @@ function validate_month(field) {
   if (day.val()) {
     if (checkEmpty(field)) {
       setInvalid(field, "Month is required if Day is populated.");
+      //addError(
+      //  field.id,
+      //  "month-required",
+      //  "Month is required if Day is populated."
+      //);
       return false;
     }
   }
-
-  setValid(field);
+  //removeError(field.id, "month-required");
+  //setValid(field);
   return true;
 }
 
@@ -271,6 +353,7 @@ function validate_year(field) {
   const thisYear = new Date().getFullYear();
   if (checkEmpty(field)) return false;
   if (!checkRange(field, 1950, thisYear)) return false;
+  // - might still want setValid - always remove all errors?
   setValid(field);
   return true;
 }
