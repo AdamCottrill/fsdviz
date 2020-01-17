@@ -15,10 +15,11 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
 
 
+    
 {% endblock %}
 
 {% block content %}
-
+    
     <div  class="ui container" >
         <h2>Edit Stocking Event {{ stock_id }}</h2>
 
@@ -70,10 +71,18 @@
                         <div class="four wide column">
 
                             {% include "stocking/_form_field.html" with field_obj=form.lake_id %}
+
                             {% include "stocking/_form_field.html" with field_obj=form.state_prov_id %}
                             {% include "stocking/_form_field.html" with field_obj=form.management_unit_id %}
                             {% include "stocking/_form_field.html" with field_obj=form.grid_10_id %}
 
+                            <div id="grid10-popup" class="ui flowing top center popup">
+                                <div class='ui bulleted list'>
+                                    <div class='item'>Error 1 </div>
+                                    <div class='item'>Oh snap! lat-long says GB2</div>
+                                </div>
+                            </div>
+                            
                             <div class="ui segment">
                                 {% include "stocking/_form_field.html" with field_obj=form.dd_lat %}
                                 {% include "stocking/_form_field.html" with field_obj=form.dd_lon %}
@@ -163,16 +172,24 @@
 
     <script>
 
-//     //instantiate the calendar and add an onChange function
-//     $(".ui.calendar").calendar({
-//         type: "date",
-//         maxDate: new Date(),
-//         onChange: function() {             
-//             console.log(this);
-//             debugger;
-//         }     
-//     });
-//     
+
+     const jurisdictionURL = "{% url 'common_api:jurisdiction-list' %}";     
+     const manUnitURL = "{% url 'common_api:managementunit-list' %}";
+     const grid10URL = "{% url 'common_api:grid10-list' %}";
+     const strainURL = "{% url 'common_api:strainraw-list' %}";
+     
+     const spatialAttrURL = "{% url 'common_api:api-lookup-spatial-attrs' %}";     
+     const csrf_token = "{{ csrf_token }}";
+
+     //$('.field')
+     //    .popup()
+     //;
+
+     $('.input')
+         .popup()
+     ;
+
+     
     </script>
     
 

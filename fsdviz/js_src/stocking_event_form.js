@@ -1,12 +1,10 @@
-/* global accessToken,  $, spatialAttrURL, csrf_token */
+/* global accessToken,  $, jurisdictionURL, manUnitURL, grid10URL, spatialAttrURL, strainURL, csrf_token */
 
 import Leaflet from "leaflet";
 
-import helpers from "@turf/helpers";
-import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
-
 import {
-  checkChoice,
+  checkMyChoice,
+  getChoices,
   update_selector,
   setValid,
   setInvalid,
@@ -14,14 +12,19 @@ import {
   removeError,
   isValidDate,
   checkRange,
-  isEmpty,
   checkEmpty,
   checkDdLat,
   checkDdLon,
   checkLatLon
 } from "./form_utils";
 
-import { checkPointInPoly, getPolygon, getSpatialAttrs } from "./spatial_utils";
+import {
+  //checkPointInPoly, getPolygon,
+  getSpatialAttrs
+} from "./spatial_utils";
+
+//=================================================
+// GLOBALS
 
 let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
 
@@ -37,66 +40,8 @@ let spatialAttrs = {
   manUnit: ""
 };
 
-const updateSpatialAttrs = (lat, lon) => {
-  let success = data => (spatialAttrs = data);
-  let error = () => {
-    spatialAttrs = {};
-  };
-  let pt = { dd_lat: lat, dd_lon: lon };
-  getSpatialAttrs(pt, spatialAttrURL, csrf_token, success, error).then(() =>
-    checkSpatialWidgets()
-  );
-};
-
-const checkSpatialWidgets = () => {
-  // grid10
-  let gridShouldbe;
-  let manUnitShouldbe;
-  let stateProvShouldbe;
-  let lakeShouldbe;
-  // statDist
-  // state/Prov
-  // lake
-
-  gridShouldbe =
-    spatialAttrs["grid10"] !== "" ? spatialAttrs["grid10"].grid : "";
-  validateSpatialField(gridShouldbe, "id_grid_10_id");
-
-  manUnitShouldbe =
-    spatialAttrs["manUnit"] !== "" ? spatialAttrs["manUnit"].label : "";
-  validateSpatialField(manUnitShouldbe, "id_management_unit_id");
-
-  if (spatialAttrs["jurisdiction"] !== "") {
-    stateProvShouldbe = `${spatialAttrs["jurisdiction"].stateprov_name} (${spatialAttrs["jurisdiction"].stateprov_abbrev})`;
-  } else {
-    stateProvShouldbe = "";
-  }
-  validateSpatialField(stateProvShouldbe, "id_state_prov_id");
-
-  if (spatialAttrs["lake"] !== "") {
-    lakeShouldbe = `${spatialAttrs["lake"].lake_name} (${spatialAttrs["lake"].abbrev})`;
-  } else {
-    lakeShouldbe = "";
-  }
-  validateSpatialField(lakeShouldbe, "id_lake_id");
-};
-
-const validateSpatialField = (shouldbe, fieldid) => {
-  //see if the selected value is the same as shouldbe
-  // if so, setvalid(feild);
-  // if not, see if there is already an error:
-  // if there is an error - tack this one to it
-  // if not - add popup html to the dom.
-  const selected = $(`#${fieldid} option:selected`).html();
-  let field = $(`#${fieldid}`);
-
-  if (selected === shouldbe || shouldbe === "") {
-    removeError(fieldid, "latlon");
-  } else {
-    let msg = "Oh snap! lat-long says " + shouldbe;
-    addError(fieldid, "latlon", msg);
-  }
-};
+//=================================================
+//              LEAFLET MAP
 
 // setup the map with rough bounds (need to get pies to plot first,
 // this will be tweaked later):
@@ -137,20 +82,19 @@ const drawPt = (lat, lon) => {
 mymap.on("click", function(e) {
   lat = e.latlng.lat;
   lon = e.latlng.lng;
-  drawPt(lat, lon);
   $("#id_dd_lat").val(Number(lat).toFixed(4));
   $("#id_dd_lon").val(Number(lon).toFixed(4));
-  updateSpatialAttrs(lat, lon);
+  updateMapPt();
 });
 
 //watch our lat-lon inputs and update the point if they change:
-$("#id_dd_lat").on("change", function(e) {
+$("#id_dd_lat").on("change", function() {
   if (!checkDdLat(this, bbox)) return false;
   if (!checkLatLon(this)) return false;
   updateMapPt();
 });
 
-$("#id_dd_lon").on("change", function(e) {
+$("#id_dd_lon").on("change", function() {
   if (!checkDdLon(this, bbox)) return false;
   if (!checkLatLon(this)) return false;
   updateMapPt();
@@ -163,70 +107,230 @@ function updateMapPt() {
   updateSpatialAttrs(lat, lon);
 }
 
-// draw our initail point:
-drawPt(lat, lon);
+//=================================================
+// SPATIAL SELECTS EVENTS
 
-$("#id_lake_id").on("change", function(e) {
-  let url = "/api/v1/common/jurisdiction/?lake_id=" + e.target.value;
+$("#id_lake_id").on("change", () => {
+  updateStateProvChoices();
+  validateLake();
+  //  checkMyChoice("id_state_prov_id", "id_lake_id");
+});
+
+$("#id_state_prov_id").on("change", () => {
+  updateManUnitChoices();
+  validateStateProv();
+  //  checkMyChoice("id_management_unit_id", "id_state_prov_id");
+});
+
+$("#id_management_unit_id").on("change", () => {
+  updateGrid10Choices();
+  validateManUnit();
+});
+
+$("#id_grid_10_id").on("change", () => {
+  //checkSpatialWidgets();
+  //  checkMyChoice("id_grid_10_id", "id_management_unit_id");
+  //    checkGrid10ChoiceLatLon();
+  validateGrid10();
+});
+
+$("#id_lake_id").on("blur", () => {
+  validateLake();
+});
+
+$("#id_state_prov_id").on("blur", () => {
+  validateStateProv();
+});
+
+$("#id_management_unit_id").on("blur", () => {
+  validateManUnit();
+});
+
+$("#id_grid_10_id").on("blur", () => {
+  validateGrid10();
+});
+
+//=====================================================
+// in order for our spatial selects to be valid - each one must:
+// + be consistent with coordinates
+// + be one of the choices
+
+const validateLake = () => {
+  checkLakeChoiceLatLon();
+};
+
+const validateStateProv = () => {
+  checkStateProvChoiceLatLon();
+  checkMyChoice("id_state_prov_id", "id_lake_id");
+};
+
+const validateManUnit = () => {
+  checkManUnitChoiceLatLon();
+  checkMyChoice("id_management_unit_id", "id_state_prov_id");
+};
+
+const validateGrid10 = () => {
+  checkGrid10ChoiceLatLon();
+  checkMyChoice("id_grid_10_id", "id_management_unit_id");
+};
+
+//=====================================================
+//         UPDATE SPATIAL SELECTS
+
+// when a spatial select changes, update the options in the child widget:
+
+const updateStateProvChoices = () => {
+  let options;
+  let lake_id = $("#id_lake_id option:selected").val();
+
+  //let url = "/api/v1/common/jurisdiction/?lake_id=" + e.target.value;
+  let url = `${jurisdictionURL}?lake_id=${lake_id}`;
   const reducer = (accumulator, d) => {
     accumulator[d.id] = `${d.stateprov.name} (${d.stateprov.abbrev})`;
     return accumulator;
   };
 
-  $.ajax({
-    url: url,
-    dataType: "json",
-    success: data => {
-      let options = data.reduce(reducer, {});
-      update_selector("id_state_prov_id", this.id, options);
-    },
-    error: data => {
-      console.log("ajax error getting states and provinces!");
-    }
-  });
+  const success = data => {
+    options = data.reduce(reducer, {});
+  };
+  let errmsg = "ajax error getting states and provinces!";
 
-  url =
-    "/api/v1/common/management_unit/?mu_type=stat_dist&lake_id=" +
-    e.target.value;
+  getChoices(url, success, errmsg)
+    .then(() => {
+      update_selector("id_state_prov_id", "id_lake_id", options);
+    })
+    .then(checkMyChoice("id_state_prov_id", "id_lake_id"));
+};
 
-  const manUnitReducer = (accumulator, d) => {
+const updateManUnitChoices = () => {
+  let options;
+
+  let lake_id = $("#id_lake_id option:selected").val();
+
+  // Management Units -
+
+  // NOTE - this uses lake to filter management units - it should use jurisdiction!
+
+  // TODO - update this api endpoint to accept stat/prov - this
+  // could be a many-to-many and/or a spatial join.
+  let url = `${manUnitURL}?mu_type=stat_dist&lake_id=${lake_id}`;
+  const reducer = (accumulator, d) => {
     accumulator[d.id] = d.label;
     return accumulator;
   };
 
-  $.ajax({
-    url: url,
-    dataType: "json",
-    success: data => {
-      let options = data.reduce(manUnitReducer, {});
-      update_selector("id_management_unit_id", this.id, options);
-    },
-    error: data => {
-      console.log("ajax error getting mangement units!");
-    }
-  });
-});
+  const success = data => {
+    options = data.reduce(reducer, {});
+  };
+  let errmsg = "ajax error getting management units!";
 
-$("#id_management_unit_id").on("change", function(e) {
-  let url = "/api/v1/common/grid10/?manUnit_id=" + e.target.value;
+  getChoices(url, success, errmsg)
+    .then(() => {
+      update_selector("id_management_unit_id", "id_state_prov_id", options);
+      //    checkSpatialWidgets();
+    })
+    .then(checkMyChoice("id_management_unit_id", "id_state_prov_id"));
+};
+
+const updateGrid10Choices = () => {
+  // update the options available in the grid10 select box
+
+  let selectedManUnitId = $("#id_management_unit_id option:selected").val();
+  let url = `${grid10URL}?manUnit_id=${selectedManUnitId}`;
 
   const reducer = (accumulator, d) => {
-    accumulator[d.id] = `${d.grid} (${d.lake.abbrev})`;
+    //accumulator[d.id] = `${d.grid} (${d.lake.abbrev})`;
+    accumulator[d.id] = d.grid;
     return accumulator;
   };
 
-  $.ajax({
-    url: url,
-    dataType: "json",
-    success: data => {
-      let options = data.reduce(reducer, {});
-      update_selector("id_grid_10_id", this.id, options);
-    },
-    error: data => {
-      console.log("ajax error getting grids!");
-    }
+  let options;
+  const success = data => {
+    options = data.reduce(reducer, {});
+  };
+  let errmsg = "ajax error getting grids!";
+  getChoices(url, success, errmsg)
+    .then(() => {
+      update_selector("id_grid_10_id", "id_management_unit_id", options);
+      //checkSpatialWidgets();
+    })
+    .then(checkMyChoice("id_grid_10_id", "id_management_unit_id"));
+};
+
+// a function to update the lake, province, manUnit and grid based on lat lon.
+const updateSpatialAttrs = (lat, lon) => {
+  let success = data => (spatialAttrs = data);
+  let error = () => {
+    spatialAttrs = {
+      grid10: "",
+      jurisdiction: "",
+      lake: "",
+      manUnit: ""
+    };
+  };
+  let pt = { dd_lat: lat, dd_lon: lon };
+  getSpatialAttrs(pt, spatialAttrURL, csrf_token, success, error).then(() => {
+    checkSpatialWidgets();
   });
-});
+};
+
+const checkLakeChoiceLatLon = () => {
+  let lakeShouldbe;
+  if (spatialAttrs["lake"] !== "") {
+    let name = spatialAttrs["lake"].lake_name;
+    let abbrev = spatialAttrs["lake"].abbrev;
+    lakeShouldbe = `${name} (${abbrev})`;
+  } else {
+    lakeShouldbe = "";
+  }
+  validateSpatialField(lakeShouldbe, "id_lake_id");
+};
+
+const checkStateProvChoiceLatLon = () => {
+  let stateProvShouldbe;
+  if (spatialAttrs["jurisdiction"] !== "") {
+    let name = spatialAttrs["jurisdiction"].stateprov_name;
+    let abbrev = spatialAttrs["jurisdiction"].stateprov_abbrev;
+    stateProvShouldbe = `${name} (${abbrev})`;
+  } else {
+    stateProvShouldbe = "";
+  }
+  validateSpatialField(stateProvShouldbe, "id_state_prov_id");
+};
+
+const checkManUnitChoiceLatLon = () => {
+  let manUnitShouldbe;
+  manUnitShouldbe =
+    spatialAttrs["manUnit"] !== "" ? spatialAttrs["manUnit"].label : "";
+  validateSpatialField(manUnitShouldbe, "id_management_unit_id");
+};
+
+const checkGrid10ChoiceLatLon = () => {
+  let gridShouldbe;
+  gridShouldbe =
+    spatialAttrs["grid10"] !== "" ? spatialAttrs["grid10"].grid : "";
+  validateSpatialField(gridShouldbe, "id_grid_10_id");
+};
+
+const checkSpatialWidgets = () => {
+  checkGrid10ChoiceLatLon();
+  checkManUnitChoiceLatLon();
+  checkStateProvChoiceLatLon();
+  checkLakeChoiceLatLon();
+};
+
+const validateSpatialField = (shouldbe, fieldid) => {
+  //see if the selected value is the same as shouldbe
+  // if not - add popup html to the dom.
+  const selected = $(`#${fieldid} option:selected`).html();
+
+  if (selected == shouldbe || shouldbe == "") {
+    removeError(fieldid, "lat-lon");
+  } else {
+    let msg = `Lat-long suggests "${shouldbe}"`;
+    addError(fieldid, "lat-lon", msg);
+  }
+};
 
 //=====================================================
 //              SPECIES AND STRAINS
@@ -235,30 +339,29 @@ $("#id_management_unit_id").on("change", function(e) {
 // strain selected, keep it but flag it as invalid
 
 $("#id_species_id").on("change", function(e) {
-  let url = "/api/v1/common/strainraw/?species_id=" + e.target.value;
+  //let url = "/api/v1/common/strainraw/?species_id=" + e.target.value;
+  let url = `${strainURL}?species_id=${e.target.value}`;
 
   const reducer = (accumulator, d) => {
     accumulator[d.id] = `${d.raw_strain} (${d.description})`;
     return accumulator;
   };
 
-  $.ajax({
-    url: url,
-    dataType: "json",
-    success: data => {
-      let strains = data.reduce(reducer, {});
-      update_selector("id_strain_raw_id", this.id, strains);
-    },
-    error: data => {
-      console.log("ajax error getting strains!");
-    }
+  let options;
+  const myid = this.id;
+  const success = data => {
+    options = data.reduce(reducer, {});
+  };
+  const errmsg = "ajax error getting strains!";
+  getChoices(url, success, errmsg).then(() => {
+    update_selector("id_strain_raw_id", myid, options);
   });
 });
 
-$("#id_strain_raw_id").on("change", function(e) {
+$("#id_strain_raw_id").on("change", function() {
   const myId = this.id;
   const parentId = "id_species_id";
-  checkChoice(myId, parentId);
+  checkMyChoice(myId, parentId);
 });
 
 //=====================================================
@@ -310,18 +413,17 @@ const updateCalendar = function() {
     $("#id_date").calendar("clear");
   }
 };
-updateCalendar();
 
-$("#id_day").on("change", function(e) {
+$("#id_day").on("change", function() {
   updateCalendar();
   checkDate();
 });
 
-$("#id_month").on("change", function(e) {
+$("#id_month").on("change", function() {
   if (validate_month(this)) checkDate();
 });
 
-$("#id_year").on("change", function(e) {
+$("#id_year").on("change", function() {
   if (validate_year(this)) checkDate();
 });
 
@@ -396,3 +498,11 @@ const checkDate = function() {
     setValid(dayElement);
   }
 };
+
+// on page load:
+
+updateCalendar();
+
+updateGrid10Choices();
+// draw our initail point:
+updateMapPt();

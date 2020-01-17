@@ -1,16 +1,28 @@
 /* global $ */
 
-export const checkChoice = (myId, parentId) => {
+export async function getChoices(url, success, errmsg) {
+  await $.ajax({
+    url: url,
+    dataType: "json",
+    success: success,
+    error: () => {
+      console.log(errmsg);
+    }
+  });
+}
+
+export const checkMyChoice = (myId, parentId) => {
   // verify that the selected option has a value, flag the select
   // box if it doesn't and add a meaning ful message
+  // eg - 'Seneca' is not a valid choice for Chinook Salmon
 
-  const el = $(`#${myId}`);
+  //const el = $(`#${myId}`);
   const selected_val = $(`#${myId} option:selected`).val();
   const selected_text = $(`#${myId} option:selected`).text();
   const parent_text = $(`#${parentId} option:selected`).text();
 
   if (selected_val === "-999") {
-    const msg = `'${selected_text}' is not a valid choice for ${parent_text}`;
+    const msg = `'${selected_text}' is not a valid choice for '${parent_text}'`;
     //setInvalid(el, msg);
     addError(myId, "invalid-choice", msg);
   } else {
@@ -64,7 +76,6 @@ export const setInvalid = (field, errMsg) => {
   let input = wrapper.find(".ui.input");
   // get the current errors and add our new one:
   input.attr("data-html", errMsg).attr("data-position", "top center");
-  console.log(input.attr("data-html"));
 };
 
 export const setValid = field => {
@@ -77,77 +88,44 @@ export const setValid = field => {
 
 export const addError = (targetid, errorid, msg) => {
   errorid = targetid + "-" + errorid;
+  let popup = $(`#${targetid}-popup`);
+
+  if (popup.length === 0) {
+    let html = `<div id="${targetid}-popup" class="ui flowing popup" hidden>
+            <div id="${targetid}-error-list" class="ui bulleted list">
+            </ul>
+          </div>`;
+
+    $(`#${targetid}-field`).append(html);
+  }
 
   $(`#${targetid}-field`).addClass("error");
-
-  // in order to modify the html-data attribute, we need to write it
-  // out somewhere, select it, manipulate it, and then cleanup.
-
-  $(`#${targetid}`).after(`<div id="${targetid}-sandbox" hidden></div>`);
-  let html = $(`#${targetid}`)
-    .parent()
-    .data("html");
-  if (typeof html === "undefined") {
-    html = `<div id="${targetid}-error-list" class="ui bulleted list">
-              </div>`;
-  }
-  let sandbox = $(`#${targetid}-sandbox`);
-  sandbox.append(html);
-
-  // now select the list in our sandbox div:
   let errorList = $(`#${targetid}-error-list`);
+
   // don't append duplicates
   if ($(`#${errorid}`).length === 0) {
+    //let item_html = `<li id="${errorid}">${msg}</li>`;
     let item_html = `<div class="item" id="${errorid}">${msg}</div>`;
     errorList.append(item_html);
   } else {
     // update the error message (just incase it changed)
     $(`#${errorid}`).html(msg);
   }
-
-  // update the data-html of our target element
-  $(`#${targetid}`)
-    .parent()
-    .attr("data-html", $(`#${targetid}-sandbox`).html());
-  //clean-up
-  sandbox.remove();
 };
 
 // remove the specified error from the target field
 // if this is the last error, remove the popup too
+// note - removeing the popup entirely causes an error if we add it again.
+// just leaving an empty popup is a workable solution.
 export const removeError = (targetid, errorid) => {
   errorid = targetid + "-" + errorid;
-
-  // create our hidden sandbox:
-  $(`#${targetid}`).after(`<div id="${targetid}-sandbox" hidden></div>`);
-  let sandbox = $(`#${targetid}-sandbox`);
-
-  let html = $(`#${targetid}`)
-    .parent()
-    .data("html");
-
-  if (typeof html === "undefined") {
-    $(`#${targetid}-field`).removeClass("error");
-    sandbox.remove();
-    return;
-  } else {
-    sandbox.append(html);
-  }
-
-  // remove the error from the error list:
-  $(`#${targetid}-error-list #${errorid}`).remove();
+  let errorSelector = `#${targetid}-error-list #${errorid}`;
+  $(errorSelector).remove();
   let errorList = $(`#${targetid}-error-list .item`);
   if (errorList.length === 0) {
+    $(`#${targetid}-popup`).popup("destroy");
     $(`#${targetid}-field`).removeClass("error");
-    $(`#${targetid}`)
-      .parent()
-      .removeAttr("data-html");
-  } else {
-    $(`#${targetid}`)
-      .parent()
-      .attr("data-html", $(`#${targetid}-sandbox`).html());
   }
-  sandbox.remove();
 };
 
 // from https://stackoverflow.com/questions/21188420/
@@ -197,7 +175,7 @@ export const checkEmpty = field => {
   } else {
     //set field to valid
     //setValid(field);
-    removeError(feild.id, "empty");
+    removeError(field.id, "empty");
     return false;
   }
 };
