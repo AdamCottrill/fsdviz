@@ -268,7 +268,8 @@ def test_xlseventform_no_grid_invalid_lake(stocking_event_dict, xls_choices):
     assert status is False
 
     error_messages = [x[1][0] for x in form.errors.items()]
-    expected = "Unable to find any grids for lake '{}'"
+    # expected = "Unable to find any grids for lake '{}'"
+    expected = "Select a valid choice. {} is not one of the available choices."
     assert expected.format("fake") in error_messages
 
 
@@ -309,6 +310,7 @@ def test_xlseventform_no_stat_dist_invalid_lake(stocking_event_dict, xls_choices
     assert status is False
 
     error_messages = [x[1][0] for x in form.errors.items()]
-    expected = "Unable to find any Statistical Districts for lake '{}'"
+    # expected = "Unable to find any Statistical Districts for lake '{}'"
+    expected = "Select a valid choice. {} is not one of the available choices."
     expected = expected.format("fake")
     assert expected in error_messages

@@ -325,6 +325,7 @@ class TestGridAPI(APITestCase):
 
         for grid in [grid1, grid2, grid3]:
             obj = {
+                "id": grid.id,
                 "grid": grid.grid,
                 "lake": erie_dict,
                 "centroid": grid.centroid,
@@ -350,11 +351,13 @@ class TestGridAPI(APITestCase):
         assert response.status_code == status.HTTP_200_OK
 
         expected = {
+            "id": grid.id,
             "grid": grid.grid,
             "lake": erie_dict,
             "centroid": grid.centroid,
             "slug": grid.slug,
         }
+
         assert expected == response.data
 
 
