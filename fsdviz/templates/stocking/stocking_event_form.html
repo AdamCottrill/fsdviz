@@ -28,6 +28,8 @@
 
             {{ form.non_field_errors }}
 
+            {{form.id}}
+            
             <div class="ui fluid card">
                 <div class="content">
                     <div class="header">Agency, Species, and Strain</div>
@@ -136,7 +138,7 @@
                         {% include "stocking/_form_field.html" with width="two" field_obj=form.weight %}
                         {% include "stocking/_form_field.html" with width="five" field_obj=form.condition_id %}
                         {% include "stocking/_form_field.html" with width="five" field_obj=form.validation %}
-                        {% include "stocking/_form_field.html" with width="two" field_obj=form.lot_code %}
+                        {% include "stocking/_form_field.html" with width="two" field_obj=form.lotcode %}
 
                     </div>
 

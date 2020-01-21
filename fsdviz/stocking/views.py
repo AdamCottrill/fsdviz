@@ -612,20 +612,35 @@ def xls_events(request):
             # return to list of uploaded events.
             # create our lookup dicts that relake abbrev to django objects:
 
+            lakes = Lake.objects.values_list("id", "abbrev")
+            stateProvinces = StateProvince.objects.values_list("id", "abbrev")
+            agencies = Agency.objects.all().values_list("id", "abbrev")
+            species = Species.objects.values_list("id", "abbrev")
+            stocking_methods = StockingMethod.objects.values_list("id", "stk_meth")
+            conditions = Condition.objects.values_list("id", "condition")
+            lifestages = LifeStage.objects.values_list("id", "abbrev")
+            grids = Grid10.objects.values_list("id", "slug")
+
             lake_id_lookup = toLookup(lakes)
             agency_id_lookup = toLookup(agencies)
-
-            stocking_method_id_lookup = toLookup(stocking_methods)
-            grid_id_lookup = toLookup(grids)
-            mu_id_lookup = make_mu_id_lookup(mus)
-            condition_id_lookup = toLookup(conditions)
             stateProv_id_lookup = toLookup(stateProvinces)
             species_id_lookup = toLookup(species)
+            stocking_method_id_lookup = toLookup(stocking_methods)
+            condition_id_lookup = toLookup(conditions)
             lifestage_id_lookup = toLookup(lifestages)
+            grid_id_lookup = toLookup(grids)
+
+            mus = ManagementUnit.objects.values_list(
+                "id", "slug", "lake__abbrev", "label"
+            )
+            mu_id_lookup = make_mu_id_lookup(mus)
 
             lakeStates = [x for x in Jurisdiction.objects.values_list("id", "slug")]
             lakeState_id_lookup = toLookup(lakeStates)
 
+            strains = StrainRaw.objects.values_list(
+                "id", "species__abbrev", "strain__strain_code"
+            )
             strain_id_lookup = make_strain_id_lookup(strains)
 
             with transaction.atomic():
@@ -739,14 +754,12 @@ def edit_stocking_event(request, stock_id):
     choices = get_event_model_form_choices(event)
 
     if request.method == "POST":
-
         form = StockingEventForm(request.POST, choices=choices)
-
         if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            return HttpResponseRedirect(event.get_absolute_url())
+            form.save()
+            url = event.get_absolute_url()
+            return HttpResponseRedirect(url)
+
     else:
         # covert our event object to a dictionary and add some
         # additional attributes we weill need in the form:

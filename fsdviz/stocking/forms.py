@@ -11,7 +11,17 @@ from ..stocking.models import (
     Condition,
     Strain,
 )
-from ..common.models import ManagementUnit, Lake, Agency, StateProvince, Species, Grid10
+from ..common.models import (
+    ManagementUnit,
+    Lake,
+    Agency,
+    StateProvince,
+    Species,
+    Grid10,
+    Jurisdiction,
+)
+
+from ..common.widgets import SemanticDatePicker
 
 
 class FindEventsForm(forms.Form):
@@ -307,7 +317,7 @@ class XlsEventForm(forms.Form):
             raise forms.ValidationError(msg, params={"lake": lake}, code="grid")
 
         if grid not in [x[0] for x in grids]:
-            msg = "Grid %(grid)s is not valid for lake %(lake)s".format(grid, lake)
+            msg = "Grid {grid} is not valid for lake '{lake}'".format(grid, lake)
             raise forms.ValidationError(
                 msg, params={"grid": grid, "lake": lake}, code="grid"
             )
@@ -400,6 +410,8 @@ class StockingEventForm(forms.Form):
     # not sure if the the best approach:
     DAYS = [("", "Ukn")] + list(zip(range(1, 32), range(1, 32)))
 
+    id = forms.CharField(widget=forms.HiddenInput(), required=False)
+
     #  ** WHO **
     agency_id = forms.ChoiceField(
         label="Agency", choices=[], required=True, widget=MySelect
@@ -418,9 +430,9 @@ class StockingEventForm(forms.Form):
     year = forms.IntegerField(
         min_value=1950, max_value=datetime.now().year, required=True
     )
-    month = forms.ChoiceField(choices=MONTHS)
-    day = forms.ChoiceField(choices=DAYS)
-    date = forms.DateField(required=False)
+    month = forms.ChoiceField(choices=MONTHS, required=False)
+    day = forms.ChoiceField(choices=DAYS, required=False)
+    date = forms.DateField(required=False, widget=SemanticDatePicker())
 
     #  ** WHERE **
     lake_id = forms.ChoiceField(
@@ -467,7 +479,7 @@ class StockingEventForm(forms.Form):
         label="Year Class",
         min_value=1950,
         max_value=(datetime.now().year + 1),
-        required=False,
+        # required=False,
     )
     lifestage_id = forms.ChoiceField(
         label="Life Stage", choices=[], required=True, widget=MySelect
@@ -492,9 +504,77 @@ class StockingEventForm(forms.Form):
         choices=StockingEvent.VALIDATION_CODE_CHOICES,
         required=False,
     )
-    lot_code = forms.CharField(required=False)
+    lotcode = forms.CharField(required=False)
     notes = forms.CharField(
         label="Additional Notes",
         required=False,
         widget=forms.Textarea(attrs={"rows": 4}),
     )
+
+    def clean(self):
+        """Clean is our last chance to verify fields that depend on each other
+        and remove or add any data elements that don't match between a
+        stocking event and our stocking event form."""
+
+        # temportal fields - day, month, year
+        # spatial fields
+        # lat-lon flag
+        # clips
+        # marks
+        # cwts
+
+        # jurisdiction
+
+        data = self.cleaned_data
+
+        lake_id = data.pop("lake_id", 0)
+        stateprov_id = data.pop("state_prov_id", 0)
+        # data["stateProv"] = StateProvince.objects.get(id=state_prov_id)
+
+        jurisdiction = Jurisdiction.objects.filter(
+            stateprov_id=stateprov_id, lake_id=lake_id
+        ).first()
+
+        if jurisdiction:
+            data["jurisdiction"] = jurisdiction
+        else:
+            msg = "The provided combination of lake and state/province is not valid."
+            raise forms.ValidationError(msg, code="invalid_jurisdiction")
+
+        # DATE
+        year = data.get("year", "0")
+        month = data.get("month")
+        day = data.get("day")
+
+        # if month and not day:
+        #    msg = "Please provide a day to complete the event date"
+        #    raise forms.ValidationError(msg, code="missing_day")
+        if day and not month:
+            msg = "Please provide a month to complete the event date."
+            raise forms.ValidationError(msg, code="missing_month")
+
+        if month and day:
+            try:
+                event_date = datetime(int(year), int(month), int(day))
+            except ValueError:
+                msg = "Day, month, and year do not form a valid date."
+                raise forms.ValidationError(msg, code="invalid_date")
+
+        # site_type = data.pop("site_type")
+
+        # this needs to be calcualted based on species, lifestage, and ...
+        data["yreq_stocked"] = data.get("no_stocked", 0)
+
+        # this is also not right - just getting it to work ...
+        data["latlong_flag_id"] = 1
+
+        return data
+
+    def save(self):
+
+        data = self.cleaned_data
+        id = data.pop("id")
+        instance = StockingEvent.objects.get(id=id)
+        for attr, value in data.items():
+            setattr(instance, attr, value)
+        instance.save()
