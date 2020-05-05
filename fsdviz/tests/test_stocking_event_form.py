@@ -71,7 +71,8 @@ def test_complete_valid_data(event):
     event_dict = create_event_dict(event)
     form = StockingEventForm(event_dict, choices=choices)
 
-    assert form.is_valid() is True
+    status = form.is_valid()
+    assert status is True
 
 
 choice_fields = [
@@ -130,27 +131,11 @@ required_fields = [
     "state_prov_id",
     "management_unit_id",
     "grid_10_id",
-    # "dd_lat",
-    # "dd_lon",
-    # "latlong_flag_id",
     "site",
-    # "st_site",
-    # "site_type",
     "no_stocked",
     "stocking_method_id",
     "year_class",
     "lifestage_id",
-    # "agemonth",
-    # "mark",
-    # "mark_eff",
-    # "tag_no",
-    # "tag_ret",
-    # "length",
-    # "weight",
-    # "condition_id",
-    # "validation",
-    # "lotcode",
-    # "notes",
 ]
 
 
@@ -183,7 +168,42 @@ def test_missing_required_field(event, field_name):
     assert expected in error_message
 
 
-invalid_values = [("year", [-10, 1900, 2032, "foo"])]
+optional_fields = [
+    "site_type",
+    "agemonth",
+    "mark",
+    "mark_eff",
+    # "clip", #SOME DAY
+    "tag_no",
+    "tag_ret",
+    "length",
+    "weight",
+    "condition",
+    "validation",
+]
+
+
+@pytest.mark.parametrize("field_name", optional_fields)
+@pytest.mark.django_db
+def test_missing_optional_field(event, field_name):
+    """This test verifies that the form is still valid if the optional
+    fields are not provided. It is parameterized to take a list of
+    requried field names, then submit the form with each field
+    missing.  The form should always be valid.
+
+    """
+
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
+
+    # get the first element of the first list in agencies
+
+    event_dict[field_name] = None
+
+    form = StockingEventForm(event_dict, choices=choices)
+
+    status = form.is_valid()
+    assert status is True
 
 
 # ==========================================
@@ -217,6 +237,86 @@ numeric_fields = [
         [
             "Select a valid choice. -10 is not one of the available choices.",
             "Select a valid choice. 0 is not one of the available choices.",
+            "Select a valid choice. 32 is not one of the available choices.",
+            "Select a valid choice. foo is not one of the available choices.",
+        ],
+    ),
+    (
+        "no_stocked",
+        [-10, 0, 0.5, "foo"],
+        [
+            "Ensure this value is greater than or equal to 1.",
+            "Ensure this value is greater than or equal to 1.",
+            "Enter a whole number.",
+            "Enter a whole number.",
+        ],
+    ),
+    (
+        "year_class",
+        [-10, 10, 1900, "foo"],
+        [
+            "Ensure this value is greater than or equal to 1950.",
+            "Ensure this value is greater than or equal to 1950.",
+            "Ensure this value is greater than or equal to 1950.",
+            "Enter a whole number.",
+        ],
+    ),
+    (
+        "agemonth",
+        [-10, "foo", "8,3"],
+        [
+            "Ensure this value is greater than or equal to 0.",
+            "Enter a whole number.",
+            "Enter a whole number.",
+        ],
+    ),
+    (
+        "mark_eff",
+        [-10, 101, "foo", "8,9"],
+        [
+            "Ensure this value is greater than or equal to 0.",
+            "Ensure this value is less than or equal to 100.",
+            "Enter a number.",
+            "Enter a number.",
+        ],
+    ),
+    (
+        "tag_ret",
+        [-10, 101, "foo", "8,9"],
+        [
+            "Ensure this value is greater than or equal to 0.",
+            "Ensure this value is less than or equal to 100.",
+            "Enter a number.",
+            "Enter a number.",
+        ],
+    ),
+    (
+        "length",
+        [-10, -1, 0.5, "foo", "8,9"],
+        [
+            "Ensure this value is greater than or equal to 1.",
+            "Ensure this value is greater than or equal to 1.",
+            "Enter a whole number.",
+            "Enter a whole number.",
+            "Enter a whole number.",
+        ],
+    ),
+    (
+        "weight",
+        [-10, -1, 0.5, "foo", "8,9"],
+        [
+            "Ensure this value is greater than or equal to 1.",
+            "Ensure this value is greater than or equal to 1.",
+            "Enter a whole number.",
+            "Enter a whole number.",
+            "Enter a whole number.",
+        ],
+    ),
+    (
+        "validation",
+        [-10, 32, "foo"],
+        [
+            "Select a valid choice. -10 is not one of the available choices.",
             "Select a valid choice. 32 is not one of the available choices.",
             "Select a valid choice. foo is not one of the available choices.",
         ],
@@ -301,10 +401,8 @@ def test_missing_month_with_day(event):
 
 @pytest.mark.django_db
 def test_missing_day(event):
-    """If we pass a dictionary that has an empty day id,
-    should get a meaningful error message.
-
-    OK
+    """If we pass a dictionary that has an empty day value, the form
+    should still be valid.
 
     """
 
@@ -355,6 +453,9 @@ def test_invalid_date(event, year, month, day, valid):
     event_dict["month"] = month
     event_dict["day"] = day
 
+    # ensures that year_class doesn throw an error.
+    event_dict["year_class"] = year
+
     form = StockingEventForm(event_dict, choices=choices)
 
     status = form.is_valid()
@@ -374,294 +475,231 @@ def test_invalid_date(event, year, month, day, valid):
 # # lat long flag
 
 
-# @pytest.mark.django_db
-# def test_invalid_lake(event):
-#     """If we pass a dictionary with an lake id that does not exist, we
-#     should get a meaningful error message.
+@pytest.mark.django_db
+def test_missing_stat_district_with_grid10(event):
+    """If we pass a dictionary that has an empty stat_district id,
+    but a grid10 value as provided, we should get a meaningful error message.
 
-#     """
-#     assert 0 == 1
+    NOTE: this test requires more setup to ensure spatial attributes are correct.
 
+    ERROR.
 
-# @pytest.mark.django_db
-# def test_missing_lake(event):
-#     """If we pass a dictionary that has an empty lake id,
-#     should get a meaningful error message.
+    """
+    assert 0 == 1
 
-#     """
-#     assert 0 == 1
 
+@pytest.mark.django_db
+def test_missing_grid10_no_latlon(event):
+    """If we pass a dictionary that has an empty grid10 id, and null
+   lat-lon, the record should be created without issue, but the latlon
+   flag should be set.
 
-# @pytest.mark.django_db
-# def test_invalid_state_province(event):
-#     """If we pass a dictionary with an state_province id that does not exist, we
-#     should get a meaningful error message.
+    (Grid10 is currently a required field)
 
-#     ERROR
+    OK
 
-#     """
-#     assert 0 == 1
+    """
+    assert 0 == 1
 
 
-# @pytest.mark.django_db
-# def test_missing_state_province(event):
-#     """If we pass a dictionary that has an empty state_province id,
-#     should get a meaningful error message.
+@pytest.mark.django_db
+def test_missing_grid10_with_latlon(event):
+    """If we pass a dictionary that has an empty grid10 id, and latlong
+    was also provided, grid is a required field and should be
+    consistent with the supplied coordinates.
 
-#     ERROR
+    NOTE: this test requires more setup to ensure spatial attributes are correct.
 
-#     """
-#     assert 0 == 1
+    ERROR
 
+    """
+    assert 0 == 1
 
-# @pytest.mark.django_db
-# def test_invalid_stat_district(event):
-#     """If we pass a dictionary with an stat_district id that does not exist, we
-#     should get a meaningful error message.
 
-#     ERROR
+@pytest.mark.django_db
+def test_missing_lat_but_no_lon(event):
+    """If we pass a dictionary that has a latitude, but no longitude, we
+    should be presented with a meaningful error message.
 
-#     """
-#     assert 0 == 1
+    ERROR
 
+    """
 
-# @pytest.mark.django_db
-# def test_missing_stat_district_no_grid10(event):
-#     """If we pass a dictionary that has an empty stat_district id, and
-#     grid10, and lat-lon are null too, the form should be valid, and
-#     the latlong flag should be set accordingly.
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
 
-#     OK.
+    event_dict["dd_lon"] = None
+
+    form = StockingEventForm(event_dict, choices=choices)
+
+    status = form.is_valid()
+    assert status is False
+    # assert error messages
+    msg = "Longitude is required if Latitude is provided."
+    assert msg in form.errors["__all__"]
+
+
+@pytest.mark.django_db
+def test_missing_lon_but_no_lat(event):
+    """If we pass a dictionary that has a longitude, but no latitude, we
+    should be presented with a meaningful error message.
+
+    ERROR
+
+    """
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
+
+    event_dict["dd_lat"] = None
+
+    form = StockingEventForm(event_dict, choices=choices)
+
+    status = form.is_valid()
+    assert status is False
+    # assert error messages
+    msg = "Latitude is required if Longitude is provided."
+    assert msg in form.errors["__all__"]
+
+
+@pytest.mark.django_db
+def test_missing_latlon(event):
+    """If we pass a dictionary that has no longitude or latitude, the form
+    should still be valid.
+
+    ERROR
 
-#     """
-#     assert 0 == 1
+    """
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
 
+    event_dict["dd_lat"] = None
+    event_dict["dd_lon"] = None
 
-# @pytest.mark.django_db
-# def test_missing_stat_district_with_grid10(event):
-#     """If we pass a dictionary that has an empty stat_district id,
-#     but a grid10 value as provided, we should get a meaningful error message.
-
-#     ERROR.
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_invalid_grid10(event):
-#     """If we pass a dictionary with an grid10 id that does not exist, we
-#     should get a meaningful error message.
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_grid10_no_latlon(event):
-#     """If we pass a dictionary that has an empty grid10 id, and null
-#    lat-lon, the record should be created without issue, but the latlon
-#    flag should be set.
-
-#     OK
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_grid10_with_latlon(event):
-#     """If we pass a dictionary that has an empty grid10 id, and latlong
-#     was also provided, grid is a required field and should be
-#     consistent with the supplied coordinates.
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_lat_but_no_lon(event):
-#     """If we pass a dictionary that has a latitude, but no longitude, we
-#     should be presented with a meaningful error message.
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_lon_but_no_lat(event):
-#     """If we pass a dictionary that has a longitude, but no latitude, we
-#     should be presented with a meaningful error message.
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_longitude_out_of_bounds(event):
-#     """If we pass a dictionary that has longitude out of bounds, we should
-#     get a meaningful error message
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_latitude_out_of_bounds(event):
-#     """If we pass a dictionary that has latitude out of bounds, we should
-#     get a meaningful error message
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# # site name - this field is required
-# @pytest.mark.django_db
-# def test_missing_site_name(event):
-#     """If we pass a dictionary that is missing a general site name, we should
-#     get a meaningful error message
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# # =============================================================
-# #          EVENT ATTRIBUTES
-
-# # number stocked (required, positive integer)
-# @pytest.mark.django_db
-# def test_invalid_no_stocked(event):
-#     """If we pass a dictionary with an no_stocked id that does not exist, we
-#     should get a meaningful error message.
-
-#     invalid numbers would include: -10, 0, foo
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_no_stocked(event):
-#     """If we pass a dictionary that does not have the number_stocked, a
-#     meaningful should be presented.
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_invalid_year_class(event):
-#     """If we pass a dictionary with an year_class id that does not exist, we
-#     should get a meaningful error message.
-
-#     invalid numbers would include: -10, 200, 2111
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# # year class (required, positive integer)
-# @pytest.mark.django_db
-# def test_invalid_year_class_after_stocking_year(event):
-#     """If we pass a dictionary with an year_class that occurs after stocking date, we
-#     should get a meaningful error message.
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_year_class(event):
-#     """If we pass a dictionary that does not have the number_stocked, a
-#     meaningful should be presented.
-
-#     ERROR
-
-#     """
-#     assert 0 == 1
-
-
-# # stocking method - required
-# @pytest.mark.django_db
-# def test_invalid_stocking_method(event):
-#     """If we pass a dictionary with an stocking_method that does not exist, we
-#     should get a meaningful error message.
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_stocking_method(event):
-#     """If we pass a dictionary that has an empty stocking_method,
-#     should get a meaningful error message.
-
-#     """
-#     assert 0 == 1
-
-
-# # life stage - required
-# @pytest.mark.django_db
-# def test_invalid_life_stage(event):
-#     """If we pass a dictionary with an life_stage that does not exist, we
-#     should get a meaningful error message.
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_life_stage(event):
-#     """If we pass a dictionary that has an empty life_stage,
-#     should get a meaningful error message.
-
-#     """
-#     assert 0 == 1
-
-
-# # age in months - required
-# @pytest.mark.django_db
-# def test_invalid_age_months(event):
-#     """If we pass a dictionary with an age_months that does not exist, we
-#     should get a meaningful error message.
-
-#     invalid values include: -10, foo, "8,3"
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_age_months(event):
-#     """If we pass a dictionary that has an empty age_months, the record
-#     should still be created.
-
-#     OK.
-
-#     """
-#     assert 0 == 1
+    form = StockingEventForm(event_dict, choices=choices)
+
+    status = form.is_valid()
+    assert status is True
+
+
+min_lat = 41.3
+max_lat = 49.1
+min_lon = -92.0
+max_lon = -76.0
+
+coordinates = [
+    # (ddlat, ddlon, error messages)
+    (
+        -81.5,
+        45.5,
+        {
+            "dd_lat": "Ensure this value is greater than or equal to {}.".format(
+                min_lat
+            ),
+            "dd_lon": "Ensure this value is less than or equal to {}.".format(max_lon),
+        },
+    ),
+    (
+        45.5,
+        45.5,
+        {"dd_lon": "Ensure this value is less than or equal to {}.".format(max_lon)},
+    ),
+    (
+        -81.5,
+        -81.5,
+        {"dd_lat": "Ensure this value is greater than or equal to {}.".format(min_lat)},
+    ),
+    (
+        45.5,
+        81.5,
+        {"dd_lon": "Ensure this value is less than or equal to {}.".format(max_lon)},
+    ),
+    (
+        41.0,
+        -81.5,
+        {"dd_lat": "Ensure this value is greater than or equal to {}.".format(min_lat)},
+    ),
+    (
+        49.5,
+        -81.5,
+        {"dd_lat": "Ensure this value is less than or equal to {}.".format(max_lat)},
+    ),
+    (
+        45.5,
+        -75.5,
+        {"dd_lon": "Ensure this value is less than or equal to {}.".format(max_lon)},
+    ),
+    (
+        45.5,
+        -94.5,
+        {"dd_lon": "Ensure this value is greater than or equal to {}.".format(min_lon)},
+    ),
+]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("dd_lat, dd_lon, messages", coordinates)
+def test_coordinates_out_of_bounds(event, dd_lat, dd_lon, messages):
+    """If we pass in coordinates that exceed the bounds for lat and or
+    lon, we should recieve appropriate error messages.  This test is
+    parameterized to recieve and array of corrdinates and the expected
+    error message(s).  The coordinates represent points outside the
+    Great lake basin, as well as common errors such as repeated lat or
+    lon, or switched lat-lon.
+    """
+
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
+
+    event_dict["dd_lat"] = dd_lat
+    event_dict["dd_lon"] = dd_lon
+
+    form = StockingEventForm(event_dict, choices=choices)
+
+    status = form.is_valid()
+    assert status is False
+
+    for fld, msg in messages.items():
+        assert msg in form.errors[fld]
+
+
+@pytest.mark.django_db
+def test_future_year_class(event):
+    """If we pass a dictionary with an year_class that occurs ahead of the
+    stocking year we should get a meaningful error message.
+
+    """
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
+
+    event_dict["year_class"] = event_dict["year"] + 1
+
+    form = StockingEventForm(event_dict, choices=choices)
+
+    status = form.is_valid()
+    assert status is False
+
+    msg = "Year class cannot be greater than stocking year."
+    assert msg in form.errors["__all__"]
+
+
+@pytest.mark.django_db
+def test_past_year_class(event):
+    """If we pass a dictionary with an year_class that occured in the distant
+    past, we should get a meaningful error message.
+
+    """
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
+
+    event_dict["year_class"] = event_dict["year"] - 25
+
+    form = StockingEventForm(event_dict, choices=choices)
+
+    status = form.is_valid()
+    assert status is False
+
+    msg = "Those fish were more than 20 year old!"
+    assert msg in form.errors["__all__"]
 
 
 # # clip - optional (required if clip efficency is populated). Must be valid string
@@ -691,190 +729,27 @@ def test_invalid_date(event, year, month, day, valid):
 #     assert 0 == 1
 
 
-# # mark - optional (required if mark efficency is populated). Must be valid string
-# @pytest.mark.django_db
-# def test_invalid_mark(event):
-#     """If we pass a dictionary with an mark that does not exist, we
-#     should get a meaningful error message.
+@pytest.mark.django_db
+def test_invalid_mark(event):
+    """If we pass a dictionary with an mark that does not exist, we
+    should get a meaningful error message.
 
-#     invalid values include: -10, foo, "8,3", ????
+    invalid values include: -10, foo, "8,3", ????
 
-#     """
-#     assert 0 == 1
+    """
+    assert 0 == 1
 
 
-# @pytest.mark.django_db
-# def test_missing_mark(event):
-#     """If we pass a dictionary that has an empty mark, the record
-#     should still be created.
+# tag_no = optional, but must be a valid string if provided.
+@pytest.mark.django_db
+def test_invalid_tag_no(event):
+    """If we pass a dictionary with an tag_no that does not exist, we
+    should get a meaningful error message.
 
-#     OK.
+    invalid values include: -10, foo, "8,3"
 
-#     """
-#     assert 0 == 1
-
-
-# # mark_eff - optional, but must be bewteen 0 and 100 if provided.
-# @pytest.mark.django_db
-# def test_invalid_mark_eff(event):
-#     """If we pass a dictionary with an mark_eff that does not exist, we
-#     should get a meaningful error message.
-
-#     invalid values include: -10, foo, 101"
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_mark_eff(event):
-#     """If we pass a dictionary that has an empty mark_eff, the record
-#     should still be created.
-
-#     OK.
-
-#     """
-#     assert 0 == 1
-
-
-# # tag_no = optional, but must be a valid string if provided.
-# @pytest.mark.django_db
-# def test_invalid_tag_no(event):
-#     """If we pass a dictionary with an tag_no that does not exist, we
-#     should get a meaningful error message.
-
-#     invalid values include: -10, foo, "8,3"
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_tag_no(event):
-#     """If we pass a dictionary that has an empty tag_no, the record
-#     should still be created.
-
-#     OK.
-
-#     """
-#     assert 0 == 1
-
-
-# # tag_ret - optional, but must be bewteen 0 and 100 of provided.
-# @pytest.mark.django_db
-# def test_invalid_tag_ret(event):
-#     """If we pass a dictionary with an tag_ret that does not exist, we
-#     should get a meaningful error message.
-
-#     invalid values include: -10, foo, "8,3"
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_tag_ret(event):
-#     """If we pass a dictionary that has an empty tag_ret, the record
-#     should still be created.
-
-#     OK.
-
-#     """
-#     assert 0 == 1
-
-
-# # length - optional but must be positive if provided
-# @pytest.mark.django_db
-# def test_invalid_avg_length(event):
-#     """If we pass a dictionary with an avg_length that does not exist, we
-#     should get a meaningful error message.
-
-#     invalid values include: -10, foo, "8,3"
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_avg_length(event):
-#     """If we pass a dictionary that has an empty avg_length, the record
-#     should still be created.
-
-#     OK.
-
-#     """
-#     assert 0 == 1
-
-
-# # aaverage length - optional, but positive if provided.
-# @pytest.mark.django_db
-# def test_invalid_avg_weight(event):
-#     """If we pass a dictionary with an avg_weight that does not exist, we
-#     should get a meaningful error message.
-
-#     invalid values include: -10, foo, "8,3"
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_avg_weight(event):
-#     """If we pass a dictionary that has an empty avg_weight, the record
-#     should still be created.
-
-#     OK.
-
-#     """
-#     assert 0 == 1
-
-
-# # condition - optional, but must be one of the selected values if provided.
-# @pytest.mark.django_db
-# def test_invalid_condition(event):
-#     """If we pass a dictionary with an condition that does not exist, we
-#     should get a meaningful error message.
-
-#     invalid values include: -10, foo, "8,3"
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_condition(event):
-#     """If we pass a dictionary that has an empty condition, the record
-#     should still be created.
-
-#     OK.
-
-#     """
-#     assert 0 == 1
-
-
-# # validation - optional, but must be one of the selected values if provided.
-
-
-# @pytest.mark.django_db
-# def test_invalid_validation(event):
-#     """If we pass a dictionary with an validation that does not exist, we
-#     should get a meaningful error message.
-
-#     invalid values include: -10, foo, "8,3"
-
-#     """
-#     assert 0 == 1
-
-
-# @pytest.mark.django_db
-# def test_missing_validation(event):
-#     """If we pass a dictionary that has an empty validation, the record
-#     should still be created.
-
-#     OK.
-
-#     """
-#     assert 0 == 1
+    """
+    assert 0 == 1
 
 
 # # test parse marks, clips and cwts

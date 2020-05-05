@@ -14,6 +14,7 @@ select * from common_strain limit 10;
 
 
 -- find cwt numbers that have been stocked by more than one agency
+update common_cwt set multiple_agencies=true where cwt_number in (
 SELECT cwt_number
 --       ,COUNT(agency_id) AS Agencies
 FROM (SELECT DISTINCT cwt_number,
@@ -24,12 +25,13 @@ FROM (SELECT DISTINCT cwt_number,
         JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id) AS tmp
 GROUP BY cwt_number
 HAVING COUNT(cwt_number) > 1
+);
 
-
-
+commit;
 -- find cwt numbers that have been stocked in more than one species
-SELECT cwt_number,
-       COUNT(species_id) AS Species
+update common_cwt set multiple_species=true where cwt_number in (
+SELECT cwt_number
+       --COUNT(species_id) AS Species
 FROM (SELECT DISTINCT cwt_number,
              events.species_id
       FROM stocking_stockingevent AS events
@@ -38,7 +40,8 @@ FROM (SELECT DISTINCT cwt_number,
         JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id) AS tmp
 GROUP BY cwt_number
 HAVING COUNT(species_id) > 1
-
+);
+commit;
 
 -- find cwt numbers that have the same number but have been stocked in more than one lake
 -- regardless of what species they were stocked in (a tag that was used in chinook in
@@ -60,23 +63,26 @@ HAVING COUNT(lake_id) > 1
 -- find cwt numbers that have the same number but have been stocked in more than one lake and species
 -- lake trout stocked in both huron and Michigan will be flagged
 -- lake trout in michigan, salmon in huron will not.
-SELECT cwt_number,
-       COUNT(lake_id) AS Lakes
+update common_cwt set multiple_lakes=true where cwt_number in (
+SELECT cwt_number
+       --COUNT(lake_id) AS Lakes
 FROM (SELECT DISTINCT cwt_number,
              events.species_id,
-             events.lake_id
+             jurisdiction.lake_id
       FROM stocking_stockingevent AS events
+        join common_jurisdiction as jurisdiction on jurisdiction.id=events.jurisdiction_id
         JOIN common_cwtsequence_events ON common_cwtsequence_events.stockingevent_id = events.id
         JOIN common_cwtsequence ON common_cwtsequence_events.cwtsequence_id = common_cwtsequence.id
         JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id) AS tmp
 GROUP BY cwt_number, species_id
 HAVING COUNT(lake_id) > 1
-
+);
 
 
 -- find cwt numbers that have been stocked in more than one year class within a species
-SELECT cwt_number,
-       COUNT(year_class) AS YearClasses
+update common_cwt set multiple_yearclasses=true where cwt_number in (
+SELECT cwt_number
+       --COUNT(year_class) AS YearClasses
 FROM (SELECT DISTINCT cwt_number,
              events.species_id,
              events.year_class
@@ -87,10 +93,13 @@ FROM (SELECT DISTINCT cwt_number,
 GROUP BY cwt_number,
          species_id
 HAVING COUNT(cwt_number) > 1
+)
+commit;
 
 -- find cwt numbers that have been stocked in more than one lifestage - within the same species!!
-SELECT cwt_number,
-       COUNT(lifestage_id) AS lifestages
+
+SELECT cwt_number
+       --COUNT(lifestage_id) AS lifestages
 FROM (SELECT DISTINCT cwt_number,
              events.species_id,
              events.lifestage_id
@@ -104,6 +113,7 @@ HAVING COUNT(cwt_number) > 1
 
 
 -- find cwt numbers that have been stocked in more than one strain - within the same species!!
+update common_cwt set multiple_strains=true where cwt_number in (
 SELECT cwt_number
 --,      common_name,
 --       COUNT(strain_label) AS strains
@@ -119,4 +129,41 @@ FROM (SELECT DISTINCT cwt_number,
         JOIN common_strain AS strain ON strain.id = strainraw.strain_id) AS tmp
 GROUP BY cwt_number,
          common_name
-HAVING COUNT(cwt_number) > 1;
+HAVING COUNT(cwt_number) > 1
+);
+commit;
+
+
+-- need the OMNR Patch completed to update those records where micro-mark tags were used.
+select cwt_number from (
+select cwt_number, manufacturer from common_cwt as cwt group by cwt_number, manufacturer
+) as x
+group by x.cwt_number having count(x.cwt_number)>1;
+
+-- finally, trip the tag_reused flag to exclude all
+UPDATE common_cwt
+   SET tag_reused = TRUE
+WHERE cwt_number IN (SELECT cwt_number
+                     FROM common_cwt
+                     WHERE multiple_species = TRUE
+                     OR    multiple_strains = TRUE
+                     OR    multiple_yearclasses = TRUE
+                     OR    multiple_makers = TRUE
+                     OR    multiple_agencies = TRUE
+                     OR    multiple_lakes = TRUE)
+s
+
+
+--- Data for ted - April 17, 2020:
+SELECT stockingevent.stock_id,
+       cwt.*
+FROM common_cwt AS cwt
+  JOIN common_cwtsequence AS cwtsequence ON cwtsequence.cwt_id = cwt.id
+  JOIN common_cwtsequence_events AS cwtsequence_events ON cwtsequence_events.cwtsequence_id = cwtsequence.id
+  JOIN stocking_stockingevent AS stockingevent ON stockingevent.id = cwtsequence_events.stockingevent_id
+where cwt.cwt_number <> '99999';
+
+select * from common_cwt limit 10;
+select * from common_cwtsequence limit 10;
+select * from common_cwtsequence_events limit 10;
+select * from stocking_stockingevent limit 10;

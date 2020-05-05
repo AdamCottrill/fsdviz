@@ -162,3 +162,41 @@ def test_datauploadevent_generate_slug():
     datauploadevent = DataUploadEventFactory(uploaded_by=user, lake=lake, agency=agency)
 
     assert datauploadevent.generate_slug() == expected
+
+
+@pytest.mark.django_db
+def test_stocking_event_date():
+    """When a stocking event is saved, its day month and year values
+    should be converted to a date if possible, and saved in the date
+    field.
+
+    This should be converted to a parameterized query that takes a
+    list of day, month, year, and expected date values.
+
+    """
+
+    assert 0 == 1
+
+
+@pytest.mark.django_db
+def test_stocking_event_latlon_flag():
+    """When a stocking event is saved, the latlon_flag should be set to
+    indicate the precision of the spatial information. The latlon_flag
+    indicates the finest level of resultion provided for each event (the
+    lower the flag, the more precise the spatial information is).
+
+    """
+
+    assert 0 == 1
+
+
+@pytest.mark.django_db
+def test_stocking_event_yearling_equivalents():
+    """When a stocking event is saved, the number of yearling equivalents
+    should be calculated based on other attributes in the event.  If
+    yearling equivalents cannot be calcualted, this value should be the
+    same as number stocked.
+
+    """
+
+    assert 0 == 1

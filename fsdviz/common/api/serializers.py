@@ -169,7 +169,7 @@ class Grid10Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = Grid10
-        fields = ("grid", "lake", "centroid", "slug")
+        fields = ("id", "grid", "lake", "centroid", "slug")
 
     @staticmethod
     def setup_eager_loading(queryset):

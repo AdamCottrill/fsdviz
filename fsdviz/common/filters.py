@@ -34,6 +34,9 @@ class Grid10Filter(django_filters.FilterSet):
 
     lake = django_filters.CharFilter(field_name="lake__abbrev", lookup_expr="iexact")
 
+    manUnit_id = django_filters.NumberFilter(field_name="managementunit__id")
+    manUnit = django_filters.CharFilter(field_name="managementunit__slug")
+
     class Meta:
         model = Grid10
         fields = ["lake"]
@@ -42,7 +45,6 @@ class Grid10Filter(django_filters.FilterSet):
 class StateProvinceFilter(django_filters.FilterSet):
 
     stateprov = django_filters.CharFilter(field_name="abbrev", lookup_expr="iexact")
-
     country = django_filters.CharFilter(field_name="country", lookup_expr="iexact")
 
     class Meta:
@@ -59,6 +61,7 @@ class JurisdictionFilter(django_filters.FilterSet):
     )
 
     lake = django_filters.CharFilter(field_name="lake__abbrev", lookup_expr="iexact")
+    lake_id = django_filters.CharFilter(field_name="lake__id", lookup_expr="iexact")
 
     class Meta:
         model = Jurisdiction

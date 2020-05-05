@@ -211,6 +211,8 @@ class ManagementUnit(models.Model):
 
     mu_type = models.CharField(max_length=10, choices=MU_TYPE_CHOICES, default="mu")
 
+    grid10s = models.ManyToManyField("Grid10")
+
     class Meta:
         ordering = ["lake__abbrev", "mu_type", "label"]
 

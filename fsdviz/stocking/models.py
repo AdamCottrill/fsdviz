@@ -339,9 +339,11 @@ class StockingEvent(models.Model):
         """
         return self.jurisdiction.stateprov
 
-    def get_abosolute_url(self):
+    def get_absolute_url(self):
         """return the url for this stocking event"""
-        return reverse("stocking:stocking-event-detail", {"stock_id": self.stock_id})
+        return reverse(
+            "stocking:stocking-event-detail", kwargs={"stock_id": self.stock_id}
+        )
 
     def get_mark_code(self):
         """Return a string containing the Mark codes associated with this

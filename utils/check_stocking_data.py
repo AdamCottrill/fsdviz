@@ -91,10 +91,21 @@ CWT_REGEX = "[0-9]{6}|999"  # ignores tags '999'
 #    + "utils/data/GLFSD for Adam July 22 2019.accdb"
 # )
 #
+# MDB = (
+#    "C:/Users/COTTRILLAD/1work/LakeTrout/Stocking/GLFSD_Datavis/fsdviz/"
+#    + "utils/data/GLFSD for Adam July 22 2019.accdb"
+# )
+#
+# MDB = (
+#     "C:/Users/COTTRILLAD/1work/LakeTrout/Stocking/GLFSD_Datavis/"
+#     + "fsdviz/utils/PrepareGLFSDB.accdb"
+# )
+
 MDB = (
-    "C:/Users/COTTRILLAD/1work/LakeTrout/Stocking/GLFSD_Datavis/fsdviz/"
-    + "utils/data/GLFSD for Adam July 22 2019.accdb"
+    "C:/Users/COTTRILLAD/1work/LakeTrout/Stocking/GLFSD_Datavis/"
+    + "data/GLFSD_Jan2020.accdb"
 )
+
 
 TABLE_NAME = "GLFSD"
 
@@ -392,7 +403,7 @@ sql = """select distinct SPECIES from [{}] where Species is not null;"""
 mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()
 source = set([x[0] for x in rs])
-lookup = set([x.abbrev for x in Species.objects.all()])
+lookup = set([x.abbrev for x in Species.objects.exclude(abbrev="STN")])
 
 missing = list(source - lookup)
 missing = ["<empty>" if x == "" else x for x in missing]
@@ -534,7 +545,7 @@ else:
 # if who=='Ontario':
 #     MARK_SHOULDBE.update(CLIP2MARK)
 #
-sql = """select distinct MARK from [{}] where tag_no is not null;"""
+sql = """select distinct MARK from [{}] where MARK is not null;"""
 mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()
 
@@ -776,10 +787,15 @@ else:
 # POSTGIS to dynamically query these
 
 
-glbasin = Lake.objects.all().aggregate(bbox=Extent("shoreline"))
-bbox = glbasin["bbox"]
+##glbasin = Lake.objects.all().aggregate(bbox=Extent("geom"))
+##bbox = glbasin["bbox"]
 
 ##{'bbox': (-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947)}
+
+# emperical limits of data as of Jan. 2020 - includes events in
+# St. Louis River and Salmon Rivers.
+bbox = [-92.3085022, 41.4203, -75.980751, 48.3760044]
+
 
 sql = """select stock_id, Latitude, longitude from [{}]
          where Latitude not between {} and {}

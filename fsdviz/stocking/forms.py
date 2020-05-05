@@ -452,12 +452,14 @@ class StockingEventForm(forms.Form):
         label="Latitude (Decimal Degrees)",
         min_value=41.3,
         max_value=49.1,
+        required=False,
         widget=forms.TextInput(),
     )
     dd_lon = forms.FloatField(
         label="Longitude (Decimal Degrees)",
         min_value=-92.0,
         max_value=-76.0,
+        required=False,
         widget=forms.TextInput(),
     )
 
@@ -471,7 +473,7 @@ class StockingEventForm(forms.Form):
         required=False,
     )
 
-    no_stocked = forms.IntegerField(required=True)
+    no_stocked = forms.IntegerField(required=True, min_value=1)
     stocking_method_id = forms.ChoiceField(
         label="Stocking Method", choices=[], required=True, widget=MySelect
     )
@@ -479,7 +481,7 @@ class StockingEventForm(forms.Form):
         label="Year Class",
         min_value=1950,
         max_value=(datetime.now().year + 1),
-        # required=False,
+        required=True,
     )
     lifestage_id = forms.ChoiceField(
         label="Life Stage", choices=[], required=True, widget=MySelect
@@ -494,8 +496,8 @@ class StockingEventForm(forms.Form):
     tag_ret = forms.FloatField(
         label="Tag Retention", min_value=0, max_value=100, required=False
     )
-    length = forms.IntegerField(label="Avg. Length (mm)", min_value=0, required=False)
-    weight = forms.IntegerField(label="Avg. Weight (g)", min_value=0, required=False)
+    length = forms.IntegerField(label="Avg. Length (mm)", min_value=1, required=False)
+    weight = forms.IntegerField(label="Avg. Weight (g)", min_value=1, required=False)
     condition_id = forms.ChoiceField(
         label="General Condition", choices=[], required=False, widget=MySelect
     )
@@ -560,7 +562,28 @@ class StockingEventForm(forms.Form):
                 msg = "Day, month, and year do not form a valid date."
                 raise forms.ValidationError(msg, code="invalid_date")
 
-        # site_type = data.pop("site_type")
+        # LAT-LON
+        dd_lat = data.get("dd_lat")
+        dd_lon = data.get("dd_lon")
+
+        if dd_lat and not dd_lon:
+            msg = "Longitude is required if Latitude is provided."
+            raise forms.ValidationError(msg, code="missing_dd_lon")
+
+        if dd_lon and not dd_lat:
+            msg = "Latitude is required if Longitude is provided."
+            raise forms.ValidationError(msg, code="missing_dd_lat")
+
+        # Year class cannot be in the future or super old.
+        year_class = data.get("year_class", 0)
+
+        if year_class > year:
+            msg = "Year class cannot be greater than stocking year."
+            raise forms.ValidationError(msg, code="future_year_class")
+
+        if (year - year_class) > 20:
+            msg = "Those fish were more than 20 year old!"
+            raise forms.ValidationError(msg, code="past_year_class")
 
         # this needs to be calcualted based on species, lifestage, and ...
         data["yreq_stocked"] = data.get("no_stocked", 0)

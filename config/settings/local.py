@@ -12,7 +12,7 @@ INTERNAL_IPS = ("127.0.0.1",)
 
 MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
-ALLOWED_HOSTS = ["142.143.160.65", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["142.143.160.65", "142.143.160.81", "localhost", "127.0.0.1"]
 
 # ALLOWED_HOSTS = ['*']
 

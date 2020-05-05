@@ -90,6 +90,9 @@ def make_mu_id_lookup(mus):
 returns a dictionary of dictionaryies that are keyed first by lake ,
 and then by management unit label.
 
+mus = ManagementUnit.objects.values_list(
+"id", "slug", "lake__abbrev", "label")
+
 This:
 (12, 'hu_mu_mh3', 'HU', 'MH3')
 (13, 'hu_mu_mh4', 'HU', 'MH4')
@@ -145,6 +148,8 @@ def make_strain_id_lookup(object_list):
     """a function that lakes of list of strain objects and returns a
     dictionary of dictionaries that are keyed first by species, and
     then raw strain value.
+
+    strains = StrainRaw.objects.values_list("id", "species__abbrev", "strain__strain_code")
 
     This:
 
