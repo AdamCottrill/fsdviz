@@ -18,6 +18,9 @@ from fsdviz.common.models import (
     Grid10,
     LatLonFlag,
     Mark,
+    FinClip,
+    FishTag,
+    PhysChemMark,
 )
 
 
@@ -138,6 +141,47 @@ class StockingMethod(models.Model):
         return "{} ({})".format(self.description, self.stk_meth)
 
 
+class Hatchery(models.Model):
+    """
+    A model to capture the last hatchery that reared the fish.
+    """
+
+    HATCHERY_TYPE_CHOICES = [
+        ("private", "Private"),
+        ("state", "State"),
+        ("provincial", "Provincial"),
+        ("federal", "Federal"),
+        ("other", "Other"),
+    ]
+
+    hatchery_name = models.CharField(max_length=250, unique=True)
+    abbrev = models.CharField(max_length=20, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    hatchery_type = models.CharField(
+        max_length=25, choices=HATCHERY_TYPE_CHOICES, blank=True, null=True
+    )
+
+    agency = models.ForeignKey(
+        Agency,
+        on_delete=models.CASCADE,
+        related_name="hatcheries",
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        verbose_name_plural = "Hatcheries"
+
+    def __str__(self):
+        if self.agency:
+            return "{} ({} [{}])".format(
+                self.hatchery_name, self.abbrev, self.agency.abbrev
+            )
+        else:
+            return "{} ({})".format(self.hatchery_name, self.abbrev)
+
+
 # TODO: Add table for known stocking sites - this may have to be a many-to-many
 # to accomodate site aliases similar to strains-strainsRaw.
 # class StockingSite(models.Model):
@@ -165,7 +209,18 @@ class StockingEvent(models.Model):
         (10, "level 10, data entered and verified at OMNR"),
     ]
 
+    # marks is going away shortly:
     marks = models.ManyToManyField(Mark)
+
+    fish_tags = models.ManyToManyField(FishTag)
+    physchem_marks = models.ManyToManyField(PhysChemMark)
+    finclip = models.ForeignKey(
+        FinClip,
+        on_delete=models.CASCADE,
+        related_name="stocking_events",
+        blank=True,
+        null=True,
+    )
 
     species = models.ForeignKey(
         Species, on_delete=models.CASCADE, related_name="stocking_events"
@@ -179,6 +234,14 @@ class StockingEvent(models.Model):
 
     agency = models.ForeignKey(
         Agency, on_delete=models.CASCADE, related_name="stocking_events"
+    )
+
+    hatchery = models.ForeignKey(
+        Hatchery,
+        on_delete=models.CASCADE,
+        related_name="stocking_events",
+        blank=True,
+        null=True,
     )
 
     # primary management unit for this event - other can be found with queries.
@@ -257,9 +320,14 @@ class StockingEvent(models.Model):
     )
 
     tag_no = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    tag_ret = models.FloatField("Tag retention as a percentage", blank=True, null=True)
 
-    clipa = models.CharField(max_length=10, blank=True, null=True, db_index=True)
+    clip_efficiency = models.FloatField(
+        "Clipping efficency as a percentage", blank=True, null=True
+    )
 
+    # clipa = models.CharField(max_length=10, blank=True, null=True, db_index=True)
+    # mark, mark_eff and validation are going away shortly....
     mark = models.CharField(
         "Chemical, tag, or finclip mark applied to fish",
         max_length=50,
@@ -271,14 +339,20 @@ class StockingEvent(models.Model):
     mark_eff = models.FloatField(
         "Marking efficency as a percentage", blank=True, null=True
     )
-    tag_ret = models.FloatField("Tag retention as a percentage", blank=True, null=True)
+
     validation = models.IntegerField(
         "Event Data Validation Code 0-10.",
         choices=VALIDATION_CODE_CHOICES,
         blank=True,
         null=True,
     )
+
     notes = models.CharField(max_length=500, blank=True, null=True)
+
+    # if there is an agency stock_id - it has to be unique
+    agency_stock_id = models.CharField(
+        max_length=100, unique=True, blank=True, null=True
+    )
 
     upload_event = models.ForeignKey(
         DataUploadEvent,

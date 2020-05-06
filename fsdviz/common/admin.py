@@ -13,6 +13,9 @@ from .models import (
     LatLonFlag,
     CWT,
     Jurisdiction,
+    PhysChemMark,
+    FinClip,
+    FishTag,
 )
 
 admin.site.empty_value_display = "(None)"
@@ -80,6 +83,27 @@ class MarkModelAdmin(admin.ModelAdmin):
     list_display = ("mark_code", "mark_type", "clip_code", "description")
     list_filter = ("mark_type",)
     search_fields = ("description",)
+
+
+@admin.register(PhysChemMark)
+class PhysChemMarkModelAdmin(admin.ModelAdmin):
+    list_display = ("mark_code", "mark_type", "description")
+    list_filter = ("mark_type",)
+    search_fields = ("description",)
+
+
+@admin.register(FishTag)
+class FishTagModelAdmin(admin.ModelAdmin):
+    list_display = ("tag_code", "tag_type", "tag_colour", "description")
+    list_filter = ("tag_code", "tag_type", "tag_colour")
+    search_fields = ("description",)
+
+
+@admin.register(FinClip)
+class FinClipModelAdmin(admin.ModelAdmin):
+    list_display = ("clip_code", "description")
+    list_filter = ("clip_code",)
+    search_fields = ("clip_code", "description")
 
 
 @admin.register(LatLonFlag)

@@ -395,6 +395,9 @@ class Mark(models.Model):
     presence of a cwt, and chemical marks.  Multiple marks can
     be applied to a single fish.  Combinations of marks most often
     serve to indicate year-class.
+
+    (this model is obsolete and will be removed shortly.)
+
     """
 
     MARK_TYPE_CHOICES = [
@@ -417,6 +420,94 @@ class Mark(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.description, self.mark_code)
+
+
+class PhysChemMark(models.Model):
+    """Stores a single physical or chemical mark applied to fish when they
+    are stocked and reported when they are recaptured.  It does NOT
+    include fin clips, or the presence of a cwt.
+    Multiple marks can be applied to a single fish.
+    """
+
+    MARK_TYPE_CHOICES = [
+        ("thermal", "Thermal"),
+        ("chemcial", "Chemical"),
+        ("dye", "Dye"),
+        ("physical", "physical"),
+        ("unknown", "Unknown"),
+    ]
+
+    mark_code = models.CharField(max_length=10, unique=True)
+    mark_type = models.CharField(max_length=10, choices=MARK_TYPE_CHOICES)
+    description = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ["mark_code"]
+
+    def __str__(self):
+        return "{} ({})".format(self.description, self.mark_code)
+
+
+class FishTag(models.Model):
+    """Stores the attributes of tag that could be applied to stocked fish.
+    Joined to stocking recovery events through a many-to-many
+    relationship as fish could have more than one tag type (e.g. - cwt
+    and floy tag).
+    """
+
+    TAG_TYPE_CHOICES = [
+        ("floy", "Floy"),
+        ("carlin", "Carlin"),
+        ("jaw", "Jaw"),
+        ("cwt", "CWT"),
+        ("dart", "Dart"),
+        ("pit", "PIT"),
+        ("unknown", "Unknown"),
+    ]
+
+    TAG_COLOUR_CHOICES = [
+        ("unknown", "Unknown"),
+        ("white", "White"),
+        ("red", "Red"),
+        ("orange", "Orange"),
+        ("yellow", "Yellow"),
+        ("green", "Green"),
+        ("blue", "Blue"),
+    ]
+
+    tag_code = models.CharField(max_length=10, unique=True)
+    tag_type = models.CharField(max_length=10, choices=TAG_TYPE_CHOICES)
+    tag_colour = models.CharField(max_length=10, choices=TAG_COLOUR_CHOICES)
+    description = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ["tag_code"]
+        unique_together = ("tag_colour", "tag_type")
+        # unique together - colour and type
+
+    def __str__(self):
+        return "{} ({})".format(self.description, self.tag_code)
+
+
+class FinClip(models.Model):
+    """Stores the attributes of fin clip, or combination of finclips that
+    could be applied to stocked fish.
+
+    (I'm not convinced that this is the best way to handle this data,
+    but it is consistent with the data submission process and will
+    work for today.  It might be best to split the clip codes into
+    several tables.)
+
+    """
+
+    clip_code = models.CharField(max_length=10, unique=True)
+    description = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ["clip_code"]
+
+    def __str__(self):
+        return "{} ({})".format(self.description, self.clip_code)
 
 
 class LatLonFlag(models.Model):
