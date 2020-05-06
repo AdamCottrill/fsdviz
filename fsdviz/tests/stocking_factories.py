@@ -13,6 +13,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from ..stocking.models import (
     LifeStage,
     Condition,
+    Hatchery,
     StockingMethod,
     StockingEvent,
     DataUploadEvent,
@@ -57,6 +58,21 @@ class ConditionFactory(factory.DjangoModelFactory):
 
     condition = 1
     description = '<1% mortality observed, "excellent"'
+
+
+class HatcheryFactory(factory.DjangoModelFactory):
+    """
+    A factory for Hatchery objects.
+    """
+
+    class Meta:
+        model = Hatchery
+        django_get_or_create = ("abbrev",)
+
+    agency = factory.SubFactory(AgencyFactory)
+    hatchery_name = "Chatsworth Fish Culture Station"
+    hatchery_type = "provincial"
+    abbrev = "CFCW"
 
 
 class StockingMethodFactory(factory.DjangoModelFactory):
@@ -114,7 +130,7 @@ class StockingEventFactory(factory.DjangoModelFactory):
     year_class = 2015
     agemonth = 16
 
-    clipa = "14"
+    # clipa = "14"
     mark = "RPLV"
 
 

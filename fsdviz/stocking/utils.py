@@ -28,7 +28,8 @@ from .models import StockingMethod, LifeStage, Condition
 from ..common.utils import to_lake_dict, toChoices
 
 # the fields from our upload template:
-XLS_FIELDS = [
+
+REQUIRED_FIELDS = [
     "stock_id",
     "lake",
     "state_prov",
@@ -48,8 +49,8 @@ XLS_FIELDS = [
     "year_class",
     "stage",
     "agemonth",
-    "mark",
-    "mark_eff",
+    # "mark",
+    # "mark_eff",
     "tag_no",
     "tag_ret",
     "length",
@@ -58,9 +59,54 @@ XLS_FIELDS = [
     "lot_code",
     "stock_meth",
     "agency",
-    "validation",
+    # "validation",
     "notes",
+    # new Spring 2020:
+    "hatchery",
+    "agency_stock_id",
+    "finclip",
+    "clip_efficiency",
+    "physchem_mark",
+    "tag_type",
 ]
+
+xlsFields2Fdviz = {
+    "GLFSD_Stock_ID": "stock_id",
+    "AGENCY": "agency",
+    "LAKE": "lake",
+    "STATE_PROV": "state_prov",
+    "STAT_DIST": "stat_dist",
+    "LS_MGMT": "ls_mgmt",
+    "GRID_10MIN": "grid",
+    "LOCATION_PRIMARY": "site",
+    "LOCATION_SECONDARY": "st_site",
+    "LATITUDE": "latitude",
+    "LONGITUDE": "longitude",
+    "YEAR": "year",
+    "MONTH": "month",
+    "DAY": "day",
+    "STOCK_METHOD": "stock_meth",
+    "SPECIES": "species",
+    "STRAIN": "strain",
+    "YEAR-CLASS": "year_class",
+    "LIFE_STAGE": "stage",
+    "AGE_MONTHS": "agemonth",
+    "CWT_Number": "tag_no",
+    "TAG_RETENTION": "tag_ret",
+    "MEAN_LENGTH_MM": "length",
+    "TOTAL_WEIGHT_KG": "weight",
+    "STOCKING_MORTALITY": "condition",
+    "LOT_CODE": "lot_code",
+    "NUMBER_STOCKED": "no_stocked",
+    "NOTES": "notes",
+    # New Spring 2020:
+    "Your_Agency_Stock_ID": "agency_stock_id",
+    "HATCHERY": "hatchery",
+    "CLIP": "finclip",
+    "CLIP_EFFICIENCY": "clip_efficiency",
+    "PHYS-CHEM_MARK": "physchem_mark",
+    "TAG_TYPE": "tag_type",
+}
 
 
 def xls2dicts(data_file):
@@ -80,10 +126,17 @@ def xls2dicts(data_file):
     # add to max count - one for the header row, and one to trip the
     # too many rows flag
     maxrows = settings.MAX_UPLOAD_EVENT_COUNT + 2
-    for i, row in enumerate(ws.iter_rows(min_row=0, max_row=maxrows, values_only=True)):
-        if i == 0:
-            keys = [x for x in row]
-        else:
+    key_row = settings.UPLOAD_KEY_FIELD_ROW - 1
+    first_data_row = settings.UPLOAD_FIRST_DATA_ROW - 1
+
+    for i, row in enumerate(
+        ws.iter_rows(min_row=0, max_row=(maxrows + first_data_row), values_only=True)
+    ):
+        if i == key_row:
+            # map the values from the spread sheet to our fields
+            # if it can't be found in our map - just use the value
+            keys = [xlsFields2Fdviz.get(x, x) for x in row]
+        elif i >= first_data_row:
             vals = [x for x in row]
             # if we have a blank row - stop
             if all(v is None for v in vals):
@@ -250,7 +303,7 @@ def form2params(formdata):
 
 def validate_upload(events):
     """A function to check the basic attributes of the uploaded
-    spreadsheet. the function checks to make sure that the uploaded
+    spreadsheet. The function checks to make sure that the uploaded
     data has between 1 and the max number of rows, that all of the
     required fields are included, but no more, and that the upload is
     limited to a single, year, agency and lake.  If any of these
@@ -290,11 +343,12 @@ def validate_upload(events):
             + " Data submissions are limited to a single year, species, and agency. "
         )
 
-    elif len(set(events[0].keys()) - set(XLS_FIELDS)) >= 1:
+    elif len(set(events[0].keys()) - set(REQUIRED_FIELDS)) >= 1:
         valid = False
         # note - this should be a non-critical error
-        flds = list(set(events[0].keys()) - set(XLS_FIELDS))
+        flds = list(set(events[0].keys()) - set(REQUIRED_FIELDS))
         flds.sort()
+
         if len(flds) == 1:
             msg = (
                 "The uploaded file appears to have an additional field: {}. "
@@ -307,10 +361,10 @@ def validate_upload(events):
                 + "These fields were ignored."
             ).format(len(flds), field_list)
 
-    elif len(set(XLS_FIELDS) - set(events[0].keys())) >= 1:
+    elif len(set(REQUIRED_FIELDS) - set(events[0].keys())) >= 1:
         valid = False
         # note - this should be a non-critical error
-        flds = list(set(XLS_FIELDS) - set(events[0].keys()))
+        flds = list(set(REQUIRED_FIELDS) - set(events[0].keys()))
         flds.sort()
         if len(flds) == 1:
             msg = (

@@ -96,8 +96,10 @@ def stocking_event_dict():
         "lot_code": "LAT-SLW-13",
         "stock_meth": "b",
         "agency": "MNRF",
-        "validation": None,
         "notes": "FIS ID = 73699",
+        # new
+        "hatchery": "CFCS",
+        "agency_stock_id": "P1234",
     }
 
     return event_dict
@@ -138,14 +140,14 @@ invalid_xlsfiles = [
     (
         "fsdviz/tests/xls_files/missing_one_field.xlsx",
         (
-            "The uploaded file appears to be missing the field: mark. "
+            "The uploaded file appears to be missing the field: year_class. "
             + "This field is required in a valid data upload template."
         ),
     ),
     (
         "fsdviz/tests/xls_files/missing_two_fields.xlsx",
         (
-            "The uploaded file appears to be missing the fields: agemonth, mark. "
+            "The uploaded file appears to be missing the fields: stage, year_class. "
             + "These fields are required in a valid data upload template."
         ),
     ),

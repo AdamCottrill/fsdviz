@@ -23,6 +23,9 @@ from ..common.models import (
     LatLonFlag,
     CWT,
     CWTsequence,
+    FinClip,
+    FishTag,
+    PhysChemMark,
 )
 
 # centroid_WKT = POINT(-82.25, 44.25)
@@ -184,6 +187,47 @@ class MarkFactory(factory.DjangoModelFactory):
     mark_type = "finclip"
     clip_code = "5"
     description = "Adipose Fin"
+
+
+class PhysChemMarkFactory(factory.DjangoModelFactory):
+    """
+    A factory for PhysChemMark objects (chemical tags or physical marks)
+    """
+
+    class Meta:
+        model = PhysChemMark
+        django_get_or_create = ("mark_code",)
+
+    mark_code = "OX"
+    mark_type = "chemcial"
+    description = "oxytetracycline"
+
+
+class FinClipFactory(factory.DjangoModelFactory):
+    """
+    A factory for FinClip objects (chemical tags or physical marks)
+    """
+
+    class Meta:
+        model = FinClip
+        django_get_or_create = ("clip_code",)
+
+    clip_code = "AD"
+    description = "adapose clip"
+
+
+class FishTagFactory(factory.DjangoModelFactory):
+    """
+    A factory for FinClip objects (chemical tags or physical marks)
+    """
+
+    class Meta:
+        model = FishTag
+        django_get_or_create = ("tag_code",)
+
+    tag_code = "CWT"
+    tag_type = "CWT"
+    description = "coded wire tag"
 
 
 class LatLonFlagFactory(factory.DjangoModelFactory):

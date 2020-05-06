@@ -28,4 +28,7 @@ COVERAGE_MODULE_EXCLUDES += THIRD_PARTY_APPS + DJANGO_APPS
 # COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(__file__, '../../../coverage')
 #
 
-MAX_UPLOAD_EVENT_COUNT = 5
+# simple spreadsheet attributes for tests:
+MAX_UPLOAD_EVENT_COUNT = 15
+# UPLOAD_KEY_FIELD_ROW = 1
+# UPLOAD_FIRST_DATA_ROW = 2

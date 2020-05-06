@@ -14,6 +14,7 @@ from .stocking_factories import (
     LifeStageFactory,
     ConditionFactory,
     StockingMethodFactory,
+    HatcheryFactory,
     StockingEventFactory,
     DataUploadEventFactory,
 )
@@ -74,6 +75,47 @@ def test_stockingmethod_str():
 
     shouldbe = "{} ({})".format(description, stk_meth)
     assert str(stockingmethod) == shouldbe
+
+
+@pytest.mark.django_db
+def test_hatchery_wo_agency_str():
+    """Verify that the string representation of a hatchery object that
+    does not have an associated agency is the hatchery name followed
+    by the abbreviation in parentheses.
+
+    Chatsworth Fish Culture Station (CFCS)
+
+    """
+
+    abbrev = "CFCS"
+    hatchery_name = "Chatsworth Fish Culture Station"
+
+    obj = HatcheryFactory(abbrev=abbrev, hatchery_name=hatchery_name, agency=None)
+
+    shouldbe = "{} ({})".format(hatchery_name, abbrev)
+    assert str(obj) == shouldbe
+
+
+@pytest.mark.django_db
+def test_hatchery_with_agency_str():
+    """Verify that the string representation of a hatchery object that
+    has an associated agency is the hatchery name followed
+    by the abbreviation and agency abbreviation in parentheses:
+
+    Chatsworth Fish Culture Station (CFCS [OMNRF])
+
+    """
+
+    agency_abbrev = "OMNRF"
+    agency = AgencyFactory(abbrev=agency_abbrev)
+
+    abbrev = "CFCS"
+    hatchery_name = "Chatsworth Fish Culture Station"
+
+    obj = HatcheryFactory(abbrev=abbrev, hatchery_name=hatchery_name, agency=agency)
+
+    shouldbe = "{} ({} [{}])".format(hatchery_name, abbrev, agency_abbrev)
+    assert str(obj) == shouldbe
 
 
 @pytest.mark.django_db
@@ -170,7 +212,7 @@ def test_stocking_event_date():
     should be converted to a date if possible, and saved in the date
     field.
 
-    This should be converted to a parameterized query that takes a
+    This should be converted to a parameterized test that takes a
     list of day, month, year, and expected date values.
 
     """

@@ -20,6 +20,9 @@ from .common_factories import (
     LatLonFlagFactory,
     CWTFactory,
     CWTsequenceFactory,
+    FinClipFactory,
+    FishTagFactory,
+    PhysChemMarkFactory,
 )
 
 
@@ -43,7 +46,6 @@ def test_lake_short_name():
 
     lake = LakeFactory(lake_name="Lake Huron", abbrev="HU")
     assert lake.short_name() == "Huron"
-
 
 
 @pytest.mark.django_db
@@ -266,3 +268,45 @@ def test_cwt_sequence_str():
     )
 
     assert str(cwt_sequence) == shouldbe
+
+
+@pytest.mark.django_db
+def test_physchemmark_str():
+    """Verify that the string representation of a PhysChemMark object is
+    the description followed by the mark_code in brackets.
+
+    """
+
+    mark_code = "OX"
+    description = "oxytetracycline"
+
+    obj = PhysChemMarkFactory(mark_code=mark_code, description=description)
+    assert str(obj) == "{} ({})".format(description, mark_code)
+
+
+@pytest.mark.django_db
+def test_finclip_str():
+    """Verify that the string representation of a FinClip object is
+    the description followed by the clip code in brackets.
+
+    """
+
+    clip_code = "AD"
+    description = "Adipose Clip"
+
+    obj = FinClipFactory(clip_code=clip_code, description=description)
+    assert str(obj) == "{} ({})".format(description, clip_code)
+
+
+@pytest.mark.django_db
+def test_fishtag_str():
+    """Verify that the string representation of a FishTag object is
+    the description followed by the tag code in brackets.
+
+    """
+
+    tag_code = "FTO"
+    description = "Floy Tag, Orange"
+
+    obj = FishTagFactory(tag_code=tag_code, description=description)
+    assert str(obj) == "{} ({})".format(description, tag_code)

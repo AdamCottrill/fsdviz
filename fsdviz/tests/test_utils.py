@@ -34,10 +34,10 @@ def test_xls2dicts():
 @pytest.mark.parametrize("xlsfile, message", invalid_xlsfiles)
 def test_validate_upload(xlsfile, message):
     """Before the data in the spreadsheet can be validated on a row-by-row
-    basis, the basic assimptions and shape of the data must be
+    basis, the basic assumptions and shape of the data must be
     confirmed.  If any of the basic tests fail, we need to return to
     upload form and provide a meaningful message. This test is
-    paramaeterized and takes a list of two element tuples covering the
+    parameterized and takes a list of two element tuples covering the
     cases verifying that the uploaded data has between 1 and the max
     number of rows, that all of the required fields are included, but
     no more, and that the upload is limited to a single, year, agency
