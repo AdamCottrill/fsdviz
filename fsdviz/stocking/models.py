@@ -18,6 +18,7 @@ from fsdviz.common.models import (
     Grid10,
     LatLonFlag,
     Mark,
+    CompositeFinClip,
     FinClip,
     FishTag,
     PhysChemMark,
@@ -172,6 +173,8 @@ class Hatchery(models.Model):
 
     class Meta:
         verbose_name_plural = "Hatcheries"
+        # this constraint is not necessary yet - abbrev is already unique
+        # unique_together = ("abbrev", "hatchery_type", "agency")
 
     def __str__(self):
         if self.agency:
@@ -180,6 +183,9 @@ class Hatchery(models.Model):
             )
         else:
             return "{} ({})".format(self.hatchery_name, self.abbrev)
+
+    def short_name(self):
+        return str(self).replace("Fish Culture Station", "")
 
 
 # TODO: Add table for known stocking sites - this may have to be a many-to-many
@@ -214,12 +220,14 @@ class StockingEvent(models.Model):
 
     fish_tags = models.ManyToManyField(FishTag)
     physchem_marks = models.ManyToManyField(PhysChemMark)
-    finclip = models.ForeignKey(
-        FinClip,
+    fin_clips = models.ManyToManyField(FinClip)
+    clip_code = models.ForeignKey(
+        CompositeFinClip,
         on_delete=models.CASCADE,
         related_name="stocking_events",
         blank=True,
         null=True,
+        help_text="Reported Composite Clip Code",
     )
 
     species = models.ForeignKey(

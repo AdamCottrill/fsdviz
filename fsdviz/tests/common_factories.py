@@ -23,6 +23,7 @@ from ..common.models import (
     LatLonFlag,
     CWT,
     CWTsequence,
+    CompositeFinClip,
     FinClip,
     FishTag,
     PhysChemMark,
@@ -203,22 +204,36 @@ class PhysChemMarkFactory(factory.DjangoModelFactory):
     description = "oxytetracycline"
 
 
+class CompositeFinClipFactory(factory.DjangoModelFactory):
+    """A factory for CompositeFinClip objects - the string reported by
+    agency representing a concatenation of one or more fin clips.
+
+    """
+
+    class Meta:
+        model = CompositeFinClip
+        django_get_or_create = ("clip_code",)
+
+    clip_code = "ADDO"
+    description = "adipose, dorsal fin clip"
+
+
 class FinClipFactory(factory.DjangoModelFactory):
     """
-    A factory for FinClip objects (chemical tags or physical marks)
+    A factory for FinClip objects
     """
 
     class Meta:
         model = FinClip
-        django_get_or_create = ("clip_code",)
+        django_get_or_create = ("abbrev",)
 
-    clip_code = "AD"
+    abbrev = "AD"
     description = "adapose clip"
 
 
 class FishTagFactory(factory.DjangoModelFactory):
     """
-    A factory for FinClip objects (chemical tags or physical marks)
+    A factory for CompositeFinClip objects (chemical tags or physical marks)
     """
 
     class Meta:

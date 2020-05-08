@@ -422,6 +422,22 @@ class Mark(models.Model):
         return "{} ({})".format(self.description, self.mark_code)
 
 
+class FinClip(models.Model):
+    """Stores a type of Fin clip - These are associated to Stocking Events
+    through a many-to-many relationship. The reported clip codes are
+    composites of these values. With the excption of NO (no clips) and
+    UN (unknown clip status) - these are mutually exclusive of each
+    other and all other fin clips.
+
+    """
+
+    abbrev = models.CharField(max_length=2, unique=True)
+    description = models.CharField(max_length=100)
+
+    def __str__(self):
+        return "{} ({})".format(self.description, self.abbrev)
+
+
 class PhysChemMark(models.Model):
     """Stores a single physical or chemical mark applied to fish when they
     are stocked and reported when they are recaptured.  It does NOT
@@ -489,7 +505,7 @@ class FishTag(models.Model):
         return "{} ({})".format(self.description, self.tag_code)
 
 
-class FinClip(models.Model):
+class CompositeFinClip(models.Model):
     """Stores the attributes of fin clip, or combination of finclips that
     could be applied to stocked fish.
 

@@ -14,6 +14,7 @@ from .models import (
     CWT,
     Jurisdiction,
     PhysChemMark,
+    CompositeFinClip,
     FinClip,
     FishTag,
 )
@@ -101,6 +102,13 @@ class FishTagModelAdmin(admin.ModelAdmin):
 
 @admin.register(FinClip)
 class FinClipModelAdmin(admin.ModelAdmin):
+    list_display = ("abbrev", "description")
+    list_filter = ("abbrev",)
+    search_fields = ("abbrev", "description")
+
+
+@admin.register(CompositeFinClip)
+class CompositeFinClipModelAdmin(admin.ModelAdmin):
     list_display = ("clip_code", "description")
     list_filter = ("clip_code",)
     search_fields = ("clip_code", "description")

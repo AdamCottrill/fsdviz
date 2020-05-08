@@ -24,8 +24,8 @@ class StockingMethodModelAdmin(admin.ModelAdmin):
 @admin.register(Hatchery)
 class HatcheryModelAdmin(admin.ModelAdmin):
     list_display = ("hatchery_name", "abbrev", "hatchery_type", "agency")
-    list_filter = ("hatchery_name", "abbrev", "hatchery_type", "agency")
-    search = ["hatchery_name"]
+    list_filter = ("hatchery_type", "agency")
+    search_fields = ["hatchery_name"]
 
 
 @admin.register(StockingEvent)

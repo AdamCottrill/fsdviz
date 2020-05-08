@@ -83,11 +83,11 @@ def test_hatchery_wo_agency_str():
     does not have an associated agency is the hatchery name followed
     by the abbreviation in parentheses.
 
-    Chatsworth Fish Culture Station (CFCS)
+    Chatsworth Fish Culture Station (CWC)
 
     """
 
-    abbrev = "CFCS"
+    abbrev = "CWC"
     hatchery_name = "Chatsworth Fish Culture Station"
 
     obj = HatcheryFactory(abbrev=abbrev, hatchery_name=hatchery_name, agency=None)
@@ -102,20 +102,65 @@ def test_hatchery_with_agency_str():
     has an associated agency is the hatchery name followed
     by the abbreviation and agency abbreviation in parentheses:
 
-    Chatsworth Fish Culture Station (CFCS [OMNRF])
+    Chatsworth Fish Culture Station (CWC [OMNRF])
 
     """
 
     agency_abbrev = "OMNRF"
     agency = AgencyFactory(abbrev=agency_abbrev)
 
-    abbrev = "CFCS"
+    abbrev = "CWC"
     hatchery_name = "Chatsworth Fish Culture Station"
 
     obj = HatcheryFactory(abbrev=abbrev, hatchery_name=hatchery_name, agency=agency)
 
     shouldbe = "{} ({} [{}])".format(hatchery_name, abbrev, agency_abbrev)
     assert str(obj) == shouldbe
+
+
+@pytest.mark.django_db
+def test_hatchery_wo_agency_short_name():
+    """Verify that the short name method of a hatchery object that
+    does not have an associated agency is the hatchery name followed
+    by the abbreviation in parentheses without the "Fish Culture Station"
+
+    Chatsworth (CWC)
+
+    """
+
+    abbrev = "CWC"
+    hatchery_name = "Chatsworth Fish Culture Station"
+
+    obj = HatcheryFactory(abbrev=abbrev, hatchery_name=hatchery_name, agency=None)
+
+    shouldbe = "{} ({})".format(hatchery_name, abbrev).replace(
+        "Fish Culture Station", ""
+    )
+    assert obj.short_name() == shouldbe
+
+
+@pytest.mark.django_db
+def test_hatchery_with_agency_short_name():
+    """Verify that the shore_name method of a hatchery object that
+    has an associated agency is the hatchery name followed
+    by the abbreviation and agency abbreviation in parentheses:
+
+    Chatsworth (CWC [OMNRF])
+
+    """
+
+    agency_abbrev = "OMNRF"
+    agency = AgencyFactory(abbrev=agency_abbrev)
+
+    abbrev = "CWC"
+    hatchery_name = "Chatsworth Fish Culture Station"
+
+    obj = HatcheryFactory(abbrev=abbrev, hatchery_name=hatchery_name, agency=agency)
+
+    shouldbe = "{} ({} [{}])".format(hatchery_name, abbrev, agency_abbrev).replace(
+        "Fish Culture Station", ""
+    )
+    assert obj.short_name() == shouldbe
 
 
 @pytest.mark.django_db

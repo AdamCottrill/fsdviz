@@ -20,6 +20,7 @@ from .common_factories import (
     LatLonFlagFactory,
     CWTFactory,
     CWTsequenceFactory,
+    CompositeFinClipFactory,
     FinClipFactory,
     FishTagFactory,
     PhysChemMarkFactory,
@@ -285,17 +286,31 @@ def test_physchemmark_str():
 
 
 @pytest.mark.django_db
-def test_finclip_str():
-    """Verify that the string representation of a FinClip object is
+def test_compositefinclip_str():
+    """Verify that the string representation of a CompositeFinClip object is
     the description followed by the clip code in brackets.
 
     """
 
-    clip_code = "AD"
-    description = "Adipose Clip"
+    clip_code = "ADDO"
+    description = "Adipose, Dorsal Clip"
 
-    obj = FinClipFactory(clip_code=clip_code, description=description)
+    obj = CompositeFinClipFactory(clip_code=clip_code, description=description)
     assert str(obj) == "{} ({})".format(description, clip_code)
+
+
+@pytest.mark.django_db
+def test_finclip_str():
+    """Verify that the string representation of a FinClip object is
+    the description followed by the abbreviation in brackets.
+
+    """
+
+    abbrev = "AD"
+    description = "Adipose"
+
+    obj = FinClipFactory(abbrev=abbrev, description=description)
+    assert str(obj) == "{} ({})".format(description, abbrev)
 
 
 @pytest.mark.django_db
