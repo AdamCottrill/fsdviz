@@ -155,6 +155,7 @@ class StrainFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Strain
+        django_get_or_create = ("strain_code",)
 
     strain_code = "SEN"
     strain_label = "Seneca"
@@ -169,6 +170,7 @@ class StrainRawFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = StrainRaw
+        django_get_or_create = ("raw_strain",)
 
     raw_strain = "Special Seneca"
     description = "extra special Lake trout orignally from Seneca Lake"
@@ -228,7 +230,7 @@ class FinClipFactory(factory.DjangoModelFactory):
         django_get_or_create = ("abbrev",)
 
     abbrev = "AD"
-    description = "adapose clip"
+    description = "adipose clip"
 
 
 class FishTagFactory(factory.DjangoModelFactory):

@@ -434,6 +434,9 @@ class FinClip(models.Model):
     abbrev = models.CharField(max_length=2, unique=True)
     description = models.CharField(max_length=100)
 
+    class Meta:
+        ordering = ["abbrev"]
+
     def __str__(self):
         return "{} ({})".format(self.description, self.abbrev)
 
@@ -486,6 +489,7 @@ class FishTag(models.Model):
         ("white", "White"),
         ("red", "Red"),
         ("orange", "Orange"),
+        ("purple", "Purple"),
         ("yellow", "Yellow"),
         ("green", "Green"),
         ("blue", "Blue"),

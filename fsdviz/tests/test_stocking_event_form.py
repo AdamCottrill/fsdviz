@@ -42,7 +42,6 @@ def create_event_dict(event):
         "modified_date",
         "yreq_stocked",
         "grid_5",
-        "clipa",
         "upload_event_id",
     ]
     for fld in omit:

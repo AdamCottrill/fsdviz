@@ -72,7 +72,7 @@ class HatcheryFactory(factory.DjangoModelFactory):
     agency = factory.SubFactory(AgencyFactory)
     hatchery_name = "Chatsworth Fish Culture Station"
     hatchery_type = "provincial"
-    abbrev = "CFCW"
+    abbrev = "CWC"
 
 
 class StockingMethodFactory(factory.DjangoModelFactory):
@@ -100,6 +100,7 @@ class StockingEventFactory(factory.DjangoModelFactory):
     species = factory.SubFactory(SpeciesFactory)
     strain_raw = factory.SubFactory(StrainRawFactory)
     agency = factory.SubFactory(AgencyFactory)
+    hatchery = factory.SubFactory(HatcheryFactory)
     jurisdiction = factory.SubFactory(JurisdictionFactory)
     # lake = factory.SubFactory(LakeFactory)
     management_unit = factory.SubFactory(ManagementUnitFactory)
@@ -112,7 +113,10 @@ class StockingEventFactory(factory.DjangoModelFactory):
     latlong_flag = factory.SubFactory(LatLonFlagFactory)
 
     # event attributes:
-    stock_id = factory.Sequence(lambda n: "USFWS-%04d" % n)
+    stock_id = factory.Sequence(lambda n: "2019-%04d" % n)
+
+    # event attributes:
+    agency_stock_id = factory.Sequence(lambda n: "USFWS-%04d" % n)
 
     date = datetime(2016, 4, 20)
     day = 20
@@ -129,6 +133,9 @@ class StockingEventFactory(factory.DjangoModelFactory):
     yreq_stocked = 15000
     year_class = 2015
     agemonth = 16
+
+    length = 125
+    weight = 100
 
     # clipa = "14"
     mark = "RPLV"

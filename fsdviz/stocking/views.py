@@ -521,7 +521,22 @@ class StockingEventDetailView(DetailView):
     def get_object(self):
 
         stock_id = self.kwargs.get("stock_id")
-        event = get_object_or_404(StockingEvent, stock_id=stock_id)
+        qs = StockingEvent.objects.select_related(
+            "species",
+            "agency",
+            "hatchery",
+            "strain_raw",
+            "grid_10",
+            "grid_10__lake",
+            "management_unit",
+            "jurisdiction",
+            "jurisdiction__stateprov",
+            "stocking_method",
+            "lifestage",
+            "condition",
+        )
+
+        event = get_object_or_404(qs, stock_id=stock_id)
         return event
 
 
@@ -589,7 +604,7 @@ def upload_events(request):
 
 def xls_events(request):
     """This function is the workhorse of the data upload.  On a get
-    request it get the excel data from the session, along with all of the
+    request it gets the excel data from the session, along with all of the
     associated lookup values.
 
         Arguments:

@@ -261,18 +261,26 @@ class XlsEventForm(forms.Form):
     year_class = forms.IntegerField(
         min_value=1950, max_value=(datetime.now().year + 1), required=False
     )
-    mark = forms.CharField(required=False)
-    mark_eff = forms.FloatField(min_value=0, max_value=100, required=False)
+
     tag_no = forms.CharField(required=False)
     tag_ret = forms.FloatField(min_value=0, max_value=100, required=False)
     length = forms.FloatField(min_value=0, required=False)
     weight = forms.FloatField(min_value=0, required=False)
+
     condition = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     stock_meth = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     no_stocked = forms.IntegerField(required=True)
     lot_code = forms.CharField(required=False)
-    validation = forms.IntegerField(min_value=0, max_value=10, required=False)
+    # validation = forms.IntegerField(min_value=0, max_value=10, required=False)
     notes = forms.CharField(required=False)
+
+    # new Spring 2020
+    finclip = forms.CharField(required=False)
+    clip_efficiency = forms.FloatField(min_value=0, max_value=100, required=False)
+    physchem_mark = forms.CharField(required=False)  # choice field some day
+    tag_type = forms.ChoiceField(choices=[], required=False, widget=MySelect)
+    hatchery = forms.CharField(required=False)  # choice field some day too
+    agency_stock_id = forms.CharField(required=False)
 
     # flags for front end javascript validation for fields that are
     # related to one another
@@ -294,8 +302,8 @@ class XlsEventForm(forms.Form):
     stage.widget.attrs["data-validate"] = "validate-stage"
     agemonth.widget.attrs["data-validate"] = "validate-agemonth"
     year_class.widget.attrs["data-validate"] = "validate-year_class"
-    mark.widget.attrs["data-validate"] = "validate-mark"
-    mark_eff.widget.attrs["data-validate"] = "validate-mark_eff"
+    # mark.widget.attrs["data-validate"] = "validate-mark"
+    # mark_eff.widget.attrs["data-validate"] = "validate-mark_eff"
     tag_no.widget.attrs["data-validate"] = "validate-tag_no"
     tag_ret.widget.attrs["data-validate"] = "validate-tag_ret"
     length.widget.attrs["data-validate"] = "validate-length"
@@ -303,8 +311,16 @@ class XlsEventForm(forms.Form):
     no_stocked.widget.attrs["data-validate"] = "validate-no_stocked"
     condition.widget.attrs["data-validate"] = "validate-condition"
     lot_code.widget.attrs["data-validate"] = "validate-lot_code"
-    validation.widget.attrs["data-validate"] = "validate-validation"
+    # validation.widget.attrs["data-validate"] = "validate-validation"
     notes.widget.attrs["data-validate"] = "validate-notes"
+
+    # new - spring 2020
+    finclip.widget.attrs["data-validate"] = "validate-notes"
+    clip_efficiency.widget.attrs["data-validate"] = "validate-notes"
+    physchem_mark.widget.attrs["data-validate"] = "validate-notes"
+    tag_type.widget.attrs["data-validate"] = "validate-notes"
+    hatchery.widget.attrs["data-validate"] = "validate-notes"
+    agency_stock_id.widget.attrs["data-validate"] = "validate-notes"
 
     def clean_grid(self):
 
@@ -386,6 +402,13 @@ class StockingEventForm(forms.Form):
         self.fields["stocking_method_id"].choices = self.choices.get("stocking_methods")
         self.fields["lifestage_id"].choices = self.choices.get("lifestages")
         self.fields["condition_id"].choices = self.choices.get("conditions")
+
+        # new spring 2020:
+        # self.fields["hatchery_id"].choices = self.choices.get("hatcheries")
+        # self.fields["physchem_mark_id"].choices = self.choices.get("physchem_marks")
+        # these should be many-to-many with check box array:
+        # self.fields["finclips"].choices = self.choices.get("finclips")
+        # self.fields["fishtags"].choices = self.choices.get("fintags")
 
         # if our intitial data contains values that are not in our list of choices
         # add it to front of each list with a "" as its id (that will automaticlly

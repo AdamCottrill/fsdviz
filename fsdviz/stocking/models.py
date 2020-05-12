@@ -215,21 +215,6 @@ class StockingEvent(models.Model):
         (10, "level 10, data entered and verified at OMNR"),
     ]
 
-    # marks is going away shortly:
-    marks = models.ManyToManyField(Mark)
-
-    fish_tags = models.ManyToManyField(FishTag)
-    physchem_marks = models.ManyToManyField(PhysChemMark)
-    fin_clips = models.ManyToManyField(FinClip)
-    clip_code = models.ForeignKey(
-        CompositeFinClip,
-        on_delete=models.CASCADE,
-        related_name="stocking_events",
-        blank=True,
-        null=True,
-        help_text="Reported Composite Clip Code",
-    )
-
     species = models.ForeignKey(
         Species, on_delete=models.CASCADE, related_name="stocking_events"
     )
@@ -275,7 +260,15 @@ class StockingEvent(models.Model):
 
     # unique fish stocking event identifier
     stock_id = models.CharField(
-        "unique event identifier provided by agency", max_length=100, unique=True
+        "unique event identifier provided by agency",
+        max_length=100,
+        unique=True,
+        db_index=True,
+    )
+
+    # if there is an agency stock_id - it has to be unique
+    agency_stock_id = models.CharField(
+        max_length=100, unique=True, blank=True, null=True
     )
 
     date = models.DateField("Stocking event date", blank=True, null=True)
@@ -327,15 +320,32 @@ class StockingEvent(models.Model):
         null=True,
     )
 
-    tag_no = models.CharField(max_length=100, blank=True, null=True, db_index=True)
-    tag_ret = models.FloatField("Tag retention as a percentage", blank=True, null=True)
+    fish_tags = models.ManyToManyField(FishTag)
+
+    tag_no = models.CharField(
+        "CWT numbers", max_length=100, blank=True, null=True, db_index=True
+    )
+    tag_ret = models.FloatField("CWT retention as a percentage", blank=True, null=True)
+
+    fin_clips = models.ManyToManyField(FinClip)
+    clip_code = models.ForeignKey(
+        CompositeFinClip,
+        on_delete=models.CASCADE,
+        related_name="stocking_events",
+        blank=True,
+        null=True,
+        help_text="Reported Composite Clip Code",
+    )
 
     clip_efficiency = models.FloatField(
         "Clipping efficency as a percentage", blank=True, null=True
     )
 
-    # clipa = models.CharField(max_length=10, blank=True, null=True, db_index=True)
+    physchem_marks = models.ManyToManyField(PhysChemMark)
+
     # mark, mark_eff and validation are going away shortly....
+    # marks is going away shortly:
+    marks = models.ManyToManyField(Mark)
     mark = models.CharField(
         "Chemical, tag, or finclip mark applied to fish",
         max_length=50,
@@ -343,7 +353,6 @@ class StockingEvent(models.Model):
         null=True,
         db_index=True,
     )
-
     mark_eff = models.FloatField(
         "Marking efficency as a percentage", blank=True, null=True
     )
@@ -356,11 +365,6 @@ class StockingEvent(models.Model):
     )
 
     notes = models.CharField(max_length=500, blank=True, null=True)
-
-    # if there is an agency stock_id - it has to be unique
-    agency_stock_id = models.CharField(
-        max_length=100, unique=True, blank=True, null=True
-    )
 
     upload_event = models.ForeignKey(
         DataUploadEvent,
@@ -404,6 +408,20 @@ class StockingEvent(models.Model):
                 self.clipa = self.get_clipa()
 
         super(StockingEvent, self).save(*args, **kwargs)
+
+    def best_date_str(self):
+        """return the the most precise date available for this event.  Return
+        the complete date if it is available, the month and the year if the
+        day is unknown, or just the year if the month and date are not
+        known  Returns a string representing the date"""
+
+        if self.date:
+            return self.date.strftime("%B %d, %Y")
+        elif self.month:
+            tmpdate = datetime(self.year, self.month, 1)
+            return tmpdate.strftime("%B %Y")
+        else:
+            return self.year
 
     @property
     def lake(self):

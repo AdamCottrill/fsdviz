@@ -45,9 +45,12 @@
                                         <td>{{ object.stock_id}}</td>
                                     </tr>
                                     <tr>
+                                        <td><strong>Agency Stock Id:</strong></td>
+                                        <td id="agency-stock-id">{{ object.agency_stock_id |default_if_none:'Not Reported'}}</td>
+                                    </tr>
+                                    <tr>
                                         <td><strong>Species:</strong></td>
-                                        <td>{{ object.species.common_name|title}}
-                                            ({{ object.species.abbrev }})</td>
+                                        <td>{{ object.species.common_name|title}} ({{ object.species.abbrev }})</td>
                                     </tr>
 
                                     <tr>
@@ -56,11 +59,9 @@
                                             ({{ object.strain_raw.strain.strain_code}})</td>
                                     </tr>
 
-                                    <tr class="secondary">
+                                    <tr class="extra-detail">
                                         <td><strong>Reported Strain:</strong></td>
-                                        <td>{{ object.strain_raw.description}}(
-                                            {{ object.strain_raw.raw_strain}}
-                                            )</td>
+                                        <td id="strain-raw">{{ object.strain_raw.description}}({{ object.strain_raw.raw_strain}})</td>
                                     </tr>
 
 
@@ -68,6 +69,13 @@
                                         <td><strong>Agency:</strong></td>
                                         <td>{{ object.agency }}</td>
                                     </tr>
+
+                                    <tr>
+                                        <td><strong>Hatchery:</strong></td>
+                                        <td id="hatchery">{{ object.hatchery|default_if_none:'Not Reported' }}</td>
+                                    </tr>
+                                    
+                                    
                                     <tr>
                                         <td><strong>Lake:</strong></td>
                                         <td>{{ object.lake }}</td>
@@ -84,13 +92,13 @@
                                         <td><strong>10-Min. Grid:</strong></td>
                                         <td>{{ object.grid_10 }}</td>
                                     </tr>
-                                    <tr class="secondary">
+                                    <tr class="extra-detail">
                                         <td><strong>LatLon Flag:</strong></td>
                                         <td>{{ object.latlong_flag }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Date:</strong></td>
-                                        <td>{{ object.date }}</td>
+                                        <td>{{ object.best_date_str }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Method:</strong></td>
@@ -111,14 +119,14 @@
                                         <td>{{ object.year_class }}</td>
                                     </tr>
 
-                                    <tr class="secondary">
+                                    <tr class="extra-detail">
                                         <td><strong>Length(mm):</strong></td>
-                                        <td>{{ object.length|default_if_none:'Not Reported' }}</td>
+                                        <td id="length">{{ object.length|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
-                                    <tr class="secondary">
+                                    <tr class="extra-detail">
                                         <td><strong>Weight(g):</strong></td>
-                                        <td>{{ object.weight|default_if_none:'Not Reported' }}</td>
+                                        <td id="weight">{{ object.weight|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
                                     <tr>
@@ -126,15 +134,41 @@
                                         <td>{{ object.mark }} ({{object.clipa}})</td>
                                     </tr>
 
-
-                                    <tr class="secondary">
-                                        <td><strong>Mark Eff:</strong></td>
-                                        <td>{{ object.mark_eff|default_if_none:'Not Reported' }}</td>
+                                    <tr>
+                                        <td><strong>Clips:</strong></td>
+                                        <td id="clip-code">{{ object.clip_code|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
-                                    <tr class="secondary">
+                                    <tr>
+                                        <td><strong>Tags:</strong></td>
+                                        {% if object.fish_tags.all %}    
+                                            <td id="tags">{% for tag in object.fish_tags.all %}{{tag}}{% endfor %}</td>
+                                        {% else %}
+                                            <td id="tags">Not Reported</td>
+                                        {% endif %}
+                                        
+                                    </tr>
+
+                                    <tr class="extra-detail">
                                         <td><strong>Tag Reten.:</strong></td>
-                                        <td>{{ object.tag_ret|default_if_none:'Not Reported' }}</td>
+                                        <td id="tag-reten">{{ object.tag_ret|default_if_none:'Not Reported' }}</td>
+                                    </tr>
+
+                                    
+                                    <tr>
+                                        <td><strong>Marks:</strong></td>
+                                        {% if object.physchem_marks.all %}    
+                                            <td id="physchem-marks">{% for mark in object.physchem_marks.all %}{{mark}}{% endfor %}</td>
+                                        {% else %}
+                                            <td id="physchem-marks">Not Reported</td>
+                                        {% endif %}
+                                           
+                                    </tr>
+                                                                  
+
+                                    <tr class="extra-detail">
+                                        <td><strong>Mark Eff:</strong></td>
+                                        <td id="mark-eff">{{ object.mark_eff|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
                                     <tr>
@@ -152,32 +186,32 @@
                                     </tr>
 
 
-                                    <tr class="secondary">
+                                    <tr class="extra-detail">
                                         <td><strong>Lot Code:</strong></td>
-                                        <td>{{ object.lotcode|default_if_none:'Not Reported' }}</td>
+                                        <td id="lot-code">{{ object.lotcode|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
-                                    <tr class="secondary">
+                                    <tr class="extra-detail">
                                         <td><strong>Validation:</strong></td>
-                                        <td>{{ object.get_validation_display|default_if_none:'Not Reported' }}</td>
+                                        <td id="validation">{{ object.get_validation_display|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
                                 </table>
 
-                                {% if object.notes %}
+
                                     <div class="ui card">
                                         <div class="content">
                                             <div class="ui sub header">Additional Notes</div>
                                         </div>
                                         <div class="content">
                                             <div class="content">
-                                                <div class="summary">
-                                                    {{ object.notes }}
+                                                <div class="summary" id="additional-notes" >
+                                                    {{ object.notes|default_if_none:'None' }}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                {% endif %}
+
                             </div>
                         </div>
                     </div>
@@ -271,7 +305,7 @@
 
      $(document).ready(function(){
          $("#details-table");
-         $('.secondary').hide();
+         $('.extra-detail').hide();
      }
      );
 
@@ -286,7 +320,7 @@
                  $(this).text('More Detail');
              }
 
-             $('.secondary').toggle();
+             $('.extra-detail').toggle();
              return false;
          });
      });
