@@ -20,6 +20,9 @@ import pytest
 from .user_factory import UserFactory
 from django.contrib.gis.geos import GEOSGeometry
 
+from .common_factories import LatLonFlagFactory
+
+from fsdviz.common.choices import LATLON_FLAGS
 
 SCOPE = "function"
 
@@ -57,6 +60,15 @@ def roi():
     roi = GEOSGeometry(grid.replace("\n", ""), srid=4326)
 
     return roi
+
+
+@pytest.fixture(scope="function")
+def latlon_flags():
+    """populate the database with our latlon choices.
+    """
+
+    flags = [LatLonFlagFactory(value=x[0], description=x[1]) for x in LATLON_FLAGS]
+    return flags
 
 
 @pytest.fixture(scope="function")

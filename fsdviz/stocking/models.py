@@ -320,14 +320,15 @@ class StockingEvent(models.Model):
         null=True,
     )
 
-    fish_tags = models.ManyToManyField(FishTag)
+    fish_tags = models.ManyToManyField(FishTag, related_name="stocking_events")
 
     tag_no = models.CharField(
         "CWT numbers", max_length=100, blank=True, null=True, db_index=True
     )
     tag_ret = models.FloatField("CWT retention as a percentage", blank=True, null=True)
 
-    fin_clips = models.ManyToManyField(FinClip)
+    fin_clips = models.ManyToManyField(FinClip, related_name="stocking_events")
+
     clip_code = models.ForeignKey(
         CompositeFinClip,
         on_delete=models.CASCADE,
@@ -341,11 +342,13 @@ class StockingEvent(models.Model):
         "Clipping efficency as a percentage", blank=True, null=True
     )
 
-    physchem_marks = models.ManyToManyField(PhysChemMark)
+    physchem_marks = models.ManyToManyField(
+        PhysChemMark, related_name="stocking_events"
+    )
 
     # mark, mark_eff and validation are going away shortly....
     # marks is going away shortly:
-    marks = models.ManyToManyField(Mark)
+    marks = models.ManyToManyField(Mark, related_name="stocking_events")
     mark = models.CharField(
         "Chemical, tag, or finclip mark applied to fish",
         max_length=50,
@@ -397,10 +400,23 @@ class StockingEvent(models.Model):
 
         """
 
-        self.geom = Point(self.dd_lon, self.dd_lat)
+        flag_cache = {x.value: x for x in LatLonFlag.objects.all()}
+        if self.dd_lon and self.dd_lat:
+            self.geom = Point(self.dd_lon, self.dd_lat)
+            self.latlong_flag = flag_cache[1]
+        else:
+            # grid 10 is a required field - if this changes, we may
+            # need to additional elif statments here:
+            self.geom = self.grid_10.centroid
+            self.latlong_flag = flag_cache[4]
 
         # figure out what juristiction this event occured in depending
         # on state/province and lake.
+
+        try:
+            self.date = datetime(self.year, self.month, self.day)
+        except (ValueError, TypeError):
+            self.date = None
 
         if self.id:
             if self.marks.all():
@@ -421,7 +437,7 @@ class StockingEvent(models.Model):
             tmpdate = datetime(self.year, self.month, 1)
             return tmpdate.strftime("%B %Y")
         else:
-            return self.year
+            return str(self.year)
 
     @property
     def lake(self):
@@ -464,6 +480,44 @@ class StockingEvent(models.Model):
         else:
             return None
 
+    def get_finclip_code(self):
+        """Return a string containing the fin codes associated with this
+        stocking event sorted in ascending order and then concatenated together.
+
+        Arguments:
+        - `self`:
+        """
+        tmp = []
+        if self.id:
+            for x in self.fin_clips.all():
+                tmp.append(x.abbrev)
+        tmp.sort()
+        if tmp:
+            code = "".join(tmp)
+            return code
+        else:
+            return None
+
+    def get_physchem_code(self):
+        """Return a string containing the physical/chemical mark codes
+        associated with this stocking event sorted in ascending order
+        and then concatenated together.
+
+        Arguments:
+        - `self`:
+
+        """
+        tmp = []
+        if self.id:
+            for x in self.physchem_marks.all():
+                tmp.append(x.mark_code)
+        tmp.sort()
+        if tmp:
+            code = "".join(tmp)
+            return code
+        else:
+            return None
+
     def get_clipa(self):
         """Return a string containing the OMNR clip codes associated
         with this stocking event sorted in ascending order and then
@@ -476,8 +530,8 @@ class StockingEvent(models.Model):
 
         tmp = []
         if self.id:
-            for mark in self.marks.filter(mark_type="finclip"):
-                tmp.append(mark.clip_code)
+            for x in self.finclips.all():
+                tmp.append(x.clip_code)
         tmp.sort()
         if tmp:
             clips = "".join(tmp)
@@ -491,7 +545,6 @@ class StockingEvent(models.Model):
         Return true if one of the of the tags associated with this stocking
         event is sequential. If so, we will need to account for start and
         sequence end in some views and templates.
-
 
         Arguments:
         - `self`:

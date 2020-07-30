@@ -5,7 +5,6 @@ species, ect.
 """
 
 import factory
-
 from django.contrib.gis.geos import GEOSGeometry
 
 # import common.models as common
@@ -95,7 +94,10 @@ class JurisdictionFactory(factory.DjangoModelFactory):
     lake = factory.SubFactory(LakeFactory)
     stateprov = factory.SubFactory(StateProvinceFactory)
     name = factory.Sequence(lambda n: "Ontario-%03d" % n)
-    slug = "slug"
+    # slug = "slug"
+    slug = factory.LazyAttribute(
+        lambda o: "{}_{}".format(o.lake.abbrev, o.stateprov.abbrev).lower()
+    )
     description = "The waters of some entity"
 
 

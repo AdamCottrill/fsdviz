@@ -7,7 +7,20 @@ events, stocking methods, ect.
 from datetime import datetime
 import pytest
 
-from .common_factories import AgencyFactory, SpeciesFactory, LakeFactory
+from fsdviz.common.models import LatLonFlag
+
+from .pytest_fixtures import latlon_flags
+
+from .common_factories import (
+    AgencyFactory,
+    SpeciesFactory,
+    LakeFactory,
+    Grid10Factory,
+    StateProvinceFactory,
+    JurisdictionFactory,
+    FinClipFactory,
+    PhysChemMarkFactory,
+)
 from .user_factory import UserFactory
 
 from .stocking_factories import (
@@ -252,21 +265,132 @@ def test_datauploadevent_generate_slug():
 
 
 @pytest.mark.django_db
-def test_stocking_event_date():
+def test_event_lake_method():
+    """The stocking event model has a property .lake that should return
+    the lake associated with the stocking event.
+
+    """
+    lake = LakeFactory(lake_name="Huron", abbrev="HU")
+    stateprov = StateProvinceFactory(name="Ontario")
+    jurisdiction = JurisdictionFactory(lake=lake, stateprov=stateprov)
+    event = StockingEventFactory(jurisdiction=jurisdiction)
+    assert event.lake == lake
+
+
+@pytest.mark.django_db
+def test_event_stateprov_method():
+    """The stocking event model has a property .stateprov that should return
+    the lake associated with the stocking event.
+    """
+
+    lake = LakeFactory(lake_name="Huron", abbrev="HU")
+    stateprov = StateProvinceFactory(name="Ontario")
+    jurisdiction = JurisdictionFactory(lake=lake, stateprov=stateprov)
+    event = StockingEventFactory(jurisdiction=jurisdiction)
+    assert event.stateprov == stateprov
+
+
+@pytest.mark.django_db
+def test_get_finclip_code():
+    """The stocking event object has a method that will return the clip
+    codes that were applied to the fish stocked in the event. the
+    component clip codes should first be sorted and then concatentated
+    to ensure that we don't get values like 'LPRV' and 'RVLP'
+    """
+
+    lp = FinClipFactory(abbrev="LP", description="Left Pectoral")
+    rv = FinClipFactory(abbrev="RV", description="Right Ventral")
+
+    event = StockingEventFactory()
+    event.fin_clips.add(lp, rv)
+    event.save()
+
+    assert event.get_finclip_code() == "LPRV"
+
+
+@pytest.mark.django_db
+def test_get_physchem_mark_code():
+    """The stocking event object has a method that will return the clip
+    codes that were applied to the fish stocked in the event. the
+    component clip codes should first be sorted and then concatentated
+    to ensure that we don't get values like 'LPRV' and 'RVLP'
+    """
+
+    ox = PhysChemMarkFactory(mark_code="OX", description="oxytetracycline")
+    dy = PhysChemMarkFactory(mark_code="DY", description="dy, general")
+
+    event = StockingEventFactory()
+    event.physchem_marks.add(ox, dy)
+    event.save()
+
+    assert event.get_physchem_code() == "DYOX"
+
+
+def test_event_has_sequentail_cwts():
+    """Sequential cwt tags are going to cause grief.  The stocking event
+    object has a method that returns a boolean that is true if this event
+    has at least one sequential cwt associated with it, and false
+    otherwise.
+    """
+    assert 0 == 1
+
+
+@pytest.mark.django_db
+def test_stocking_event_date_from_day_month_year():
     """When a stocking event is saved, its day month and year values
     should be converted to a date if possible, and saved in the date
-    field.
+   field.
 
     This should be converted to a parameterized test that takes a
     list of day, month, year, and expected date values.
 
     """
 
-    assert 0 == 1
+    event_date = datetime(year=2010, month=8, day=12)
+    event = StockingEventFactory(year=2010, month=8, day=12)
+    event.save()
+    assert event.date == event_date
+
+    event = StockingEventFactory(date=None, day=None, month=8, year=2010)
+    event.save()
+    assert event.date is None
+
+    event = StockingEventFactory(date=None, day=None, month=None, year=2010)
+    event.save()
+    assert event.date is None
 
 
 @pytest.mark.django_db
-def test_stocking_event_latlon_flag():
+def test_best_stocking_event_date():
+    """The stocking event model has a method that is supposed to return
+    the best available date, given that the day, or day and month may be
+    null.
+
+    The method should return the complete date if it is available, the
+    month and the year if the day is unknown, or just the year if
+    the month and date are not known. Returns a string representing
+    the date of the form "August 12, 2010", "August 2010", or "2010"
+
+    This should be converted to a parameterized test that takes a
+    list of day, month, year, and expected date values.
+
+    """
+
+    event_date = datetime(year=2010, month=8, day=12)
+    event = StockingEventFactory(
+        year=event_date.year, month=event_date.month, day=event_date.day
+    )
+    assert event.best_date_str() == "August 12, 2010"
+
+    event = StockingEventFactory(date=None, day=None, month=8, year=2010)
+    assert event.best_date_str() == "August 2010"
+
+    event = StockingEventFactory(date=None, day=None, month=None, year=2010)
+    assert event.best_date_str() == "2010"
+
+
+@pytest.mark.django_db
+def test_stocking_event_latlon_flag(latlon_flags):
     """When a stocking event is saved, the latlon_flag should be set to
     indicate the precision of the spatial information. The latlon_flag
     indicates the finest level of resultion provided for each event (the
@@ -274,7 +398,34 @@ def test_stocking_event_latlon_flag():
 
     """
 
-    assert 0 == 1
+    flag_cache = {x.value: x for x in LatLonFlag.objects.all()}
+
+    grid10 = Grid10Factory()
+
+    event = StockingEventFactory(dd_lat=45.1, dd_lon=-81.1, grid_10=grid10)
+    event.save()
+    assert event.latlong_flag == flag_cache[1]
+
+    event.dd_lat = None
+    event.dd_lon = None
+    event.geom = None
+    event.save()
+    # assert event.latlong_flag == flag_cache[3]
+    # event.grid5 = None
+    event.save()
+    assert event.latlong_flag == flag_cache[4]
+
+    # grid 10 is a required field in the current database. If this
+    # changes we will have to add additional tests here.  these ones
+    # don't work because we can't save an event without a grid.
+
+    # event.grid_10 = None
+    # event.save()
+    # assert event.latlong_flag == flag_cache[5]
+
+    # event.management_unit = None
+    # event.save()
+    # assert event.latlong_flag == flag_cache[6]
 
 
 @pytest.mark.django_db

@@ -1,10 +1,12 @@
 from config.settings.base import *
 
-# GEOS_LIBRARY_PATH = '/usr/local/lib/libgeos_c.so'
-# GDAL_LIBRARY_PATH = '/usr/local/lib/libgdal.so'
+# install gdal in virtualenv:
+VIRTUAL_ENV = os.environ["VIRTUAL_ENV"]
+OSGEO_VENV = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo")
+GEOS_LIBRARY_PATH = os.path.join(OSGEO_VENV, "geos_c.dll")
+GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal300.dll")
+os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
 
-GEOS_LIBRARY_PATH = "c:/OSGeo4W/bin/geos_c.dll"
-GDAL_LIBRARY_PATH = "C:/OSGeo4W/bin/gdal204.dll"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
