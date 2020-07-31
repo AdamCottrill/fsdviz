@@ -598,7 +598,7 @@ class StockingEvent(models.Model):
 
         """
 
-        has_sequential = self.cwt_series.filter(cwt__tag_type="sequential")
+        has_sequential = self.cwt_series.filter(cwt__tag_type="sequential").count()
 
         if has_sequential:
             return True

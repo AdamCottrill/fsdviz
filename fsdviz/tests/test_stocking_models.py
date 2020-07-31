@@ -20,6 +20,8 @@ from .common_factories import (
     JurisdictionFactory,
     FinClipFactory,
     PhysChemMarkFactory,
+    CWTFactory,
+    CWTsequenceFactory,
 )
 from .user_factory import UserFactory
 
@@ -326,13 +328,33 @@ def test_get_physchem_mark_code():
     assert event.get_physchem_code() == "DYOX"
 
 
+@pytest.mark.django_db
 def test_event_has_sequentail_cwts():
     """Sequential cwt tags are going to cause grief.  The stocking event
     object has a method that returns a boolean that is true if this event
     has at least one sequential cwt associated with it, and false
     otherwise.
     """
-    assert 0 == 1
+
+    # not cwts at all:
+    event1 = StockingEventFactory()
+    assert event1.has_sequential_cwts is False
+
+    # regular cwts, but no sequential tags:
+    cwt = CWTFactory(tag_type="cwt")
+    cwt_series = CWTsequenceFactory(cwt=cwt)
+    event2 = StockingEventFactory()
+    event2.cwt_series.add(cwt_series)
+    event2.save()
+    assert event2.has_sequential_cwts is False
+
+    # sequential tags:
+    scwt = CWTFactory(tag_type="sequential")
+    scwt_series = CWTsequenceFactory(cwt=scwt)
+    event3 = StockingEventFactory()
+    event3.cwt_series.add(scwt_series)
+    event3.save()
+    assert event3.has_sequential_cwts is True
 
 
 @pytest.mark.django_db

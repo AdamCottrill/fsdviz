@@ -399,3 +399,63 @@ def test_latlon_flag(client, base_event):
 
     """
     assert 0 == 1
+
+
+@pytest.mark.django_db
+def test_cwt_details_rended_if_present(client, base_event):
+    """If this stocking event has cwts associated with it, they should be rendered on teh page.
+
+    """
+
+    elements = [
+        "<h5>Coded Wire Tags</h5>",
+        "<th>CWT Number</th>",
+        "<th>Tag Type</th>",
+        "<th>Manufacturer</th>",
+        "<th>Event Count</th>",
+    ]
+
+    cwt_number = "123456"
+
+    cwt = CWTFactory(cwt_number=cwt_number)
+    cwt_series = CWTsequenceFactory(cwt=cwt)
+
+    base_event.cwt_series.add(cwt_series)
+    base_event.save()
+
+    url = reverse(
+        "stocking:stocking-event-detail", kwargs={"stock_id": base_event.stock_id}
+    )
+    response = client.get(url)
+
+    assertContains(response, "12-34-56")
+    for element in elements:
+        assertContains(response, element)
+
+
+@pytest.mark.django_db
+def test_no_cwt_details_rended(client, base_event):
+    """If this stocking event does not have any cwts associated with it,
+    the elements specific to cwts sohould not be rendered on the page.
+
+    """
+
+    # these are some of the cwt specific elements that should not
+    # appear if no cwts are associated with this event.
+    elements = [
+        "<h5>Coded Wire Tags</h5>",
+        "<th>CWT Number</th>",
+        "<th>Tag Type</th>",
+        "<th>Manufacturer</th>",
+        "<th>Event Count</th>",
+    ]
+    cwt_number = "123456"
+
+    url = reverse(
+        "stocking:stocking-event-detail", kwargs={"stock_id": base_event.stock_id}
+    )
+    response = client.get(url)
+
+    assertNotContains(response, "12-34-56")
+    for element in elements:
+        assertNotContains(response, element)

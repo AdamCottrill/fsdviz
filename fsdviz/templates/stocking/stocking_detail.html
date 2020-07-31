@@ -149,13 +149,13 @@
 
                                     <tr>
                                         <td><strong>Tags:</strong></td>
-                                            <td id="tags">
-                                                {% for item in object.fish_tags.all %}
-                                                    <p>{{item}}</p>
-                                                {% empty %}
-                                                    None Reported
-                                                {% endfor %}
-                                            </td>
+                                        <td id="tags">
+                                            {% for item in object.fish_tags.all %}
+                                                <p>{{item}}</p>
+                                            {% empty %}
+                                                None Reported
+                                            {% endfor %}
+                                        </td>
                                     </tr>
 
                                     <tr class="extra-detail">
@@ -165,13 +165,13 @@
 
                                     <tr>
                                         <td><strong>Marks:</strong></td>
-                                            <td id="physchem-marks">
-                                                {% for item in object.physchem_marks.all %}
-                                                    <p>{{item}}</p>
-                                                {% empty %}
-                                                    None Reported
-                                                {% endfor %}
-                                            </td>
+                                        <td id="physchem-marks">
+                                            {% for item in object.physchem_marks.all %}
+                                                <p>{{item}}</p>
+                                            {% empty %}
+                                                None Reported
+                                            {% endfor %}
+                                        </td>
                                     </tr>
 
                                     <tr class="extra-detail">
@@ -207,18 +207,18 @@
                                 </table>
 
 
-                                    <div class="ui card">
+                                <div class="ui card">
+                                    <div class="content">
+                                        <div class="ui sub header">Additional Notes</div>
+                                    </div>
+                                    <div class="content">
                                         <div class="content">
-                                            <div class="ui sub header">Additional Notes</div>
-                                        </div>
-                                        <div class="content">
-                                            <div class="content">
-                                                <div class="summary" id="additional-notes" >
-                                                    {{ object.notes|default_if_none:'None' }}
-                                                </div>
+                                            <div class="summary" id="additional-notes" >
+                                                {{ object.notes|default_if_none:'None' }}
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
                             </div>
                         </div>
