@@ -6,6 +6,7 @@ be shared across both the stocking and cwt recovery applications.
 
 from django.contrib.gis.db import models
 from django.template.defaultfilters import slugify
+from django.core.exceptions import ValidationError
 
 
 class BuildDate(models.Model):
@@ -525,6 +526,17 @@ class CompositeFinClip(models.Model):
 
     class Meta:
         ordering = ["clip_code"]
+
+    # def clean(self):
+    #     """make sure that we don't have any empty string in our clip_code
+    #     field. It cannot be null, and should not be an empty string either."""
+    #     if self.clip_code == "":
+    #         msg = "Database should not contain an empty string clip_code!"
+    #         raise ValidationError(msg)
+
+    # def save(self):
+    #     self.full_clean()
+    #     super(CompositeFinClip, self).save(*args, **kwargs)
 
     def __str__(self):
         return "{} ({})".format(self.description, self.clip_code)

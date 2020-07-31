@@ -20,7 +20,7 @@ import pytest
 from .user_factory import UserFactory
 from django.contrib.gis.geos import GEOSGeometry
 
-from .common_factories import LatLonFlagFactory
+from .common_factories import LatLonFlagFactory, FinClipFactory
 
 from fsdviz.common.choices import LATLON_FLAGS
 
@@ -69,6 +69,23 @@ def latlon_flags():
 
     flags = [LatLonFlagFactory(value=x[0], description=x[1]) for x in LATLON_FLAGS]
     return flags
+
+
+@pytest.fixture(scope="function")
+def finclips():
+    """populate the database some finclips.
+    """
+
+    FIN_CLIPS = (
+        ("NO", "No Clip"),
+        ("UN", "Unknown Status"),
+        ("AD", "Adipose"),
+        ("LP", "Left Pectoral"),
+        ("RV", "Right Ventral (Pelvic)"),
+    )
+
+    finclips = [FinClipFactory(abbrev=x[0], description=x[1]) for x in FIN_CLIPS]
+    return finclips
 
 
 @pytest.fixture(scope="function")

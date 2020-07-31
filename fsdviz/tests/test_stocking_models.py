@@ -9,7 +9,7 @@ import pytest
 
 from fsdviz.common.models import LatLonFlag
 
-from .pytest_fixtures import latlon_flags
+from .pytest_fixtures import latlon_flags, finclips
 
 from .common_factories import (
     AgencyFactory,
@@ -438,3 +438,49 @@ def test_stocking_event_yearling_equivalents():
     """
 
     assert 0 == 1
+
+
+args = [
+    (["LP", "RV"], "LPRV"),
+    (["RV", "LP"], "LPRV"),
+    (["RV", "LP", "AD"], "ADLPRV"),
+    ([], None),
+    (["NO", "LP"], "NO"),
+    (["UN", "LP"], "UN"),
+]
+
+
+@pytest.mark.parametrize("clip_codes, expected", args)
+@pytest.mark.django_db
+def test_event_get_composite_clip_code(finclips, clip_codes, expected):
+    """The get_composte_clip_code() method of a stocking event combines
+    the individual finclips associated with an event, creates or
+    retrieves the associated record from the composite fin clip table.
+
+    + If the list of fin clips is emtpy, the method should return None,
+
+    + if the list of finclips includes NO - it should return "No Fin
+    Clip", regardless of any other codes (No clip is exclusive of all
+    other clip codes)
+
+    + if the list of finclips includes UN - it should return "Unknown
+    clip code status", regardless of any other codes (unknown is exclusive of all
+    other clip codes)
+
+    + if multiple fin clips are assocaited with and event, the
+    composite fin clip will always be the ascii sorted list of fin
+    clip abbreviations (LP + RV will allways be returned as LVRP)
+
+    """
+
+    clip_cache = {x.abbrev: x for x in finclips}
+
+    event = StockingEventFactory()
+    event.fin_clips.set([clip_cache.get(x, None) for x in clip_codes])
+    event.save()
+    cclip = event.get_composite_clip_code()
+
+    if expected:
+        assert cclip.clip_code == expected
+    else:
+        assert cclip is None

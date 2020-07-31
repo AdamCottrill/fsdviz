@@ -421,7 +421,8 @@ class StockingEvent(models.Model):
         if self.id:
             if self.marks.all():
                 self.mark = self.get_mark_code()
-                self.clipa = self.get_clipa()
+                # self.clipa = self.get_clipa()
+                self.clip_code = self.get_composite_clip_code()
 
         super(StockingEvent, self).save(*args, **kwargs)
 
@@ -480,24 +481,6 @@ class StockingEvent(models.Model):
         else:
             return None
 
-    def get_finclip_code(self):
-        """Return a string containing the fin codes associated with this
-        stocking event sorted in ascending order and then concatenated together.
-
-        Arguments:
-        - `self`:
-        """
-        tmp = []
-        if self.id:
-            for x in self.fin_clips.all():
-                tmp.append(x.abbrev)
-        tmp.sort()
-        if tmp:
-            code = "".join(tmp)
-            return code
-        else:
-            return None
-
     def get_physchem_code(self):
         """Return a string containing the physical/chemical mark codes
         associated with this stocking event sorted in ascending order
@@ -518,10 +501,35 @@ class StockingEvent(models.Model):
         else:
             return None
 
+    def get_finclip_code(self):
+        """Return a string containing the fin codes associated with this
+        stocking event sorted in ascending order and then concatenated together.
+
+        This method is now obsolete.  finclip codes can be queried
+        from the composite clip code table.
+
+        Arguments:
+        - `self`:
+
+        """
+        tmp = []
+        if self.id:
+            for x in self.fin_clips.all():
+                tmp.append(x.abbrev)
+        tmp.sort()
+        if tmp:
+            code = "".join(tmp)
+            return code
+        else:
+            return None
+
     def get_clipa(self):
         """Return a string containing the OMNR clip codes associated
         with this stocking event sorted in ascending order and then
         concatenated together.
+
+        NOTE - THIS DOES NOT CURRENTLY WORK - OMNR Clip codes are not
+        stored in the Fin CLip table.
 
         Arguments:
         - `self`:
@@ -530,7 +538,7 @@ class StockingEvent(models.Model):
 
         tmp = []
         if self.id:
-            for x in self.finclips.all():
+            for x in self.fin_clips.all():
                 tmp.append(x.clip_code)
         tmp.sort()
         if tmp:
@@ -538,6 +546,45 @@ class StockingEvent(models.Model):
             return clips
         else:
             return None
+
+    def get_composite_clip_code(self):
+        """Build the elements of the composite clip code, if one
+        already exists associated it with the existing stocking event,
+        otherwise created it.
+
+        If the fin clip includes NO or UN return just those, unknown
+        and no clip are exclusive of all other clip codes.
+
+        Arguments: - `self`: a stocking event object
+
+        """
+        composite_clip_code = None
+        fin_clips = self.fin_clips.values_list("abbrev", "description").order_by(
+            "abbrev"
+        )
+
+        if len(fin_clips):
+
+            if "NO" in [x[0] for x in fin_clips]:
+                fin_clip, created = FinClip.objects.get_or_create(
+                    abbrev="UN", defaults={"description": "No Clip"}
+                )
+                abbrev = "NO"
+                description = fin_clip.description
+            elif "UN" in [x[0] for x in fin_clips]:
+                fin_clip, created = FinClip.objects.get_or_create(
+                    abbrev="UN", defaults={"description": "Unknown Status"}
+                )
+                abbrev = "UN"
+                description = fin_clip.description
+            else:
+                abbrev = "".join([x[0].upper() for x in fin_clips])
+                description = ", ".join([x[1].title() for x in fin_clips])
+
+            composite_clip_code, created = CompositeFinClip.objects.get_or_create(
+                clip_code=abbrev, defaults={"description": description}
+            )
+        return composite_clip_code
 
     @property
     def has_sequential_cwts(self):
