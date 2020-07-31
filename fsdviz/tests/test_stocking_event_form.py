@@ -23,6 +23,7 @@ from ..stocking.utils import get_event_model_form_choices
 from ..stocking.forms import StockingEventForm
 
 from .stocking_factories import StockingEventFactory
+from .common_factories import FishTagFactory, FinClipFactory
 
 SCOPE = "function"
 
@@ -311,25 +312,26 @@ numeric_fields = [
             "Enter a whole number.",
         ],
     ),
-    (
-        "validation",
-        [-10, 32, "foo"],
-        [
-            "Select a valid choice. -10 is not one of the available choices.",
-            "Select a valid choice. 32 is not one of the available choices.",
-            "Select a valid choice. foo is not one of the available choices.",
-        ],
-    ),
+    # (
+    #     "validation",
+    #     [-10, 32, "foo"],
+    #     [
+    #         "Select a valid choice. -10 is not one of the available choices.",
+    #         "Select a valid choice. 32 is not one of the available choices.",
+    #         "Select a valid choice. foo is not one of the available choices.",
+    #     ],
+    #    ),
 ]
 
 
 @pytest.mark.parametrize("field", numeric_fields)
 @pytest.mark.django_db
-def test_invalid_year(event, field):
-    """If we pass a dictionary with an year value that is outside of the valid range,
-    we should get a meaningful error message.
+def test_invalid_field_values(event, field):
+    """If we pass a dictionary with a value that is outside of the valid
+    range or of the incorrect type for that field, we should get a
+    meaningful error message.
 
-    invalid values include: -10, 1900, 2032, foo
+    For example, invalid values for year include: -10, 1900, 2032, foo
 
     """
     field_name = field[0]
@@ -474,6 +476,7 @@ def test_invalid_date(event, year, month, day, valid):
 # # lat long flag
 
 
+@pytest.mark.xfail
 @pytest.mark.django_db
 def test_missing_stat_district_with_grid10(event):
     """If we pass a dictionary that has an empty stat_district id,
@@ -487,6 +490,7 @@ def test_missing_stat_district_with_grid10(event):
     assert 0 == 1
 
 
+@pytest.mark.xfail
 @pytest.mark.django_db
 def test_missing_grid10_no_latlon(event):
     """If we pass a dictionary that has an empty grid10 id, and null
@@ -501,6 +505,7 @@ def test_missing_grid10_no_latlon(event):
     assert 0 == 1
 
 
+@pytest.mark.xfail
 @pytest.mark.django_db
 def test_missing_grid10_with_latlon(event):
     """If we pass a dictionary that has an empty grid10 id, and latlong
@@ -681,26 +686,6 @@ def test_future_year_class(event):
     assert msg in form.errors["__all__"]
 
 
-@pytest.mark.django_db
-def test_past_year_class(event):
-    """If we pass a dictionary with an year_class that occured in the distant
-    past, we should get a meaningful error message.
-
-    """
-    choices = get_event_model_form_choices(event)
-    event_dict = create_event_dict(event)
-
-    event_dict["year_class"] = event_dict["year"] - 25
-
-    form = StockingEventForm(event_dict, choices=choices)
-
-    status = form.is_valid()
-    assert status is False
-
-    msg = "Those fish were more than 20 year old!"
-    assert msg in form.errors["__all__"]
-
-
 # # clip - optional (required if clip efficency is populated). Must be valid string
 # @pytest.mark.django_db
 # def test_invalid_clip(event):
@@ -729,26 +714,242 @@ def test_past_year_class(event):
 
 
 @pytest.mark.django_db
-def test_invalid_mark(event):
+def test_invalid_physchem_mark(event):
     """If we pass a dictionary with an mark that does not exist, we
     should get a meaningful error message.
 
     invalid values include: -10, foo, "8,3", ????
 
     """
-    assert 0 == 1
+
+    choices = get_event_model_form_choices(event)
+
+    # make sure cwt is a valid fin clip choice:
+    event_dict = create_event_dict(event)
+    event_dict["physchem_marks"] = ["XX"]
+
+    form = StockingEventForm(event_dict, choices=choices)
+    status = form.is_valid()
+    assert status is False
+
+    error_message = form.errors["physchem_marks"]
+    expected = "Select a valid choice. XX is not one of the available choices."
+
+    assert expected in error_message
+
+
+@pytest.mark.django_db
+def test_mark_effectiveness_without_physchem_mark(event):
+    """Mark retention should be null if physchem mark is null
+    """
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
+
+    event_dict["mark_eff"] = 50
+
+    form = StockingEventForm(event_dict, choices=choices)
+
+    status = form.is_valid()
+    assert status is False
+
+    msg = "At least one Physical or Chemical Mark must be selected if Mark Efficiency is provided."
+    assert msg in form.errors["__all__"]
 
 
 # tag_no = optional, but must be a valid string if provided.
+
+valid = [
+    "631234",
+    "631512,635978",
+    "631512,635978,639845",
+    "631512;635978",
+    "631512;635978;639845",
+    "631512;635978,639845",
+]
+
+
+@pytest.mark.parametrize("value", valid)
 @pytest.mark.django_db
-def test_invalid_tag_no(event):
+def test_valid_tag_no(event, value):
+    """If we pass a dictionary with a cwt number is 6-digits, or is a
+    series of sixdigit number that are seperated by a comma or semi-colon, the form should still be valid.
+
+    # cwts must be list of 6 digits, separted by commas
+
+    """
+
+    fish_tag = FishTagFactory(
+        tag_code="CWT", tag_type="CWT", description="coded wire tag"
+    )
+
+    choices = get_event_model_form_choices(event)
+
+    # make sure cwt is a valid fin clip choice:
+    event_dict = create_event_dict(event)
+    event_dict["fish_tags"] = ["CWT"]
+    event_dict["cwt_numbers"] = value
+
+    form = StockingEventForm(event_dict, choices=choices)
+    status = form.is_valid()
+    assert status is True
+
+
+invalid = [
+    "31234",
+    "6631234",
+    "631512,35978",
+    "631512,6635978,639845",
+    "631512;63978",
+    "631512;6359978;639845",
+    "631512;6359798,639845",
+    "631512;63597,639845",
+    "631512;63597,639",
+]
+
+
+@pytest.mark.parametrize("value", invalid)
+@pytest.mark.django_db
+def test_invalid_tag_no(event, value):
     """If we pass a dictionary with an tag_no that does not exist, we
     should get a meaningful error message.
 
     invalid values include: -10, foo, "8,3"
 
+    # cwts must be list of 6 digits, separted by commas
+
     """
-    assert 0 == 1
+
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
+
+    event_dict["cwt_numbers"] = value
+
+    form = StockingEventForm(event_dict, choices=choices)
+
+    status = form.is_valid()
+    assert status is False
+
+    errmsg = (
+        "Each CWT must be 6 digits (including leading 0's)."
+        + " Multiple cwts must be separated by a comma"
+    )
+    assert errmsg in form.errors["__all__"]
 
 
-# # test parse marks, clips and cwts
+@pytest.mark.django_db
+def test_tag_retention_without_tag(event):
+    """tag retention should be null if tags is null
+    """
+
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
+
+    event_dict["fish_tags"] = None
+    event_dict["tag_ret"] = 50
+
+    form = StockingEventForm(event_dict, choices=choices)
+
+    status = form.is_valid()
+    assert status is False
+
+    msg = "At least one Fish Tag Type must be selected if Tag Retention is provided."
+    assert msg in form.errors["__all__"]
+
+
+@pytest.mark.django_db
+def test_unknown_tag_code(event):
+    """if unknown tag code is somehow selected, a meaningful error
+    message should be returned.
+
+    """
+
+    choices = get_event_model_form_choices(event)
+
+    # make sure cwt is a valid fin clip choice:
+    event_dict = create_event_dict(event)
+    event_dict["fish_tags"] = ["XX"]
+
+    form = StockingEventForm(event_dict, choices=choices)
+    status = form.is_valid()
+    assert status is False
+
+    error_message = form.errors["fish_tags"]
+    expected = "Select a valid choice. XX is not one of the available choices."
+
+    assert expected in error_message
+
+
+@pytest.mark.django_db
+def test_no_clip_mutally_exclusive_clip(event):
+    """No clipped and unclipped are mutually exclusive of all other clips
+    """
+
+    FinClipFactory.create(abbrev="AD", description="adipose clip")
+    FinClipFactory.create(abbrev="NO", description="no clip")
+
+    choices = get_event_model_form_choices(event)
+
+    # make sure cwt is a valid fin clip choice:
+    event_dict = create_event_dict(event)
+    event_dict["fin_clips"] = ["AD", "NO"]
+
+    form = StockingEventForm(event_dict, choices=choices)
+    status = form.is_valid()
+    assert status is False
+
+    msg = '"No fin clip (NO)" cannot be combined with another fin clip.'
+    assert msg in form.errors["__all__"]
+
+
+@pytest.mark.django_db
+def test_unknown_clip_mutally_exclusive_clip(event):
+    """Unknonw Clip Status is mutually exclusive of all other clips
+    """
+
+    FinClipFactory.create(abbrev="AD", description="adipose clip")
+    FinClipFactory.create(abbrev="UN", description="unknown clip")
+
+    choices = get_event_model_form_choices(event)
+
+    # make sure cwt is a valid fin clip choice:
+    event_dict = create_event_dict(event)
+    event_dict["fin_clips"] = ["AD", "UN"]
+
+    form = StockingEventForm(event_dict, choices=choices)
+    status = form.is_valid()
+    assert status is False
+
+    msg = '"Unknown fin clip (UN)" cannot be combined with another fin clip.'
+    assert msg in form.errors["__all__"]
+
+
+@pytest.mark.django_db
+def test_unknown_clip_code(event):
+    """if unknown clip code is somehow selected, a meaningful error
+    message should be returned.
+
+    """
+
+    FinClipFactory.create(abbrev="AD", description="adipose clip")
+    FinClipFactory.create(abbrev="UN", description="unknown clip")
+
+    choices = get_event_model_form_choices(event)
+
+    # make sure cwt is a valid fin clip choice:
+    event_dict = create_event_dict(event)
+    event_dict["fin_clips"] = ["XX"]
+
+    form = StockingEventForm(event_dict, choices=choices)
+    status = form.is_valid()
+    assert status is False
+
+    error_message = form.errors["fin_clips"]
+    expected = "Select a valid choice. XX is not one of the available choices."
+
+    assert expected in error_message
+
+
+# NOTE: this will assume that the cwts are NMT, non-sequential tags.
+# If they are sequential tags or manufactured by micro mark, please
+# contact the Green Bay Fisheries Station to have your events updated
+# correctly.

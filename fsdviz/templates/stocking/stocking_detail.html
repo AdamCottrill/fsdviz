@@ -10,6 +10,11 @@
      .small {
          font-size: 0.8rem;
      }
+
+     td {
+         text-transform: capitalize;
+     }
+     
     </style>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
@@ -74,8 +79,8 @@
                                         <td><strong>Hatchery:</strong></td>
                                         <td id="hatchery">{{ object.hatchery|default_if_none:'Not Reported' }}</td>
                                     </tr>
-                                    
-                                    
+
+
                                     <tr>
                                         <td><strong>Lake:</strong></td>
                                         <td>{{ object.lake }}</td>
@@ -129,24 +134,28 @@
                                         <td id="weight">{{ object.weight|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
-                                    <tr>
-                                        <td><strong>Mark:</strong></td>
-                                        <td>{{ object.mark }} ({{object.clipa}})</td>
-                                    </tr>
 
                                     <tr>
                                         <td><strong>Clips:</strong></td>
-                                        <td id="clip-code">{{ object.clip_code|default_if_none:'Not Reported' }}</td>
+                                        {% if object.clip_code %}
+                                            <td id="clip-code">
+                                                {{ object.clip_code.clip_code }} - {{ object.clip_code.description }}
+                                            </td>
+                                        {% else %}
+                                            <td id="clip-code">None Reported</td>
+                                        {% endif %}
+
                                     </tr>
 
                                     <tr>
                                         <td><strong>Tags:</strong></td>
-                                        {% if object.fish_tags.all %}    
-                                            <td id="tags">{% for tag in object.fish_tags.all %}{{tag}}{% endfor %}</td>
-                                        {% else %}
-                                            <td id="tags">Not Reported</td>
-                                        {% endif %}
-                                        
+                                            <td id="tags">
+                                                {% for item in object.fish_tags.all %}
+                                                    <p>{{item}}</p>
+                                                {% empty %}
+                                                    None Reported
+                                                {% endfor %}
+                                            </td>
                                     </tr>
 
                                     <tr class="extra-detail">
@@ -154,17 +163,16 @@
                                         <td id="tag-reten">{{ object.tag_ret|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
-                                    
                                     <tr>
                                         <td><strong>Marks:</strong></td>
-                                        {% if object.physchem_marks.all %}    
-                                            <td id="physchem-marks">{% for mark in object.physchem_marks.all %}{{mark}}{% endfor %}</td>
-                                        {% else %}
-                                            <td id="physchem-marks">Not Reported</td>
-                                        {% endif %}
-                                           
+                                            <td id="physchem-marks">
+                                                {% for item in object.physchem_marks.all %}
+                                                    <p>{{item}}</p>
+                                                {% empty %}
+                                                    None Reported
+                                                {% endfor %}
+                                            </td>
                                     </tr>
-                                                                  
 
                                     <tr class="extra-detail">
                                         <td><strong>Mark Eff:</strong></td>
@@ -225,12 +233,12 @@
 
                 </div>
 
-                {% if user.is_authenticated %} 
+                {% if user.is_authenticated %}
                     <a class="ui primary button" href="{% url 'stocking:edit-stocking-event' stock_id=object.stock_id %}">Edit Event</a>
                 {% endif %}
-                
 
-                
+
+
             </div>
 
         </div>
@@ -295,10 +303,10 @@
 {% endblock %}
 
 {% block extra_js %}
-    
+
 
     {{ object.lake.geom.extent|json_script:"map-bounds" }}
-    
+
     <script type="text/javascript" src="{% static "js/accessToken.js" %}"></script>
 
     <script type="text/javascript">
@@ -347,7 +355,7 @@
          }
      ).addTo(mymap);
 
-     
+
      var circle = L.circleMarker([ {{ object.geom.y }}, {{ object.geom.x }}], {
          color: 'red',
          fillColor: '#f03',

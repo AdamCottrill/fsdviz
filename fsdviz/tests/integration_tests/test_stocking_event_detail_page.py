@@ -180,17 +180,15 @@ def complete_event(base_event):
 
     # these are many-to-many and need to be added after the event is created:
     ox_mark = PhysChemMarkFactory(
-        mark_code="OX", mark_type="chemcial", description="oxytetracycline"
+        mark_code="OX", mark_type="chemcial", description="Oxytetracycline"
     )
-    adclip = FinClipFactory(abbrev="AD", description="adipose clip")
-    doclip = FinClipFactory(abbrev="DO", description="dorsal clip")
+    adclip = FinClipFactory(abbrev="AD", description="Adipose")
+    doclip = FinClipFactory(abbrev="DO", description="Dorsal")
 
-    clip_code = CompositeFinClipFactory(
-        clip_code="ADDO", description="adipose, dorsal fin clip"
-    )
+    clip_code = CompositeFinClipFactory(clip_code="ADDO", description="Adipose, Dorsal")
 
     cwt_tag = FishTagFactory(
-        tag_code="CWT", tag_type="CWT", description="coded wire tag"
+        tag_code="CWT", tag_type="CWT", description="Coded Wire Tag"
     )
 
     cwt = CWTFactory(
@@ -206,7 +204,9 @@ def complete_event(base_event):
     event.weight = 99
     event.length = 123
     event.clip_code = clip_code
+    event.fin_clips.set([adclip, doclip])
     event.save()
+
     return event
 
 
@@ -232,10 +232,10 @@ required_elements = [
 
 # these are the elements that are displayed if they are available
 optional_elements = [
-    ("clipcode", '<td id="clip-code">adipose, dorsal fin clip (ADDO)</td>'),
-    ("tags", '<td id="tags">coded wire tag (CWT)</td>'),
+    ("clipcode", '<td id="clip-code">ADDO - Adipose, Dorsal</td>'),
+    ("tags", '<td id="tags"><p>Coded Wire Tag (CWT)</p></td>'),
     ("tag_reten", '<td id="tag-reten">90.0</td>'),
-    ("physchem_marks", '<td id="physchem-marks">oxytetracycline (OX)</td>'),
+    ("physchem_marks", '<td id="physchem-marks"><p>Oxytetracycline (OX)</p></td>'),
     ("mark_eff", '<td id="mark-eff">85.0</td>'),
 ]
 
@@ -245,10 +245,10 @@ placeholder_elements = [
     ("hatchery", '<td id="hatchery">Not Reported</td>'),
     ("length", '<td id="length">Not Reported</td>'),
     ("weight", '<td id="weight">Not Reported</td>'),
-    ("clipcode", '<td id="clip-code">Not Reported</td>'),
-    ("tags", '<td id="tags">Not Reported</td>'),
+    ("clipcode", '<td id="clip-code">None Reported</td>'),
+    ("tags", '<td id="tags">None Reported</td>'),
     ("tag_reten", '<td id="tag-reten">Not Reported</td>'),
-    ("physchem_marks", '<td id="physchem-marks">Not Reported</td>'),
+    ("physchem_marks", '<td id="physchem-marks">None Reported</td>'),
     ("mark_eff", '<td id="mark-eff">Not Reported</td>'),
     ("validation", '<td id="validation">Not Reported</td>'),
     ("lot-code", '<td id="lot-code">Not Reported</td>'),
@@ -265,6 +265,7 @@ def test_expected_elements_appears(client, complete_event, element, expected):
     Each of the required elements are always to presented on the the detail page
 
     """
+
     url = reverse(
         "stocking:stocking-event-detail", kwargs={"stock_id": complete_event.stock_id}
     )
@@ -342,3 +343,59 @@ def test_no_edit_event_button_anonymous_user(client, base_event):
         "stocking:edit-stocking-event", kwargs={"stock_id": base_event.stock_id}
     )
     assertNotContains(response, edit_url, html=True)
+
+
+@pytest.mark.django_db
+def test_multiple_physchem_marks_rendered(client, complete_event):
+    """If the event has multiple physical-chemical marks associated with
+    it, they should be presented in proper case in their own paragraph
+    elements, including both the description and the abbreviation.
+
+    """
+    # add a second physical/chemical mark to this stocking event
+    ca_mark = PhysChemMarkFactory(
+        mark_code="CA", mark_type="chemcial", description="Calcein"
+    )
+    complete_event.physchem_marks.add(ca_mark)
+    complete_event.save()
+
+    url = reverse(
+        "stocking:stocking-event-detail", kwargs={"stock_id": complete_event.stock_id}
+    )
+    response = client.get(url)
+
+    expected = ["<p>Calcein (CA)</p>", "<p>Oxytetracycline (OX)</p>"]
+    for value in expected:
+        assertContains(response, value, html=True)
+
+
+@pytest.mark.django_db
+def test_multiple_fish_tags_rendered(client, complete_event):
+    """If the event has multiple types of tags associated with
+    it, they should be presented in a semi-colon separated list.
+
+    """
+    # add a second tag type to this stocking event:
+    floy_tag = FishTagFactory(tag_code="FT", tag_type="floy", description="Floy Tag")
+    complete_event.fish_tags.add(floy_tag)
+    complete_event.save()
+
+    url = reverse(
+        "stocking:stocking-event-detail", kwargs={"stock_id": complete_event.stock_id}
+    )
+    response = client.get(url)
+
+    expected = ["<p>Coded Wire Tag (CWT)</p>", "<p>Floy Tag (FT)</p>"]
+    for value in expected:
+        print(response.content)
+        assertContains(response, value, html=True)
+
+
+@pytest.mark.django_db
+def test_latlon_flag(client, base_event):
+    """The detail page should include some indication of the precision of
+    the spatial information - was it report, inferred from a grid number,
+    a management unit, or something else?
+
+    """
+    assert 0 == 1
