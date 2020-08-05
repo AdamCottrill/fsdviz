@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.gis.geos import Point
 
-from ..common.utils import parse_point
+from ...common.utils import parse_point
 
 
 @pytest.mark.parametrize(

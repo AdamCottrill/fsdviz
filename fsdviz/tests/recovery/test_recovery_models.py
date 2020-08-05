@@ -8,10 +8,9 @@ import pytest
 
 from django.contrib.gis.geos import GEOSGeometry
 
-from .common_factories import (AgencyFactory, SpeciesFactory,
-                               LakeFactory)
+from ..common_factories import AgencyFactory, LakeFactory
 
-from .recovery_factories import RecoveryFactory, RecoveryEventFactory
+from ..recovery_factories import RecoveryFactory, RecoveryEventFactory
 
 
 @pytest.mark.django_db
@@ -26,19 +25,19 @@ def test_recovery_event_str():
 
     """
 
-    agency_abbrev = 'USFWS'
-    lake_abbrev = 'HU'
+    agency_abbrev = "USFWS"
+    lake_abbrev = "HU"
 
-    lift_identifier = 'Net-1'
+    lift_identifier = "Net-1"
 
     lake = LakeFactory(abbrev=lake_abbrev)
     agency = AgencyFactory(abbrev=agency_abbrev)
 
-    recovery_event = RecoveryEventFactory(agency=agency,
-                                          lake=lake,
-                                          lift_identifier=lift_identifier)
+    recovery_event = RecoveryEventFactory(
+        agency=agency, lake=lake, lift_identifier=lift_identifier
+    )
 
-    shouldbe = '{} ({}-{})'.format(lift_identifier, agency_abbrev, lake_abbrev)
+    shouldbe = "{} ({}-{})".format(lift_identifier, agency_abbrev, lake_abbrev)
     assert str(recovery_event) == shouldbe
 
 
@@ -52,14 +51,13 @@ def test_recovery_event_save():
     dd_lat = 44.4
     dd_lon = -81.132
 
-    #create a recovery at our coordinates
+    # create a recovery at our coordinates
     recovery_event = RecoveryEventFactory(dd_lat=dd_lat, dd_lon=dd_lon)
 
-    #calculate what the geom should be using our coordinates
-    shouldbe = GEOSGeometry('POINT({} {})'.format(dd_lon, dd_lat), srid=4326)
+    # calculate what the geom should be using our coordinates
+    shouldbe = GEOSGeometry("POINT({} {})".format(dd_lon, dd_lat), srid=4326)
 
     assert recovery_event.geom == shouldbe
-
 
 
 @pytest.mark.django_db
@@ -74,14 +72,14 @@ def test_recovery_str():
 
     """
 
-    cwt_number = '123456'
-    fish_identifier = 'Fish-1'
+    cwt_number = "123456"
+    fish_identifier = "Fish-1"
 
-    recovery = RecoveryFactory(cwt_number=cwt_number,
-                               fish_identifier_key=fish_identifier)
+    recovery = RecoveryFactory(
+        cwt_number=cwt_number, fish_identifier_key=fish_identifier
+    )
 
-    shouldbe = '{}-{}-{} - {}'.format(cwt_number[:2],
-                                      cwt_number[2:4],
-                                      cwt_number[4:],
-                                      fish_identifier)
+    shouldbe = "{}-{}-{} - {}".format(
+        cwt_number[:2], cwt_number[2:4], cwt_number[4:], fish_identifier
+    )
     assert str(recovery) == shouldbe

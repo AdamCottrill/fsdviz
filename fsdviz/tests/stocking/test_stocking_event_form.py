@@ -19,11 +19,11 @@ captured and handled appropriately.
 import pytest
 from datetime import datetime
 
-from ..stocking.utils import get_event_model_form_choices
-from ..stocking.forms import StockingEventForm
+from ...stocking.utils import get_event_model_form_choices
+from ...stocking.forms import StockingEventForm
 
-from .stocking_factories import StockingEventFactory
-from .common_factories import FishTagFactory, FinClipFactory
+from ..stocking_factories import StockingEventFactory
+from ..common_factories import FishTagFactory, FinClipFactory
 
 SCOPE = "function"
 

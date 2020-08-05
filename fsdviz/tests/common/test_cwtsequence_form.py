@@ -1,7 +1,7 @@
 import pytest
 
 
-from ..common.forms import CWTSequenceForm
+from ...common.forms import CWTSequenceForm
 
 
 @pytest.fixture()

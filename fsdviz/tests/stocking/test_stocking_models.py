@@ -7,11 +7,11 @@ events, stocking methods, ect.
 from datetime import datetime
 import pytest
 
-from fsdviz.common.models import LatLonFlag
+from ...common.models import LatLonFlag
 
-from .pytest_fixtures import latlon_flags, finclips
+from ..pytest_fixtures import latlon_flags, finclips
 
-from .common_factories import (
+from ..common_factories import (
     AgencyFactory,
     SpeciesFactory,
     LakeFactory,
@@ -23,9 +23,9 @@ from .common_factories import (
     CWTFactory,
     CWTsequenceFactory,
 )
-from .user_factory import UserFactory
+from ..user_factory import UserFactory
 
-from .stocking_factories import (
+from ..stocking_factories import (
     LifeStageFactory,
     ConditionFactory,
     StockingMethodFactory,

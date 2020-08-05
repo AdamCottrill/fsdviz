@@ -6,7 +6,7 @@ species, ect.
 
 import pytest
 
-from .common_factories import (
+from ..common_factories import (
     LakeFactory,
     AgencyFactory,
     StateProvinceFactory,

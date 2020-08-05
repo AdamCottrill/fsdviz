@@ -1,9 +1,9 @@
 # from django import forms
 import pytest
 
-from fsdviz.stocking.forms import XlsEventForm
+from ...stocking.forms import XlsEventForm
 
-from fsdviz.tests.pytest_fixtures import stocking_event_dict
+from ..pytest_fixtures import stocking_event_dict
 
 
 @pytest.fixture(scope="module")

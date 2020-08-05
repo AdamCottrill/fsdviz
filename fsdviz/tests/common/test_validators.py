@@ -13,7 +13,7 @@
 
 import pytest
 from django.core.exceptions import ValidationError
-from ..common.validators import validate_cwt
+from ...common.validators import validate_cwt
 
 
 valid = [
@@ -35,6 +35,11 @@ def test_valid_cwt_patterns(value):
 
 invalid = [
     "31234",
+    "51234",
+    "6312AB",
+    "6051234",
+    "63-12-34",
+    "63-12-",
     "6631234",
     "631512,35978",
     "631512,6635978,639845",
