@@ -491,7 +491,7 @@ def get_choices():
 
 
 def get_or_create_cwt_sequence(
-    cwt_number, tag_type="cwt", manufacturer="nmt", seq_start=1, seq_end=1
+    cwt_number, tag_type="cwt", manufacturer="nmt", sequence=(0, 0)
 ):
     """given a cwt_number, maker and type retrieve, or create and
     retrieve a cwt series.  The cwt may or may not exist, and may have
@@ -503,8 +503,7 @@ def get_or_create_cwt_sequence(
     - `cwt_number`:
     - `tag_type`: either mm or sequential
     - `manufacturer`: either nmt or mm
-    - `seq_start`:
-    - `seq_end`:
+    - `sequence`: - a two element tuple indicating the lower and upper range
 
     """
     cwt_series = None
@@ -521,7 +520,7 @@ def get_or_create_cwt_sequence(
             cwt.save()
         if tag_type == "sequential":
             cwt_series, created = CWTsequence.objects.get_or_create(
-                cwt=cwt, seq_start=seq_start, seq_end=seq_end
+                cwt=cwt, sequence=sequence
             )
         else:
             cwt_series, created = CWTsequence.objects.get_or_create(cwt=cwt)

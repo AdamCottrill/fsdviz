@@ -5,11 +5,15 @@ be shared across both the stocking and cwt recovery applications.
 """
 
 from django.contrib.gis.db import models
+from django.forms import ValidationError
 from django.template.defaultfilters import slugify
+
 
 # consider add range field and constraint to CWTSequence when we upgrade to Django 3.0+
 # from django.contrib.postgres.constraints import ExclusionConstraint
-# from django.contrib.postgres.fields import IntegerRangeField, RangeOperators
+from django.contrib.postgres.fields import IntegerRangeField
+
+from .validators import validate_cwt_sequence_range
 
 
 class BuildDate(models.Model):
@@ -671,26 +675,58 @@ class CWTsequence(models.Model):
 
     events = models.ManyToManyField("stocking.StockingEvent", related_name="cwt_series")
 
-    seq_start = models.IntegerField(default=1)
-    seq_end = models.IntegerField(default=1)
+    # seq_start = models.IntegerField(default=1)
+    # seq_end = models.IntegerField(default=1)
 
     # TODO: consider changing the sequence start and end to a rangefield
     # https://docs.djangoproject.com/en/2.2/ref/contrib/postgres/fields/#integerrangefield
-    # sequence = IntegerRangeField()
+    # NOTE: the range includes the lower bound and excludes the upper bound; that is [)
+    sequence = IntegerRangeField(
+        default=(0, 0), validators=[validate_cwt_sequence_range]
+    )
 
     class Meta:
-        ordering = ["cwt__cwt_number", "seq_start"]
+        ordering = ["cwt__cwt_number", "sequence"]
 
         # only available in Django >= 3.0
         # constraints = [
         #     ExclusionConstraint(
         #         name="exclude_overlapping_cwt_series",
         #         expressions=[
-        #             ("sequemnce", RangeOperators.OVERLAPS),
+        #             ("sequence", RangeOperators.OVERLAPS),
         #             ("cwt", RangeOperators.EQUAL),
         #         ],
         #     )
         # ]
 
     def __str__(self):
-        return "{} [{}-{}]".format(str(self.cwt), self.seq_start, self.seq_end)
+
+        return "{} [{}-{}]".format(
+            str(self.cwt), self.sequence.lower, self.sequence.upper
+        )
+
+    def full_clean(self, *args, **kwargs):
+        """This method implements an overlap exclusion constrain on the model
+        - we can't save cwt series on the same cwt that overlap each other.
+        Eg 1-100 and 50-150 would not be allowed, 1-100 and 101-200 are OK.
+        This method will not be required when we upgrade to Django 3.0+ (see
+        meta option above).
+
+        modified from: https://stackoverflow.com/questions/45833855/
+
+        """
+
+        super(CWTsequence, self).full_clean(*args, **kwargs)
+
+        o = (
+            CWTsequence.objects.filter(sequence__overlap=self.sequence)
+            .exclude(pk=self.pk)
+            .filter(cwt=self.cwt)
+            .first()
+        )
+        if o:
+            raise ValidationError('Sequence Range overlaps with "%s"' % o)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(CWTsequence, self).save()

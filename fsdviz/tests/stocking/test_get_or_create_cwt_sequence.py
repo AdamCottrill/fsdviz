@@ -109,30 +109,30 @@ def test_sequential_tag_type():
     end = 1000
 
     cwt_series = get_or_create_cwt_sequence(
-        cwt_number, tag_type="sequential", seq_start=start, seq_end=end
+        cwt_number, tag_type="sequential", sequence=(start, end)
     )
 
     assert cwt_series.cwt.cwt_number == cwt_number
-    assert cwt_series.seq_start == start
-    assert cwt_series.seq_end == end
+    assert cwt_series.sequence.lower == start
+    assert cwt_series.sequence.upper == end
 
 
 @pytest.mark.django_db
 def test_seq_start_and_end_ignored_with_cwt_tag_type():
     """If the speficied tag_type is cwt (rather than sequential), the
-    sequence start and end arguments are ignored, and the defaul
-    values (1) are used instead.
+    sequence start and end arguments are ignored, and the default
+    values (0,0) e used instead.
 
     """
     cwt_number = "123456"
 
     cwt_series = get_or_create_cwt_sequence(
-        cwt_number, tag_type="cwt", seq_start=100, seq_end=900
+        cwt_number, tag_type="cwt", sequence=(100, 900)
     )
 
     assert cwt_series.cwt.cwt_number == cwt_number
-    assert cwt_series.seq_start == 1
-    assert cwt_series.seq_end == 1
+    assert cwt_series.sequence.lower == 0
+    assert cwt_series.sequence.upper == 0
 
 
 @pytest.mark.django_db
@@ -180,20 +180,20 @@ def test_new_sequence_range():
     end1 = 1000
 
     cwt = CWTFactory(cwt_number=cwt_number, tag_type="sequential")
-    cwt_sequence0 = CWTsequenceFactory(cwt=cwt, seq_start=start1, seq_end=end1)
+    cwt_sequence0 = CWTsequenceFactory(cwt=cwt, sequence=(start1, end1))
 
     start2 = 1001
     end2 = 2000
 
     cwt_sequence = get_or_create_cwt_sequence(
-        cwt_number, tag_type="sequential", seq_start=start2, seq_end=end2
+        cwt_number, tag_type="sequential", sequence=(start2, end2)
     )
 
     # the cwt sequences have the same cwt:
     assert cwt_sequence.cwt == cwt
     # these are the attributes we passed in:
-    assert cwt_sequence.seq_start == start2
-    assert cwt_sequence.seq_end == end2
+    assert cwt_sequence.sequence.lower == start2
+    assert cwt_sequence.sequence.upper == end2
 
     # but are different cwt_sequence instances:
     assert cwt_sequence != cwt_sequence0

@@ -6,6 +6,8 @@ species, ect.
 
 import pytest
 
+from ...common.models import CWTsequence
+
 from ..common_factories import (
     LakeFactory,
     AgencyFactory,
@@ -283,10 +285,11 @@ def test_cwt_sequence_str():
     tag_type = "cwt"
     seq_start = 1
     seq_end = 5555
+    sequence = [seq_start, seq_end]
 
     cwt = CWTFactory(cwt_number=cwt_number)
 
-    cwt_sequence = CWTsequenceFactory(cwt=cwt, seq_start=seq_start, seq_end=seq_end)
+    cwt_sequence = CWTsequenceFactory(cwt=cwt, sequence=sequence)
 
     shouldbe = "{}-{}-{} ({} {}) [{}-{}]".format(
         cwt_number[:2],
@@ -299,6 +302,51 @@ def test_cwt_sequence_str():
     )
 
     assert str(cwt_sequence) == shouldbe
+
+
+@pytest.mark.django_db
+def test_cwt_sequence_overlapping_range():
+    """If we try to save a cwt sequence that has a range that overlaps
+    with an existing cwtSequence an error should be thrown and the
+    object should not be saved.
+
+    """
+    cwt_number = "123456"
+    cwt = CWTFactory(cwt_number=cwt_number)
+    sequence1 = CWTsequenceFactory(cwt=cwt, sequence=[1, 100])
+
+    # create a second range that overlaps the first
+    sequence2 = CWTsequence(cwt=cwt, sequence=[50, 150])
+
+    with pytest.raises(Exception) as execinfo:
+        sequence2.save()
+    errmsg = 'Sequence Range overlaps with "{}"'.format(str(sequence1))
+    assert execinfo.value.args[0] == errmsg
+
+
+invalid_ranges = [
+    ([-10, 10], "Invalid Range. Values in range must be greater than or equal to zero"),
+    ([20, 10], "Invalid Range. The lower limit is greater than the upper limit."),
+]
+
+
+@pytest.mark.parametrize("range, errmsg", invalid_ranges)
+@pytest.mark.django_db
+def test_cwt_sequence_invalid_range(range, errmsg):
+    """If we try to save a cwt sequence that has an invalid range error
+    should be thrown and the object should not be saved.
+
+    """
+    cwt_number = "123456"
+    cwt = CWTFactory(cwt_number=cwt_number)
+
+    sequence2 = CWTsequence(cwt=cwt, sequence=range)
+
+    with pytest.raises(Exception) as execinfo:
+        sequence2.save()
+
+    assert execinfo.value.messages[0] == errmsg
+    assert CWTsequence.objects.count() == 0
 
 
 @pytest.mark.django_db

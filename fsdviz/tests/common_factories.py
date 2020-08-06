@@ -289,7 +289,6 @@ class CWTsequenceFactory(factory.DjangoModelFactory):
     class Meta:
         model = CWTsequence
 
-    seq_start = 1
-    seq_end = 1
+    sequence = [0, 0]
 
     cwt = factory.SubFactory(CWTFactory)
