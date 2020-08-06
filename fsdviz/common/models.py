@@ -6,7 +6,10 @@ be shared across both the stocking and cwt recovery applications.
 
 from django.contrib.gis.db import models
 from django.template.defaultfilters import slugify
-from django.core.exceptions import ValidationError
+
+# consider add range field and constraint to CWTSequence when we upgrade to Django 3.0+
+# from django.contrib.postgres.constraints import ExclusionConstraint
+# from django.contrib.postgres.fields import IntegerRangeField, RangeOperators
 
 
 class BuildDate(models.Model):
@@ -584,7 +587,7 @@ class CWT(models.Model):
         max_length=10, choices=TAG_MANUFACTURER_CHOICES, default="nmt"
     )
 
-    slug = models.CharField(max_length=10, unique=True)
+    slug = models.CharField(max_length=30, unique=True)
 
     tag_count = models.IntegerField()
     tag_reused = models.BooleanField(
@@ -631,19 +634,27 @@ class CWT(models.Model):
 
     class Meta:
         ordering = ["cwt_number"]
-        unique_together = ("cwt_number", "manufacturer")
+        unique_together = ("cwt_number", "manufacturer", "tag_type")
 
     def save(self, *args, **kwargs):
         """
         Populate slug when we save the object.
         """
         # if not self.slug:
-        self.slug = slugify("{}_{}".format(self.cwt_number, self.manufacturer))
+        self.slug = slugify(
+            "{}_{}_{}".format(self.cwt_number, self.manufacturer, self.tag_type)
+        )
         super(CWT, self).save(*args, **kwargs)
 
     def __str__(self):
         cwt_number = self.cwt_number
-        cwt_string = "{}-{}-{}".format(cwt_number[:2], cwt_number[2:4], cwt_number[4:])
+        cwt_string = "{}-{}-{} ({} {})".format(
+            cwt_number[:2],
+            cwt_number[2:4],
+            cwt_number[4:],
+            self.manufacturer,
+            self.tag_type,
+        )
         return cwt_string
 
 
@@ -663,8 +674,23 @@ class CWTsequence(models.Model):
     seq_start = models.IntegerField(default=1)
     seq_end = models.IntegerField(default=1)
 
+    # TODO: consider changing the sequence start and end to a rangefield
+    # https://docs.djangoproject.com/en/2.2/ref/contrib/postgres/fields/#integerrangefield
+    # sequence = IntegerRangeField()
+
     class Meta:
         ordering = ["cwt__cwt_number", "seq_start"]
+
+        # only available in Django >= 3.0
+        # constraints = [
+        #     ExclusionConstraint(
+        #         name="exclude_overlapping_cwt_series",
+        #         expressions=[
+        #             ("sequemnce", RangeOperators.OVERLAPS),
+        #             ("cwt", RangeOperators.EQUAL),
+        #         ],
+        #     )
+        # ]
 
     def __str__(self):
         return "{} [{}-{}]".format(str(self.cwt), self.seq_start, self.seq_end)

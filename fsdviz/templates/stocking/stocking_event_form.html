@@ -9,38 +9,60 @@
          font-size: 0.8rem;
      }
 
+     .field.error small.helper {
+         color: #9F3A38 !important;
+     }
      
+
     </style>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
 
 
-    
+
 {% endblock %}
 
 {% block content %}
-    
+
     <div  class="ui container" >
         <h2>Edit Stocking Event {{ stock_id }}</h2>
 
         <form class="ui form" action="" method="post">
             {% csrf_token %}
 
-            {{ form.non_field_errors }}
-
+            {% if form.errors %}
+                <div class="ui error visible message">
+                    <ul class="list">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{field.label}}: {{ error|escape }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li> {{ error|escape }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            
             {{form.id}}
+
+
             
             <div class="ui fluid card">
                 <div class="content">
-                    <div class="header">Agency, Species, and Strain</div>
+                    <div class="header">Agency, Hatchery, Species, and Strain</div>
                 </div>
                 <div class="content">
                     <div class="three fields">
-
-                        {% include "stocking/_form_field.html" with width="eight" field_obj=form.agency_id %}
+                        {% include "stocking/_form_field.html" with field_obj=form.agency_id %}
+                        {% include "stocking/_form_field.html"  with field_obj=form.lotcode %}
+                        {% include "stocking/_form_field.html"  with field_obj=form.agency_stock_id %}
+                    </div>
+                    <div class="three fields">
                         {% include "stocking/_form_field.html" with field_obj=form.species_id %}
                         {% include "stocking/_form_field.html" with field_obj=form.strain_raw_id %}
-
+                        {% include "stocking/_form_field.html" with field_obj=form.hatchery_id %}
                     </div>
                 </div>
             </div>
@@ -54,7 +76,7 @@
                     <div class="four fields">
 
                         {% include "stocking/_calendar_field.html" with field_obj=form.date %}
-                        
+
                         {% include "stocking/_form_field.html" with field_obj=form.year %}
                         {% include "stocking/_form_field.html" with field_obj=form.month %}
                         {% include "stocking/_form_field.html" with field_obj=form.day %}
@@ -84,7 +106,7 @@
                                     <div class='item'>Oh snap! lat-long says GB2</div>
                                 </div>
                             </div>
-                            
+
                             <div class="ui segment">
                                 {% include "stocking/_form_field.html" with field_obj=form.dd_lat %}
                                 {% include "stocking/_form_field.html" with field_obj=form.dd_lon %}
@@ -110,45 +132,60 @@
                 </div>
                 <div class="content">
 
-                    <div class="field">
-
+                    <div class="four fields">
                         {% include "stocking/_form_field.html" with field_obj=form.no_stocked %}
-
+                        {% include "stocking/_form_field.html" with  field_obj=form.year_class %}
+                        {% include "stocking/_form_field.html" with  field_obj=form.length %}
+                        {% include "stocking/_form_field.html" with  field_obj=form.weight %}
+                    </div>
+                    <div class="three fields">
+                        {% include "stocking/_form_field.html" with  field_obj=form.stocking_method_id %}
+                        {% include "stocking/_form_field.html" with  field_obj=form.lifestage_id %}
+                        {% include "stocking/_form_field.html" with  field_obj=form.condition_id %}
                     </div>
 
-                    <div class="four fields">
-
-                        {% include "stocking/_form_field.html" with width="two" field_obj=form.year_class %}
-                        {% include "stocking/_form_field.html" with width="five" field_obj=form.stocking_method_id %}
-                        {% include "stocking/_form_field.html" with width="five" field_obj=form.lifestage_id %}
-                        {% include "stocking/_form_field.html" with width="four" field_obj=form.condition_id %}
-
+                    <div class="three fields">
+                        {% include "stocking/_form_field.html" with field_obj=form.fin_clips %}
+                        {% include "stocking/_form_field.html" with field_obj=form.physchem_marks %}
+                        {% include "stocking/_form_field.html" with field_obj=form.mark_eff %}
                     </div>
 
-                    <div class="four fields">
-                        {% include "stocking/_form_field.html" with width="six" field_obj=form.mark %}
-                        {% include "stocking/_form_field.html" with width="two" field_obj=form.mark_eff %}
-                        {% include "stocking/_form_field.html" with width="six" field_obj=form.tag_no %}
-                        {% include "stocking/_form_field.html" with width="two" field_obj=form.tag_ret %}
+
+                    <div class="three fields">
+                        {% include "stocking/_form_field.html" with field_obj=form.fish_tags %}
+                        {% include "stocking/_form_field.html" with field_obj=form.tag_ret %}                                              {% include "stocking/_form_field.html" with field_obj=form.cwt_numbers %}
                     </div>
 
-                    <div class="five fields">
 
-                        {% include "stocking/_form_field.html" with width="two" field_obj=form.length %}
-                        {% include "stocking/_form_field.html" with width="two" field_obj=form.weight %}
-                        {% include "stocking/_form_field.html" with width="five" field_obj=form.condition_id %}
-                        {% include "stocking/_form_field.html" with width="five" field_obj=form.validation %}
-                        {% include "stocking/_form_field.html" with width="two" field_obj=form.lotcode %}
-
-                    </div>
-
-                    <div class="field">
+                    <div class="fluid field">
 
                         {% include "stocking/_form_field.html" with field_obj=form.notes %}
 
                     </div>
                 </div>
             </div>
+
+            <div class="ui fluid card">
+                <div class="content">
+                    <div class="header">Coded Wire Tags</div>
+                </div>
+                <div class="content">
+                    {{ cwt_formset.management_form }}
+                    <table>
+                        {% for form in cwt_formset %}
+                            <div class="five fields">
+                                {% include "stocking/_form_field.html" with field_obj=form.cwt_number %}
+                                {% include "stocking/_form_field.html" with field_obj=form.manufacturer %}
+                                {% include "stocking/_form_field.html" with field_obj=form.tag_type %}
+                                {% include "stocking/_form_field.html" with field_obj=form.sequence_start %}
+                                {% include "stocking/_form_field.html" with field_obj=form.sequence_end %}
+                            </div>                                
+                        {% endfor %}
+                    </table>
+                    
+                </div>
+            </div>
+            
 
 
             <div class="row">
@@ -160,11 +197,9 @@
 
             </div>
 
-
-            
-            
-
         </form>
+
+        
     </div>
 
 {% endblock %}
@@ -174,26 +209,58 @@
 
     <script>
 
+     function Masking (value, pattern) {
+         var out = '';
+         var space = '-';
+         var any = '_';
 
-     const jurisdictionURL = "{% url 'common_api:jurisdiction-list' %}";     
+         for (var i = 0, j = 0; j < value.length; i++, j++) {
+             if (value[j] === pattern[i]) {
+                 out += value[j];
+             }
+             else if(pattern[i] === any && value[j] !== space) {
+                 out += value[j];
+             }
+             else if(pattern[i] === space && value[j] !== space) {
+                 out += space;
+                 j--;
+             }
+             else if(pattern[i] !== any && pattern[i] !== space) {
+                 out += pattern[i];
+                 j--;
+             }
+         }
+         return out;
+     }
+
+     $('.cwt-mask').on('input', function () {
+         var input = $(this);
+         input.val(Masking(input.val(), "__-__-__"));
+     });
+
+     // need to account for dashes!
+     $('input.cwt-mask').attr('maxlength', 8);  
+     
+     $('.ui.form').form();
+     $(".select.dropdown").dropdown();
+     $('.input').popup();
+
+
+     const jurisdictionURL = "{% url 'common_api:jurisdiction-list' %}";
      const manUnitURL = "{% url 'common_api:managementunit-list' %}";
      const grid10URL = "{% url 'common_api:grid10-list' %}";
      const strainURL = "{% url 'common_api:strainraw-list' %}";
-     
-     const spatialAttrURL = "{% url 'common_api:api-lookup-spatial-attrs' %}";     
+
+     const spatialAttrURL = "{% url 'common_api:api-lookup-spatial-attrs' %}";
      const csrf_token = "{{ csrf_token }}";
 
      //$('.field')
      //    .popup()
      //;
 
-     $('.input')
-         .popup()
-     ;
 
-     
     </script>
-    
+
 
     {{ lake.geom.extent|json_script:"map-bounds" }}
 
@@ -201,6 +268,6 @@
 
     <script src="{% static "js/stocking_event_form.js" %}"></script>
 
-    
+
 
 {% endblock %}

@@ -1,7 +1,7 @@
 from django import forms
 from django.db.models import Min, Max
 from django.core.exceptions import ValidationError
-
+from django.core.validators import RegexValidator
 from datetime import datetime
 
 from ..stocking.models import (
@@ -10,6 +10,9 @@ from ..stocking.models import (
     StockingMethod,
     Condition,
     Strain,
+    FinClip,
+    PhysChemMark,
+    FishTag,
 )
 from ..common.models import (
     ManagementUnit,
@@ -20,7 +23,7 @@ from ..common.models import (
     Grid10,
     Jurisdiction,
 )
-
+from ..common.validators import validate_cwt
 from ..common.widgets import SemanticDatePicker
 
 
@@ -278,7 +281,7 @@ class XlsEventForm(forms.Form):
     finclip = forms.CharField(required=False)
     clip_efficiency = forms.FloatField(min_value=0, max_value=100, required=False)
     physchem_mark = forms.CharField(required=False)  # choice field some day
-    tag_type = forms.ChoiceField(choices=[], required=False, widget=MySelect)
+    # fish_tags = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     hatchery = forms.CharField(required=False)  # choice field some day too
     agency_stock_id = forms.CharField(required=False)
 
@@ -315,12 +318,12 @@ class XlsEventForm(forms.Form):
     notes.widget.attrs["data-validate"] = "validate-notes"
 
     # new - spring 2020
-    finclip.widget.attrs["data-validate"] = "validate-notes"
-    clip_efficiency.widget.attrs["data-validate"] = "validate-notes"
-    physchem_mark.widget.attrs["data-validate"] = "validate-notes"
-    tag_type.widget.attrs["data-validate"] = "validate-notes"
-    hatchery.widget.attrs["data-validate"] = "validate-notes"
-    agency_stock_id.widget.attrs["data-validate"] = "validate-notes"
+    # finclip.widget.attrs["data-validate"] = "validate-finclips"
+    # clip_efficiency.widget.attrs["data-validate"] = "validate-clip-efficency"
+    # physchem_mark.widget.attrs["data-validate"] = "validate-physchem-marks"
+    # fish_tags.widget.attrs["data-validate"] = "validate-fish_tags"
+    # hatchery.widget.attrs["data-validate"] = "validate-hatchery"
+    # agency_stock_id.widget.attrs["data-validate"] = "validate-agency-stock-id"
 
     def clean_grid(self):
 
@@ -404,11 +407,20 @@ class StockingEventForm(forms.Form):
         self.fields["condition_id"].choices = self.choices.get("conditions")
 
         # new spring 2020:
-        # self.fields["hatchery_id"].choices = self.choices.get("hatcheries")
-        # self.fields["physchem_mark_id"].choices = self.choices.get("physchem_marks")
-        # these should be many-to-many with check box array:
-        # self.fields["finclips"].choices = self.choices.get("finclips")
-        # self.fields["fishtags"].choices = self.choices.get("fintags")
+        self.fields["hatchery_id"].choices = [("", "-------")] + self.choices.get(
+            "hatcheries"
+        )
+        self.fields["physchem_marks"].choices = [
+            ("", "Select Mark(s)")
+        ] + self.choices.get("physchem_marks")
+
+        self.fields["fin_clips"].choices = [
+            ("", "Select Fin Clip(s)")
+        ] + self.choices.get("fin_clips")
+
+        self.fields["fish_tags"].choices = [
+            ("", "Select Tag Type(s)")
+        ] + self.choices.get("fish_tags")
 
         # if our intitial data contains values that are not in our list of choices
         # add it to front of each list with a "" as its id (that will automaticlly
@@ -440,6 +452,10 @@ class StockingEventForm(forms.Form):
         label="Agency", choices=[], required=True, widget=MySelect
     )
 
+    hatchery_id = forms.ChoiceField(
+        label="Hatchery", choices=[], required=False, widget=MySelect
+    )
+
     #  ** WHAT **
     species_id = forms.ChoiceField(
         label="Species", choices=[], required=True, widget=MySelect
@@ -464,6 +480,7 @@ class StockingEventForm(forms.Form):
     state_prov_id = forms.ChoiceField(
         label="StateProvince", choices=[], required=True, widget=MySelect
     )
+    # these spatial attributes are not required:
     # jurisdiction_id = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     management_unit_id = forms.ChoiceField(
         label="Statistical District", choices=[], required=True, widget=MySelect
@@ -511,11 +528,17 @@ class StockingEventForm(forms.Form):
     )
     agemonth = forms.IntegerField(label="Age (months)", min_value=0, required=False)
 
-    mark = forms.CharField(label="Marks Applied", required=False)
-    mark_eff = forms.FloatField(
-        label="Marking Efficiency", min_value=0, max_value=100, required=False
+    cwt_numbers = forms.CharField(
+        label="CWT Numbers",
+        help_text="Comma separated list of 6-digit cwt numbers",
+        required=False,
+        # validators=[validate_cwt],
     )
-    tag_no = forms.CharField(label="Tag Numbers", required=False)
+    tag_no = forms.CharField(
+        label="CWT Numbers",
+        help_text="Comma separated list of 6-digit cwt numbers",
+        required=False,
+    )
     tag_ret = forms.FloatField(
         label="Tag Retention", min_value=0, max_value=100, required=False
     )
@@ -524,17 +547,77 @@ class StockingEventForm(forms.Form):
     condition_id = forms.ChoiceField(
         label="General Condition", choices=[], required=False, widget=MySelect
     )
-    validation = forms.ChoiceField(
-        label="Data Entry Validation",
-        choices=StockingEvent.VALIDATION_CODE_CHOICES,
-        required=False,
-    )
-    lotcode = forms.CharField(required=False)
+    # validation = forms.ChoiceField(
+    #     label="Data Entry Validation",
+    #     choices=StockingEvent.VALIDATION_CODE_CHOICES,
+    #     required=False,
+    # )
+
+    lotcode = forms.CharField(label="Agency Lot Code", required=False)
+    agency_stock_id = forms.CharField(label="Agency Stock ID", required=False)
+
     notes = forms.CharField(
         label="Additional Notes",
         required=False,
         widget=forms.Textarea(attrs={"rows": 4}),
     )
+
+    fish_tags = forms.MultipleChoiceField(
+        label="Tags", choices=[], required=False, widget=forms.SelectMultiple
+    )
+    fish_tags.widget.attrs["class"] = "ui fluid dropdown"
+
+    fin_clips = forms.MultipleChoiceField(
+        label="Fin Clips", choices=[], required=False, widget=forms.SelectMultiple
+    )
+    fin_clips.widget.attrs["class"] = "ui fluid dropdown"
+
+    physchem_marks = forms.MultipleChoiceField(
+        label="Physical/Chemical Marks",
+        choices=[],
+        required=False,
+        widget=forms.SelectMultiple,
+    )
+    physchem_marks.widget.attrs["class"] = "ui fluid dropdown"
+    # mark is going away soon - mark eff is staying.
+    mark = forms.CharField(label="Marks Applied", required=False)
+    mark_eff = forms.FloatField(
+        label="Marking Efficiency", min_value=0, max_value=100, required=False
+    )
+
+    # finclip, tags and physchem marks are many to many that we have
+    # explicitly added a 'None' value to.  - we will need to ensure
+    # that it renders with None seelcted if those eleemnts are empty,
+    # and returned as empty when the elements are cleaned.
+
+    def int_or_none(self, val, default=None):
+        """Return the val as an integer or None if it cannot be converted.
+
+        Arguments:
+        - `x`:
+        """
+        if val is None:
+            if default is not None:
+                return default
+            else:
+                return None
+        elif val == "":
+            if default is not None:
+                return default
+            else:
+                return None
+        else:
+            return int(val)
+
+    def clean_day(self):
+        """make sure that the day value is an integer or None"""
+        val = self.cleaned_data["day"]
+        return self.int_or_none(val)
+
+    def clean_month(self):
+        """make sure that the month value is an integer or None"""
+        val = self.cleaned_data["month"]
+        return self.int_or_none(val)
 
     def clean(self):
         """Clean is our last chance to verify fields that depend on each other
@@ -549,6 +632,8 @@ class StockingEventForm(forms.Form):
         # cwts
 
         # jurisdiction
+
+        super(StockingEventForm, self).clean()
 
         data = self.cleaned_data
 
@@ -578,12 +663,15 @@ class StockingEventForm(forms.Form):
             msg = "Please provide a month to complete the event date."
             raise forms.ValidationError(msg, code="missing_month")
 
+        event_date = None
         if month and day:
             try:
                 event_date = datetime(int(year), int(month), int(day))
             except ValueError:
                 msg = "Day, month, and year do not form a valid date."
                 raise forms.ValidationError(msg, code="invalid_date")
+        if event_date:
+            self.cleaned_data["date"] = event_date
 
         # LAT-LON
         dd_lat = data.get("dd_lat")
@@ -597,6 +685,52 @@ class StockingEventForm(forms.Form):
             msg = "Latitude is required if Longitude is provided."
             raise forms.ValidationError(msg, code="missing_dd_lat")
 
+        fish_tags = data.get("fish_tags")
+        tag_ret = data.get("tag_ret")
+
+        if tag_ret and not fish_tags:
+            msg = "At least one Fish Tag Type must be selected if Tag Retention is provided."
+            raise forms.ValidationError(msg, code="missing_fish_tag")
+
+        # if cwt_number is populated - cwt must be one of the tag types.
+        cwt_numbers = data.get("cwt_numbers")
+        validate_cwt(cwt_numbers)
+
+        if cwt_numbers and not fish_tags:
+            msg = "CWT Tag type must be selected if 'CWT Numbers' is populated."
+            raise forms.ValidationError(msg, code="cwtnumber_with_null_fish_tag")
+
+        if cwt_numbers and "CWT" not in fish_tags:
+            msg = "CWT must be one of selected tag types if 'CWT Numbers' is populated."
+            raise forms.ValidationError(msg, code="cwtnumber_without_cwt")
+
+        physchem_marks = data.get("physchem_marks")
+        mark_eff = data.get("mark_eff")
+
+        if mark_eff and not physchem_marks:
+            msg = (
+                "At least one Physical or Chemical Mark must be selected if "
+                + "Mark Efficiency is provided."
+            )
+            raise forms.ValidationError(msg, code="missing_physchem_mark")
+
+        fin_clips = self.cleaned_data.get("fin_clips", [])
+
+        if ("NO" in fin_clips or "UN" in fin_clips) and len(fin_clips) > 1:
+            if "NO" in fin_clips:
+                msg = '"No fin clip (NO)" cannot be combined with another fin clip.'
+                raise forms.ValidationError(
+                    msg, code="invalid_finclip_includes_no_clip"
+                )
+
+            if "UN" in fin_clips:
+                msg = (
+                    '"Unknown fin clip (UN)" cannot be combined with another fin clip.'
+                )
+                raise forms.ValidationError(
+                    msg, code="invalid_finclip_includes_unknown"
+                )
+
         # Year class cannot be in the future or super old.
         year_class = data.get("year_class", 0)
 
@@ -604,23 +738,68 @@ class StockingEventForm(forms.Form):
             msg = "Year class cannot be greater than stocking year."
             raise forms.ValidationError(msg, code="future_year_class")
 
-        if (year - year_class) > 20:
-            msg = "Those fish were more than 20 year old!"
-            raise forms.ValidationError(msg, code="past_year_class")
+        # this is a warning - for the front end if possible:
+        # if (year - year_class) > 20:
+        #     msg = "Those fish were more than 20 year old!"
+        #    raise forms.ValidationError(msg, code="past_year_class")
 
         # this needs to be calcualted based on species, lifestage, and ...
         data["yreq_stocked"] = data.get("no_stocked", 0)
 
         # this is also not right - just getting it to work ...
+        # calculate lat-long flag from the most precise spatial tribute we have.
         data["latlong_flag_id"] = 1
 
         return data
 
-    def save(self):
+    def save(self, *args, **kwargs):
+        # super().save(*args, **kwargs)
 
         data = self.cleaned_data
         id = data.pop("id")
         instance = StockingEvent.objects.get(id=id)
+
+        # pop off our many-to-many fields and add them to our
+        # instannce as required:
+        fin_clips = data.pop("fin_clips")
+        instance.fin_clips.clear()
+
+        if fin_clips:
+            items = FinClip.objects.filter(abbrev__in=fin_clips)
+            instance.fin_clips.set(items)
+
+        physchem_marks = data.pop("physchem_marks")
+        instance.physchem_marks.set(physchem_marks)
+
+        fish_tags = data.pop("fish_tags")
+        if fish_tags:
+            items = FishTag.objects.filter(tag_code__in=fish_tags)
+            instance.fish_tags.set(items)
+
+        cwts = data.pop("cwt_numbers")
+        # get or create cwts:
+        print("cwts={}".format(cwts))
+
+        # for each cwt number, we need to get or create the cwt (where
+        # manufactuer is 'nmt', and tag_type='cwt').  Then get or
+        # create a cwt_series where the cwt is the cwt we just
+        # created, the event is our instance.
+
+        # check the list of cwts against the list of cwt_sequences associated with this event
+        # if there are new cwts - add them, if there are ones missing, delete them
+
+        for number in cwts.replace(";", ",").split(","):
+            cwt, created = CWT.objects.get_or_create(
+                cwt_number=number, tag_type="cwt", manufacturer="nmt"
+            )
+            if created:
+                cwt.save()
+            sequence, created = CWTsequence.get_or_create(cwt=cwt, events=instance)
+
         for attr, value in data.items():
+            print("{}={}".format(attr, value))
             setattr(instance, attr, value)
+
         instance.save()
+
+        return instance

@@ -232,18 +232,40 @@ def test_latlonflag_str():
 
 @pytest.mark.django_db
 def test_cwt_str():
-    """
-    Verify that the string representation of a cwt object is the cwt number
-    formatted with dashes followed by the agency abbreviation in parentheses.
+    """Verify that the string representation of a cwt object is the cwt
+    number formatted with dashes followed by the manufacturer and
+    tag_type abbreviation in parentheses.
 
-    '12-34-56'
+    '12-34-56 (nmt-cwt)'
 
     """
 
     cwt_number = "123456"
-    cwt = CWTFactory(cwt_number=cwt_number)
-    shouldbe = "{}-{}-{}".format(cwt_number[:2], cwt_number[2:4], cwt_number[4:])
+    maker = "nmt"
+    tag_type = "cwt"
+    cwt = CWTFactory(cwt_number=cwt_number, manufacturer=maker, tag_type=tag_type)
+    shouldbe = "{}-{}-{} ({} {})".format(
+        cwt_number[:2], cwt_number[2:4], cwt_number[4:], maker, tag_type
+    )
     assert str(cwt) == shouldbe
+
+
+@pytest.mark.django_db
+def test_cwt_slug():
+    """Verify that the slug of cwt object is the cwt
+    number followed by the manufacturer and tag_type abbreviation .
+
+    '123456_nmt_cwt'
+
+    """
+
+    cwt_number = "123456"
+    maker = "nmt"
+    tag_type = "cwt"
+    cwt = CWTFactory(cwt_number=cwt_number, manufacturer=maker, tag_type=tag_type)
+
+    shouldbe = "{}_{}_{}".format(cwt_number, maker, tag_type)
+    assert cwt.slug == shouldbe
 
 
 @pytest.mark.django_db
@@ -257,6 +279,8 @@ def test_cwt_sequence_str():
     """
 
     cwt_number = "123456"
+    maker = "nmt"
+    tag_type = "cwt"
     seq_start = 1
     seq_end = 5555
 
@@ -264,8 +288,14 @@ def test_cwt_sequence_str():
 
     cwt_sequence = CWTsequenceFactory(cwt=cwt, seq_start=seq_start, seq_end=seq_end)
 
-    shouldbe = "{}-{}-{} [{}-{}]".format(
-        cwt_number[:2], cwt_number[2:4], cwt_number[4:], seq_start, seq_end
+    shouldbe = "{}-{}-{} ({} {}) [{}-{}]".format(
+        cwt_number[:2],
+        cwt_number[2:4],
+        cwt_number[4:],
+        maker,
+        tag_type,
+        seq_start,
+        seq_end,
     )
 
     assert str(cwt_sequence) == shouldbe

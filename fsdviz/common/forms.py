@@ -41,6 +41,14 @@ class CWTSequenceForm(forms.Form):
     sequence_start = forms.IntegerField(label="Seq. Start", required=True, min_value=1)
     sequence_end = forms.IntegerField(label="Seq. End", required=True, min_value=1)
 
+    def __init__(self, *args, **kwargs):
+        super(CWTSequenceForm, self).__init__(*args, **kwargs)
+        # self.fields["sequence_start"].disabled = True
+        # self.fields["sequence_end"].disabled = True
+        self.fields["manufacturer"].initial = "nmt"
+        self.fields["tag_type"].initial = "cwt"
+        self.fields["cwt_number"].widget.attrs.update({"class": "cwt-mask"})
+
     def clean_cwt_number(self):
         """cwt must be 6 characters long and be
         only numbers (we may need to add dashes to accomodate USGS agency tags)."""
@@ -77,16 +85,6 @@ class CWTSequenceForm(forms.Form):
             msg = "Sequence Start must be less than Sequence End."
             raise forms.ValidationError(msg)
 
-    # def save(self):
-    #     """
-
-    #     + get or create parent cwt - if cwt_id is populated, use it,
-    #     otherwise try and match the cwt based on the number, type
-    #     and manufacturer
-
-    #     """
-    #     pass
-
 
 class BaseCWTSequenceFormSet(forms.Form):
     def clean(self):
@@ -102,8 +100,3 @@ class BaseCWTSequenceFormSet(forms.Form):
         #     if title in titles:
         #         raise forms.ValidationError("Articles in a set must have distinct titles.")
         #    titles.append(title)
-
-
-CWTSequenceFormSet = forms.formset_factory(
-    CWTSequenceForm, formset=BaseCWTSequenceFormSet
-)

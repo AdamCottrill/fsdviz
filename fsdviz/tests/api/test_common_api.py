@@ -745,7 +745,7 @@ class TestCWTAPI(APITestCase):
             "cwt_number": 111111,
             "manufacturer": "nmt",
             "tag_type": "cwt",
-            "slug": "111111_nmt",
+            "slug": "111111_nmt_cwt",
         }
         self.cwt1 = CWTFactory(**self.cwt1_dict)
 
@@ -753,7 +753,7 @@ class TestCWTAPI(APITestCase):
             "cwt_number": 222222,
             "manufacturer": "nmt",
             "tag_type": "cwt",
-            "slug": "222222_nmt",
+            "slug": "222222_nmt_cwt",
         }
         self.cwt2 = CWTFactory(**self.cwt2_dict)
 
@@ -761,7 +761,7 @@ class TestCWTAPI(APITestCase):
             "cwt_number": 333333,
             "manufacturer": "mm",
             "tag_type": "cwt",
-            "slug": "333333_mm",
+            "slug": "333333_mm_cwt",
         }
         self.cwt3 = CWTFactory(**self.cwt3_dict)
 

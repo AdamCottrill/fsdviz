@@ -13,6 +13,7 @@
 
 from openpyxl import load_workbook
 from django.conf import settings
+from django.db import transaction
 
 from ..common.models import (
     Lake,
@@ -22,8 +23,13 @@ from ..common.models import (
     ManagementUnit,
     Agency,
     Grid10,
+    FinClip,
+    FishTag,
+    PhysChemMark,
+    CWT,
+    CWTsequence,
 )
-from .models import StockingMethod, LifeStage, Condition
+from .models import StockingMethod, LifeStage, Condition, Hatchery
 
 from ..common.utils import to_lake_dict, toChoices
 
@@ -207,6 +213,13 @@ def get_event_model_form_choices(event):
         for x in Agency.objects.values_list("id", "agency_name", "abbrev")
     ]
 
+    hatcheries = [
+        (x[0], "{} ({})".format(x[1], x[2]))
+        for x in Hatchery.objects.order_by("hatchery_name").values_list(
+            "id", "hatchery_name", "abbrev"
+        )
+    ]
+
     state_provs = [
         (x[0], "{} ({})".format(x[1], x[2]))
         for x in StateProvince.objects.values_list("id", "name", "abbrev")
@@ -253,6 +266,27 @@ def get_event_model_form_choices(event):
         for x in Condition.objects.values_list("id", "condition", "description")
     ]
 
+    fin_clips = [
+        (x[0], "{} ({})".format(x[1].title(), x[0]))
+        for x in FinClip.objects.order_by("description").values_list(
+            "abbrev", "description"
+        )
+    ]
+
+    fish_tags = [
+        (x[0], "{} ({})".format(x[1].title(), x[2]))
+        for x in FishTag.objects.order_by("description").values_list(
+            "tag_code", "description", "tag_code"
+        )
+    ]
+
+    physchem_marks = [
+        (x[0], "{} ({})".format(x[1].title(), x[2]))
+        for x in PhysChemMark.objects.order_by("description").values_list(
+            "id", "description", "mark_code"
+        )
+    ]
+
     choices = {
         "lakes": lakes,
         "agencies": agencies,
@@ -262,8 +296,12 @@ def get_event_model_form_choices(event):
         "conditions": conditions,
         "stocking_methods": stocking_methods,
         "grids": grids,
+        "hatcheries": hatcheries,
         "strains": strain_choices,
         "managementUnits": man_units,
+        "fin_clips": fin_clips,
+        "fish_tags": fish_tags,
+        "physchem_marks": physchem_marks,
     }
 
     return choices
@@ -450,3 +488,44 @@ def get_choices():
     }
 
     return choices
+
+
+def get_or_create_cwt_sequence(
+    cwt_number, tag_type="cwt", manufacturer="nmt", seq_start=1, seq_end=1
+):
+    """given a cwt_number, maker and type retrieve, or create and
+    retrieve a cwt series.  The cwt may or may not exist, and may have
+    to be created first.
+
+    This function is used by forms that that create stocking events with assoicated cwts.
+
+    Arguments:
+    - `cwt_number`:
+    - `tag_type`: either mm or sequential
+    - `manufacturer`: either nmt or mm
+    - `seq_start`:
+    - `seq_end`:
+
+    """
+    cwt_series = None
+
+    with transaction.atomic():
+
+        cwt, created = CWT.objects.get_or_create(
+            defaults={"tag_count": 0},
+            cwt_number=cwt_number,
+            manufacturer=manufacturer,
+            tag_type=tag_type,
+        )
+        if created:
+            cwt.save()
+        if tag_type == "sequential":
+            cwt_series, created = CWTsequence.objects.get_or_create(
+                cwt=cwt, seq_start=seq_start, seq_end=seq_end
+            )
+        else:
+            cwt_series, created = CWTsequence.objects.get_or_create(cwt=cwt)
+        if created:
+            cwt_series.save()
+
+    return cwt_series

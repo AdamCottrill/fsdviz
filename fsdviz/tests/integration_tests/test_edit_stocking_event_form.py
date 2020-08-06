@@ -21,6 +21,10 @@ TODO - Add more tests to verify errors and behaviour when good data is
 submitted.
 
 
+
+
+
+
  A. Cottrill
 =============================================================
 
@@ -109,6 +113,20 @@ def test_event_form_renders(client, user):
 
     """
 
+    elements = [
+        "Latitude (Decimal Degrees):",
+        "Longitude (Decimal Degrees):",
+        "Fin Clips:",
+        "Physical/Chemical Marks:",
+        "Marking Efficiency:",
+        "Tags:",
+        "CWT Numbers:",
+        "Tag Retention:",
+        "Submit",
+        "Cancel",
+        "Reset Form",
+    ]
+
     event = StockingEventFactory()
 
     login = client.login(email=user.email, password="Abcd1234")
@@ -126,12 +144,16 @@ def test_event_form_renders(client, user):
 
     msg = "Edit Stocking Event {}".format(event.stock_id)
     assert msg in content
-    assert "Latitude (Decimal Degrees):" in content
-    assert "Longitude (Decimal Degrees):" in content
-    assert "Marks Applied:" in content
-    assert "Marking Efficiency:" in content
-    assert "Tag Numbers:" in content
-    assert "Tag Retention:" in content
-    assert "Submit" in content
-    assert "Cancel" in content
-    assert "Reset Form" in content
+
+    for element in elements:
+        assert element in content
+
+
+def test_latlon_flag():
+    """The latlon_flag is stored in a hidden field on the event detail
+    form and is updated based on the elements that are used to
+    calculate the coordinates.  The lat-lon flag needs to be submitted
+    in the form and be reflected in the updated stocking event object.
+
+    """
+    assert 0 == 1

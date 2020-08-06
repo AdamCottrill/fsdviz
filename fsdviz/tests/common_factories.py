@@ -275,7 +275,9 @@ class CWTFactory(factory.DjangoModelFactory):
     tag_count = 10000
     tag_type = "cwt"
     manufacturer = "nmt"
-    slug = factory.LazyAttribute(lambda x: "{}_{}".format(x.cwt_number, x.manufacturer))
+    slug = factory.LazyAttribute(
+        lambda x: "{}_{}_{}".format(x.cwt_number, x.tag_type, x.manufacturer)
+    )
     # agency = factory.SubFactory(AgencyFactory)
 
 
@@ -288,6 +290,6 @@ class CWTsequenceFactory(factory.DjangoModelFactory):
         model = CWTsequence
 
     seq_start = 1
-    seq_start = 100
+    seq_end = 1
 
     cwt = factory.SubFactory(CWTFactory)
