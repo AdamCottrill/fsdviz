@@ -724,7 +724,7 @@ def test_invalid_physchem_mark(event):
 
     choices = get_event_model_form_choices(event)
 
-    # make sure cwt is a valid fin clip choice:
+    # make sure that mark is a valid choice:
     event_dict = create_event_dict(event)
     event_dict["physchem_marks"] = ["XX"]
 
@@ -752,7 +752,10 @@ def test_mark_effectiveness_without_physchem_mark(event):
     status = form.is_valid()
     assert status is False
 
-    msg = "At least one Physical or Chemical Mark must be selected if Mark Efficiency is provided."
+    msg = (
+        "At least one Physical or Chemical Mark or Fin Clip must be "
+        + "selected if Mark Efficiency is provided."
+    )
     assert msg in form.errors["__all__"]
 
 
@@ -794,46 +797,46 @@ def test_valid_tag_no(event, value):
     assert status is True
 
 
-invalid = [
-    "31234",
-    "6631234",
-    "631512,35978",
-    "631512,6635978,639845",
-    "631512;63978",
-    "631512;6359978;639845",
-    "631512;6359798,639845",
-    "631512;63597,639845",
-    "631512;63597,639",
-]
+# invalid = [
+#     "31234",
+#     "6631234",
+#     "631512,35978",
+#     "631512,6635978,639845",
+#     "631512;63978",
+#     "631512;6359978;639845",
+#     "631512;6359798,639845",
+#     "631512;63597,639845",
+#     "631512;63597,639",
+# ]
 
 
-@pytest.mark.parametrize("value", invalid)
-@pytest.mark.django_db
-def test_invalid_tag_no(event, value):
-    """If we pass a dictionary with an tag_no that does not exist, we
-    should get a meaningful error message.
+# @pytest.mark.parametrize("value", invalid)
+# @pytest.mark.django_db
+# def test_invalid_tag_no(event, value):
+#     """If we pass a dictionary with an tag_no that does not exist, we
+#     should get a meaningful error message.
 
-    invalid values include: -10, foo, "8,3"
+#     invalid values include: -10, foo, "8,3"
 
-    # cwts must be list of 6 digits, separted by commas
+#     # cwts must be list of 6 digits, separted by commas
 
-    """
+#     """
 
-    choices = get_event_model_form_choices(event)
-    event_dict = create_event_dict(event)
+#     choices = get_event_model_form_choices(event)
+#     event_dict = create_event_dict(event)
 
-    event_dict["cwt_numbers"] = value
+#     event_dict["cwt_numbers"] = value
 
-    form = StockingEventForm(event_dict, choices=choices)
+#     form = StockingEventForm(event_dict, choices=choices)
 
-    status = form.is_valid()
-    assert status is False
+#     status = form.is_valid()
+#     assert status is False
 
-    errmsg = (
-        "Each CWT must be 6 digits (including leading 0's)."
-        + " Multiple cwts must be separated by a comma"
-    )
-    assert errmsg in form.errors["__all__"]
+#     errmsg = (
+#         "Each CWT must be 6 digits (including leading 0's)."
+#         + " Multiple cwts must be separated by a comma"
+#     )
+#     assert errmsg in form.errors["__all__"]
 
 
 @pytest.mark.django_db

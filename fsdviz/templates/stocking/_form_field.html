@@ -1,7 +1,7 @@
 
 <div class="{%  if width %} {{ width }} wide {% endif %}field {% if field_obj.errors %} error{% endif %}" id="{{field_obj.auto_id}}-field">
-    {{ field_obj.label_tag }}
-    <div class="ui input">
+    {{ field_obj.label_tag }}   
+    <div class="ui {% if field_obj.name == 'delete' %} checkbox {%  else %} input {% endif %}">
         {{ field_obj }}
     </div>
     {% if field_obj.errors %}

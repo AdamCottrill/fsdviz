@@ -1,7 +1,5 @@
 from django import forms
-from django.db.models import Min, Max
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
 from datetime import datetime
 
 from ..stocking.models import (
@@ -23,8 +21,10 @@ from ..common.models import (
     Grid10,
     Jurisdiction,
 )
-from ..common.validators import validate_cwt
+
 from ..common.widgets import SemanticDatePicker
+
+from .utils import get_or_create_cwt_sequence
 
 
 class FindEventsForm(forms.Form):
@@ -393,6 +393,8 @@ class StockingEventForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.choices = kwargs.pop("choices", None)
+        self.cwt_formset = kwargs.pop("cwt_formset", None)
+
         super(StockingEventForm, self).__init__(*args, **kwargs)
 
         self.fields["lake_id"].choices = self.choices.get("lakes", [])
@@ -528,12 +530,13 @@ class StockingEventForm(forms.Form):
     )
     agemonth = forms.IntegerField(label="Age (months)", min_value=0, required=False)
 
-    cwt_numbers = forms.CharField(
-        label="CWT Numbers",
-        help_text="Comma separated list of 6-digit cwt numbers",
-        required=False,
-        # validators=[validate_cwt],
-    )
+    # cwt_numbers = forms.CharField(
+    #     label="CWT Numbers",
+    #     help_text="Comma separated list of 6-digit cwt numbers",
+    #     required=False,
+    #     # validators=[validate_cwt],
+    # )
+
     tag_no = forms.CharField(
         label="CWT Numbers",
         help_text="Comma separated list of 6-digit cwt numbers",
@@ -692,24 +695,25 @@ class StockingEventForm(forms.Form):
             msg = "At least one Fish Tag Type must be selected if Tag Retention is provided."
             raise forms.ValidationError(msg, code="missing_fish_tag")
 
-        # if cwt_number is populated - cwt must be one of the tag types.
-        cwt_numbers = data.get("cwt_numbers")
-        validate_cwt(cwt_numbers)
+        # # if cwt_number is populated - cwt must be one of the tag types.
+        # cwt_numbers = data.get("cwt_numbers")
+        # validate_cwt(cwt_numbers)
 
-        if cwt_numbers and not fish_tags:
-            msg = "CWT Tag type must be selected if 'CWT Numbers' is populated."
-            raise forms.ValidationError(msg, code="cwtnumber_with_null_fish_tag")
+        # if cwt_numbers and not fish_tags:
+        #     msg = "CWT Tag type must be selected if 'CWT Numbers' is populated."
+        #     raise forms.ValidationError(msg, code="cwtnumber_with_null_fish_tag")
 
-        if cwt_numbers and "CWT" not in fish_tags:
-            msg = "CWT must be one of selected tag types if 'CWT Numbers' is populated."
-            raise forms.ValidationError(msg, code="cwtnumber_without_cwt")
+        # if cwt_numbers and "CWT" not in fish_tags:
+        #     msg = "CWT must be one of selected tag types if 'CWT Numbers' is populated."
+        #     raise forms.ValidationError(msg, code="cwtnumber_without_cwt")
 
         physchem_marks = data.get("physchem_marks")
+        fin_clips = data.get("fin_clips")
         mark_eff = data.get("mark_eff")
 
-        if mark_eff and not physchem_marks:
+        if mark_eff and not (physchem_marks or fin_clips):
             msg = (
-                "At least one Physical or Chemical Mark must be selected if "
+                "At least one Physical or Chemical Mark or Fin Clip must be selected if "
                 + "Mark Efficiency is provided."
             )
             raise forms.ValidationError(msg, code="missing_physchem_mark")
@@ -776,28 +780,21 @@ class StockingEventForm(forms.Form):
             items = FishTag.objects.filter(tag_code__in=fish_tags)
             instance.fish_tags.set(items)
 
-        cwts = data.pop("cwt_numbers")
-        # get or create cwts:
-        print("cwts={}".format(cwts))
+        instance.cwt_series.clear()
 
-        # for each cwt number, we need to get or create the cwt (where
-        # manufactuer is 'nmt', and tag_type='cwt').  Then get or
-        # create a cwt_series where the cwt is the cwt we just
-        # created, the event is our instance.
-
-        # check the list of cwts against the list of cwt_sequences associated with this event
-        # if there are new cwts - add them, if there are ones missing, delete them
-
-        for number in cwts.replace(";", ",").split(","):
-            cwt, created = CWT.objects.get_or_create(
-                cwt_number=number, tag_type="cwt", manufacturer="nmt"
-            )
-            if created:
-                cwt.save()
-            sequence, created = CWTsequence.get_or_create(cwt=cwt, events=instance)
+        for item in self.cwt_formset:
+            cwt_number = item.get("cwt_number")
+            delete = item.get("delete", False)
+            if cwt_number and not delete:
+                cwt_series = get_or_create_cwt_sequence(
+                    cwt_number=cwt_number,
+                    tag_type=item.get("tag_type"),
+                    manufacturer=item.get("manufacturer"),
+                    sequence=(item.get("sequence_start", 0), item.get("sequence_end")),
+                )
+                instance.cwt_series.add(cwt_series)
 
         for attr, value in data.items():
-            print("{}={}".format(attr, value))
             setattr(instance, attr, value)
 
         instance.save()

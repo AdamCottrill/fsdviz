@@ -23,23 +23,26 @@ class CWTSequenceForm(forms.Form):
     """
     """
 
-    cwt_id = forms.CharField(required=False, widget=forms.HiddenInput())
+    delete = forms.BooleanField(required=False)
 
     cwt_number = forms.CharField(
         required=True,
         label="CWT Number",
         help_text="CWT number with leading zeros but without dashes or spaces.",
-        max_length=6,
+        max_length=8,
         # validator=validate_cwt,
     )
     manufacturer = forms.ChoiceField(
         label="Manufacturer", choices=CWT._meta.get_field("manufacturer").choices
     )
     tag_type = forms.ChoiceField(
-        label="CWT Type", choices=CWT._meta.get_field("tag_type").choices
+        label="CWT Type",
+        choices=CWT._meta.get_field("tag_type").choices,
+        # add a class to our tag type widget so we can select it with js:
+        widget=forms.Select(attrs={"class": "cwt-tag-type"}),
     )
-    sequence_start = forms.IntegerField(label="Seq. Start", required=True, min_value=1)
-    sequence_end = forms.IntegerField(label="Seq. End", required=True, min_value=1)
+    sequence_start = forms.IntegerField(label="Seq. Start", required=False, min_value=0)
+    sequence_end = forms.IntegerField(label="Seq. End", required=False, min_value=0)
 
     def __init__(self, *args, **kwargs):
         super(CWTSequenceForm, self).__init__(*args, **kwargs)
@@ -47,12 +50,17 @@ class CWTSequenceForm(forms.Form):
         # self.fields["sequence_end"].disabled = True
         self.fields["manufacturer"].initial = "nmt"
         self.fields["tag_type"].initial = "cwt"
-        self.fields["cwt_number"].widget.attrs.update({"class": "cwt-mask"})
+
+        self.fields["cwt_number"].widget.attrs.update(
+            {"class": "cwt-mask", "placeholder": "__-__-__"}
+        )
 
     def clean_cwt_number(self):
         """cwt must be 6 characters long and be
         only numbers (we may need to add dashes to accomodate USGS agency tags)."""
         cwt = self.cleaned_data["cwt_number"]
+        if cwt:
+            cwt = cwt.replace("-", "")
         errmsg = "CWT Number must be 6 digits (including leading 0's)."
         return validate_cwt(cwt, errmsg)
 
@@ -73,17 +81,34 @@ class CWTSequenceForm(forms.Form):
         sequence_start = cleaned_data.get("sequence_start")
         sequence_end = cleaned_data.get("sequence_end")
 
-        if tag_type == "sequential" and manufacturer != "nmt":
-            msg = "Sequential tags are only manufactured by NMT."
-            raise forms.ValidationError(msg)
+        if tag_type == "sequential":
+            if manufacturer != "nmt":
+                msg = "Sequential tags are only manufactured by NMT."
+                raise forms.ValidationError(msg)
 
-        if tag_type == "cwt" and (sequence_start != 1 or sequence_end != 1):
-            msg = "Sequence Start and Sequence End must both be 1 if tag type is not sequential."
-            raise forms.ValidationError(msg)
+            if sequence_start is not None:
+                if sequence_start == 0:
+                    msg = "Minimum starting value for sequential tags is 1."
+                    raise forms.ValidationError(msg)
+            else:
+                msg = "Sequence start must be provided for sequential tags."
+                raise forms.ValidationError(msg)
 
-        if tag_type == "sequential" and sequence_start >= sequence_end:
-            msg = "Sequence Start must be less than Sequence End."
-            raise forms.ValidationError(msg)
+            if sequence_end is not None:
+                if sequence_end < 2:
+                    msg = "Minimum ending value for sequential tags is 2."
+                    raise forms.ValidationError(msg)
+            else:
+                msg = "Sequence end must be provided for sequential tags."
+                raise forms.ValidationError(msg)
+
+            if sequence_start is None and sequence_end is None:
+                msg = "Sequence start and end must be provided for sequential tags."
+                raise forms.ValidationError(msg)
+
+            if sequence_start >= sequence_end:
+                msg = "Sequence start must be less than sequence end."
+                raise forms.ValidationError(msg)
 
 
 class BaseCWTSequenceFormSet(forms.Form):

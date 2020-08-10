@@ -120,7 +120,6 @@ def test_event_form_renders(client, user):
         "Physical/Chemical Marks:",
         "Marking Efficiency:",
         "Tags:",
-        "CWT Numbers:",
         "Tag Retention:",
         "Submit",
         "Cancel",

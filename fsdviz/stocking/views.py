@@ -28,9 +28,10 @@ from .utils import (
     get_event_model_form_choices,
     validate_upload,
     get_choices,
+    get_cwt_sequence_dict,
 )
-from ..common.utils import toLookup, make_mu_id_lookup, make_strain_id_lookup, toChoices
-
+from ..common.utils import toLookup, make_mu_id_lookup, make_strain_id_lookup
+from ..common.forms import CWTSequenceForm
 
 from ..common.models import (
     Lake,
@@ -765,29 +766,57 @@ def edit_stocking_event(request, stock_id):
     edit the attibutes of a stocking event."""
 
     event = get_object_or_404(StockingEvent, stock_id=stock_id)
-
+    has_cwts = True if event.cwt_series.count() else False
     choices = get_event_model_form_choices(event)
 
+    CWTSequenceFormSet = formset_factory(CWTSequenceForm, extra=0, max_num=50)
+
     if request.method == "POST":
-        form = StockingEventForm(request.POST, choices=choices)
-        if form.is_valid():
-            form.save()
+
+        cwt_formset = CWTSequenceFormSet(request.POST, request.FILES)
+
+        if cwt_formset.is_valid():
+            form = StockingEventForm(
+                request.POST, choices=choices, cwt_formset=cwt_formset.cleaned_data
+            )
+        else:
+            form = StockingEventForm(request.POST, choices=choices)
+
+        if form.is_valid() and cwt_formset.is_valid():
+            event = form.save()
+
             url = event.get_absolute_url()
             return HttpResponseRedirect(url)
 
     else:
         # covert our event object to a dictionary and add some
-        # additional attributes we weill need in the form:
+        # additional attributes we will need in the form:
         event_dict = event.__dict__
         event_dict["lake_id"] = event.lake.id
         event_dict["state_prov_id"] = event.stateprov.id
+        # add our many-to-many fields too - they aren't included in our dict by default:
+        event_dict["fin_clips"] = [x.abbrev for x in event.fin_clips.all()]
+        event_dict["fish_tags"] = [x.tag_code for x in event.fish_tags.all()]
+        event_dict["physchem_marks"] = [x.id for x in event.physchem_marks.all()]
+        # event_dict["cwt_numbers"] = ",".join(
+        #    [x.cwt.cwt_number for x in event.cwt_series.all()]
+        # )
 
         form = StockingEventForm(event_dict, choices=choices)
+        # cwt_data = {}
+        cwt_dict = get_cwt_sequence_dict(event)
+        cwt_formset = CWTSequenceFormSet(initial=cwt_dict)
 
     return render(
         request,
         "stocking/stocking_event_form.html",
-        {"form": form, "stock_id": stock_id, "lake": event.lake},
+        {
+            "form": form,
+            "cwt_formset": cwt_formset,
+            "stock_id": stock_id,
+            "lake": event.lake,
+            "has_cwts": has_cwts,
+        },
     )
 
 

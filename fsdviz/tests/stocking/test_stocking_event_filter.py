@@ -35,7 +35,7 @@ from ...stocking.models import StockingEvent
 def stocking_events(db):
 
     huron = LakeFactory(abbrev="HU", lake_name="Huron")
-    superior = LakeFactory(abbrev="SU", lake_name="Superior")
+    LakeFactory(abbrev="SU", lake_name="Superior")
     erie = LakeFactory(abbrev="ER", lake_name="Erie")
 
     mnrf = AgencyFactory(abbrev="MNRF")

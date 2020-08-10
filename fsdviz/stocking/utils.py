@@ -14,6 +14,7 @@
 from openpyxl import load_workbook
 from django.conf import settings
 from django.db import transaction
+from django.db.models import F
 
 from ..common.models import (
     Lake,
@@ -528,3 +529,34 @@ def get_or_create_cwt_sequence(
             cwt_series.save()
 
     return cwt_series
+
+
+def get_cwt_sequence_dict(event):
+    """given a stocking event, extract and compile any cwt data as a list
+    of dictionaries that can be used to populate the cwt_sequence_formset.
+
+    If there are no cwts, return an empty list. If there are cwts,
+    return a dictionary of each one with keys corresponding to the
+    fields of the cwt_sequence_formset.
+
+    Arguments:
+    - `event`:
+
+    """
+
+    ret = event.cwt_series.annotate(
+        cwt_number=F("cwt__cwt_number"),
+        tag_type=F("cwt__tag_type"),
+        manufacturer=F("cwt__manufacturer"),
+    ).values("cwt_number", "tag_type", "manufacturer", "sequence")
+
+    # then for each cwt, we need to extract seq_start and seq_end from sequence and pop of sequence
+    for x in ret:
+        sequence = x.pop("sequence")
+        x["sequence_start"] = sequence.lower
+        x["sequence_end"] = sequence.upper
+        # format the cwt number so it matches what people expect to see:
+        cwt = x.pop("cwt_number")
+        x["cwt_number"] = "-".join([cwt[:2], cwt[2:4], cwt[4:6]])
+
+    return ret

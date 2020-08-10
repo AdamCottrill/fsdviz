@@ -151,9 +151,9 @@
                     </div>
 
 
-                    <div class="three fields">
+                    <div class="two fields">
                         {% include "stocking/_form_field.html" with field_obj=form.fish_tags %}
-                        {% include "stocking/_form_field.html" with field_obj=form.tag_ret %}                                              {% include "stocking/_form_field.html" with field_obj=form.cwt_numbers %}
+                        {% include "stocking/_form_field.html" with field_obj=form.tag_ret %}
                     </div>
 
 
@@ -165,28 +165,59 @@
                 </div>
             </div>
 
-            <div class="ui fluid card">
+
+            <div class="ui fluid card accordion">
                 <div class="content">
-                    <div class="header">Coded Wire Tags</div>
-                </div>
-                <div class="content">
-                    {{ cwt_formset.management_form }}
-                    <table>
-                        {% for form in cwt_formset %}
-                            <div class="five fields">
-                                {% include "stocking/_form_field.html" with field_obj=form.cwt_number %}
-                                {% include "stocking/_form_field.html" with field_obj=form.manufacturer %}
-                                {% include "stocking/_form_field.html" with field_obj=form.tag_type %}
-                                {% include "stocking/_form_field.html" with field_obj=form.sequence_start %}
-                                {% include "stocking/_form_field.html" with field_obj=form.sequence_end %}
-                            </div>                                
-                        {% endfor %}
-                    </table>
-                    
+                    <div class="header title {% if has_cwts %}active{% endif %} ">
+                        <h3>Coded Wire Tags
+                            <div class="right floated meta"><i class="chevron down icon"></i></div>
+                            <hr/>
+                        </h3>
+                    </div>                    
+                    <div class="content {% if has_cwts %}active{% endif %}">
+
+                        {{ cwt_formset.management_form }}
+                        <div id="cwt-form-set">
+                            {% for form in cwt_formset %}
+                                <div class="ui segment">
+                                    {{form.non_field_errors}}
+		                    {{form.errors}}
+
+                                    <div class="six fluid fields">
+                                        {% include "stocking/_form_field.html" with field_obj=form.cwt_number %}
+                                        {% include "stocking/_form_field.html" with field_obj=form.manufacturer %}
+                                        {% include "stocking/_form_field.html" with field_obj=form.tag_type %}
+                                        {% include "stocking/_form_field.html" with field_obj=form.sequence_start %}
+                                        
+                                        {% include "stocking/_form_field.html" with field_obj=form.sequence_end %}
+                                        {% include "stocking/_form_field.html" with field_obj=form.delete %}
+
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="ui basic segment">
+                            <input class="ui mini grey button" type="button" value="Add Another CWT" id="add_more">                            
+                        </div>
+                        
+                        <div id="empty_form" style="display:none">
+                            <div class="ui segment">
+                                <div class="six fluid fields">
+                                    {% include "stocking/_form_field.html" with field_obj=cwt_formset.empty_form.cwt_number %}
+                                    {% include "stocking/_form_field.html" with field_obj=cwt_formset.empty_form.manufacturer %}
+                                    {% include "stocking/_form_field.html" with field_obj=cwt_formset.empty_form.tag_type %}
+                                    {% include "stocking/_form_field.html" with field_obj=cwt_formset.empty_form.sequence_start %}
+                                    {% include "stocking/_form_field.html" with field_obj=cwt_formset.empty_form.sequence_end %}
+                                    {% include "stocking/_form_field.html" with field_obj=cwt_formset.empty_form.delete %}
+                                </div>                                
+                            </div>
+                        </div> 
+
+                        
+                    </div>
                 </div>
             </div>
-            
-
 
             <div class="row">
                 <a class="ui small red right floated button" href="{% url 'stocking:stocking-event-detail' stock_id=stock_id %}">Cancel</a>
@@ -199,7 +230,7 @@
 
         </form>
 
-        
+
     </div>
 
 {% endblock %}
@@ -207,14 +238,60 @@
 
 {% block extra_js %}
 
+    
     <script>
+     
+     $('.ui.form').form();
+     $('.ui.checkbox').checkbox();
+     $(".select.dropdown").dropdown();
+     $('.input').popup();
+     $(".ui.accordion").accordion();
 
+     $( document ).ready(function() {
+         // make sure that the sequence start and end are correctly enabled/disabled on load:
+         $('.cwt-tag-type').each(function(i, obj){
+             set_sequential_state(obj.id, obj.value);
+         });
+     });
+
+     // add another cwt to our cwt_formset:
+     $('#add_more').click(function() {
+	 var form_idx = $('#id_form-TOTAL_FORMS').val();
+	 $('#cwt-form-set').append($('#empty_form').html().replace(/__prefix__/g, form_idx));
+	 $('#id_form-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+     });
+
+
+     $('.checkbox').on('click', function(){
+         // if one of the check boxes are set to delete we want to
+         //disable the controls on the same row
+         // reactive the control if the user unclicks the checkbox
+         let checkbox = this.querySelector('input')
+         let checked = checkbox.checked;
+         let starts_with = checkbox.id.replace('delete','')
+         //get all of the elements from this row, exept our check box:
+         let selected = $('.field[id*='+starts_with+']:not([id*=delete])')
+         if (checked){
+             // disable the elements associated wth this tag:
+             selected.addClass('disabled')
+         } else {
+             // the elements associated wth this tag and make sure
+             selected.removeClass('disabled')
+             //that seq fields are set appropriate for the tag type
+             let element_id = starts_with + 'tag_type'
+             let element_value = $('#'+element_id + ' option:selected').val()
+             set_sequential_state(element_id, element_value);
+         }
+     })
+     
+     
      function Masking (value, pattern) {
-         var out = '';
-         var space = '-';
-         var any = '_';
+         //from: https://stackoverflow.com/questions/12578507
+         let out = '';
+         let space = '-';
+         let any = '_';
 
-         for (var i = 0, j = 0; j < value.length; i++, j++) {
+         for (let i = 0, j = 0; j < value.length; i++, j++) {
              if (value[j] === pattern[i]) {
                  out += value[j];
              }
@@ -240,12 +317,32 @@
 
      // need to account for dashes!
      $('input.cwt-mask').attr('maxlength', 8);  
+
+
+     function set_sequential_state(element_id, element_value) {
+         var seq_start_id = element_id.replace('tag_type', 'sequence_start-field');
+         var seq_end_id = element_id.replace('tag_type', 'sequence_end-field');
+
+         if (element_value=='sequential'){
+             $("#" + seq_start_id).removeClass('disabled');
+             $("#" + seq_end_id).removeClass('disabled');
+         } else {
+             $("#" + seq_start_id).addClass('disabled');
+             $("#" + seq_end_id).addClass('disabled');            
+         }
+
+     }
      
-     $('.ui.form').form();
-     $(".select.dropdown").dropdown();
-     $('.input').popup();
+     
+     $('.cwt-tag-type').on('change', function () {
 
-
+         let element_id = this.id
+         let element_value = this.value
+         
+         set_sequential_state(element_id, element_value);
+         
+     });
+     
      const jurisdictionURL = "{% url 'common_api:jurisdiction-list' %}";
      const manUnitURL = "{% url 'common_api:managementunit-list' %}";
      const grid10URL = "{% url 'common_api:grid10-list' %}";
@@ -258,6 +355,7 @@
      //    .popup()
      //;
 
+     
 
     </script>
 
