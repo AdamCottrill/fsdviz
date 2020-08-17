@@ -5791,7 +5791,7 @@
 	      c = new Array(nb),
 	      i;
 
-	  for (i = 0; i < na; ++i) x[i] = value(a[i], b[i]);
+	  for (i = 0; i < na; ++i) x[i] = interpolateValue(a[i], b[i]);
 	  for (; i < nb; ++i) c[i] = b[i];
 
 	  return function(t) {
@@ -5823,7 +5823,7 @@
 
 	  for (k in b) {
 	    if (k in a) {
-	      i[k] = value(a[k], b[k]);
+	      i[k] = interpolateValue(a[k], b[k]);
 	    } else {
 	      c[k] = b[k];
 	    }
@@ -5898,7 +5898,7 @@
 	        });
 	}
 
-	function value(a, b) {
+	function interpolateValue(a, b) {
 	  var t = typeof b, c;
 	  return b == null || t === "boolean" ? constant$3(b)
 	      : (t === "number" ? interpolateNumber
@@ -6482,12 +6482,12 @@
 	  };
 	}
 
-	function attrFunction$1(name, interpolate$$1, value$$1) {
+	function attrFunction$1(name, interpolate$$1, value) {
 	  var string00,
 	      string10,
 	      interpolate0;
 	  return function() {
-	    var string0, value1 = value$$1(this), string1;
+	    var string0, value1 = value(this), string1;
 	    if (value1 == null) return void this.removeAttribute(name);
 	    string0 = this.getAttribute(name);
 	    string1 = value1 + "";
@@ -6497,12 +6497,12 @@
 	  };
 	}
 
-	function attrFunctionNS$1(fullname, interpolate$$1, value$$1) {
+	function attrFunctionNS$1(fullname, interpolate$$1, value) {
 	  var string00,
 	      string10,
 	      interpolate0;
 	  return function() {
-	    var string0, value1 = value$$1(this), string1;
+	    var string0, value1 = value(this), string1;
 	    if (value1 == null) return void this.removeAttributeNS(fullname.space, fullname.local);
 	    string0 = this.getAttributeNS(fullname.space, fullname.local);
 	    string1 = value1 + "";
@@ -6512,12 +6512,12 @@
 	  };
 	}
 
-	function transition_attr(name, value$$1) {
+	function transition_attr(name, value) {
 	  var fullname = namespace(name), i = fullname === "transform" ? interpolateTransformSvg : interpolate;
-	  return this.attrTween(name, typeof value$$1 === "function"
-	      ? (fullname.local ? attrFunctionNS$1 : attrFunction$1)(fullname, i, tweenValue(this, "attr." + name, value$$1))
-	      : value$$1 == null ? (fullname.local ? attrRemoveNS$1 : attrRemove$1)(fullname)
-	      : (fullname.local ? attrConstantNS$1 : attrConstant$1)(fullname, i, value$$1));
+	  return this.attrTween(name, typeof value === "function"
+	      ? (fullname.local ? attrFunctionNS$1 : attrFunction$1)(fullname, i, tweenValue(this, "attr." + name, value))
+	      : value == null ? (fullname.local ? attrRemoveNS$1 : attrRemove$1)(fullname)
+	      : (fullname.local ? attrConstantNS$1 : attrConstant$1)(fullname, i, value));
 	}
 
 	function attrInterpolate(name, i) {
@@ -6776,13 +6776,13 @@
 	  };
 	}
 
-	function styleFunction$1(name, interpolate$$1, value$$1) {
+	function styleFunction$1(name, interpolate$$1, value) {
 	  var string00,
 	      string10,
 	      interpolate0;
 	  return function() {
 	    var string0 = styleValue(this, name),
-	        value1 = value$$1(this),
+	        value1 = value(this),
 	        string1 = value1 + "";
 	    if (value1 == null) string1 = value1 = (this.style.removeProperty(name), styleValue(this, name));
 	    return string0 === string1 ? null
@@ -6807,16 +6807,16 @@
 	  };
 	}
 
-	function transition_style(name, value$$1, priority) {
+	function transition_style(name, value, priority) {
 	  var i = (name += "") === "transform" ? interpolateTransformCss : interpolate;
-	  return value$$1 == null ? this
+	  return value == null ? this
 	      .styleTween(name, styleNull(name, i))
 	      .on("end.style." + name, styleRemove$1(name))
-	    : typeof value$$1 === "function" ? this
-	      .styleTween(name, styleFunction$1(name, i, tweenValue(this, "style." + name, value$$1)))
+	    : typeof value === "function" ? this
+	      .styleTween(name, styleFunction$1(name, i, tweenValue(this, "style." + name, value)))
 	      .each(styleMaybeRemove(this._id, name))
 	    : this
-	      .styleTween(name, styleConstant$1(name, i, value$$1), priority)
+	      .styleTween(name, styleConstant$1(name, i, value), priority)
 	      .on("end.style." + name, null);
 	}
 
@@ -8699,7 +8699,7 @@
 	var array$4 = Array.prototype;
 
 	var map$2 = array$4.map;
-	var slice$6 = array$4.slice;
+	var slice$5 = array$4.slice;
 
 	var implicit = {name: "implicit"};
 
@@ -8727,7 +8727,7 @@
 	  };
 
 	  scale.range = function(_) {
-	    return arguments.length ? (range = slice$6.call(_), scale) : range.slice();
+	    return arguments.length ? (range = slice$5.call(_), scale) : range.slice();
 	  };
 
 	  scale.unknown = function(_) {
@@ -8773,15 +8773,15 @@
 
 	// normalize(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
 	// interpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding range value x in [a,b].
-	function bimap(domain, range$$1, interpolate$$1) {
-	  var d0 = domain[0], d1 = domain[1], r0 = range$$1[0], r1 = range$$1[1];
+	function bimap(domain, range, interpolate$$1) {
+	  var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
 	  if (d1 < d0) d0 = normalize(d1, d0), r0 = interpolate$$1(r1, r0);
 	  else d0 = normalize(d0, d1), r0 = interpolate$$1(r0, r1);
 	  return function(x) { return r0(d0(x)); };
 	}
 
-	function polymap(domain, range$$1, interpolate$$1) {
-	  var j = Math.min(domain.length, range$$1.length) - 1,
+	function polymap(domain, range, interpolate$$1) {
+	  var j = Math.min(domain.length, range.length) - 1,
 	      d = new Array(j),
 	      r = new Array(j),
 	      i = -1;
@@ -8789,12 +8789,12 @@
 	  // Reverse descending domains.
 	  if (domain[j] < domain[0]) {
 	    domain = domain.slice().reverse();
-	    range$$1 = range$$1.slice().reverse();
+	    range = range.slice().reverse();
 	  }
 
 	  while (++i < j) {
 	    d[i] = normalize(domain[i], domain[i + 1]);
-	    r[i] = interpolate$$1(range$$1[i], range$$1[i + 1]);
+	    r[i] = interpolate$$1(range[i], range[i + 1]);
 	  }
 
 	  return function(x) {
@@ -8814,8 +8814,8 @@
 
 	function transformer$1() {
 	  var domain = unit,
-	      range$$1 = unit,
-	      interpolate$$1 = value,
+	      range = unit,
+	      interpolate$$1 = interpolateValue,
 	      transform,
 	      untransform,
 	      unknown,
@@ -8825,17 +8825,17 @@
 	      input;
 
 	  function rescale() {
-	    piecewise$$1 = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
+	    piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
 	    output = input = null;
 	    return scale;
 	  }
 
 	  function scale(x) {
-	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range$$1, interpolate$$1)))(transform(clamp(x)));
+	    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range, interpolate$$1)))(transform(clamp(x)));
 	  }
 
 	  scale.invert = function(y) {
-	    return clamp(untransform((input || (input = piecewise$$1(range$$1, domain.map(transform), interpolateNumber)))(y)));
+	    return clamp(untransform((input || (input = piecewise$$1(range, domain.map(transform), interpolateNumber)))(y)));
 	  };
 
 	  scale.domain = function(_) {
@@ -8843,11 +8843,11 @@
 	  };
 
 	  scale.range = function(_) {
-	    return arguments.length ? (range$$1 = slice$6.call(_), rescale()) : range$$1.slice();
+	    return arguments.length ? (range = slice$5.call(_), rescale()) : range.slice();
 	  };
 
 	  scale.rangeRound = function(_) {
-	    return range$$1 = slice$6.call(_), interpolate$$1 = interpolateRound, rescale();
+	    return range = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
 	  };
 
 	  scale.clamp = function(_) {
@@ -9160,6 +9160,8 @@
 	var saturday = weekday(6);
 
 	var sundays = sunday.range;
+	var mondays = monday.range;
+	var thursdays = thursday.range;
 
 	var month = newInterval(function(date) {
 	  date.setDate(1);
@@ -9249,6 +9251,8 @@
 	var utcSaturday = utcWeekday(6);
 
 	var utcSundays = utcSunday.range;
+	var utcMondays = utcMonday.range;
+	var utcThursdays = utcThursday.range;
 
 	var utcMonth = newInterval(function(date) {
 	  date.setUTCDate(1);
@@ -25201,78 +25205,78 @@
 	  }; // update our data
 
 
-	  chart.data = function (value$$1) {
+	  chart.data = function (value) {
 	    if (!arguments.length) return data;
-	    data = value$$1;
+	    data = value;
 	    return chart;
 	  };
 
-	  chart.getProjection = function (value$$1) {
+	  chart.getProjection = function (value) {
 	    if (!arguments.length) return getProjection;
-	    getProjection = value$$1;
+	    getProjection = value;
 	    return chart;
 	  };
 
-	  chart.radiusAccessor = function (value$$1) {
+	  chart.radiusAccessor = function (value) {
 	    if (!arguments.length) return radiusAccessor;
-	    radiusAccessor = value$$1;
+	    radiusAccessor = value;
 	    return chart;
 	  };
 
-	  chart.fillAccessor = function (value$$1) {
+	  chart.fillAccessor = function (value) {
 	    if (!arguments.length) return fillAccessor;
-	    fillAccessor = value$$1;
+	    fillAccessor = value;
 	    return chart;
 	  };
 
-	  chart.fillScale = function (value$$1) {
+	  chart.fillScale = function (value) {
 	    if (!arguments.length) return fillScale;
-	    fillScale = value$$1;
+	    fillScale = value;
 	    return chart;
 	  };
 
-	  chart.keyfield = function (value$$1) {
+	  chart.keyfield = function (value) {
 	    if (!arguments.length) return keyfield;
-	    keyfield = value$$1;
+	    keyfield = value;
 	    return chart;
 	  };
 
-	  chart.responseVar = function (value$$1) {
+	  chart.responseVar = function (value) {
 	    if (!arguments.length) return responseVar;
-	    responseVar = value$$1;
+	    responseVar = value;
 	    return chart;
 	  };
 
-	  chart.maxCircleSize = function (value$$1) {
+	  chart.maxCircleSize = function (value) {
 	    if (!arguments.length) return maxCircleSize;
-	    maxCircleSize = value$$1;
+	    maxCircleSize = value;
 	    return chart;
 	  };
 
-	  chart.pointInfoSelector = function (value$$1) {
+	  chart.pointInfoSelector = function (value) {
 	    if (!arguments.length) return pointInfoSelector;
-	    pointInfoSelector = value$$1;
+	    pointInfoSelector = value;
 	    return chart;
 	  };
 
-	  chart.selectedPie = function (value$$1) {
+	  chart.selectedPie = function (value) {
 	    if (!arguments.length) return selectedPie;
-	    selectedPie = value$$1;
+	    selectedPie = value;
 	    return chart;
 	  }; // our object to connect pie chart keys (slugs) with their pretty labels
 
 
-	  chart.labelLookup = function (value$$1) {
+	  chart.labelLookup = function (value) {
 	    if (!arguments.length) return labelLookup;
-	    labelLookup = value$$1;
+	    labelLookup = value;
 	    return chart;
 	  }; // the function that populates point info div with information
 	  // about the selectedPie point
 
 
-	  chart.get_pointInfo = function (value$$1) {
+	  chart.get_pointInfo = function (value) {
 	    if (!arguments.length) return get_pointInfo;
-	    get_pointInfo = value$$1;
+	    get_pointInfo = value;
 	    return chart;
 	  };
 
@@ -27275,7 +27279,7 @@
 	  // passed in from main.js once polygon_overlay has been instantiated.
 
 
-	  let updateCrossfilter = (dimension, value$$1) => {};
+	  let updateCrossfilter = (dimension, value) => {};
 
 	  const geomClicked = function (d, what) {
 	    select(this).classed("highlighted", false); // update our globals
@@ -27438,15 +27442,15 @@
 	    });
 	  };
 
-	  chart.leafletMap = function (value$$1) {
+	  chart.leafletMap = function (value) {
 	    if (!arguments.length) return leafletMap;
-	    leafletMap = value$$1;
+	    leafletMap = value;
 	    return chart;
 	  };
 
-	  chart.updateCrossfilter = function (value$$1) {
+	  chart.updateCrossfilter = function (value) {
 	    if (!arguments.length) return updateCrossfilter;
-	    updateCrossfilter = value$$1;
+	    updateCrossfilter = value;
 	    return chart;
 	  };
 
@@ -27467,21 +27471,21 @@
 	    });
 	  }
 
-	  buttons.checked = function (value$$1) {
+	  buttons.checked = function (value) {
 	    if (!arguments.length) return checked;
-	    checked = value$$1;
+	    checked = value;
 	    return buttons;
 	  };
 
-	  buttons.options = function (value$$1) {
+	  buttons.options = function (value) {
 	    if (!arguments.length) return options;
-	    options = value$$1;
+	    options = value;
 	    return buttons;
 	  };
 
-	  buttons.selector = function (value$$1) {
+	  buttons.selector = function (value) {
 	    if (!arguments.length) return selector$$1;
-	    selector$$1 = value$$1;
+	    selector$$1 = value;
 	    return buttons;
 	  }; // expose a method to update the radio buttons so we can keep them
 	  // in sync with other controls. (this allows us to control the state
@@ -27923,7 +27927,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  // selected spatial unit:
 
 
-	  const updateCrossfilter = (dimension, value$$1) => {
+	  const updateCrossfilter = (dimension, value) => {
 	    // when we update our cross filter dimension, we also
 	    // need to remove any existing filters from lower levels.  If
 	    // we go back to Lake from a management unit, we all
@@ -27937,20 +27941,20 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	        break;
 
 	      case "lake":
-	        lakePolygonDim.filter(value$$1);
+	        lakePolygonDim.filter(value);
 	        jurisdictionPolygonDim.filterAll();
 	        manUnitPolygonDim.filterAll();
 	        update_spatialUnit("jurisdiction");
 	        break;
 
 	      case "jurisdiction":
-	        jurisdictionPolygonDim.filter(value$$1);
+	        jurisdictionPolygonDim.filter(value);
 	        manUnitPolygonDim.filterAll();
 	        update_spatialUnit("manUnit");
 	        break;
 
 	      case "manUnit":
-	        manUnitPolygonDim.filter(value$$1);
+	        manUnitPolygonDim.filter(value);
 	        update_spatialUnit("grid10");
 	        break;
 	    }
@@ -27976,16 +27980,16 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  // and update the pie charts
 
 
-	  const update_spatialUnit = value$$1 => {
-	    spatialUnit = value$$1;
+	  const update_spatialUnit = value => {
+	    spatialUnit = value;
 	    spatialSelector.checked(spatialUnit).refresh();
 	    updatePieCharts();
 	  }; // if the pie chart slice selector radio buttons changes, update
 	  // the global variable and update the pie charts
 
 
-	  const update_sliceValue = value$$1 => {
-	    sliceVar = value$$1;
+	  const update_sliceValue = value => {
+	    sliceVar = value;
 	    calcMapGroups();
 	    updatePieCharts();
 	  }; //==================================================+

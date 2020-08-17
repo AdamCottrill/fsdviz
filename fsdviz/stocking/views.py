@@ -31,7 +31,7 @@ from .utils import (
     get_cwt_sequence_dict,
 )
 from ..common.utils import toLookup, make_mu_id_lookup, make_strain_id_lookup
-from ..common.forms import CWTSequenceForm
+from ..common.forms import CWTSequenceForm, BaseCWTSequenceFormSet
 
 from ..common.models import (
     Lake,
@@ -173,8 +173,6 @@ def find_events(request):
             # selcted values:
             params = form2params(form.cleaned_data)
             url = reverse("stocking:filtered-stocking-events") + params
-            print("params={}".format(params))
-            print("url={}".format(url))
             return redirect(url)
 
     else:
@@ -769,18 +767,34 @@ def edit_stocking_event(request, stock_id):
     has_cwts = True if event.cwt_series.count() else False
     choices = get_event_model_form_choices(event)
 
-    CWTSequenceFormSet = formset_factory(CWTSequenceForm, extra=0, max_num=50)
+    CWTSequenceFormSet = formset_factory(
+        CWTSequenceForm, formset=BaseCWTSequenceFormSet, extra=0, max_num=50
+    )
 
     if request.method == "POST":
 
-        cwt_formset = CWTSequenceFormSet(request.POST, request.FILES)
+        # for k, v in request.POST.items():
+        #     print("{}={}".format(k, v))
+
+        cwt_formset = CWTSequenceFormSet(
+            request.POST, request.FILES, prefix="cwtseries"
+        )
 
         if cwt_formset.is_valid():
+            formset_data = [x for x in cwt_formset.cleaned_data if not x.get("delete")]
             form = StockingEventForm(
-                request.POST, choices=choices, cwt_formset=cwt_formset.cleaned_data
+                request.POST,
+                choices=choices,
+                cwt_formset=formset_data,
+                has_cwts=has_cwts,
             )
         else:
-            form = StockingEventForm(request.POST, choices=choices)
+            form = StockingEventForm(
+                request.POST,
+                choices=choices,
+                has_cwts=has_cwts
+                # cwt_formset=cwt_formset.cleaned_data,
+            )
 
         if form.is_valid() and cwt_formset.is_valid():
             event = form.save()
@@ -802,10 +816,10 @@ def edit_stocking_event(request, stock_id):
         #    [x.cwt.cwt_number for x in event.cwt_series.all()]
         # )
 
-        form = StockingEventForm(event_dict, choices=choices)
+        form = StockingEventForm(event_dict, choices=choices, has_cwts=has_cwts)
         # cwt_data = {}
         cwt_dict = get_cwt_sequence_dict(event)
-        cwt_formset = CWTSequenceFormSet(initial=cwt_dict)
+        cwt_formset = CWTSequenceFormSet(initial=cwt_dict, prefix="cwtseries")
 
     return render(
         request,

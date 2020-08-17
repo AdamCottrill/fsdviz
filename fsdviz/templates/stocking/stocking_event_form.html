@@ -29,24 +29,43 @@
 
         <form class="ui form" action="" method="post">
             {% csrf_token %}
-
-            {% if form.errors %}
+            {% if form.errors or cwt_formset.errors %}
                 <div class="ui error visible message">
+                    <div class="header">
+                        Please fix the identified errors.
+                    </div>
                     <ul class="list">
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                                <li>{{field.label}}: {{ error|escape }}</li>
+                        {% for field in form %}                        
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <li>{{field.label}}: {{ error|escape }}</li>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}                            
+                        {% if form.non_field_errors  %}
+                            {% for error in form.non_field_errors %}
+                                <li> {{ error|escape }}</li>
                             {% endfor %}
-                        {% endfor %}
-                        {% for error in form.non_field_errors %}
-                            <li> {{ error|escape }}</li>
-                        {% endfor %}
+                        {% endif %}
+                        
+                        {% if cwt_formset.errors %}
+                            {% for dict in cwt_formset.errors %}
+                                {% for error in dict.values  %}
+                                    <li> {{ error|escape }}</li>
+                                 {% endfor %}                                   
+                            {% endfor %}
+                        {% endif %}
+                        {% if cwt_formset.non_form_errors %}
+                            {% for error in cwt_formset.non_form_errors %}
+                                <li> {{ error|escape }}</li>
+                            {% endfor %}
+                        {% endif %}
+                        
                     </ul>
                 </div>
             {% endif %}
             
             {{form.id}}
-
 
             
             <div class="ui fluid card">
@@ -178,17 +197,30 @@
 
                         {{ cwt_formset.management_form }}
                         <div id="cwt-form-set">
+                            
                             {% for form in cwt_formset %}
                                 <div class="ui segment">
-                                    {{form.non_field_errors}}
-		                    {{form.errors}}
+
+                                    {% if form.errors %}
+                                        <div class="ui error visible message">
+                                            <ul class="list">
+                                                {% for field in form %}
+                                                    {% for error in field.errors %}
+                                                        <li>{{field.label}}: {{ error|escape }}</li>
+                                                    {% endfor %}
+                                                {% endfor %}
+                                                {% for error in form.non_field_errors %}
+                                                    <li> {{ error|escape }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
 
                                     <div class="six fluid fields">
                                         {% include "stocking/_form_field.html" with field_obj=form.cwt_number %}
                                         {% include "stocking/_form_field.html" with field_obj=form.manufacturer %}
                                         {% include "stocking/_form_field.html" with field_obj=form.tag_type %}
-                                        {% include "stocking/_form_field.html" with field_obj=form.sequence_start %}
-                                        
+                                        {% include "stocking/_form_field.html" with field_obj=form.sequence_start %}                                        
                                         {% include "stocking/_form_field.html" with field_obj=form.sequence_end %}
                                         {% include "stocking/_form_field.html" with field_obj=form.delete %}
 
@@ -198,7 +230,9 @@
                         </div>
 
                         <div class="ui basic segment">
-                            <input class="ui mini grey button" type="button" value="Add Another CWT" id="add_more">                            
+                            <input class="ui mini grey button" type="button" value=                                         
+                                          {% if has_cwts %} "Add Another CWT" {% else %} "Add a CWT" {% endif %} 
+                                   id="add_more">                            
                         </div>
                         
                         <div id="empty_form" style="display:none">
@@ -254,94 +288,6 @@
          });
      });
 
-     // add another cwt to our cwt_formset:
-     $('#add_more').click(function() {
-	 var form_idx = $('#id_form-TOTAL_FORMS').val();
-	 $('#cwt-form-set').append($('#empty_form').html().replace(/__prefix__/g, form_idx));
-	 $('#id_form-TOTAL_FORMS').val(parseInt(form_idx) + 1);
-     });
-
-
-     $('.checkbox').on('click', function(){
-         // if one of the check boxes are set to delete we want to
-         //disable the controls on the same row
-         // reactive the control if the user unclicks the checkbox
-         let checkbox = this.querySelector('input')
-         let checked = checkbox.checked;
-         let starts_with = checkbox.id.replace('delete','')
-         //get all of the elements from this row, exept our check box:
-         let selected = $('.field[id*='+starts_with+']:not([id*=delete])')
-         if (checked){
-             // disable the elements associated wth this tag:
-             selected.addClass('disabled')
-         } else {
-             // the elements associated wth this tag and make sure
-             selected.removeClass('disabled')
-             //that seq fields are set appropriate for the tag type
-             let element_id = starts_with + 'tag_type'
-             let element_value = $('#'+element_id + ' option:selected').val()
-             set_sequential_state(element_id, element_value);
-         }
-     })
-     
-     
-     function Masking (value, pattern) {
-         //from: https://stackoverflow.com/questions/12578507
-         let out = '';
-         let space = '-';
-         let any = '_';
-
-         for (let i = 0, j = 0; j < value.length; i++, j++) {
-             if (value[j] === pattern[i]) {
-                 out += value[j];
-             }
-             else if(pattern[i] === any && value[j] !== space) {
-                 out += value[j];
-             }
-             else if(pattern[i] === space && value[j] !== space) {
-                 out += space;
-                 j--;
-             }
-             else if(pattern[i] !== any && pattern[i] !== space) {
-                 out += pattern[i];
-                 j--;
-             }
-         }
-         return out;
-     }
-
-     $('.cwt-mask').on('input', function () {
-         var input = $(this);
-         input.val(Masking(input.val(), "__-__-__"));
-     });
-
-     // need to account for dashes!
-     $('input.cwt-mask').attr('maxlength', 8);  
-
-
-     function set_sequential_state(element_id, element_value) {
-         var seq_start_id = element_id.replace('tag_type', 'sequence_start-field');
-         var seq_end_id = element_id.replace('tag_type', 'sequence_end-field');
-
-         if (element_value=='sequential'){
-             $("#" + seq_start_id).removeClass('disabled');
-             $("#" + seq_end_id).removeClass('disabled');
-         } else {
-             $("#" + seq_start_id).addClass('disabled');
-             $("#" + seq_end_id).addClass('disabled');            
-         }
-
-     }
-     
-     
-     $('.cwt-tag-type').on('change', function () {
-
-         let element_id = this.id
-         let element_value = this.value
-         
-         set_sequential_state(element_id, element_value);
-         
-     });
      
      const jurisdictionURL = "{% url 'common_api:jurisdiction-list' %}";
      const manUnitURL = "{% url 'common_api:managementunit-list' %}";
@@ -351,9 +297,141 @@
      const spatialAttrURL = "{% url 'common_api:api-lookup-spatial-attrs' %}";
      const csrf_token = "{{ csrf_token }}";
 
-     //$('.field')
-     //    .popup()
-     //;
+
+
+     //============================================================
+     // CWT FORMSET
+
+     $(".checkbox").on("click", check_box_clicked);
+
+     // add another cwt to our cwt_formset:
+     $("#add_more").click(function() {
+         this.value = "Add Another CWT";
+         let form_idx = $("#id_cwtseries-TOTAL_FORMS").val();
+         $("#cwt-form-set").append(
+             $("#empty_form")
+                 .html()
+                 .replace(/__prefix__/g, form_idx)
+         );
+         $("#id_cwtseries-TOTAL_FORMS").val(parseInt(form_idx) + 1);
+         // don't forget to set the mask for our new form
+         $(".cwt-mask").on("input", function() {
+             let input = $(this);
+             input.val(Masking(input.val(), "__-__-__"));
+         });
+
+         $(".select.dropdown").dropdown();
+
+         // and set the state of the sequence start and end fields and wire up the on change event.
+         let element_id = "id_cwtseries-" + form_idx + "-tag_type";
+         let element_value = $("#" + element_id + " option:selected").val();
+         set_sequential_state(element_id, element_value);
+
+         // need to initialize the change and click events of our new form elements:
+         $("#" + element_id).on("change", tag_type_change);
+
+         let checkbox_id = "id_cwtseries-" + form_idx + "-delete";
+         $("#" + checkbox_id)
+             .parent()
+             .checkbox();
+         $("#" + checkbox_id)
+             .parent()
+             .on("click", check_box_clicked);
+     });
+
+     function check_box_clicked() {
+         // if one of the check boxes are set to delete we want to
+         //disable the controls on the same row
+         // reactive the control if the user unclicks the checkbox
+         let checkbox = this.querySelector("input");
+         let checked = checkbox.checked;
+
+         let starts_with = checkbox.id.replace("delete", "");
+         //get all of the elements from this row, exept our check box:
+         let selected = $(".field[id*=" + starts_with + "]:not([id*=delete])");
+
+         if (checked == true) {
+             // disable the elements associated wth this tag:
+             selected.addClass("disabled");
+         } else {
+             // the elements associated wth this tag and make sure
+             selected.removeClass("disabled");
+             //that seq fields are set appropriate for the tag type
+             let element_id = starts_with + "tag_type";
+             let element_value = $("#" + element_id + " option:selected").val();
+             set_sequential_state(element_id, element_value);
+         }
+     }
+
+     function Masking(value, pattern) {
+         //from: https://stackoverflow.com/questions/12578507
+         let out = "";
+         let space = "-";
+         let any = "_";
+
+         for (let i = 0, j = 0; j < value.length; i++, j++) {
+             if (value[j] === pattern[i]) {
+                 out += value[j];
+             } else if (pattern[i] === any && value[j] !== space) {
+                 out += value[j];
+             } else if (pattern[i] === space && value[j] !== space) {
+                 out += space;
+                 j--;
+             } else if (pattern[i] !== any && pattern[i] !== space) {
+                 out += pattern[i];
+                 j--;
+             }
+         }
+         return out;
+     }
+
+     $(".cwt-mask").on("input", function() {
+         let input = $(this);
+         input.val(Masking(input.val(), "__-__-__"));
+     });
+
+     // need to account for dashes!
+     $("input.cwt-mask").attr("maxlength", 8);
+     $(".cwt-tag-type").on("change", tag_type_change);
+
+     function tag_type_change() {
+         let element_id = this.id;
+         let element_value = this.value;
+
+         set_sequential_state(element_id, element_value);
+     }
+
+     function set_sequential_state(element_id, element_value) {
+         let seq_start_id = element_id.replace("tag_type", "sequence_start");
+         let seq_end_id = element_id.replace("tag_type", "sequence_end");
+         let seq_start_id_fld = seq_start_id + "-field";
+         let seq_end_id_fld = seq_end_id + "-field";
+
+         if (element_value == "sequential") {
+             $("#" + seq_start_id)
+                 .parent()
+                 .removeClass("disabled");
+             $("#" + seq_end_id)
+                 .parent()
+                 .removeClass("disabled");
+             $("#" + seq_start_id).prop("disabled", false);
+             $("#" + seq_end_id).prop("disabled", false);
+             $("#" + seq_start_id_fld).removeClass("disabled");
+             $("#" + seq_end_id_fld).removeClass("disabled");
+         } else {
+             $("#" + seq_start_id).prop("disabled", true);
+             $("#" + seq_end_id).prop("disabled", true);
+             $("#" + seq_start_id)
+                 .parent()
+                 .addClass("disabled");
+             $("#" + seq_end_id)
+                 .parent()
+                 .addClass("disabled");
+             $("#" + seq_start_id_fld).addClass("disabled");
+             $("#" + seq_end_id_fld).addClass("disabled");
+         }
+     }
+
 
      
 
@@ -365,7 +443,6 @@
     <script src="{% static "js/accessToken.js" %}"></script>
 
     <script src="{% static "js/stocking_event_form.js" %}"></script>
-
 
 
 {% endblock %}

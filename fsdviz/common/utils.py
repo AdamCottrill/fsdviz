@@ -174,3 +174,32 @@ def make_strain_id_lookup(object_list):
             items = {mu[2]: mu[0]}
         lookup[top_key] = items
     return lookup
+
+
+def getOverlap(a, b):
+    """Return the overlap of two ranges. If the values of a overlap with
+    the values of b are mutually exclusive then return 0"""
+    return max(0, 1 + min(a[1], b[1]) - max(a[0], b[0]))
+
+
+def check_ranges(range_dict, key, range):
+    """give an diction that contains ranges by key, find out if the passed
+    in range, overlaps with any existing ranges for that key. If no key is
+    found create it. If no overlap is found, return the range dict with the
+    new range added.
+
+    returns a two element tuple - the first is a boolean indicating
+    whether or not there is overlap (True - there is overlap, False -
+    they are indepentent.)
+
+    """
+    overlap = False
+    if range_dict.get(key) is None:
+        range_dict[key] = [range]
+    else:
+        ranges = range_dict[key]
+        overlap = sum([getOverlap(x, range) for x in ranges])
+        if overlap == 0:
+            ranges.append(range)
+            range_dict[key] = ranges
+    return (bool(overlap), range_dict)

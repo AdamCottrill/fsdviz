@@ -13,8 +13,10 @@
 
 from openpyxl import load_workbook
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F
+
 
 from ..common.models import (
     Lake,
@@ -511,21 +513,29 @@ def get_or_create_cwt_sequence(
 
     with transaction.atomic():
 
-        cwt, created = CWT.objects.get_or_create(
+        cwt, cwt_created = CWT.objects.get_or_create(
             defaults={"tag_count": 0},
             cwt_number=cwt_number,
             manufacturer=manufacturer,
             tag_type=tag_type,
         )
-        if created:
+        if cwt_created:
             cwt.save()
+
         if tag_type == "sequential":
-            cwt_series, created = CWTsequence.objects.get_or_create(
-                cwt=cwt, sequence=sequence
-            )
+            seq_created = False
+            cwt_series = CWTsequence.objects.filter(cwt=cwt, sequence=sequence).first()
+            if cwt_series is None:
+                try:
+                    cwt_series = CWTsequence(cwt=cwt, sequence=sequence)
+                    seq_created = True
+                except ValidationError as err:
+                    cwt_series = None
+                    seq_created = False
+                    raise err
         else:
-            cwt_series, created = CWTsequence.objects.get_or_create(cwt=cwt)
-        if created:
+            cwt_series, seq_created = CWTsequence.objects.get_or_create(cwt=cwt)
+        if seq_created:
             cwt_series.save()
 
     return cwt_series

@@ -5,7 +5,7 @@ be shared across both the stocking and cwt recovery applications.
 """
 
 from django.contrib.gis.db import models
-from django.forms import ValidationError
+from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
 
 
@@ -674,9 +674,6 @@ class CWTsequence(models.Model):
     cwt = models.ForeignKey("CWT", on_delete=models.CASCADE, related_name="cwt_series")
 
     events = models.ManyToManyField("stocking.StockingEvent", related_name="cwt_series")
-
-    # seq_start = models.IntegerField(default=1)
-    # seq_end = models.IntegerField(default=1)
 
     # TODO: consider changing the sequence start and end to a rangefield
     # https://docs.djangoproject.com/en/2.2/ref/contrib/postgres/fields/#integerrangefield

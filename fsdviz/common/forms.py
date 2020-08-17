@@ -14,9 +14,12 @@
 
 from django import forms
 
-from .models import CWT
+from psycopg2.extras import NumericRange
+
+from .models import CWT, CWTsequence
 
 from .validators import validate_cwt
+from .utils import check_ranges
 
 
 class CWTSequenceForm(forms.Form):
@@ -76,6 +79,10 @@ class CWTSequenceForm(forms.Form):
 
         cleaned_data = super().clean()
 
+        if cleaned_data.get("delete"):
+            return cleaned_data
+
+        cwt_number = cleaned_data.get("cwt_number")
         tag_type = cleaned_data.get("tag_type")
         manufacturer = cleaned_data.get("manufacturer")
         sequence_start = cleaned_data.get("sequence_start")
@@ -84,6 +91,10 @@ class CWTSequenceForm(forms.Form):
         if tag_type == "sequential":
             if manufacturer != "nmt":
                 msg = "Sequential tags are only manufactured by NMT."
+                raise forms.ValidationError(msg)
+
+            if sequence_start is None and sequence_end is None:
+                msg = "Sequence start and end must be provided for sequential tags."
                 raise forms.ValidationError(msg)
 
             if sequence_start is not None:
@@ -102,26 +113,69 @@ class CWTSequenceForm(forms.Form):
                 msg = "Sequence end must be provided for sequential tags."
                 raise forms.ValidationError(msg)
 
-            if sequence_start is None and sequence_end is None:
-                msg = "Sequence start and end must be provided for sequential tags."
-                raise forms.ValidationError(msg)
-
             if sequence_start >= sequence_end:
                 msg = "Sequence start must be less than sequence end."
                 raise forms.ValidationError(msg)
 
+            # make sure that there aren't any exisitng sequential tags that
+            # overlap with this one:
+            sequence = NumericRange(sequence_start, sequence_end)
+            overlap = (
+                CWTsequence.objects.filter(sequence__overlap=sequence)
+                .filter(
+                    cwt__cwt_number=cwt_number,
+                    cwt__tag_type=tag_type,
+                    cwt__manufacturer=manufacturer,
+                )
+                .exclude(sequence=sequence)
+                .first()
+            )
+            if overlap:
+                msg = 'Sequence Range overlaps with existing series "{}"'.format(
+                    overlap
+                )
+                raise forms.ValidationError(msg)
 
-class BaseCWTSequenceFormSet(forms.Form):
+        return cleaned_data
+
+
+class BaseCWTSequenceFormSet(forms.BaseFormSet):
     def clean(self):
-        """We need ensure that none of our CWTSequence objects are duplicated.
+        """We need ensure that none of our CWTSequence objects in our formset
+        are duplicated and do not overlap. There is already a database
+        constraint on overlapping ranges, but that only catches errors
+        if one of our series overlaps with and existing one. We need
+        to catch new series that overlap before they exist in the databse.
+
         """
         if any(self.errors):
             return
-        # titles = []
-        # for form in self.forms:
-        #     if self.can_delete and self._should_delete_form(form):
-        #         continue
-        #     title = form.cleaned_data.get('title')
-        #     if title in titles:
-        #         raise forms.ValidationError("Articles in a set must have distinct titles.")
-        #    titles.append(title)
+
+        tag_ranges = {}
+        slugs = []
+        for form in self.forms:
+            if form.cleaned_data.get("delete"):
+                continue
+            cwt_number = form.cleaned_data.get("cwt_number")
+            tag_type = form.cleaned_data.get("tag_type")
+            manufacturer = form.cleaned_data.get("manufacturer")
+            sequence_start = form.cleaned_data.get("sequence_start", "")
+            sequence_end = form.cleaned_data.get("sequence_end", "")
+
+            slug = "{}_{}_{}_{}_{}".format(
+                cwt_number, manufacturer, tag_type, sequence_start, sequence_end
+            )
+            if slug in slugs:
+                raise forms.ValidationError(
+                    "CWTs must have unique numbers, manufacturers, types and sequence ranges!"
+                )
+            slugs.append(slug)
+
+            # create a dictionary of sequence ranges for each cwt - if
+            # any of the ranges (for the same cwt) overlap, throw an error.
+            seq_range = (sequence_start, sequence_end)
+            if tag_type == "sequential":
+                overlap, tag_ranges = check_ranges(tag_ranges, cwt_number, seq_range)
+                if overlap:
+                    errmsg = "Sequence ranges overlap."
+                    raise forms.ValidationError(errmsg)

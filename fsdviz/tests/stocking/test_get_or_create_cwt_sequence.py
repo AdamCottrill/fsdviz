@@ -5,10 +5,10 @@
  DESCRIPTION:
 
  The get_or_create_cwt_sequence() utility function is designed to
- retriece a single cwt sequence object - if one does not exist, it
+ retrieve a single cwt sequence object - if one does not exist, it
  will create it first.  Similarly, if an associated cwt does not
  exist, it will create too.  This function is used by views that
- create stocking event with assoicated cwts - edit stocking events and
+ create stocking event with associated cwts - edit stocking events and
  xls_uploads.
 
  A. Cottrill
@@ -197,3 +197,35 @@ def test_new_sequence_range():
 
     # but are different cwt_sequence instances:
     assert cwt_sequence != cwt_sequence0
+
+
+@pytest.mark.django_db
+def test_overlapping_ranges():
+    """If we try to create sequential cwts that have overlapping sequence
+    ranges, the database will complain. We need to capture that error and
+    handle it appropriately.
+
+    """
+    cwt_number = "123456"
+    start1 = 100
+    end1 = 1000
+
+    cwt = CWTFactory(cwt_number=cwt_number, tag_type="sequential")
+    cwt_sequence0 = CWTsequenceFactory(cwt=cwt, sequence=(start1, end1))
+
+    start2 = 500
+    end2 = 1500
+
+    # this should throw and error and not create the cwt_series
+
+    with pytest.raises(Exception) as execinfo:
+        cwt_sequence = get_or_create_cwt_sequence(
+            cwt_number, tag_type="sequential", sequence=(start2, end2)
+        )
+
+    errmsg = 'Sequence Range overlaps with "{}"'.format(str(cwt_sequence0))
+    assert execinfo.value.args[0] == errmsg
+    assert execinfo.typename == "ValidationError"
+
+    assert cwt is not None
+    assert cwt_sequence0 is not None
