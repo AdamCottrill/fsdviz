@@ -32,6 +32,7 @@ from .utils import (
 )
 from ..common.utils import toLookup, make_mu_id_lookup, make_strain_id_lookup
 from ..common.forms import CWTSequenceForm, BaseCWTSequenceFormSet
+from ..common.filters import CWTSequenceFilter
 
 from ..common.models import (
     Lake,
@@ -43,9 +44,11 @@ from ..common.models import (
     ManagementUnit,
     Agency,
     Grid10,
+    CWTsequence,
 )
 from .models import StockingEvent, StockingMethod, LifeStage, Condition, DataUploadEvent
 from .filters import StockingEventFilter
+
 
 from .forms import FindEventsForm, XlsEventForm, StockingEventForm
 
@@ -199,7 +202,7 @@ def find_events(request):
 
 
 def filtered_events(request):
-    """Get the most recent year of stockin and
+    """Get the most recent year of stocking and
     pass the information onto our annual_events view.
     """
     dataUrl = reverse("api:api-get-stocking-events")
@@ -490,6 +493,7 @@ class StockingEventListView(ListView):
             "lifestage__description",
             "stocking_method__description",
             "mark",
+            "clip_code__clip_code",
             "yreq_stocked",
         )
 
@@ -812,14 +816,14 @@ def edit_stocking_event(request, stock_id):
         event_dict["fin_clips"] = [x.abbrev for x in event.fin_clips.all()]
         event_dict["fish_tags"] = [x.tag_code for x in event.fish_tags.all()]
         event_dict["physchem_marks"] = [x.id for x in event.physchem_marks.all()]
-        # event_dict["cwt_numbers"] = ",".join(
-        #    [x.cwt.cwt_number for x in event.cwt_series.all()]
-        # )
 
-        form = StockingEventForm(event_dict, choices=choices, has_cwts=has_cwts)
         # cwt_data = {}
         cwt_dict = get_cwt_sequence_dict(event)
         cwt_formset = CWTSequenceFormSet(initial=cwt_dict, prefix="cwtseries")
+
+        form = StockingEventForm(
+            event_dict, choices=choices, has_cwts=has_cwts, cwt_formset=cwt_formset
+        )
 
     return render(
         request,
@@ -893,3 +897,201 @@ class DataUploadEventListView(ListView):
         .order_by("-timestamp")
         .all()
     )
+
+
+class CWTListView(ListView):
+    """A generic list view that is used to display a list of cwts.
+    CWTFilter is used to filter the seleted records.
+
+    **Context**
+
+    ``object_list``
+        An list of :model:`stocking.StockingEvent` instances that
+        satifity the lake and year parameters from the url and the
+        current filter as speficied in query string (e.g. ?species=LAT).
+
+    **Template:**
+
+    :template:`stocking/cwt_list.html`
+
+    """
+
+    model = CWTsequence
+    paginate_by = 200
+    template_name = "stocking/cwt_list.html"
+    filter_class = CWTSequenceFilter
+
+    def get_context_data(self, **kwargs):
+        context = super(CWTListView, self).get_context_data(**kwargs)
+
+        search_q = self.request.GET.get("q")
+        context["search_criteria"] = search_q
+        # jurisdiction_slug = self.kwargs.get("jurisdiction")
+        # lake_name = self.kwargs.get("lake_name")
+
+        basequery = CWTSequenceFilter(self.request.GET, CWTsequence.objects.all()).qs
+
+        if search_q:
+            basequery = basequery.filter(
+                Q(cwt__cwt_number__icontains=search_q.replace("-", ""))
+            )
+
+        # if lake_name:
+        #     basequery = basequery.filter(jurisdiction__lake__abbrev=lake_name)
+        #     lake = Lake.objects.get(abbrev=lake_name)
+        #     context["lake"] = lake
+
+        # year = self.kwargs.get("year")
+        # if year:
+        #     context["year"] = int(year)
+        #     basequery = basequery.filter(year=year)
+
+        # if jurisdiction_slug:
+        #     basequery = basequery.filter(jurisdiction__slug=jurisdiction_slug)
+        #    jurisdiction = Jurisdiction.objects.get(slug=jurisdiction_slug)
+
+        context["year_list"] = (
+            basequery.values_list("events__year")
+            .annotate(n=Count("id"))
+            .order_by("-events__year")
+        )
+
+        context["agency_list"] = (
+            basequery.values_list("events__agency__abbrev")
+            .annotate(n=Count("id"))
+            .order_by()
+        )
+
+        context["jurisdiction_list"] = (
+            basequery.values_list(
+                "events__jurisdiction__slug", "events__jurisdiction__name"
+            )
+            .annotate(n=Count("id"))
+            .order_by()
+        )
+
+        context["species_list"] = (
+            basequery.values_list(
+                "events__species__abbrev", "events__species__common_name"
+            )
+            .annotate(n=Count("id"))
+            .order_by()
+        )
+
+        context["strain_list"] = (
+            basequery.values_list(
+                "events__strain_raw__strain__strain_code",
+                "events__strain_raw__strain__strain_label",
+            )
+            .annotate(n=Count("id"))
+            .order_by()
+        )
+
+        context["lifestage_list"] = (
+            basequery.values_list(
+                "events__lifestage__abbrev", "events__lifestage__description"
+            )
+            .annotate(n=Count("id"))
+            .order_by()
+        )
+
+        context["mark_list"] = (
+            basequery.values_list("events__mark").annotate(n=Count("id")).order_by()
+        )
+
+        context["stocking_method_list"] = (
+            basequery.values_list(
+                "events__stocking_method__stk_meth",
+                "events__stocking_method__description",
+            )
+            .annotate(n=Count("id"))
+            .order_by()
+        )
+        return context
+
+    def get_queryset(self):
+
+        lake_name = self.kwargs.get("lake_name")
+        year = self.kwargs.get("year")
+        jurisdiction = self.kwargs.get("jurisdiction")
+        # get the value of q from the request kwargs
+        search_q = self.request.GET.get("q")
+
+        field_aliases = {
+            "cwt_number": F("cwt__cwt_number"),
+            "tag_type": F("cwt__tag_type"),
+            "manufacturer": F("cwt__manufacturer"),
+            "year": F("events__year"),
+            "year_class": F("events__year_class"),
+            "clip_code": F("events__clip_code__clip_code"),
+            "mark": F("events__mark"),
+            "agency_code": F("events__agency__abbrev"),
+            "spc": F("events__species__abbrev"),
+            "strain": F("events__strain_raw__strain"),
+            "stage": F("events__lifestage__description"),
+            "method": F("events__stocking_method__description"),
+            "jurisd": F("events__jurisdiction__slug"),
+            "lake": F("events__jurisdiction__lake__abbrev"),
+            "state": F("events__jurisdiction__stateprov__abbrev"),
+        }
+
+        # use our shorter field names in the list of fields to select:
+        fields = [
+            "cwt_number",
+            "tag_type",
+            "manufacturer",
+            "year",
+            "year_class",
+            "mark",
+            "clip_code",
+            "agency_code",
+            "spc",
+            "strain",
+            "stage",
+            "method",
+            "jurisd",
+            "lake",
+            "state",
+        ]
+
+        related_tables = [
+            "cwt",
+            "events__jurisdiction",
+            "events__agency",
+            "events__species",
+            "events__strain",
+            "events__lifestage",
+            "events__stocking_method",
+            "events__jurisdition__lake",
+            "events__jurisdiction__stateprov",
+        ]
+
+        counts = {"events": Count("id")}
+
+        queryset = CWTsequence.objects.select_related(*related_tables)
+
+        if lake_name:
+            # Return a filtered queryset
+            queryset = queryset.filter(jurisdiction__lake__abbrev=lake_name)
+
+        if year:
+            queryset = queryset.filter(year=year)
+
+        if jurisdiction:
+            queryset = queryset.filter(jurisdiction__slug=jurisdiction)
+
+        if search_q:
+            queryset = queryset.filter(
+                Q(cwt__cwt_number__icontains=search_q.replace("-", ""))
+            )
+
+        filtered_list = CWTSequenceFilter(self.request.GET, queryset=queryset).qs
+
+        values = list(
+            filtered_list.annotate(**field_aliases)
+            .values(*fields)
+            .order_by()
+            .annotate(**counts)
+        )
+
+        return values

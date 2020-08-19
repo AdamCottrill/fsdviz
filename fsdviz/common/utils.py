@@ -13,6 +13,16 @@
 
 from django.contrib.gis.geos import Point, GEOSGeometry
 
+from django_filters import BaseInFilter, CharFilter, NumberFilter
+
+
+class ValueInFilter(BaseInFilter, CharFilter):
+    pass
+
+
+class NumberInFilter(BaseInFilter, NumberFilter):
+    pass
+
 
 def parse_point(data):
     """A helper function used by the spatial lookup api views to convert

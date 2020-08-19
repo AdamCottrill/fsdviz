@@ -5,6 +5,8 @@ The will be used in both views and api serializers.
 
 import django_filters
 
+from .utils import NumberInFilter, ValueInFilter
+
 from .models import (
     ManagementUnit,
     Jurisdiction,
@@ -13,6 +15,9 @@ from .models import (
     StrainRaw,
     Mark,
     Grid10,
+    CWTsequence,
+    FinClip,
+    PhysChemMark,
 )
 
 
@@ -104,3 +109,86 @@ class MarkFilter(django_filters.FilterSet):
     class Meta:
         model = Mark
         fields = ["mark_type"]
+
+
+class CWTSequenceFilter(django_filters.FilterSet):
+    """A filter for cwt sequence objects that return subsets of cwt series
+    based on attributes of the cwt, or the associated stocking events.
+    """
+
+    cwt_number = django_filters.CharFilter(
+        field_name="cwt__cwt_number", lookup_expr="icontains"
+    )
+    manufacturer = django_filters.CharFilter(field_name="cwt__manufacturer")
+    tag_type = django_filters.CharFilter(field_name="cwt__tag_type")
+
+    lake = ValueInFilter(
+        field_name="events__jurisdiction__lake__abbrev", lookup_expr="in"
+    )
+
+    agency = ValueInFilter(field_name="events__agency__abbrev", lookup_expr="in")
+    stateprov = ValueInFilter(
+        field_name="events__jurisdiction__stateprov__abbrev", lookup_expr="in"
+    )
+    jurisdiction = ValueInFilter(
+        field_name="events__jurisdiction__slug", lookup_expr="in"
+    )
+
+    first_year = django_filters.NumberFilter(
+        field_name="events__year", lookup_expr="gte"
+    )
+    last_year = django_filters.NumberFilter(
+        field_name="events__year", lookup_expr="lte"
+    )
+    year = django_filters.CharFilter(field_name="events__year", lookup_expr="exact")
+
+    species = ValueInFilter(field_name="events__species__abbrev", lookup_expr="in")
+
+    # strain abbrev (human friendly)
+    strain_name = ValueInFilter(
+        field_name="events__strain_raw__strain__strain_code", lookup_expr="in"
+    )
+
+    # by strain id (form)
+    strain = NumberInFilter(
+        field_name="events__strain_raw__strain__id", lookup_expr="in"
+    )
+
+    lifestage = ValueInFilter(field_name="events__lifestage__abbrev", lookup_expr="in")
+
+    stocking_method = ValueInFilter(
+        field_name="events__stocking_method__stk_meth", lookup_expr="in"
+    )
+
+    physchem_marks = django_filters.ModelMultipleChoiceFilter(
+        field_name="events__physchem_marks__mark_code",
+        conjoined=True,
+        queryset=PhysChemMark.objects.all(),
+    )
+
+    # ?fin_clip=AD&fin_clip=RP with return all recods with clip ADRP.
+    fin_clips = django_filters.ModelMultipleChoiceFilter(
+        field_name="events__fin_clips__abbrev",
+        queryset=FinClip.objects.all(),
+        # conjoined=True,
+    )
+
+    class Meta:
+        model = CWTsequence
+        fields = [
+            "cwt__cwt_number",
+            "cwt__tag_type",
+            "cwt__manufacturer",
+            "events__agency__abbrev",
+            "events__year",
+            "events__month",
+            "events__species__abbrev",
+            "events__strain_raw__strain__strain_label",
+            "events__lifestage__abbrev",
+            "events__jurisdiction__slug",
+            "events__jurisdiction__lake__abbrev",
+            "events__jurisdiction__stateprov__abbrev",
+            "events__stocking_method__stk_meth",
+            "events__physchem_marks__mark_code",
+            "events__fin_clips__abbrev",
+        ]

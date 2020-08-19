@@ -419,10 +419,13 @@ class StockingEvent(models.Model):
             self.date = None
 
         if self.id:
-            if self.marks.all():
-                self.mark = self.get_mark_code()
-                # self.clipa = self.get_clipa()
-                self.clip_code = self.get_composite_clip_code()
+            self.mark = self.get_mark_code()
+            self.clip_code = self.get_composite_clip_code()
+            # if self.marks.count():
+            #    self.mark = self.get_mark_code()
+            #    # self.clipa = self.get_clipa()
+            # if self.fin_clips.count():
+            #    self.clip_code = self.get_composite_clip_code()
 
         super(StockingEvent, self).save(*args, **kwargs)
 

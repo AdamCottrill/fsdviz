@@ -13,6 +13,7 @@ from .views import (
     edit_stocking_event,
     DataUploadEventListView,
     DataUploadEventDetailView,
+    CWTListView,
 )
 
 app_name = "stocking"
@@ -96,4 +97,5 @@ urlpatterns = [
         DataUploadEventDetailView.as_view(),
         name="data-upload-event-detail",
     ),
+    path("cwts/", CWTListView.as_view(), name="cwt-list"),
 ]

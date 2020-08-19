@@ -31,7 +31,7 @@
         <form class="item">
             <div class="ui right aligned category search item">
                 <div class="ui transparent icon input">
-                    <input class="prompt" type="text" placeholder="Search By Event id..." name="q">
+                    <input class="prompt" type="text" placeholder="CWT contains..." name="q">
                     <i class="search link icon"></i>
                 </div>
             </div>
@@ -64,39 +64,39 @@
                             <table class="ui very compact celled table tablesorter" style="font-size: 0.9em">
                                 <thead>
                                     <tr>
-                                        <th scope="col">Stock ID</th>
+                                        <th scope="col">CWT</th>
+                                        <th scope="col">Tag Type</th>
                                         <th scope="col">Agency</th>
                                         <th scope="col">Lake</th>
-                                        <th scope="col">Site</th>
-                                        <th scope="col">Date</th>
+                                        <th scope="col">State/Prov.</th>
+                                        <th scope="col">Year</th>                                        
                                         <th scope="col">Species</th>
                                         <th scope="col">Strain</th>
-                                        <th scope="col">Year Class</th>
+                                        <th scope="col">Year Class</th>                                        
                                         <th scope="col">Life Stage</th>
                                         <th scope="col">Stocking Method</th>
                                         <th scope="col">Clip</th>
                                         <th scope="col">Mark</th>
-                                        <th scope="col">Yr.Eq.</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for object in object_list %}
 
                                         <tr>
-                                            <td> <a href="{% url 'stocking:stocking-event-detail' object.stock_id %}">{{ object.stock_id }}</a></td>
-                                            <td> {{ object.agency__abbrev }}</td>
-                                            <td> {{ object.jurisdiction__lake__lake_name }}</td>
-                                            <td title="{{ object.site }}"> {{ object.site }}</td>
-                                            <td> {{ object.date|date:"M-d-y" }}</td>
-                                            <td> {{ object.species__common_name | title }}</td>
-                                            <td> {{ object.strain_raw__strain__strain_label }}</td>
-                                            <td>{{ object.year_class }}</td>
-                                            <td> {{ object.lifestage__description | title }}</td>
-                                            <td> {{ object.stocking_method__description | title }}</td>
-                                            <td>{{object.clip_code__clip_code|default:"---"}}</td>
-                                            <td>{{object.mark|default:"---"}}</td>
-                                            <td> {{ object.yreq_stocked | intcomma }}</td>
-
+                                            <td> <a href="#">{{ object.cwt_number | format_cwt}}</a></td>
+                                            <td> {{ object.tag_type}}</td>
+                                            <td> {{ object.agency_code}}</td>
+                                            <td> {{ object.lake}}</td>
+                                            <td> {{ object.state}}</td>
+                                            <td> {{ object.year}}</td>
+                                            <td> {{ object.spc}}</td>
+                                            <td> {{ object.strain}}</td>
+                                            <td> {{ object.year_class}}</td>
+                                            <td> {{ object.stage}}</td>
+                                            <td> {{ object.method}}</td>
+                                            <td> {{ object.clip_code}}</td>
+                                            <td> {{ object.mark}}</td>
+                                            
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -120,26 +120,26 @@
 {% block extra_js%}
 
     <!-- tablesorter plugin-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js"></script>
+    <script src=<td> {{ object.https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js<td> {{ object.></script>
 
     <!-- tablesorter widget file - loaded after the plugin -->
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
+    <script src=<td> {{ object.http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js<td> {{ object.></script>
 
-    <script type="text/javascript">
+    <script type=<td> {{ object.text/javascript<td> {{ object.>
 
-     $(".tablesorter").tablesorter({
-         theme: 'bootstrap',
-         widthFixed: true,
-         showProcessing: true,
-         headerTemplate: '{content} {icon}',
-         widgets: ['zebra', 'uitheme', 'scroller'],
-         widgetOptions: {
-             scroller_height: 300,
-             scroller_barWidth: 17,
-             scroller_jumpToHeader: true,
-             scroller_idPrefix: 's_'
-         }
-     });
+         $(<td> {{ object..tablesorter<td> {{ object.).tablesorter({
+             theme: 'bootstrap',
+             widthFixed: true,
+             showProcessing: true,
+             headerTemplate: '{content} {icon}',
+             widgets: ['zebra', 'uitheme', 'scroller'],
+             widgetOptions: {
+                 scroller_height: 300,
+                 scroller_barWidth: 17,
+                 scroller_jumpToHeader: true,
+                 scroller_idPrefix: 's_'
+             }
+         });
 
     </script>
 

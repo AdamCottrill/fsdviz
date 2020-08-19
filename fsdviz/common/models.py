@@ -449,6 +449,38 @@ class FinClip(models.Model):
         return "{} ({})".format(self.description, self.abbrev)
 
 
+class CompositeFinClip(models.Model):
+    """Stores the attributes of fin clip, or combination of finclips that
+    could be applied to stocked fish.
+
+    (I'm not convinced that this is the best way to handle this data,
+    but it is consistent with the data submission process and will
+    work for today.  It might be best to split the clip codes into
+    several tables.)
+
+    """
+
+    clip_code = models.CharField(max_length=10, unique=True)
+    description = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ["clip_code"]
+
+    # def clean(self):
+    #     """make sure that we don't have any empty string in our clip_code
+    #     field. It cannot be null, and should not be an empty string either."""
+    #     if self.clip_code == "":
+    #         msg = "Database should not contain an empty string clip_code!"
+    #         raise ValidationError(msg)
+
+    # def save(self):
+    #     self.full_clean()
+    #     super(CompositeFinClip, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "{} ({})".format(self.description, self.clip_code)
+
+
 class PhysChemMark(models.Model):
     """Stores a single physical or chemical mark applied to fish when they
     are stocked and reported when they are recaptured.  It does NOT
@@ -515,38 +547,6 @@ class FishTag(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.description, self.tag_code)
-
-
-class CompositeFinClip(models.Model):
-    """Stores the attributes of fin clip, or combination of finclips that
-    could be applied to stocked fish.
-
-    (I'm not convinced that this is the best way to handle this data,
-    but it is consistent with the data submission process and will
-    work for today.  It might be best to split the clip codes into
-    several tables.)
-
-    """
-
-    clip_code = models.CharField(max_length=10, unique=True)
-    description = models.CharField(max_length=100)
-
-    class Meta:
-        ordering = ["clip_code"]
-
-    # def clean(self):
-    #     """make sure that we don't have any empty string in our clip_code
-    #     field. It cannot be null, and should not be an empty string either."""
-    #     if self.clip_code == "":
-    #         msg = "Database should not contain an empty string clip_code!"
-    #         raise ValidationError(msg)
-
-    # def save(self):
-    #     self.full_clean()
-    #     super(CompositeFinClip, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return "{} ({})".format(self.description, self.clip_code)
 
 
 class LatLonFlag(models.Model):
