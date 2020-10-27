@@ -1,4 +1,4 @@
-/* global accessToken,  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
+/* global  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
 
 //import crossfilter from "crossfilter2";
 import { json, scaleOrdinal, extent } from "d3";
@@ -22,16 +22,11 @@ const mymap = Leaflet.map("mapid", {
   zoomSnap: 0
 }).fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
 
-Leaflet.tileLayer(
-  "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}",
-  {
-    attribution:
-      'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery � <a href="https://www.mapbox.com/">Mapbox</a>',
-    maxZoom: 18,
-    id: "mapbox.streets",
-    accessToken: accessToken
-  }
-).addTo(mymap);
+Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution:
+    '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+  maxZoom: 18
+}).addTo(mymap);
 
 const recalc_bbox = (bbox, dd_lat, dd_lon) => {
   //longitude

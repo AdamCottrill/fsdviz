@@ -7309,7 +7309,7 @@
 	      : "");
 	}
 
-	function dsvFormat(delimiter) {
+	function dsv(delimiter) {
 	  var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
 	      DELIMITER = delimiter.charCodeAt(0);
 
@@ -7413,11 +7413,21 @@
 	  };
 	}
 
-	var csv = dsvFormat(",");
+	var csv = dsv(",");
 
 	var csvParse = csv.parse;
+	var csvParseRows = csv.parseRows;
+	var csvFormat = csv.format;
+	var csvFormatBody = csv.formatBody;
+	var csvFormatRows = csv.formatRows;
 
-	var tsv = dsvFormat("\t");
+	var tsv = dsv("\t");
+
+	var tsvParse = tsv.parse;
+	var tsvParseRows = tsv.parseRows;
+	var tsvFormat = tsv.format;
+	var tsvFormatBody = tsv.formatBody;
+	var tsvFormatRows = tsv.formatRows;
 
 	function responseText(response) {
 	  if (!response.ok) throw new Error(response.status + " " + response.statusText);
@@ -9160,8 +9170,6 @@
 	var saturday = weekday(6);
 
 	var sundays = sunday.range;
-	var mondays = monday.range;
-	var thursdays = thursday.range;
 
 	var month = newInterval(function(date) {
 	  date.setDate(1);
@@ -9251,8 +9259,6 @@
 	var utcSaturday = utcWeekday(6);
 
 	var utcSundays = utcSunday.range;
-	var utcMondays = utcMonday.range;
-	var utcThursdays = utcThursday.range;
 
 	var utcMonth = newInterval(function(date) {
 	  date.setUTCDate(1);
@@ -27587,7 +27593,7 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 
 	const all_species = ["Lake Trout", "Chinook Salmon", "Rainbow Trout", "Brown Trout", "Coho Salmon", "Walleye", "Lake Trout Backcross", "Atlantic Salmon", "Splake", "Brook Trout", "Sockeye Salmon", "Yellow Perch", "Lake Herring (Cisco)", "Bloater", "Lake Sturgeon", "Muskellunge", "Smallmouth Bass", "Esox Sp.", "Northern Pike"];
 
-	/* global accessToken,  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
+	/* global  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
 	const log$2 = browser("app:log");
 
 	{
@@ -27608,11 +27614,9 @@ style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
 	  zoomDelta: 0.25,
 	  zoomSnap: 0
 	}).fitBounds([[41.38, -92.09], [49.01, -76.05]]);
-	leafletSrc.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
-	  attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery � <a href="https://www.mapbox.com/">Mapbox</a>',
-	  maxZoom: 18,
-	  id: "mapbox.streets",
-	  accessToken: accessToken
+	leafletSrc.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+	  attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+	  maxZoom: 18
 	}).addTo(mymap);
 	const speciesColourScale = ordinal().range(speciesColours).domain(all_species); // intantiation our polygon overlay
 

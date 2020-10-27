@@ -86,16 +86,11 @@ const mymap = Leaflet.map("mapid", {
   zoomSnap: 0
 }).fitBounds([[41.38, -92.09], [49.01, -76.05]]);
 
-Leaflet.tileLayer(
-  "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}",
-  {
-    attribution:
-      'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery � <a href="https://www.mapbox.com/">Mapbox</a>',
-    maxZoom: 18,
-    id: "mapbox.streets",
-    accessToken: accessToken
-  }
-).addTo(mymap);
+Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution:
+    '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+  maxZoom: 18
+}).addTo(mymap);
 
 // Add a svg layer to the map
 Leaflet.svg().addTo(mymap);

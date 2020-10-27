@@ -53,16 +53,11 @@ const mymap = Leaflet.map("mapid", {
 // set up a cross hair on our map - better for clicking
 $(".leaflet-container").css("cursor", "default");
 
-Leaflet.tileLayer(
-  "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}",
-  {
-    attribution:
-      'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery � <a href="https://www.mapbox.com/">Mapbox</a>',
-    maxZoom: 18,
-    id: "mapbox.streets",
-    accessToken: accessToken
-  }
-).addTo(mymap);
+Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution:
+    '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+  maxZoom: 18
+}).addTo(mymap);
 
 const drawPt = (lat, lon) => {
   // remove the last one - there can only ever be one point for an event:

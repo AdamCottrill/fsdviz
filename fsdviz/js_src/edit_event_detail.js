@@ -1,5 +1,3 @@
-/* global accessToken, $ */
-
 /* this script is used in the stocking event detail form. There are
  * functions that update the map when the spatial controls changes,
  * some that update the spatial controls when the map changes.  THere
@@ -17,16 +15,11 @@ const mymap = L.map("mapid", {
   zoomSnap: 0
 }).fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
 
-Leaflet.tileLayer(
-  "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}",
-  {
-    attribution:
-      'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery � <a href="https://www.mapbox.com/">Mapbox</a>',
-    maxZoom: 18,
-    id: "mapbox.streets",
-    accessToken: accessToken
-  }
-).addTo(mymap);
+Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution:
+    '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+  maxZoom: 18
+}).addTo(mymap);
 
 let lat = $("#id_dd_lat").val();
 let lon = $("#id_dd_lon").val();
