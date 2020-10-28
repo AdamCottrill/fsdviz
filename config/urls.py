@@ -51,6 +51,7 @@ urlpatterns = [
     # path("api/1.0/cwt/", include("cwt.api.urls")),
     path("api/docs/", include_docs_urls(title=API_TITLE, description=API_DESCRIPTION)),
     path("api/schema/", schema_view),
+    path("bookmarks/", include("bookmark_it.urls")),
     # temp!!
     path("", PieChartMapViewLatestYear, name="home"),
 ]

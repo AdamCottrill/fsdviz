@@ -1,0 +1,90 @@
+{% extends "fsdviz_base.html" %}
+
+
+{% block title %}
+    Bookmark Detail
+{% endblock %}
+
+{% block create_bookmark %}
+
+{% endblock create_bookmark %}
+
+
+{% block content %}
+    
+
+    <div class="ui container">
+
+
+        <div class="ui fluid card">
+            
+            <div class="content">
+                <div class="header">
+                    {{  object.title }}
+                    {% if object.homepage %}
+
+                        <button class="ui mini violet right floated icon button">
+                            Your Homepage <i class="home icon"></i>
+                        </button>
+
+                    {% endif %}
+
+                </div>
+                <div class="meta">Last Modified: {{ object.date_created }} </div>
+                
+            </div>
+
+            <div class="content">
+                <div class="description">
+                    {{ object.description_html | safe }}                                                
+                </div>                
+            </div>
+
+
+            <div class="content">
+                <div class="description">
+                    <strong>URL:</strong> <a href="{{object.url}}">{{object.url}}</a>
+                    
+                    {% if  object.tags.all %}
+
+                        <h5>Tags:</h5>
+                        <ul>
+                            {% for tag in object.tags.all %}
+                                <li><a href="{% url 'bookmark_it:bookmark_list' %}?tag={{tag.tag}}">{{tag.tag}}</a></li>
+                            {% endfor %}                                        
+                        </ul>                           
+                    {%  endif %}
+                    
+                </div>                
+            </div>
+
+            <div class="extra content">
+                <a href="{% url 'bookmark_it:bookmark_list' %}" class="ui mini icon button">
+                    Bookmark List <i class="list icon"></i>
+                </a>
+                
+                {% if not object.homepage %}
+                    <a href="{% url 'bookmark_it:bookmark_make_homepage' object.id %}" class="ui mini pink icon button">
+                        Make Home Page<i class="home icon"></i>
+                    </a>
+                {% endif %}
+                <a href="{% url 'bookmark_it:bookmark_edit' object.id %}" class="ui mini blue icon button">Edit
+                    <i class="trash alternate outline icon"></i>
+                </a>
+                <a href="{% url 'bookmark_it:bookmark_delete' object.id %}" class="ui mini red icon button">
+                    Delete <i class="trash alternate outline icon"></i>
+                </a>
+            </div>
+            
+        </div>
+
+    </div>
+
+    
+    
+{% endblock %}
+
+
+{% block bookmark_modal_form %}
+
+{% endblock bookmark_modal_form %}

@@ -1,0 +1,142 @@
+{% extends 'fsdviz_base.html' %}
+
+{% load bookmark_it_tags %}
+
+{% block title %}
+    Bookmark List
+{% endblock %}
+
+
+{% block create_bookmark %}
+
+{% endblock create_bookmark %}
+
+
+{% block content %}
+    
+    <div class="ui container" >
+        <div class="ui grid">
+            <div class="three wide column">
+                {% if tags %}
+                    <h4>Keywords:</h4>
+                    <ul>
+                        {% for tag in tags %}
+                            <li><a href="?{%  add_query_param tag=tag.tag %}">{{tag.tag}}</a></li>
+                        {% endfor %}
+
+                    </ul>                    
+                {% endif %}                                
+            </div>
+            <div class="thirteen wide column">
+                
+                <h3>My Bookmarks</h3>
+
+                <div class="row">
+                    
+                    {% if contains %}
+                        <a href="{% remove_query_param 'contains' %}" class="ui mini red icon button">
+                            {{ contains }}
+                            <i class="times icon"></i>                                                
+                        </a>                    
+                    {% endif %}
+
+                    {% if tagged_with %}
+                        {% for tag in tagged_with %}
+                            <a href="{% remove_query_param key='tag' value=tag %}" class="ui mini blue icon button">
+                                {{ tag }}
+                                <i class="times icon"></i>                                                
+                            </a>
+                        {% endfor %}
+                    {% endif %}
+
+                </div>
+                
+                <ul>
+                    {% if object_list %}
+
+                        <table class="ui sortable celled table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>                                    
+                                    <th>Last Modified</th>
+                                    <th>Edit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in object_list %}
+                                    <tr>
+                                        <td>
+
+                                            <a href="{{item.url}}">{{ item.title }}</a>
+                                            
+                                            {% if item.homepage %}
+                                                <a href="{% url 'bookmark_it:bookmark_detail' item.pk %}"
+                                                   class="ui mini violet right floated basic icon button">
+                                                    Your Homepage
+                                                    <i class="home icon"></i>
+                                                </a>                                       
+
+                                            {% endif %}
+                                        </td>
+                                        <td>{{item.date_created}}</td>                           
+                                        <td>
+                                            <a href="{% url 'bookmark_it:bookmark_detail' item.pk %}" class="ui mini blue icon button">
+                                                Bookmark Details <i class="info icon"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                
+                            </tbody>
+                            
+                        </table>
+                        
+
+                    {% else %}
+                        {% if contains or filters %}
+                            <h5>It doesn't look like you have any bookmarks that match that criteria.</h5>
+                            <a href="{% url 'bookmark_it:bookmark_list' %}" class="ui mini right floated icon button">
+                                Back to Bookmark List <i class="list icon"></i>
+                            </a>
+                        {% else  %}
+                            <h5>It doesn't look like you have any bookmarks yet.</h5>
+                            %}
+                        {% endif %}
+                    {% endif %}
+                </ul>
+
+            </div>
+        </div>
+        
+    </div> 
+
+    
+    
+{% endblock %}
+
+
+
+{% block bookmark_modal_form %}
+
+{% endblock bookmark_modal_form %}
+
+
+
+{% block extra_js %}
+    <script src="https://semantic-ui.com/javascript/library/tablesort.js"</script>
+
+    <script>
+     // not sure why, but the sorter will not work without this initial, empty script block.
+     $( window ).on( "load", function() {
+
+     });
+    </script>     
+    <script>
+     $(function() {
+         $('table').tablesort()            
+     });
+    </script>
+
+    
+    
+{% endblock %}

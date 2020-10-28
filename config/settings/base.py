@@ -80,6 +80,7 @@ THIRD_PARTY_APPS = [
     "crispy_forms",
     "taggit",
     "tickets",
+    "bookmark_it",
 ]
 
 MY_APPS = ["fsdviz.myusers", "fsdviz.common", "fsdviz.stocking", "fsdviz.recovery"]
