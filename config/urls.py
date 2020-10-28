@@ -24,6 +24,7 @@ from rest_framework_swagger.views import get_swagger_view
 
 # our homepage:  TEMP!!
 from fsdviz.stocking.views import PieChartMapViewLatestYear
+from fsdviz.myusers.views import account_redirect
 
 
 API_TITLE = "Fish Stocking DataViz API"
@@ -34,6 +35,7 @@ schema_view = get_swagger_view(title=API_TITLE)
 urlpatterns = [
     path("coregonusclupeaformis/doc/", include("django.contrib.admindocs.urls")),
     path("coregonusclupeaformis/", admin.site.urls),
+    path("login/", account_redirect, name="account-redirect"),
     path("users/", include("fsdviz.myusers.urls")),
     path("users/", include("django.contrib.auth.urls")),
     path("shared/", include("fsdviz.common.urls", namespace="common")),
