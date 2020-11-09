@@ -1,11 +1,11 @@
-/* global  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
+/* global  dataURL, */
 
 //import crossfilter from "crossfilter2";
 import { json, scaleOrdinal, extent } from "d3";
 
 import Leaflet from "leaflet";
 
-import { speciesColours, all_species } from "./constants";
+import { speciesColours, all_species } from "./components/constants";
 
 const speciesColourScale = scaleOrdinal()
   .range(speciesColours)
@@ -20,7 +20,10 @@ let selectedPt;
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
   zoomSnap: 0
-}).fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
+}).fitBounds([
+  [bbox[1], bbox[0]],
+  [bbox[3], bbox[2]]
+]);
 
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
@@ -86,5 +89,8 @@ json(dataURL).then(data => {
   let lat_extent = extent(data, d => d.dd_lat);
   let lon_extent = extent(data, d => d.dd_lon);
   bbox = recalc_bbox(bbox, lat_extent, lon_extent);
-  mymap.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
+  mymap.fitBounds([
+    [bbox[1], bbox[0]],
+    [bbox[3], bbox[2]]
+  ]);
 });

@@ -169,9 +169,10 @@ export const piechart_overlay = () => {
           .attr("width", r * 2)
           .attr("height", r * 2);
 
-        let slices = svg
-          .selectAll(".arc")
-          .data(d => myPie(d.values), d => d.index);
+        let slices = svg.selectAll(".arc").data(
+          d => myPie(d.values),
+          d => d.index
+        );
 
         let slicesEnter = slices
           .enter()

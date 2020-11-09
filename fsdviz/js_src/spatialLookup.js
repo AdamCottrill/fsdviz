@@ -25,9 +25,15 @@ const updatePolygon = (item, geom) => {
 
   if (typeof myobj !== "undefined") {
     bbox = myobj.extent;
-    mymap.flyToBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], {
-      padding: [50, 50]
-    });
+    mymap.flyToBounds(
+      [
+        [bbox[1], bbox[0]],
+        [bbox[3], bbox[2]]
+      ],
+      {
+        padding: [50, 50]
+      }
+    );
   }
 
   if (typeof geom !== "undefined") {
@@ -253,9 +259,15 @@ let max_lat = bbox[3];
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
   zoomSnap: 0
-}).fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], {
-  padding: [50, 50]
-});
+}).fitBounds(
+  [
+    [bbox[1], bbox[0]],
+    [bbox[3], bbox[2]]
+  ],
+  {
+    padding: [50, 50]
+  }
+);
 
 var geomLayer = Leaflet.geoJSON().addTo(mymap);
 

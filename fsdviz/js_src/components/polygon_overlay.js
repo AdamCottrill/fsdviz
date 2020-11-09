@@ -33,7 +33,10 @@ export const polygon_overlay = () => {
 
   // a helper function that will trasform the bounding box from turf.js to
   // the pair of arrays required by leaflet:
-  const bb_points = bb => [[bb[1], bb[0]], [bb[3], bb[2]]];
+  const bb_points = bb => [
+    [bb[1], bb[0]],
+    [bb[3], bb[2]]
+  ];
 
   // a function to update our cross filter filters based on map state
   // passed in from main.js once polygon_overlay has been instantiated.

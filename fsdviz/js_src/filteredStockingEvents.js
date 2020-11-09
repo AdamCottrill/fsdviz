@@ -14,16 +14,28 @@ import {
   timeParse,
   range,
   extent,
-  sum
+  sum,
 } from "d3";
 
 import Leaflet from "leaflet";
-import { RadioButtons } from "./semanticRadioButtons";
-import { update_stats_panel } from "./stats_panel";
-import { get_coordinates } from "./utils";
-import { piechart_overlay } from "./piechart_overlay";
-import { stockingAdd, stockingRemove, stockingInitial } from "./reducers";
-import { month_lookup } from "./constants";
+
+import {
+  update_dc_url,
+  apply_url_filters,
+  updateUrlParams,
+  getUrlParamValue,
+} from "./components/url_parsing";
+
+import { RadioButtons } from "./components/semanticRadioButtons";
+import { update_stats_panel } from "./components/stats_panel";
+import { get_coordinates } from "./components/utils";
+import { piechart_overlay } from "./components/piechart_overlay";
+import {
+  stockingAdd,
+  stockingRemove,
+  stockingInitial,
+} from "./components/reducers";
+import { month_lookup } from "./components/constants";
 
 // import dc from "dc";
 
@@ -36,10 +48,12 @@ const width2 = 300;
 const height2 = 300;
 
 // intial values of global variabls that control the state of our page:
-let spatialUnit = "jurisdiction";
+let spatialUnit = getUrlParamValue("spatial_unit") || "jurisdiction";
 
-let varName = "species_code"; // this should probably be 'category'
-let responseVar = "yreq";
+// this should probably be 'category'
+let varName = getUrlParamValue("category_var") || "species_code";
+console.log("varName = ", varName);
+let responseVar = getUrlParamValue("response_var") || "yreq";
 //let column = "yreq_stocked";
 // TODO:make ylabel a function of the response variable radio buttons array:
 let ylabel = "Yearly Equivalents";
@@ -83,13 +97,16 @@ const sharedColourScale = scaleOrdinal()
 // this will be tweaked later):
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
-  zoomSnap: 0
-}).fitBounds([[41.38, -92.09], [49.01, -76.05]]);
+  zoomSnap: 0,
+}).fitBounds([
+  [41.38, -92.09],
+  [49.01, -76.05],
+]);
 
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-  maxZoom: 18
+  maxZoom: 18,
 }).addTo(mymap);
 
 // Add a svg layer to the map
@@ -122,7 +139,7 @@ let strata = [
   { name: "jurisdiction", label: "Jurisdiction" },
   //  { name: "manUnit", label: "Managment Unit" },
   { name: "grid10", label: "10-minute Grid" },
-  { name: "geom", label: "Reported Point" }
+  { name: "geom", label: "Reported Point" },
 ];
 
 let spatialSelector = RadioButtons()
@@ -150,13 +167,13 @@ let categories = [
   { name: "mark", label: "Mark" },
   { name: "tag", label: "Tag" },
   { name: "lifestage_code", label: "Life Stage" },
-  { name: "stockingMethod", label: "Stocking Method" }
+  { name: "stockingMethod", label: "Stocking Method" },
 ];
 
 let categorySelector = RadioButtons()
   .selector("#category-selector")
   .options(categories)
-  .checked("species_code");
+  .checked(varName);
 
 categorySelector();
 const category_selector = selectAll("#category-selector input");
@@ -165,7 +182,7 @@ const category_selector = selectAll("#category-selector input");
 let pieSizeVars = [
   { name: "yreq", label: "Yearling Equivalents" },
   { name: "total", label: "Number Stocked" },
-  { name: "events", label: "Event Count" }
+  { name: "events", label: "Event Count" },
 ];
 
 let pieSizeVarSelector = RadioButtons()
@@ -187,17 +204,19 @@ Promise.all([
   json("/api/v1/common/lookups"),
   json(centroidsURL),
   //json(topoURL),
-  csv(slugURL)
+  csv(slugURL),
 ]).then(([data, stocking, common, centroids, slugs]) => {
-  slugs.forEach(d => (labelLookup[d.slug] = d.label));
+  slugs.forEach((d) => (labelLookup[d.slug] = d.label));
   piecharts.labelLookup(labelLookup);
 
+  data.forEach((d) => (d.mark = d.mark || "NC"));
+
   // get the geographic extents of our data and update our map:
-  const latbounds = extent(data, d => d.dd_lat);
-  const longbounds = extent(data, d => d.dd_lon);
+  const latbounds = extent(data, (d) => d.dd_lat);
+  const longbounds = extent(data, (d) => d.dd_lon);
   mymap.fitBounds([
     [latbounds[0], longbounds[0]],
-    [latbounds[1], longbounds[1]]
+    [latbounds[1], longbounds[1]],
   ]);
 
   // see if we have the maximum number of stocking events. If so, we
@@ -226,7 +245,7 @@ Promise.all([
   const jurisdictionMap = common.jurisdictions.reduce((accumulator, d) => {
     accumulator[d.slug] = {
       description: d.description,
-      stateprov: d.stateprov.name
+      stateprov: d.stateprov.name,
     };
     return accumulator;
   }, {});
@@ -245,7 +264,7 @@ Promise.all([
     let key = `${d.strain_code}-${d.strain_species.abbrev}`;
     accumulator[key] = {
       long: `${d.strain_species.common_name} - ${d.strain_label}(${d.strain_code})`,
-      short: `${d.strain_code}-${d.strain_species.abbrev}`
+      short: `${d.strain_code}-${d.strain_species.abbrev}`,
     };
     return accumulator;
   }, {});
@@ -278,7 +297,7 @@ Promise.all([
   stocking = null;
 
   // Prepare our data:
-  data.forEach(d => {
+  data.forEach((d) => {
     //d.date: "2016-02-01"
     d.date = d.date ? dateParser(d.date) : "";
     d.dd_lat = parseFloat(d.dd_lat);
@@ -310,24 +329,24 @@ Promise.all([
 
   let ndx = crossfilter(data);
 
-  let yearDim = ndx.dimension(d => d.year);
-  let monthDim = ndx.dimension(d => d.month);
+  let yearDim = ndx.dimension((d) => d.year);
+  let monthDim = ndx.dimension((d) => d.month);
 
-  let lakeDim = ndx.dimension(d => d.lake);
-  let agencyDim = ndx.dimension(d => d.agency_code);
-  let stateProvDim = ndx.dimension(d => d.stateProv);
-  let jurisdictionDim = ndx.dimension(d => d.jurisdiction_code);
+  let lakeDim = ndx.dimension((d) => d.lake);
+  let agencyDim = ndx.dimension((d) => d.agency_code);
+  let stateProvDim = ndx.dimension((d) => d.stateProv);
+  let jurisdictionDim = ndx.dimension((d) => d.jurisdiction_code);
   //let manUnitDim = ndx.dimension(d => d.man_unit);
-  let grid10Dim = ndx.dimension(d => d.grid_10);
-  let geomDim = ndx.dimension(d => d.geom);
+  let grid10Dim = ndx.dimension((d) => d.grid_10);
+  let geomDim = ndx.dimension((d) => d.geom);
 
-  let speciesDim = ndx.dimension(d => d.species_code);
-  let strainDim = ndx.dimension(d => d.strain);
-  let lifeStageDim = ndx.dimension(d => d.lifestage_code);
-  let markDim = ndx.dimension(d => d.mark);
-  let clipDim = ndx.dimension(d => d.clip);
-  let tagDim = ndx.dimension(d => d.tag);
-  let stkMethDim = ndx.dimension(d => d.stockingMethod);
+  let speciesDim = ndx.dimension((d) => d.species_code);
+  let strainDim = ndx.dimension((d) => d.strain);
+  let lifeStageDim = ndx.dimension((d) => d.lifestage_code);
+  let markDim = ndx.dimension((d) => d.mark);
+  let clipDim = ndx.dimension((d) => d.clip);
+  let tagDim = ndx.dimension((d) => d.tag);
+  let stkMethDim = ndx.dimension((d) => d.stockingMethod);
 
   // Create our groups here so the variables are in scope. They are
   // actually populated in a function that can be called when the
@@ -355,39 +374,41 @@ Promise.all([
   let stkMethGroup;
 
   // the function to update our groups.
-  const updateGroups = responseVar => {
-    yearGroup = yearDim.group().reduceSum(d => d[responseVar]);
-    monthGroup = monthDim.group().reduceSum(d => d[responseVar]);
-    lakeGroup = lakeDim.group().reduceSum(d => d[responseVar]);
-    agencyGroup = agencyDim.group().reduceSum(d => d[responseVar]);
-    stateProvGroup = stateProvDim.group().reduceSum(d => d[responseVar]);
-    jurisdictionGroup = jurisdictionDim.group().reduceSum(d => d[responseVar]);
+  const updateGroups = (responseVar) => {
+    yearGroup = yearDim.group().reduceSum((d) => d[responseVar]);
+    monthGroup = monthDim.group().reduceSum((d) => d[responseVar]);
+    lakeGroup = lakeDim.group().reduceSum((d) => d[responseVar]);
+    agencyGroup = agencyDim.group().reduceSum((d) => d[responseVar]);
+    stateProvGroup = stateProvDim.group().reduceSum((d) => d[responseVar]);
+    jurisdictionGroup = jurisdictionDim
+      .group()
+      .reduceSum((d) => d[responseVar]);
     //let manUnitGroup = manUnitDim.group().reduceSum(d => d[responseVar]);
-    grid10Group = grid10Dim.group().reduceSum(d => d[responseVar]);
-    speciesGroup = speciesDim.group().reduceSum(d => d[responseVar]);
-    strainGroup = strainDim.group().reduceSum(d => d[responseVar]);
-    lifeStageGroup = lifeStageDim.group().reduceSum(d => d[responseVar]);
-    markGroup = markDim.group().reduceSum(d => d[responseVar]);
-    tagGroup = tagDim.group().reduceSum(d => d[responseVar]);
-    clipGroup = clipDim.group().reduceSum(d => d[responseVar]);
-    stkMethGroup = stkMethDim.group().reduceSum(d => d[responseVar]);
+    grid10Group = grid10Dim.group().reduceSum((d) => d[responseVar]);
+    speciesGroup = speciesDim.group().reduceSum((d) => d[responseVar]);
+    strainGroup = strainDim.group().reduceSum((d) => d[responseVar]);
+    lifeStageGroup = lifeStageDim.group().reduceSum((d) => d[responseVar]);
+    markGroup = markDim.group().reduceSum((d) => d[responseVar]);
+    tagGroup = tagDim.group().reduceSum((d) => d[responseVar]);
+    clipGroup = clipDim.group().reduceSum((d) => d[responseVar]);
+    stkMethGroup = stkMethDim.group().reduceSum((d) => d[responseVar]);
   };
 
   updateGroups(responseVar);
 
   // these are the unique values for each category variable - used
   // select stack of barcharts and add 0's were necessary.
-  const uniqueLakes = lakeGroup.top(Infinity).map(d => d.key);
-  const uniqueAgencies = agencyGroup.top(Infinity).map(d => d.key);
-  const uniqueStateProvs = stateProvGroup.top(Infinity).map(d => d.key);
-  const uniqueJurisdictions = jurisdictionGroup.top(Infinity).map(d => d.key);
-  const uniqueSpecies = speciesGroup.top(Infinity).map(d => d.key);
-  const uniqueStrains = strainGroup.top(Infinity).map(d => d.key);
-  const uniqueLifestages = lifeStageGroup.top(Infinity).map(d => d.key);
-  const uniqueStockingMethods = stkMethGroup.top(Infinity).map(d => d.key);
-  const uniqueMarks = markGroup.top(Infinity).map(d => d.key);
-  const uniqueClips = clipGroup.top(Infinity).map(d => d.key);
-  const uniqueTags = tagGroup.top(Infinity).map(d => d.key);
+  const uniqueLakes = lakeGroup.top(Infinity).map((d) => d.key);
+  const uniqueAgencies = agencyGroup.top(Infinity).map((d) => d.key);
+  const uniqueStateProvs = stateProvGroup.top(Infinity).map((d) => d.key);
+  const uniqueJurisdictions = jurisdictionGroup.top(Infinity).map((d) => d.key);
+  const uniqueSpecies = speciesGroup.top(Infinity).map((d) => d.key);
+  const uniqueStrains = strainGroup.top(Infinity).map((d) => d.key);
+  const uniqueLifestages = lifeStageGroup.top(Infinity).map((d) => d.key);
+  const uniqueStockingMethods = stkMethGroup.top(Infinity).map((d) => d.key);
+  const uniqueMarks = markGroup.top(Infinity).map((d) => d.key);
+  const uniqueClips = clipGroup.top(Infinity).map((d) => d.key);
+  const uniqueTags = tagGroup.top(Infinity).map((d) => d.key);
 
   // set-up our spatial groups - each key will contain an object
   // with the total number of fish stocked, the number of yearling
@@ -403,7 +424,7 @@ Promise.all([
   let grid10MapGroup = {};
   let geomMapGroup = {};
 
-  const calcMapGroups = varName => {
+  const calcMapGroups = (varName) => {
     all = ndx
       .groupAll()
       .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
@@ -442,8 +463,8 @@ Promise.all([
   // initialize the stats panel
   update_stats_panel(all, {
     fillScale: sharedColourScale,
-    label: categories.filter(d => d.name === varName)[0].label,
-    what: responseVar
+    label: categories.filter((d) => d.name === varName)[0].label,
+    what: responseVar,
   });
 
   // set up an array of years:
@@ -457,7 +478,7 @@ Promise.all([
   //      helper functions
 
   function sel_stack(item_name) {
-    return function(d) {
+    return function (d) {
       return d.value[item_name][responseVar];
     };
   }
@@ -466,15 +487,15 @@ Promise.all([
     // (source_group, bins...}
 
     return {
-      all: function() {
+      all: function () {
         let result = group.all().slice(0);
-        result.forEach(function(x) {
-          keys.forEach(function(d) {
+        result.forEach(function (x) {
+          keys.forEach(function (d) {
             x.value[d] = x.value[d] || 0;
           });
         });
         return result;
-      }
+      },
     };
   };
 
@@ -549,7 +570,7 @@ Promise.all([
 
   //updateStackeBarLabel(plotLabel);
 
-  const updateStackeBarLabel = label => {
+  const updateStackeBarLabel = (label) => {
     select("#stackedbar-chart-heading").text(label);
   };
 
@@ -562,7 +583,7 @@ Promise.all([
   let byYearWith0s = ensure_group_bins(byYear, items);
 
   // create string for stacked bar chart tooltips:
-  let barchartTooltip = function(d) {
+  let barchartTooltip = function (d) {
     let layer = this.layer.trim();
     if (layer !== "0") {
       let yr = d.key;
@@ -580,7 +601,7 @@ Promise.all([
 
   let stackedByYearBarChartXScale = scaleLinear().domain([
     first_year - 0.6,
-    last_year + 0.55
+    last_year + 0.55,
   ]);
 
   stackedByYearBarChart
@@ -591,24 +612,21 @@ Promise.all([
     .brushOn(true)
     .centerBar(true)
     .alwaysUseRounding(true)
-    .round(function(x) {
+    .round(function (x) {
       return Math.floor(x) + 0.5;
     })
     .elasticY(true)
     .title(barchartTooltip);
   //.renderLabel(true);
 
-  stackedByYearBarChart
-    .xAxis()
-    .tickFormat(format("d"))
-    .ticks(years.length);
+  stackedByYearBarChart.xAxis().tickFormat(format("d")).ticks(years.length);
 
   // these are attributes we will be changing:
   stackedByYearBarChart
     .dimension(yearDim)
     .group(byYearWith0s, items[0], sel_stack(items[0]))
     .colors(sharedColourScale)
-    .colorAccessor(function(d) {
+    .colorAccessor(function (d) {
       return this.layer;
     })
     .yAxisLabel(ylabel); // make this a function of 'column'
@@ -621,10 +639,10 @@ Promise.all([
 
   updateStackeBarLabel(plotLabel);
 
-  stackedByYearBarChart.on("postRender", function() {
+  stackedByYearBarChart.on("postRender", function () {
     stackedByYearBarChart
       .select("#stackedbar-chart rect.overlay")
-      .on("dblclick", function() {
+      .on("dblclick", function () {
         // get the mouse corrdinates relative to our overlay (plotting) rectangle
         // not sure why d3 is needed here:
         let x = d3.mouse(this)[0];
@@ -672,7 +690,7 @@ Promise.all([
   // a function to set the state of stacked bar plot based on
   // the brush/toolip  value of tooltip (a boolean). Called by brush toggle
   // on change and when the category of the stacked bar plot is re-rendered.
-  const setBrushTooltip = tooltip => {
+  const setBrushTooltip = (tooltip) => {
     let overlay = select("#stackedbar-chart rect.overlay");
     overlay.classed("pass-through", tooltip);
     let selection = select("#stackedbar-chart rect.selection");
@@ -681,7 +699,7 @@ Promise.all([
 
   // toggle the css
   let brushtoggle = selectAll(".stackedbar-brush-toggle");
-  brushtoggle.on("change", function() {
+  brushtoggle.on("change", function () {
     let tooltip = true ? this.value == "tooltip" : false;
     setBrushTooltip(tooltip);
   });
@@ -701,20 +719,16 @@ Promise.all([
     .height(height1)
     .dimension(lakeDim)
     .group(lakeGroup)
-    .label(d => lakeMap[d.key])
-    .title(d => `${lakeMap[d.key]}: ${commaFormat(d.value)}`);
+    .label((d) => lakeMap[d.key])
+    .title((d) => `${lakeMap[d.key]}: ${commaFormat(d.value)}`);
 
-  lakeChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  lakeChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = lakeChart.filters();
       if (!filters || !filters.length) {
-        select("#lake-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#lake-filter").text("All").classed("filtered", false);
       } else {
-        select("#lake-filter")
-          .text(filters)
-          .classed("filtered", true);
+        select("#lake-filter").text(filters).classed("filtered", true);
       }
     });
   });
@@ -735,19 +749,15 @@ Promise.all([
     .height(height1)
     .dimension(agencyDim)
     .group(agencyGroup)
-    .title(d => `${agencyMap[d.key]}: ${commaFormat(d.value)}`);
+    .title((d) => `${agencyMap[d.key]}: ${commaFormat(d.value)}`);
 
-  agencyChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  agencyChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = agencyChart.filters();
       if (!filters || !filters.length) {
-        select("#agency-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#agency-filter").text("All").classed("filtered", false);
       } else {
-        select("#agency-filter")
-          .text(filters)
-          .classed("filtered", true);
+        select("#agency-filter").text(filters).classed("filtered", true);
       }
     });
   });
@@ -768,22 +778,26 @@ Promise.all([
     .height(height1)
     .dimension(jurisdictionDim)
     .group(jurisdictionGroup)
-    .label(d => jurisdictionMap[d.key].stateprov)
-    .title(
-      d => `${jurisdictionMap[d.key].description}: ${commaFormat(d.value)}`
-    );
+    .label((d) => {
+      if (typeof jurisdictionMap[d.key] === "undefined") {
+        return jurisdictionMap[d.key];
+      }
+      return jurisdictionMap[d.key].stateprov;
+    })
+    .title((d) => {
+      if (typeof jurisdictionMap[d.key] === "undefined") {
+        return `${jurisdictionMap[d.key]}: ${commaFormat(d.value)}`;
+      }
+      return `${jurisdictionMap[d.key].description}: ${commaFormat(d.value)}`;
+    });
 
-  jurisdictionChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  jurisdictionChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = jurisdictionChart.filters();
       if (!filters || !filters.length) {
-        select("#jurisdiction-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#jurisdiction-filter").text("All").classed("filtered", false);
       } else {
-        select("#jurisdiction-filter")
-          .text(filters)
-          .classed("filtered", true);
+        select("#jurisdiction-filter").text(filters).classed("filtered", true);
       }
     });
   });
@@ -804,19 +818,15 @@ Promise.all([
     .height(height1)
     .dimension(stateProvDim)
     .group(stateProvGroup)
-    .title(d => `${stateProvMap[d.key]}: ${commaFormat(d.value)}`);
+    .title((d) => `${stateProvMap[d.key]}: ${commaFormat(d.value)}`);
 
-  stateProvChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  stateProvChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = stateProvChart.filters();
       if (!filters || !filters.length) {
-        select("#state-prov-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#state-prov-filter").text("All").classed("filtered", false);
       } else {
-        select("#state-prov-filter")
-          .text(filters)
-          .classed("filtered", true);
+        select("#state-prov-filter").text(filters).classed("filtered", true);
       }
     });
   });
@@ -836,19 +846,15 @@ Promise.all([
     .group(speciesGroup)
     .colors(speciesColourScale)
 
-    .title(d => `${speciesMap[d.key]}: ${commaFormat(d.value)}`);
+    .title((d) => `${speciesMap[d.key]}: ${commaFormat(d.value)}`);
 
-  speciesChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  speciesChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = speciesChart.filters();
       if (!filters || !filters.length) {
-        select("#species-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#species-filter").text("All").classed("filtered", false);
       } else {
-        select("#species-filter")
-          .text(filters)
-          .classed("filtered", true);
+        select("#species-filter").text(filters).classed("filtered", true);
       }
     });
   });
@@ -869,21 +875,17 @@ Promise.all([
     .height(height1)
     .dimension(strainDim)
     .group(strainGroup)
-    .title(d => `${strainMap[d.key].long}: ${commaFormat(d.value)}`)
-    .label(d => strainMap[d.key].short);
+    .title((d) => `${strainMap[d.key].long}: ${commaFormat(d.value)}`)
+    .label((d) => strainMap[d.key].short);
 
-  strainChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  strainChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = strainChart.filters();
       if (!filters || !filters.length) {
-        select("#strain-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#strain-filter").text("All").classed("filtered", false);
       } else {
-        let labels = filters.map(d => strainMap[d].short);
-        select("#strain-filter")
-          .text(labels)
-          .classed("filtered", true);
+        let labels = filters.map((d) => strainMap[d].short);
+        select("#strain-filter").text(labels).classed("filtered", true);
       }
     });
   });
@@ -905,23 +907,19 @@ Promise.all([
     .group(lifeStageGroup)
     //.ordering(d => d.key)
     .gap(2)
-    .title(d => commaFormat(d.value))
-    .label(d => lifestageMap[d.key])
+    .title((d) => commaFormat(d.value))
+    .label((d) => lifestageMap[d.key])
     .elasticX(true)
     .xAxis()
     .ticks(4);
 
-  lifestageChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  lifestageChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = lifestageChart.filters();
       if (!filters || !filters.length) {
-        select("#lifestage-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#lifestage-filter").text("All").classed("filtered", false);
       } else {
-        select("#lifestage-filter")
-          .text(filters)
-          .classed("filtered", true);
+        select("#lifestage-filter").text(filters).classed("filtered", true);
       }
     });
   });
@@ -943,14 +941,14 @@ Promise.all([
     .group(stkMethGroup)
     //.ordering(d => d.key)
     .gap(2)
-    .title(d => commaFormat(d.value))
-    .label(d => stockingMethodMap[d.key])
+    .title((d) => commaFormat(d.value))
+    .label((d) => stockingMethodMap[d.key])
     .elasticX(true)
     .xAxis()
     .ticks(4);
 
-  stockingMethodChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  stockingMethodChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = stockingMethodChart.filters();
       if (!filters || !filters.length) {
         select("#stocking-method-filter")
@@ -979,33 +977,29 @@ Promise.all([
     .margins({ top: 5, left: 10, right: 10, bottom: 20 })
     .dimension(monthDim)
     .group(monthGroup)
-    .ordering(d => d.key)
+    .ordering((d) => d.key)
     .gap(2)
-    .title(d => commaFormat(d.value))
-    .label(d => month_lookup[d.key])
+    .title((d) => commaFormat(d.value))
+    .label((d) => month_lookup[d.key])
     .elasticX(true)
     .xAxis()
     .ticks(4);
 
-  stockingMonthChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  stockingMonthChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = stockingMonthChart.filters();
       if (!filters || !filters.length) {
-        select("#stocking-month-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#stocking-month-filter").text("All").classed("filtered", false);
       } else {
-        let labels = filters.map(d => month_lookup[d]);
-        select("#stocking-month-filter")
-          .text(labels)
-          .classed("filtered", true);
+        let labels = filters.map((d) => month_lookup[d]);
+        select("#stocking-month-filter").text(labels).classed("filtered", true);
       }
     });
   });
 
   select("#stocking-month-plot-reset").on("click", () => {
     event.preventDefault();
-    stockingMethodChart.filterAll();
+    stockingMonthChart.filterAll();
     dc.redrawAll();
   });
 
@@ -1017,19 +1011,15 @@ Promise.all([
     .height(height2)
     .dimension(markDim)
     .group(markGroup)
-    .title(d => `${d.key}: ${commaFormat(d.value)}`);
+    .title((d) => `${d.key}: ${commaFormat(d.value)}`);
 
-  markChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  markChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = markChart.filters();
       if (!filters || !filters.length) {
-        select("#mark-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#mark-filter").text("All").classed("filtered", false);
       } else {
-        select("#mark-filter")
-          .text(filters)
-          .classed("filtered", true);
+        select("#mark-filter").text(filters).classed("filtered", true);
       }
     });
   });
@@ -1048,19 +1038,15 @@ Promise.all([
     .height(height2)
     .dimension(clipDim)
     .group(clipGroup)
-    .title(d => `${d.key}: ${commaFormat(d.value)}`);
+    .title((d) => `${d.key}: ${commaFormat(d.value)}`);
 
-  clipChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  clipChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = clipChart.filters();
       if (!filters || !filters.length) {
-        select("#clip-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#clip-filter").text("All").classed("filtered", false);
       } else {
-        select("#clip-filter")
-          .text(filters)
-          .classed("filtered", true);
+        select("#clip-filter").text(filters).classed("filtered", true);
       }
     });
   });
@@ -1079,19 +1065,15 @@ Promise.all([
     .height(height2)
     .dimension(tagDim)
     .group(tagGroup)
-    .title(d => `${d.key}: ${commaFormat(d.value)}`);
+    .title((d) => `${d.key}: ${commaFormat(d.value)}`);
 
-  tagChart.on("renderlet", function(chart) {
-    dc.events.trigger(function() {
+  tagChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
       let filters = tagChart.filters();
       if (!filters || !filters.length) {
-        select("#tag-filter")
-          .text("All")
-          .classed("filtered", false);
+        select("#tag-filter").text("All").classed("filtered", false);
       } else {
-        select("#tag-filter")
-          .text(filters)
-          .classed("filtered", true);
+        select("#tag-filter").text(filters).classed("filtered", true);
       }
     });
   });
@@ -1102,14 +1084,20 @@ Promise.all([
     dc.redrawAll();
   });
 
-  dc.renderAll();
+  //update the url when the dc plot filters change:
+  dc.chartRegistry.list().forEach(function (chart) {
+    chart.on("filtered", function () {
+      update_dc_url();
+    });
+  });
 
   //==================================================+
   //         RADIO BUTTON CHANGE LISTENERS
 
   // an accessor function to get values of our currently selected
   // response variable.
-  let ptAccessor = d => Object.keys(d.value).map(x => d.value[x][responseVar]);
+  let ptAccessor = (d) =>
+    Object.keys(d.value).map((x) => d.value[x][responseVar]);
 
   // a helper function to get the data in the correct format for
   const get_pts = (spatialUnit, centriods, ptAccessor) => {
@@ -1138,13 +1126,13 @@ Promise.all([
     }
 
     if (spatialUnit === "geom") {
-      pts.forEach(d => (d["coordinates"] = get_coordinates(d.key)));
+      pts.forEach((d) => (d["coordinates"] = get_coordinates(d.key)));
     } else {
-      pts.forEach(d => (d["coordinates"] = centroids[spatialUnit][d.key]));
+      pts.forEach((d) => (d["coordinates"] = centroids[spatialUnit][d.key]));
     }
-    pts.forEach(d => (d["total"] = sum(ptAccessor(d))));
+    pts.forEach((d) => (d["total"] = sum(ptAccessor(d))));
 
-    return pts.filter(d => d.total > 0);
+    return pts.filter((d) => d.total > 0);
   };
 
   let pts = get_pts(spatialUnit, centroids, ptAccessor);
@@ -1153,10 +1141,7 @@ Promise.all([
   // recacalculate the points given the current spatial unit and
   // point accessor
   const updatePieCharts = () => {
-    piecharts
-      .fillScale(sharedColourScale)
-      .selectedPie(null)
-      .clear_pointInfo();
+    piecharts.fillScale(sharedColourScale).selectedPie(null).clear_pointInfo();
 
     pts = get_pts(spatialUnit, centroids, ptAccessor);
     pieg.data([pts]).call(piecharts);
@@ -1164,14 +1149,14 @@ Promise.all([
     update_stats_panel(all, {
       //fillScale: speciesColourScale,
       fillScale: sharedColourScale,
-      label: categories.filter(d => d.name === varName)[0].label,
-      what: varName
+      label: categories.filter((d) => d.name === varName)[0].label,
+      what: varName,
     });
   };
 
   // if the spatial radio buttons change, update the global variable
   // and update the pie charts
-  const update_spatialUnit = value => {
+  const update_spatialUnit = (value) => {
     spatialUnit = value;
     spatialSelector.checked(spatialUnit).refresh();
     updatePieCharts();
@@ -1179,7 +1164,7 @@ Promise.all([
 
   // if the pie chart slice selector radio buttons changes, update
   // the global variable and update the pie charts
-  const update_sliceValue = value => {
+  const update_sliceValue = (value) => {
     varName = value;
     calcMapGroups();
     updatePieCharts();
@@ -1187,25 +1172,29 @@ Promise.all([
 
   // set up a change event handler each fime the crossfilter changes
   ndx.onChange(() => {
-    //update our map too:
+    //update our map:
     pts = get_pts(spatialUnit, centroids, ptAccessor);
     pieg.data([pts]).call(piecharts);
     updatePieCharts();
     update_stats_panel(all, {
       fillScale: sharedColourScale,
-      label: categories.filter(d => d.name === varName)[0].label,
-      what: responseVar
+      label: categories.filter((d) => d.name === varName)[0].label,
+      what: responseVar,
     });
   });
 
   //==================================================+
   //         RADIO BUTTON CHANGE LISTENERS
 
-  spatial_resolution.on("change", function() {
+  spatial_resolution.on("change", function () {
+    console.log("update_dc_url to include spatial_unit=", this.value);
+    updateUrlParams("spatial_unit", this.value);
     update_spatialUnit(this.value);
   });
 
-  pie_size_selector.on("change", function() {
+  pie_size_selector.on("change", function () {
+    console.log("update_dc_url to include response_var=", this.value);
+    updateUrlParams("response_var", this.value);
     responseVar = this.value;
     updateGroups(responseVar);
     updateChartGroups();
@@ -1220,10 +1209,11 @@ Promise.all([
   });
   //==========================================================
   //     CATEGORY VARIABLE HAS CHANGED!
-  category_selector.on("change", function() {
+  category_selector.on("change", function () {
     varName = this.value;
     //update_CategoryValue(varName);
-
+    console.log("update_dc_url to include category_var=", this.value);
+    updateUrlParams("category_var", this.value);
     resetChartColours();
 
     switch (varName) {
@@ -1328,8 +1318,8 @@ Promise.all([
 
     update_stats_panel(all, {
       fillScale: sharedColourScale,
-      label: categories.filter(d => d.name === varName)[0].label,
-      what: responseVar
+      label: categories.filter((d) => d.name === varName)[0].label,
+      what: responseVar,
     });
 
     dc.redrawAll();
@@ -1340,8 +1330,15 @@ Promise.all([
     setBrushTooltip(tmp === "tooltip");
   });
 
-  mymap.on("moveend", function() {
+  mymap.on("moveend", function () {
     //polygons.render();
     pieg.call(piecharts);
   });
+
+  //
+
+  // page load
+  dc.renderAll();
+  apply_url_filters();
+  dc.renderAll();
 });

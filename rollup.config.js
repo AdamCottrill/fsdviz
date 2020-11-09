@@ -17,28 +17,30 @@ const plugins = [
   resolve({
     jsnext: true,
     main: true,
-    browser: true
+    browser: true,
   }),
   json(),
   commonjs(),
   eslint({
-    include: ["fsdviz/js_src/**"]
+    include: ["fsdviz/js_src/**"],
+    fix: true,
     //exclude: ["src/css/**"]
   }),
 
   replace({
-    ENV: JSON.stringify(process.env.NODE_ENV || "development")
+    ENV: JSON.stringify(process.env.NODE_ENV || "development"),
   }),
 
   process.env.NODE_ENV === "production" && uglify(),
   babel({
-    exclude: "node_modules/**"
-  })
+    exclude: "node_modules/**",
+    runtimeHelpers: true,
+  }),
 ];
 
 export default [
   {
-    input: "fsdviz/js_src/main.js",
+    input: "fsdviz/js_src/basinwidePieChartMap.js",
     onwarn: onwarn,
     output: {
       name: "MainPieChartMap",
@@ -47,10 +49,10 @@ export default [
       sourceMap: "inline",
       globals: {
         topojson: "topojson",
-        crossfilter2: "crossfilter"
-      }
+        crossfilter2: "crossfilter",
+      },
     },
-    plugins: plugins
+    plugins: plugins,
   },
   {
     input: "fsdviz/js_src/findEventsForm.js",
@@ -62,10 +64,10 @@ export default [
       sourceMap: "inline",
       globals: {
         crossfilter2: "crossfilter",
-        d3: "d3"
-      }
+        d3: "d3",
+      },
     },
-    plugins: plugins
+    plugins: plugins,
   },
 
   {
@@ -79,14 +81,14 @@ export default [
       globals: {
         crossfilter2: "crossfilter",
         d3: "d3",
-        dc: "dc"
-      }
+        dc: "dc",
+      },
     },
-    plugins: plugins
+    plugins: plugins,
   },
 
   {
-    input: "fsdviz/js_src/upload_event_detail.js",
+    input: "fsdviz/js_src/uploadEventDetail.js",
     onwarn: onwarn,
     output: {
       name: "UploadEvent",
@@ -95,14 +97,14 @@ export default [
       sourceMap: "inline",
       globals: {
         leaflet: "leaflet",
-        d3: "d3"
-      }
+        d3: "d3",
+      },
     },
-    plugins: plugins
+    plugins: plugins,
   },
 
   {
-    input: "fsdviz/js_src/stocking_event_form.js",
+    input: "fsdviz/js_src/stockingEventForm.js",
     onwarn: onwarn,
     output: {
       name: "StockingEventForm",
@@ -110,14 +112,14 @@ export default [
       format: "iife",
       sourceMap: "inline",
       globals: {
-        leaflet: "leaflet"
-      }
+        leaflet: "leaflet",
+      },
     },
-    plugins: plugins
+    plugins: plugins,
   },
 
   {
-    input: "fsdviz/js_src/spatial_lookup.js",
+    input: "fsdviz/js_src/spatialLookup.js",
     onwarn: onwarn,
     output: {
       name: "SpatialLookup",
@@ -127,9 +129,9 @@ export default [
       globals: {
         leaflet: "leaflet",
         d3: "d3",
-        turf: "turf"
-      }
+        turf: "turf",
+      },
     },
-    plugins: plugins
-  }
+    plugins: plugins,
+  },
 ];

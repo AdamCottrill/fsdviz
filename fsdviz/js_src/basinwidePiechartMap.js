@@ -1,4 +1,4 @@
-/* global  dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
+/* global  $, dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
 
 import debug from "debug";
 
@@ -7,23 +7,33 @@ import { csv, selectAll, json, select, sum, scaleOrdinal } from "d3";
 
 import Leaflet from "leaflet";
 
-import { checkBoxes } from "./checkBoxArray";
+import { checkBoxes } from "./components/checkBoxArray";
 
 import {
   prepare_stocking_data,
   initialize_filter,
   get_coordinates
-} from "./utils";
+} from "./components/utils";
 
-import { stockingAdd, stockingRemove, stockingInitial } from "./reducers";
+import {
+  stockingAdd,
+  stockingRemove,
+  stockingInitial
+} from "./components/reducers";
 
-import { piechart_overlay } from "./piechart_overlay";
-import { polygon_overlay } from "./polygon_overlay";
-import { spatialRadioButtons } from "./RadioButtons";
-import { RadioButtons } from "./semanticRadioButtons";
-import { update_stats_panel } from "./stats_panel";
+import { piechart_overlay } from "./components/piechart_overlay";
+import { polygon_overlay } from "./components/polygon_overlay";
+import { spatialRadioButtons } from "./components/RadioButtons";
+import { RadioButtons } from "./components/semanticRadioButtons";
+import { update_stats_panel } from "./components/stats_panel";
 
-import { speciesColours, all_species } from "./constants";
+import { speciesColours, all_species } from "./components/constants";
+
+import {
+  parseParams,
+  updateUrlParams,
+  updateUrlCheckBoxParams
+} from "./components/url_parsing";
 
 const log = debug("app:log");
 
@@ -39,6 +49,19 @@ const filters = {};
 
 const labelLookup = {};
 
+// empty objects to hold our lookup values - populated after we get the data from the api.
+let species_lookup = {};
+let species_inverse_lookup = {};
+
+let strain_lookup = {};
+let strain_inverse_lookup = {};
+
+let lifestage_lookup = {};
+let lifestage_inverse_lookup = {};
+
+let stocking_method_lookup = {};
+let stocking_method_inverse_lookup = {};
+
 const column = "events";
 // the name of the column with our response:
 let responseVar = "yreq";
@@ -49,7 +72,10 @@ let responseVar = "yreq";
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
   zoomSnap: 0
-}).fitBounds([[41.38, -92.09], [49.01, -76.05]]);
+}).fitBounds([
+  [41.38, -92.09],
+  [49.01, -76.05]
+]);
 
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
@@ -154,8 +180,62 @@ Promise.all([
   json(dataURL),
   json(centroidsURL),
   json(topoURL),
-  csv(slugURL)
-]).then(([data, centroids, topodata, slugs]) => {
+  csv(slugURL),
+  json("/api/v1/stocking/lookups"),
+  json("/api/v1/common/lookups")
+]).then(([data, centroids, topodata, slugs, stocking, common]) => {
+  species_lookup = common["species"].reduce((accumulator, d) => {
+    accumulator[d.abbrev] = d.common_name;
+    return accumulator;
+  }, {});
+
+  species_inverse_lookup = common["species"].reduce((accumulator, d) => {
+    accumulator[d.common_name] = d.abbrev;
+    return accumulator;
+  }, {});
+
+  // Strain Maps (these may need some more work!)
+  strain_lookup = common["strains"].reduce((accumulator, d) => {
+    accumulator[d.strain_species.slug] = d.strain_label;
+    return accumulator;
+  }, {});
+
+  strain_inverse_lookup = common["strains"].reduce((accumulator, d) => {
+    accumulator[d.strain_label] = d.strain_species.slug;
+    return accumulator;
+  }, {});
+
+  // Stocking Metods Maps:
+  stocking_method_lookup = stocking["stockingmethods"].reduce(
+    (accumulator, d) => {
+      accumulator[d.stk_meth] = d.description;
+      return accumulator;
+    },
+    {}
+  );
+
+  stocking_method_inverse_lookup = stocking["stockingmethods"].reduce(
+    (accumulator, d) => {
+      accumulator[d.description] = d.stk_meth;
+      return accumulator;
+    },
+    {}
+  );
+
+  // Lifestage Maps:
+  lifestage_lookup = stocking["lifestages"].reduce((accumulator, d) => {
+    accumulator[d.abbrev] = d.description;
+    return accumulator;
+  }, {});
+
+  lifestage_inverse_lookup = stocking["stockingmethods"].reduce(
+    (accumulator, d) => {
+      accumulator[d.description] = d.abbrev;
+      return accumulator;
+    },
+    {}
+  );
+
   // prepare our stocking data and set up our cross filters:
 
   data.forEach(d => prepare_stocking_data(d));
@@ -273,6 +353,11 @@ Promise.all([
   };
   // initialize our filters when everything loads
   set_or_reset_filters();
+
+  // apply any url parameters to our filters:
+
+  //let current = parseParams(window.location.hash);
+  //console.log(current);
 
   let reset_button = select("#reset-button");
   reset_button.on("click", set_or_reset_filters);
@@ -421,7 +506,7 @@ Promise.all([
   const updateCrossfilter = (dimension, value) => {
     // when we update our cross filter dimension, we also
     // need to remove any existing filters from lower levels.  If
-    // we go back to Lake from a management unit, we all
+    // we go back to Lake from a management unit, all
     // management units to be included in the results.
 
     switch (dimension) {
@@ -447,6 +532,8 @@ Promise.all([
         update_spatialUnit("grid10");
         break;
     }
+    let tmp = value == "" ? "all" : value;
+    updateUrlParams("map-state", `${dimension}-${tmp}`);
   };
 
   polygons.updateCrossfilter(updateCrossfilter);
@@ -477,6 +564,7 @@ Promise.all([
     spatialUnit = value;
     spatialSelector.checked(spatialUnit).refresh();
     updatePieCharts();
+    updateUrlParams("spatialUnit", value);
   };
 
   // if the pie chart slice selector radio buttons changes, update
@@ -485,6 +573,7 @@ Promise.all([
     sliceVar = value;
     calcMapGroups();
     updatePieCharts();
+    updateUrlParams("sliceValue", value);
   };
 
   //==================================================+
@@ -502,6 +591,7 @@ Promise.all([
     responseVar = this.value;
     piecharts.responseVar(responseVar);
     updatePieCharts();
+    //updateUrlParams("responseVar", responseVar);
   });
 
   //==================================================+
@@ -599,12 +689,27 @@ Promise.all([
       filters: filters
     });
 
-    // see fi there are any check box filters:
+    // see if there are any check box filters:
     let filter_states = Object.values(filters).map(d => d.is_filtered);
+
     let filtered = !filter_states.every(d => d === false);
 
     let reset_button = select("#reset-button");
     reset_button.classed("disabled", !filtered);
+
+    //================================================
+
+    // now we need to compile the list of filters needed to populate the url:
+    // foo
+    updateUrlCheckBoxParams(filters);
+
+    //// - update url when settings change
+    //// - apply url params when page loads.
+    //let url_params = decodeURIComponent($.param(filter_values, true));
+    //// update the url with our url_parameters
+    //window.location.hash = url_params;
+
+    //================================================
 
     //update our map too:
     let pts = get_pts(spatialUnit, centroids, ptAccessor);

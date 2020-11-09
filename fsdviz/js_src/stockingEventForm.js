@@ -1,4 +1,4 @@
-/* global accessToken,  $, jurisdictionURL, manUnitURL, grid10URL, spatialAttrURL, strainURL, csrf_token */
+/* global  $, jurisdictionURL, manUnitURL, grid10URL, spatialAttrURL, strainURL, csrf_token */
 
 import Leaflet from "leaflet";
 
@@ -16,12 +16,12 @@ import {
   checkDdLat,
   checkDdLon,
   checkLatLon
-} from "./form_utils";
+} from "./components/form_utils";
 
 import {
   //checkPointInPoly, getPolygon,
   getSpatialAttrs
-} from "./spatial_utils";
+} from "./components/spatial_utils";
 
 //=================================================
 // GLOBALS
@@ -48,7 +48,10 @@ let spatialAttrs = {
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
   zoomSnap: 0
-}).fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
+}).fitBounds([
+  [bbox[1], bbox[0]],
+  [bbox[3], bbox[2]]
+]);
 
 // set up a cross hair on our map - better for clicking
 $(".leaflet-container").css("cursor", "default");
@@ -64,7 +67,7 @@ const drawPt = (lat, lon) => {
   $("path.leaflet-interactive").remove();
 
   if (lat !== "" && lon !== "") {
-    let circle = Leaflet.circleMarker([parseFloat(lat), parseFloat(lon)], {
+    Leaflet.circleMarker([parseFloat(lat), parseFloat(lon)], {
       color: "red",
       fillColor: "#f03",
       fillOpacity: 0.5,

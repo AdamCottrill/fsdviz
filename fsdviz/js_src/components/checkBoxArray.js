@@ -1,5 +1,7 @@
 import { select } from "d3";
 
+import { updateUrlCheckBoxParams } from "./url_parsing";
+
 export const checkBoxes = (selection, props) => {
   const { filterkey, xfdim, xfgroup, filters } = props;
 
@@ -72,7 +74,7 @@ export const checkBoxes = (selection, props) => {
 
   uiCheckbox.append("label").text(d => d.key + " (n=" + d.value + ")");
 
-  let buttonbar = select(`#${selector}-buttons`);
+  let buttonbar = select(`#${selector}-buttons`).attr("class", "ui buttons");
 
   let clearAllBnt = buttonbar
     .selectAll(".clear-link")
@@ -86,6 +88,7 @@ export const checkBoxes = (selection, props) => {
         .selectAll("input[type=checkbox]")
         .property("checked", false);
       filters[filterkey].values = [];
+      updateUrlCheckBoxParams(filters);
       xfdim.filter();
     });
 
@@ -101,6 +104,7 @@ export const checkBoxes = (selection, props) => {
         .selectAll("input[type=checkbox]")
         .property("checked", true);
       filters[filterkey].values = keys.map(d => d.key);
+      updateUrlCheckBoxParams(filters);
       xfdim.filter(val => myfilters.indexOf(val) > -1);
     });
 };
