@@ -11,7 +11,7 @@ import {
   sum,
   scaleSqrt,
   scaleOrdinal,
-  format
+  format,
 } from "d3";
 
 export const piechart_overlay = () => {
@@ -22,17 +22,15 @@ export const piechart_overlay = () => {
 
   let labelLookup = {};
 
-  let radiusAccessor = d => d.total;
-  let fillAccessor = d => d.value;
-  let responseVar = "yreq";
+  let radiusAccessor = (d) => d.total;
+  let fillAccessor = (d) => d.value;
+  let responseVar;
 
   let maxCircleSize = 140;
   let fillScale = scaleOrdinal();
 
   let myArc = arc().innerRadius(0);
-  let myPie = pie()
-    .sort(null)
-    .value(fillAccessor);
+  let myPie = pie().sort(null).value(fillAccessor);
 
   const commaFormat = format(",d");
 
@@ -45,13 +43,13 @@ export const piechart_overlay = () => {
   // when we instantiate the overlay
   let getProjection;
 
-  let get_pointInfo = d => {
+  let get_pointInfo = (d) => {
     // this does not work as expected - it needs to be updated if the
     // filters change.
     let data = d.values;
-    let dataArray = Object.keys(data).map(x => data[x]);
+    let dataArray = Object.keys(data).map((x) => data[x]);
     dataArray.sort((a, b) => b.value - a.value);
-    let total = sum(dataArray.map(d => d.value));
+    let total = sum(dataArray.map((d) => d.value));
 
     let label = labelLookup[d.key];
 
@@ -62,8 +60,8 @@ export const piechart_overlay = () => {
     let html = `<h5>${label}: ${commaFormat(total)}</h5>`;
     html += '<table class="ui celled compact table">';
     dataArray
-      .filter(d => d.value > 0)
-      .forEach(row => {
+      .filter((d) => d.value > 0)
+      .forEach((row) => {
         let rowid = row.slice.replace(/ /g, "-").replace(/[()]/g, "");
 
         html += `<tr id="tr-${rowid}">
@@ -76,22 +74,26 @@ export const piechart_overlay = () => {
     return html;
   };
 
-  const chart = function(selection) {
-    selection.each(function(data) {
+  const recalc_slice_values = (data) => {
+    data.forEach((x) => {
+      let mykeys = Object.keys(x.value);
+      let values = mykeys.map((d) => ({
+        slice: d,
+        value: x.value[d][responseVar],
+      }));
+      x["values"] = values;
+    });
+  };
+
+  const chart = function (selection) {
+    selection.each(function (data) {
       // prepare data for pie:
       //    coordinates: [-82.8801, 45.9883]
       //    key: "er_mi"
       //    total: 10000
       //    values: [{slice: "Rainbow Trout", value:0}, {slice: "Lake Trout", value: 10} ]
 
-      data.forEach(x => {
-        let mykeys = Object.keys(x.value);
-        let values = mykeys.map(d => ({
-          slice: d,
-          value: x.value[d][responseVar]
-        }));
-        x["values"] = values;
-      });
+      recalc_slice_values(data);
 
       // create a tooltip
       var tooltip = select("#mapid")
@@ -114,20 +116,16 @@ export const piechart_overlay = () => {
         .range([1, maxCircleSize])
         .domain([0, sum(data, radiusAccessor)]);
 
-      let pies = selection.selectAll(".pie").data(data, d => d.key);
+      let pies = selection.selectAll(".pie").data(data, (d) => d.key);
 
-      pies
-        .exit()
-        .transition()
-        .duration(200)
-        .remove();
+      pies.exit().transition().duration(200).remove();
 
       let piesEnter = pies
         .enter()
         .append("g")
         .attr("class", "pie")
-        .attr("id", d => d.key)
-        .on("click", function(d) {
+        .attr("id", (d) => d.key)
+        .on("click", function (d) {
           if (selectedPie && selectedPie === d.key) {
             // second click on same circle, turn off selectedPie and make point info empty:
             selectedPie = null;
@@ -144,7 +142,7 @@ export const piechart_overlay = () => {
 
       pies
         .merge(piesEnter)
-        .attr("transform", function(d) {
+        .attr("transform", function (d) {
           let translate = getProjection(d.coordinates[0], d.coordinates[1]);
           return `translate( ${translate.x}  ${translate.y} )`;
         })
@@ -170,15 +168,15 @@ export const piechart_overlay = () => {
           .attr("height", r * 2);
 
         let slices = svg.selectAll(".arc").data(
-          d => myPie(d.values),
-          d => d.index
+          (d) => myPie(d.values),
+          (d) => d.index
         );
 
         let slicesEnter = slices
           .enter()
           .append("path")
           .attr("class", "arc")
-          .on("mouseover", function(d) {
+          .on("mouseover", function (d) {
             let slug = this.parentElement.id;
             let label = labelLookup[slug];
 
@@ -198,12 +196,12 @@ export const piechart_overlay = () => {
             }
             tooltip.style("visibility", "visible").html(html);
           })
-          .on("mousemove", function() {
+          .on("mousemove", function () {
             return tooltip
               .style("top", event.layerY - 5 + "px")
               .style("left", event.layerX + 15 + "px");
           })
-          .on("mouseout", function(d) {
+          .on("mouseout", function (d) {
             select(this).classed("hover", false);
             highlight_row(d, false);
             tooltip.style("visibility", "hidden").html("");
@@ -212,7 +210,7 @@ export const piechart_overlay = () => {
         slices
           .merge(slicesEnter)
           .attr("d", myArc.outerRadius(r))
-          .style("fill", d => fillScale(d.data.slice));
+          .style("fill", (d) => fillScale(d.data.slice));
 
         slices.exit().remove();
       }
@@ -224,68 +222,69 @@ export const piechart_overlay = () => {
   };
 
   // update our data
-  chart.data = function(value) {
+  chart.data = function (value) {
     if (!arguments.length) return data;
     data = value;
+    recalc_slice_values(data);
     return chart;
   };
 
-  chart.getProjection = function(value) {
+  chart.getProjection = function (value) {
     if (!arguments.length) return getProjection;
     getProjection = value;
     return chart;
   };
 
-  chart.radiusAccessor = function(value) {
+  chart.radiusAccessor = function (value) {
     if (!arguments.length) return radiusAccessor;
     radiusAccessor = value;
     return chart;
   };
 
-  chart.fillAccessor = function(value) {
+  chart.fillAccessor = function (value) {
     if (!arguments.length) return fillAccessor;
     fillAccessor = value;
     return chart;
   };
 
-  chart.fillScale = function(value) {
+  chart.fillScale = function (value) {
     if (!arguments.length) return fillScale;
     fillScale = value;
     return chart;
   };
 
-  chart.keyfield = function(value) {
+  chart.keyfield = function (value) {
     if (!arguments.length) return keyfield;
     keyfield = value;
     return chart;
   };
 
-  chart.responseVar = function(value) {
+  chart.responseVar = function (value) {
     if (!arguments.length) return responseVar;
     responseVar = value;
     return chart;
   };
 
-  chart.maxCircleSize = function(value) {
+  chart.maxCircleSize = function (value) {
     if (!arguments.length) return maxCircleSize;
     maxCircleSize = value;
     return chart;
   };
 
-  chart.pointInfoSelector = function(value) {
+  chart.pointInfoSelector = function (value) {
     if (!arguments.length) return pointInfoSelector;
     pointInfoSelector = value;
     return chart;
   };
 
-  chart.selectedPie = function(value) {
+  chart.selectedPie = function (value) {
     if (!arguments.length) return selectedPie;
     selectedPie = value;
     return chart;
   };
 
   // our object to connect pie chart keys (slugs) with their pretty labels
-  chart.labelLookup = function(value) {
+  chart.labelLookup = function (value) {
     if (!arguments.length) return labelLookup;
     labelLookup = value;
     return chart;
@@ -293,7 +292,7 @@ export const piechart_overlay = () => {
 
   // the function that populates point info div with information
   // about the selectedPie point
-  chart.get_pointInfo = function(value) {
+  chart.get_pointInfo = function (value) {
     if (!arguments.length) return get_pointInfo;
     get_pointInfo = value;
     return chart;

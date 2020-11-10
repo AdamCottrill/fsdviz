@@ -35,10 +35,12 @@ export const update_dc_url = () => {
   dc.chartRegistry.list().forEach((plot) => {
     let filters = plot.filters();
     let anchor = plot.anchorName();
-    if (anchor == "stackedbar-chart") {
-      dc_filters[anchor] = filters[0][0].join(",");
-    } else {
-      dc_filters[anchor] = filters.join(",");
+    if (typeof filters[0] !== "undefined") {
+      if (anchor == "stackedbar-chart") {
+        dc_filters[anchor] = filters[0].slice(0, 2).join(",");
+      } else {
+        dc_filters[anchor] = filters.join(",");
+      }
     }
   });
 
@@ -65,12 +67,9 @@ export const apply_url_filters = () => {
     let val = get_url_filters(anchor, url);
     if (val) {
       let filterValues = val.split(",");
-      console.log("anchor= ", anchor, filterValues);
       if (anchor == "stackedbar-chart") {
         let asNumber = filterValues.map(Number);
-        // TODO - figure out to set or replace a range filter on a
-        // stacked bar plot.
-        //plot.replaceFilter(dc.filters.RangedFilter(asNumber));
+        plot.replaceFilter(dc.filters.RangedFilter(asNumber[0], asNumber[1]));
       } else {
         plot.replaceFilter([filterValues]);
       }

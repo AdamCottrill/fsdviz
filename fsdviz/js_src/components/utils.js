@@ -1,5 +1,5 @@
 // a function to prepare the json stocking data for use in our map
-export const prepare_stocking_data = data => {
+export const prepare_stocking_data = (data) => {
   data.point = [+data.dd_lon, +data.dd_lat];
   data.geom = "Point(" + data.dd_lon + " " + data.dd_lat + ")";
   data.total = +data.total_stocked;
@@ -11,24 +11,40 @@ export const prepare_stocking_data = data => {
 
 // a funciton to add an element to our filter registry for a dimension
 // and set the filter to include all of the values in that dimension
-// (all boxes will be checked to start)
-export const initialize_filter = (filters, key, dim) => {
+// (all boxes will be checked to start) query_args is an optional
+// object containing any query arguments parsed out of the url.
+export const initialize_filter = (filters, key, dim, query_args) => {
+  query_args = typeof query_args === "undefined" ? {} : query_args;
+
   let values = dim
     .group()
     .all()
-    .map(d => d.key);
+    .map((d) => d.key);
 
-  filters[key] = { values: values, is_filtered: false };
+  if (typeof query_args[key] === "undefined") {
+    filters[key] = { values: values, is_filtered: false };
+  } else {
+    values = query_args[key].split(",");
+    filters[key] = { values: values, is_filtered: true };
+  }
 
-  dim.filter(val => filters[key].values.indexOf(val) > -1);
+  dim.filter((val) => filters[key].values.indexOf(val) > -1);
 };
 
 // convert pts as wkt to array of two floats
 // this: "Point(-84.0326737783168 45.7810170315535)" becomes
 // this: [-84.0326737783168, 45.7810170315535]
-export const get_coordinates = pt => {
+export const get_coordinates = (pt) => {
   let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
   return [parseFloat(coords[0]), parseFloat(coords[1])];
+};
+
+export const makeLookup = (itemList, key_index = 0, value_index = 1) => {
+  const itemMap = itemList.reduce((accumulator, d) => {
+    accumulator[d[key_index]] = d[value_index];
+    return accumulator;
+  }, {});
+  return itemMap;
 };
 
 //

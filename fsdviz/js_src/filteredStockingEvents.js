@@ -28,7 +28,7 @@ import {
 
 import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
-import { get_coordinates } from "./components/utils";
+import { get_coordinates, makeLookup } from "./components/utils";
 import { piechart_overlay } from "./components/piechart_overlay";
 import {
   stockingAdd,
@@ -52,7 +52,7 @@ let spatialUnit = getUrlParamValue("spatial_unit") || "jurisdiction";
 
 // this should probably be 'category'
 let varName = getUrlParamValue("category_var") || "species_code";
-console.log("varName = ", varName);
+
 let responseVar = getUrlParamValue("response_var") || "yreq";
 //let column = "yreq_stocked";
 // TODO:make ylabel a function of the response variable radio buttons array:
@@ -65,20 +65,24 @@ const labelLookup = {};
 // these assume the clip-lookup script has already been loaded.  these
 // will need to moved below promise() when we update the database and
 // serializers to include mark, clips, tags:
-const clipMap = clipLookup.reduce((accumulator, d) => {
-  accumulator[d[0]] = d[1];
-  return accumulator;
-}, {});
+// const clipMap = clipLookup.reduce((accumulator, d) => {
+//   accumulator[d[0]] = d[1];
+//   return accumulator;
+// }, {});
 
-const tagMap = tagLookup.reduce((accumulator, d) => {
-  accumulator[d[0]] = d[1];
-  return accumulator;
-}, {});
+// const tagMap = tagLookup.reduce((accumulator, d) => {
+//   accumulator[d[0]] = d[1];
+//   return accumulator;
+// }, {});
 
-const markMap = markLookup.reduce((accumulator, d) => {
-  accumulator[d[0]] = d[1];
-  return accumulator;
-}, {});
+// const markMap = markLookup.reduce((accumulator, d) => {
+//   accumulator[d[0]] = d[1];
+//   return accumulator;
+// }, {});
+
+const markMap = makeLookup(markLookup);
+const clipMap = makeLookup(clipLookup);
+const tagMap = makeLookup(tagLookup);
 
 // these assume that all_species and speciesColours have already been
 // loaded from the ~/js/speciesColors.js file.
