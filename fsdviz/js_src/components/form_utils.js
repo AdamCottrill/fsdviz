@@ -7,7 +7,7 @@ export async function getChoices(url, success, errmsg) {
     success: success,
     error: () => {
       console.log(errmsg);
-    }
+    },
   });
 }
 
@@ -41,11 +41,7 @@ export const update_selector = (selectorID, parentID, newOptions) => {
   el.empty(); // remove old options
 
   if (!Object.values(newOptions).includes(previous_text)) {
-    el.append(
-      $("<option></option>")
-        .attr("value", "-999")
-        .text(previous_text)
-    );
+    el.append($("<option></option>").attr("value", "-999").text(previous_text));
 
     const msg = `'${previous_text}' is not a valid choice for ${parent_text}`;
     //setInvalid(el, msg);
@@ -56,11 +52,7 @@ export const update_selector = (selectorID, parentID, newOptions) => {
   }
 
   $.each(newOptions, (value, label) => {
-    el.append(
-      $("<option></option>")
-        .attr("value", value)
-        .text(label)
-    );
+    el.append($("<option></option>").attr("value", value).text(label));
   });
 
   if (Object.values(newOptions).includes(previous_text)) {
@@ -78,7 +70,7 @@ export const setInvalid = (field, errMsg) => {
   input.attr("data-html", errMsg).attr("data-position", "top center");
 };
 
-export const setValid = field => {
+export const setValid = (field) => {
   let id = field.id ? field.id : field[0].id;
   let wrapper = $("#" + id + "-field");
   wrapper.removeClass("error");
@@ -132,6 +124,7 @@ export const removeError = (targetid, errorid) => {
 // catch April 31, ect.
 // if the input is the same as the output we are good:
 export const isValidDate = (year, month, day) => {
+  month = month - 1;
   let d = new Date(year, month, day);
   let now = new Date();
 
@@ -161,12 +154,12 @@ export const checkRange = (field, lower, upper, integer = true) => {
   }
 };
 
-export const isEmpty = value => {
+export const isEmpty = (value) => {
   if (value === "") return true;
   return false;
 };
 
-export const checkEmpty = field => {
+export const checkEmpty = (field) => {
   if (isEmpty(field.value.trim())) {
     //set field invalid
     //setInvalid(field, `${field.name} must not be empty`);
@@ -180,7 +173,7 @@ export const checkEmpty = field => {
   }
 };
 
-export const checkLatLon = field => {
+export const checkLatLon = (field) => {
   // if this is lat, get lon, if this is lon get lat not need for
   // single, event, but will be required for formset (that will have
   // mutiple lats and longs - get the one from the same row)

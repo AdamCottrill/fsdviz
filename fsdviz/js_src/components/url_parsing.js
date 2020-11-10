@@ -1,4 +1,6 @@
-/* global $, dc, location */
+/* global , dc, location */
+
+import $ from "jquery";
 
 //===============================================
 //          URL PARSING AND UPDATING
@@ -30,7 +32,7 @@ export const update_dc_url = () => {
   delete current[""];
 
   let dc_filters = {};
-  dc.chartRegistry.list().forEach(plot => {
+  dc.chartRegistry.list().forEach((plot) => {
     let filters = plot.filters();
     let anchor = plot.anchorName();
     if (anchor == "stackedbar-chart") {
@@ -45,7 +47,7 @@ export const update_dc_url = () => {
 
   // remove any keys that are empty:
   Object.keys(current).forEach(
-    key => current[key] == "" && delete current[key]
+    (key) => current[key] == "" && delete current[key]
   );
 
   let url = decodeURIComponent($.param(current));
@@ -58,7 +60,7 @@ export const apply_url_filters = () => {
   let url = location.hash;
   // loop over our plots and see of any othe anchor-tags appear in the url
   // if so - spit them out (for now)
-  dc.chartRegistry.list().forEach(plot => {
+  dc.chartRegistry.list().forEach((plot) => {
     let anchor = plot.anchorName();
     let val = get_url_filters(anchor, url);
     if (val) {
@@ -90,12 +92,12 @@ export const get_url_filters = (chartAnchor, url) => {
 //https://stackoverflow.com/questions/1131630
 // given an url string, return an object containing the key-value pairs of
 // query parameters.
-export const parseParams = str => {
+export const parseParams = (str) => {
   return str
     .replace("#", "")
     .split("&")
-    .reduce(function(params, param) {
-      let paramSplit = param.split("=").map(function(value) {
+    .reduce(function (params, param) {
+      let paramSplit = param.split("=").map(function (value) {
         return decodeURIComponent(value.replace(/\+/g, " "));
       });
       params[paramSplit[0]] = paramSplit[1];
@@ -108,21 +110,21 @@ export const updateUrlParams = (key, value) => {
   if (value == "" || typeof value === "undefined") {
     delete current[key];
   } else {
-    current[key] = value;
+    current[key] = typeof value === "object" ? value.join(",") : value;
   }
   delete current[""];
   let url = decodeURIComponent($.param(current));
   window.location.hash = url;
 };
 
-export const getUrlParamValue = param => {
+export const getUrlParamValue = (param) => {
   let current = parseParams(window.location.hash);
   return current[param];
 };
 
 // a helper function that will update the url based on the contents of filters
 // called when the check boxes are clicked.
-export const updateUrlCheckBoxParams = filters_obj => {
+export const updateUrlCheckBoxParams = (filters_obj) => {
   //console.log("filters_obj = ", filters_obj);
 
   // update the url with the current state of the filters - delete
