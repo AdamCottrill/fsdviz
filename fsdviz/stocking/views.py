@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count, Q, Max, Sum, F
+from django.db.models import Count, Q, Min, Max, Sum, F
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
@@ -263,7 +263,13 @@ class PieChartMapView(TemplateView):
 
    ``slug`` - the slug selected lake, jurisdiction, or management unit
 
-   ``label - the slug selected lake, jurisdiction, or management unit
+   ``label`` - the slug selected lake, jurisdiction, or management unit
+
+
+   ``year_range``
+
+      the maximum and minimum year of the stocking events with the
+      same criteria as the selected queryset
 
     """
 
@@ -274,6 +280,8 @@ class PieChartMapView(TemplateView):
 
         spatialUnit = "basin"
         obj = None
+
+        year_range = StockingEvent.objects.all()
 
         year = self.kwargs.get("year")
         if year:
@@ -289,6 +297,7 @@ class PieChartMapView(TemplateView):
             )
             spatialUnit = "lake"
             obj = Lake.objects.get(abbrev=lake_name)
+            year_range = year_range.filter(jurisdiction__lake__lake_abbrev=lake_name)
 
         jurisdiction_slug = self.kwargs.get("jurisdiction")
         if jurisdiction_slug:
@@ -299,6 +308,9 @@ class PieChartMapView(TemplateView):
             spatialUnit = "jurisdiction"
             obj = Jurisdiction.objects.get(slug=jurisdiction_slug)
 
+            year_range = year_range.filter(jurisdiction__slug=jurisdiction_slug)
+
+
         #        slug = self.kwargs.get('management_unit')
         #        if manUnit_slug:
         #            spatialUnit = 'manUnit'
@@ -306,6 +318,8 @@ class PieChartMapView(TemplateView):
 
         context["dataUrl"] = dataUrl
         context["spatialUnit"] = spatialUnit
+        context["year_range"] = year_range.aggregate(first_year=Min("year"), last_year=Max('year'))
+
 
         if obj:
             context["slug"] = obj.slug
@@ -924,16 +938,18 @@ class CWTListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(CWTListView, self).get_context_data(**kwargs)
 
-        search_q = self.request.GET.get("q")
-        context["search_criteria"] = search_q
+        contains = self.request.GET.get("contains")
+        context["contains_criteria"] = contains
+        context["filters"] = self.request.GET
+
         # jurisdiction_slug = self.kwargs.get("jurisdiction")
         # lake_name = self.kwargs.get("lake_name")
 
         basequery = CWTSequenceFilter(self.request.GET, CWTsequence.objects.all()).qs
 
-        if search_q:
+        if contains:
             basequery = basequery.filter(
-                Q(cwt__cwt_number__icontains=search_q.replace("-", ""))
+                Q(cwt__cwt_number__icontains=contains.replace("-", ""))
             )
 
         # if lake_name:
@@ -1007,6 +1023,7 @@ class CWTListView(ListView):
             .annotate(n=Count("id"))
             .order_by()
         )
+
         return context
 
     def get_queryset(self):
@@ -1015,7 +1032,7 @@ class CWTListView(ListView):
         year = self.kwargs.get("year")
         jurisdiction = self.kwargs.get("jurisdiction")
         # get the value of q from the request kwargs
-        search_q = self.request.GET.get("q")
+        contains = self.request.GET.get("contains")
 
         field_aliases = {
             "cwt_number": F("cwt__cwt_number"),
@@ -1080,9 +1097,9 @@ class CWTListView(ListView):
         if jurisdiction:
             queryset = queryset.filter(jurisdiction__slug=jurisdiction)
 
-        if search_q:
+        if contains:
             queryset = queryset.filter(
-                Q(cwt__cwt_number__icontains=search_q.replace("-", ""))
+                cwt__cwt_number__icontains=contains.replace("-", "")
             )
 
         filtered_list = CWTSequenceFilter(self.request.GET, queryset=queryset).qs

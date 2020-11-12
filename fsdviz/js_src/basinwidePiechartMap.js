@@ -1,4 +1,4 @@
-/* global  $, dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, */
+/* global  $, dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, yearRange, currentYear */
 
 import debug from "debug";
 
@@ -54,6 +54,36 @@ const update_clear_button_state = (filters) => {
 
   let clear_button = select("#clear-filters-button");
   clear_button.classed("disabled", !filtered);
+};
+
+const updateYearButtons = () => {
+  // if any of the url parameters change, update the href of the previous and next years
+  // so that any filters or settings are preserved and we can navigate through time.
+  // if the current year >= than maxYear, disable the next-year-button
+  // if the current year <= than minYear, disable the previous-year-button
+
+  let hash = window.location.hash;
+  let previousYearButton = document.getElementById("previous-year-btn");
+  let nextYearButton = document.getElementById("next-year-btn");
+
+  // replace any existing hash with the new hash and enable/disable the buttons if years exist.
+  let newUrl = nextYearButton.href.split("#")[0] + window.location.hash;
+  nextYearButton.setAttribute("href", newUrl);
+  nextYearButton.disabled = yearRange.last_year >= currentYear ? true : false;
+
+  if (currentYear >= yearRange.last_year) {
+    nextYearButton.classList.add("disabled");
+  } else {
+    nextYearButton.classList.remove("disabled");
+  }
+
+  newUrl = previousYearButton.href.split("#")[0] + window.location.hash;
+  previousYearButton.setAttribute("href", newUrl);
+  if (currentYear <= yearRange.first_year) {
+    previousYearButton.classList.add("disabled");
+  } else {
+    previousYearButton.classList.remove("disabled");
+  }
 };
 
 const filters = {};
@@ -391,6 +421,8 @@ Promise.all([
     what: sliceVar,
   });
 
+  updateYearButtons();
+
   let clear_button = select("#clear-filters-button");
   clear_button.on("click", set_or_reset_filters);
 
@@ -596,6 +628,7 @@ Promise.all([
     spatialSelector.checked(spatialUnit).refresh();
     updatePieCharts();
     updateUrlParams("spatialUnit", value);
+    updateYearButtons();
   };
 
   // if the pie chart slice selector radio buttons changes, update
@@ -605,6 +638,7 @@ Promise.all([
     calcMapGroups();
     updatePieCharts();
     updateUrlParams("sliceVar", value);
+    updateYearButtons();
   };
 
   //==================================================+
@@ -623,6 +657,7 @@ Promise.all([
     piecharts.responseVar(responseVar);
     updatePieCharts();
     updateUrlParams("responseVar", responseVar);
+    updateYearButtons();
   });
 
   //==================================================+
@@ -727,6 +762,7 @@ Promise.all([
     // now we need to compile the list of filters needed to populate the url:
     // foo
     updateUrlCheckBoxParams(filters);
+    updateYearButtons();
 
     //// - update url when settings change
     //// - apply url params when page loads.

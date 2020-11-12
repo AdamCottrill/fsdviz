@@ -173,9 +173,9 @@
 
                             {% if year%}
 
-                                <a class="ui left labeled icon mini blue compact button" href="{% last_year year%}"><i class="left arrow icon"></i>Previous Year</a>
+                                <a class="ui left labeled icon mini blue compact button" id="previous-year-btn" href="{% last_year year%}"><i class="left arrow icon"></i>Previous Year</a>
 
-                                <a class="ui right labeled icon mini blue compact button" href="{% next_year year%}"><i class="right arrow icon"></i>Next Year</a>
+                                <a class="ui right labeled icon mini blue compact button" id="next-year-btn" href="{% next_year year%}"><i class="right arrow icon"></i>Next Year</a>
 
                             {% endif %}
                         </div>
@@ -288,7 +288,15 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 
+
+    {{ year_range|json_script:"year-range" }}
+    
     <script type="text/javascript">
+
+     const yearRange = JSON.parse(document.getElementById('year-range').textContent);
+     const currentYear = {{year}};
+
+     
      const dataURL =
          "/api/v1/stocking/mapdata/events/{{ year }}/";
 
