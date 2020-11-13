@@ -1,6 +1,7 @@
-/* global $ spatialAttrURL spatialAttrs */
+/* global $ spatialAttrURL spatialAttrs topojson */
 
 import helpers from "@turf/helpers";
+import bbox from "@turf/bbox";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 
 //export const checkPointInPoly = (lat, lon, spatialObjects, what) => {
@@ -64,9 +65,45 @@ export async function getSpatialAttrs(coords, url, token, success, error) {
     dataType: "json",
     data: {
       point: `POINT(${dd_lon} ${dd_lat})`,
-      csrfmiddlewaretoken: token
+      csrfmiddlewaretoken: token,
     },
     success: success,
-    error: error
+    error: error,
   });
 }
+
+// given our topojson file, the feature type, and the slug, return the
+// bounding box of that feature - used to set intial zoom of our
+// leaflet map.
+// feature type can be one of "lakes", "jurisdictions", or "manUnits"
+// get_feature_bbox(topodata, "lakes", "HU");
+// get_feature_bbox(topodata, "jurisdictions", "hu_on");
+// get_feature_bbox(topodata, "mus", "hu_mu_mh6");
+
+export const get_feature_bbox = (topodata, feature_type, slug) => {
+  return topojson
+    .feature(topodata, topodata.objects[feature_type])
+    .features.filter((d) => d.properties.slug === slug)
+    .map((d) => bbox(d));
+};
+
+// converst turf bbox which are of the form:
+// [minLon, minLat, maxLon, maxLat]
+// to leaflet bboxes which are of the form:
+// [[minLat, minLon], [maxLat, maxLon]]
+//  [41.38, -92.09],
+//  [49.01, -76.05],
+export const turfbbToLeafletbb = (turf_bb) => {
+  return [
+    [turf_bb[1], turf_bb[0]],
+    [turf_bb[3], turf_bb[2]],
+  ];
+};
+
+// convert pts as wkt to array of two floats
+// this: "Point(-84.0326737783168 45.7810170315535)" becomes
+// this: [-84.0326737783168, 45.7810170315535]
+export const get_coordinates = (pt) => {
+  let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
+  return [parseFloat(coords[0]), parseFloat(coords[1])];
+};

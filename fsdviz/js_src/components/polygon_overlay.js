@@ -5,6 +5,8 @@ import Leaflet from "leaflet";
 
 import { select, geoPath, geoTransform, min, max } from "d3";
 
+import { turfbbToLeafletbb } from "./spatial_utils";
+
 export const polygon_overlay = () => {
   let leafletMap;
 
@@ -18,8 +20,9 @@ export const polygon_overlay = () => {
   let manUnit_features;
 
   let labelLookup;
-
+  // spatial scale: one of basin, lake, jurisdiction, or management unit
   let spatialScale = "basin";
+  // selectedGeom is the slug of the currently selected geometry
   let selectedGeom;
 
   // this function is used to draw our polygons in screen coordinates:
@@ -31,39 +34,42 @@ export const polygon_overlay = () => {
   const transform = geoTransform({ point: projectPointPath });
   const geoPathGenerator = geoPath().projection(transform);
 
-  // a helper function that will trasform the bounding box from turf.js to
-  // the pair of arrays required by leaflet:
-  const bb_points = bb => [
-    [bb[1], bb[0]],
-    [bb[3], bb[2]]
-  ];
+  // // a helper function that will trasform the bounding box from turf.js to
+  // // the pair of arrays required by leaflet:
+  // const turfbbToLeafletbb = (bb) => [
+  //   [bb[1], bb[0]],
+  //   [bb[3], bb[2]],
+  // ];
 
   // a function to update our cross filter filters based on map state
   // passed in from main.js once polygon_overlay has been instantiated.
   let updateCrossfilter = (dimension, value) => {};
 
-  const geomClicked = function(d, what) {
+  const geomClicked = function (d, what) {
     select(this).classed("highlighted", false);
 
+    let slug = d.properties.slug;
+    let geometry = d.geometry;
+
     // update our globals
-    selectedGeom = d.properties.slug;
+    selectedGeom = slug;
     spatialScale = what;
     //Update Bread crumb
     select("#next-unit").text("");
-    addBreadcrumb(spatialScale, d.properties.slug);
+    addBreadcrumb(spatialScale, slug);
     //reset our map
-    const polygon_bbox = bbox(d.geometry);
-    leafletMap.flyToBounds(bb_points(polygon_bbox));
+    const polygon_bbox = bbox(geometry);
+    leafletMap.flyToBounds(turfbbToLeafletbb(polygon_bbox));
 
     updateCrossfilter(spatialScale, selectedGeom);
   };
 
   // create a lookup array we will use for displaying pretty names for things
   // identifeid by a slug:
-  const makeLabelLookup = features => {
+  const makeLabelLookup = (features) => {
     let lookup = {};
-    features.forEach(feature => {
-      feature.forEach(d => (lookup[d.properties.slug] = d.properties.label));
+    features.forEach((feature) => {
+      feature.forEach((d) => (lookup[d.properties.slug] = d.properties.label));
     });
     return lookup;
   };
@@ -86,14 +92,14 @@ export const polygon_overlay = () => {
 
   // used by click event on our polygon geometries - zoom to the extents
   // of the selected polygon
-  const zoomToFeature = (what, label) => {
+  let zoomToFeature = (what, label) => {
     if (what !== "manUnit") {
       spatialScale = what;
       let features = what === "lake" ? lake_features : jurisdiction_features;
-      let feature = features.filter(d => d.properties.label === label)[0];
+      let feature = features.filter((d) => d.properties.label === label)[0];
       let mybbox = bbox(feature.geometry);
       selectedGeom = feature.properties.slug;
-      leafletMap.flyToBounds(bb_points(mybbox));
+      leafletMap.flyToBounds(turfbbToLeafletbb(mybbox));
 
       // clear the breadcrumbs for levels lower than 'what'
       clearBreadcrumb("manUnit");
@@ -126,7 +132,7 @@ export const polygon_overlay = () => {
   };
 
   // remove the item of the thelist of breadcrumbs that correspond to what
-  const clearBreadcrumb = what => {
+  const clearBreadcrumb = (what) => {
     let selector = `#${what}-breadcrumb`;
     select(selector).html("");
     //TODO - clear filter for the appropriate spatial filter here
@@ -143,7 +149,7 @@ export const polygon_overlay = () => {
       spatialScale = "basin";
       selectedGeom = "";
 
-      leafletMap.flyToBounds(bb_points(basin_bbox));
+      leafletMap.flyToBounds(turfbbToLeafletbb(basin_bbox));
 
       clearBreadcrumb("manUnit");
       clearBreadcrumb("jurisdiction");
@@ -154,7 +160,7 @@ export const polygon_overlay = () => {
   };
 
   function chart(selection) {
-    selection.each(function(topodata) {
+    selection.each(function (topodata) {
       //===================================================
       // Polygons and Mapping geometries
       lake_features = topojson.feature(topodata, topodata.objects.lakes)
@@ -167,26 +173,26 @@ export const polygon_overlay = () => {
         .features;
 
       let tmp = manUnit_features.filter(
-        d => d.properties.jurisdiction === "mi_wi"
+        (d) => d.properties.jurisdiction === "mi_wi"
       );
 
       labelLookup = makeLabelLookup([
         lake_features,
         jurisdiction_features,
-        manUnit_features
+        manUnit_features,
       ]);
 
       // turf.union actually only takes two polygons - not an arbitrary number.
       // just use bbox on each lake and get the extents of those:
-      const bboxes = lake_features.map(d => bbox(d));
+      const bboxes = lake_features.map((d) => bbox(d));
       basin_bbox = [
-        min(bboxes, d => d[0]),
-        min(bboxes, d => d[1]),
-        max(bboxes, d => d[2]),
-        max(bboxes, d => d[3])
+        min(bboxes, (d) => d[0]),
+        min(bboxes, (d) => d[1]),
+        max(bboxes, (d) => d[2]),
+        max(bboxes, (d) => d[3]),
       ];
 
-      leafletMap.fitBounds(bb_points(basin_bbox));
+      leafletMap.fitBounds(turfbbToLeafletbb(basin_bbox));
 
       basinBreadCrumbOnClick();
 
@@ -199,14 +205,14 @@ export const polygon_overlay = () => {
         .append("path")
         .attr("class", "geopath")
         .classed("lake", true)
-        .attr("id", d => d.properties.slug)
+        .attr("id", (d) => d.properties.slug)
         .style("visibility", () =>
           spatialScale === "basin" ? "visible" : "hidden"
         )
         .on("mouseover", highlightGeom)
         .on("mouseout", unhighlightGeom);
 
-      lakes.on("click", function(d) {
+      lakes.on("click", function (d) {
         geomClicked(d, "lake");
       });
 
@@ -219,11 +225,11 @@ export const polygon_overlay = () => {
         .append("path")
         .attr("class", "geopath")
         .classed("jurisdiction", true)
-        .attr("id", d => d.properties.slug)
+        .attr("id", (d) => d.properties.slug)
         .on("mouseover", highlightGeom)
         .on("mouseout", unhighlightGeom);
 
-      jurisdictions.on("click", function(d) {
+      jurisdictions.on("click", function (d) {
         geomClicked(d, "jurisdiction");
       });
 
@@ -236,11 +242,11 @@ export const polygon_overlay = () => {
         .append("path")
         .attr("class", "geopath")
         .classed("manUnit", true)
-        .attr("id", d => d.properties.slug)
+        .attr("id", (d) => d.properties.slug)
         .on("mouseover", highlightGeom)
         .on("mouseout", unhighlightGeom);
 
-      manUnits.on("click", function(d) {
+      manUnits.on("click", function (d) {
         geomClicked(d, "manUnit");
       });
     });
@@ -256,7 +262,7 @@ export const polygon_overlay = () => {
         spatialScale === "basin" ? "visible" : "hidden"
       );
 
-    jurisdictions.attr("d", geoPathGenerator).style("visibility", d => {
+    jurisdictions.attr("d", geoPathGenerator).style("visibility", (d) => {
       // we only want to display jurisdiction that are in the selected Lake:
       if ((spatialScale === "lake") & (d.properties.lake === selectedGeom)) {
         return "visible";
@@ -265,7 +271,7 @@ export const polygon_overlay = () => {
       }
     });
 
-    manUnits.attr("d", geoPathGenerator).style("visibility", d => {
+    manUnits.attr("d", geoPathGenerator).style("visibility", (d) => {
       // we only want to display management units that are in the
       // selected jurisdiction or the selected management unit
       if (
@@ -280,13 +286,25 @@ export const polygon_overlay = () => {
     });
   };
 
-  chart.leafletMap = function(value) {
+  chart.leafletMap = function (value) {
     if (!arguments.length) return leafletMap;
     leafletMap = value;
     return chart;
   };
 
-  chart.updateCrossfilter = function(value) {
+  chart.spatialScale = function (value) {
+    if (!arguments.length) return spatialScale;
+    spatialScale = value;
+    return chart;
+  };
+
+  chart.selectedGeom = function (value) {
+    if (!arguments.length) return selectedGeom;
+    selectedGeom = value;
+    return chart;
+  };
+
+  chart.updateCrossfilter = function (value) {
     if (!arguments.length) return updateCrossfilter;
     updateCrossfilter = value;
     return chart;

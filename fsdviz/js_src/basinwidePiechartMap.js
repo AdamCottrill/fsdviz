@@ -9,11 +9,13 @@ import Leaflet from "leaflet";
 
 import { checkBoxes } from "./components/checkBoxArray";
 
+import { prepare_stocking_data, initialize_filter } from "./components/utils";
+
 import {
-  prepare_stocking_data,
-  initialize_filter,
+  get_feature_bbox,
   get_coordinates,
-} from "./components/utils";
+  turfbbToLeafletbb,
+} from "./components/spatial_utils";
 
 import {
   stockingAdd,
@@ -124,13 +126,16 @@ let mapState = getUrlParamValue("mapState")
   ? getUrlParamValue("mapState")
   : "basin-all";
 
-console.log("spatialUnit = ", spatialUnit);
-console.log("sliceVar = ", sliceVar);
-console.log("mapState = ", mapState);
-console.log("responseVar = ", responseVar);
-
 //let column = "events";
 let column = responseVar;
+
+// a map from mapState strings to feature types in topodata
+// used to pluck our geometries and calculate bounding box for map.
+const mapState2FeatureType = {
+  lake: "lakes",
+  jurisdiction: "jurisdictions",
+  manUnit: "mus",
+};
 
 // setup the map with rough bounds (need to get pies to plot first,
 // this will be tweaked later):
@@ -241,6 +246,8 @@ Promise.all([
   json("/api/v1/stocking/lookups"),
   json("/api/v1/common/lookups"),
 ]).then(([data, centroids, topodata, slugs, stocking, common]) => {
+  // center our map based on mapState variable and data in topodata
+
   species_lookup = common["species"].reduce((accumulator, d) => {
     accumulator[d.abbrev] = d.common_name;
     return accumulator;
@@ -292,6 +299,80 @@ Promise.all([
     },
     {}
   );
+
+  // an accessor function to get values of our currently selected
+  // response variable.
+  let ptAccessor = (d) =>
+    Object.keys(d.value).map((x) => d.value[x][responseVar]);
+
+  // a helper function to get the data in the correct format for plotting on the map.
+  const get_pts = (spatialUnit, centriods, ptAccessor) => {
+    let pts;
+
+    switch (spatialUnit) {
+      case "lake":
+        pts = Object.values(lakeMapGroup.all());
+        break;
+      case "stateProv":
+        pts = Object.values(stateProvMapGroup.all());
+        break;
+      case "jurisdiction":
+        pts = Object.values(jurisdictionMapGroup.all());
+        break;
+      case "manUnit":
+        pts = Object.values(manUnitMapGroup.all());
+        break;
+      case "grid10":
+        pts = Object.values(grid10MapGroup.all());
+        break;
+      case "geom":
+        pts = Object.values(geomMapGroup.all());
+        break;
+    }
+
+    if (spatialUnit === "geom") {
+      pts.forEach((d) => (d["coordinates"] = get_coordinates(d.key)));
+    } else {
+      pts.forEach((d) => (d["coordinates"] = centroids[spatialUnit][d.key]));
+    }
+    pts.forEach((d) => (d["total"] = sum(ptAccessor(d))));
+
+    return pts.filter((d) => d.total > 0);
+  };
+
+  // recacalculate the points given the current spatial unit and
+  // point accessor
+  const updatePieCharts = () => {
+    let pts = get_pts(spatialUnit, centroids, ptAccessor);
+    pieg.data([pts]).call(piecharts);
+    piecharts.selectedPie(null).clear_pointInfo();
+
+    update_stats_panel(all, {
+      fillScale: speciesColourScale,
+      label: slices.filter((d) => d.name === sliceVar)[0].label,
+      what: sliceVar,
+    });
+  };
+
+  // if the spatial radio buttons change, update the global variable
+  // and update the pie charts
+  const update_spatialUnit = (value) => {
+    spatialUnit = value;
+    spatialSelector.checked(spatialUnit).refresh();
+    updatePieCharts();
+    updateUrlParams("spatialUnit", value);
+    updateYearButtons();
+  };
+
+  // if the pie chart slice selector radio buttons changes, update
+  // the global variable and update the pie charts
+  const update_sliceVar = (value) => {
+    sliceVar = value;
+    calcMapGroups();
+    updatePieCharts();
+    updateUrlParams("sliceVar", value);
+    updateYearButtons();
+  };
 
   // prepare our stocking data and set up our cross filters:
 
@@ -523,123 +604,90 @@ Promise.all([
     filters: filters,
   });
 
-  // an accessor function to get values of our currently selected
-  // response variable.
-  let ptAccessor = (d) =>
-    Object.keys(d.value).map((x) => d.value[x][responseVar]);
-
-  // a helper function to get the data in the correct format for plotting on the map.
-  const get_pts = (spatialUnit, centriods, ptAccessor) => {
-    let pts;
-
-    switch (spatialUnit) {
-      case "lake":
-        pts = Object.values(lakeMapGroup.all());
-        break;
-      case "stateProv":
-        pts = Object.values(stateProvMapGroup.all());
-        break;
-      case "jurisdiction":
-        pts = Object.values(jurisdictionMapGroup.all());
-        break;
-      case "manUnit":
-        pts = Object.values(manUnitMapGroup.all());
-        break;
-      case "grid10":
-        pts = Object.values(grid10MapGroup.all());
-        break;
-      case "geom":
-        pts = Object.values(geomMapGroup.all());
-        break;
-    }
-
-    if (spatialUnit === "geom") {
-      pts.forEach((d) => (d["coordinates"] = get_coordinates(d.key)));
-    } else {
-      pts.forEach((d) => (d["coordinates"] = centroids[spatialUnit][d.key]));
-    }
-    pts.forEach((d) => (d["total"] = sum(ptAccessor(d))));
-
-    return pts.filter((d) => d.total > 0);
-  };
-
   // we need to create a function to update the crossfilter based on
   // the current state of our map.  it needs to take two arguments:
   // dimension and value; note - we may need to update the spatial
   // resolution to be limited to only those below the currently
   // selected spatial unit:
-  const updateCrossfilter = (dimension, value) => {
-    // when we update our cross filter dimension, we also
+  const updateCrossfilter = (spatialScale, value) => {
+    // when we update our cross filter spatialScale, we also
     // need to remove any existing filters from lower levels.  If
     // we go back to Lake from a management unit, all
     // management units to be included in the results.
 
-    switch (dimension) {
+    const spatialScales = strata.map((d) => d.name);
+    // if the index of the spatial unit is less than the spatial scale - we need to update
+    // the spatial unit to a more appropriate value
+    // if spatialScales.indexOf(spatialUnit) < spatialScales.indexOf(spatialScale)
+    //
+
+    let updateUnit =
+      ~spatialScales.indexOf(spatialScale) &&
+      spatialScales.indexOf(spatialUnit) <= spatialScales.indexOf(spatialScale)
+        ? true
+        : false;
+
+    switch (spatialScale) {
       case "basin":
         lakePolygonDim.filterAll();
         jurisdictionPolygonDim.filterAll();
         manUnitPolygonDim.filterAll();
-        update_spatialUnit("jurisdiction");
+        if (updateUnit) {
+          update_spatialUnit("jurisdiction");
+        }
         break;
       case "lake":
         lakePolygonDim.filter(value);
         jurisdictionPolygonDim.filterAll();
         manUnitPolygonDim.filterAll();
-        update_spatialUnit("jurisdiction");
+        if (updateUnit) {
+          update_spatialUnit("jurisdiction");
+        }
         break;
       case "jurisdiction":
         jurisdictionPolygonDim.filter(value);
         manUnitPolygonDim.filterAll();
-        update_spatialUnit("manUnit");
+        if (updateUnit) {
+          update_spatialUnit("manUnit");
+        }
         break;
       case "manUnit":
         manUnitPolygonDim.filter(value);
-        update_spatialUnit("grid10");
+        if (updateUnit) {
+          update_spatialUnit("grid10");
+        }
         break;
     }
     let tmp = value == "" ? "all" : value;
-    updateUrlParams("mapState", `${dimension}-${tmp}`);
+    updateUrlParams("mapState", `${spatialScale}-${tmp}`);
   };
 
-  polygons.updateCrossfilter(updateCrossfilter);
+  // if the map not set to the basin wide view, update it to the dimension and value
+  // encoded in the global mapState variable.
+  if (mapState !== "basin-all") {
+    let splitState = mapState.split("-");
+    let feature_type = mapState2FeatureType[splitState[0]];
+    let slug = splitState[1];
+
+    updateCrossfilter(splitState[0], slug);
+    polygons
+      .updateCrossfilter(updateCrossfilter)
+      .selectedGeom(slug)
+      .spatialScale(splitState[0]);
+
+    let bbox = get_feature_bbox(topodata, feature_type, slug);
+    bbox = turfbbToLeafletbb(bbox[0]);
+    mymap.fitBounds(bbox, { padding: [50, 50] });
+
+    // add the breadcrumbs for any parents of our seleted objects
+  } else {
+    polygons.updateCrossfilter(updateCrossfilter);
+  }
+
   polygons.render();
 
   let pts = get_pts(spatialUnit, centroids, ptAccessor);
   pieg.data([pts]).call(piecharts);
-
-  // recacalculate the points given the current spatial unit and
-  // point accessor
-  const updatePieCharts = () => {
-    pts = get_pts(spatialUnit, centroids, ptAccessor);
-    pieg.data([pts]).call(piecharts);
-    piecharts.selectedPie(null).clear_pointInfo();
-
-    update_stats_panel(all, {
-      fillScale: speciesColourScale,
-      label: slices.filter((d) => d.name === sliceVar)[0].label,
-      what: sliceVar,
-    });
-  };
-
-  // if the spatial radio buttons change, update the global variable
-  // and update the pie charts
-  const update_spatialUnit = (value) => {
-    spatialUnit = value;
-    spatialSelector.checked(spatialUnit).refresh();
-    updatePieCharts();
-    updateUrlParams("spatialUnit", value);
-    updateYearButtons();
-  };
-
-  // if the pie chart slice selector radio buttons changes, update
-  // the global variable and update the pie charts
-  const update_sliceVar = (value) => {
-    sliceVar = value;
-    calcMapGroups();
-    updatePieCharts();
-    updateUrlParams("sliceVar", value);
-    updateYearButtons();
-  };
 
   //==================================================+
   //         RADIO BUTTON CHANGE LISTENERS

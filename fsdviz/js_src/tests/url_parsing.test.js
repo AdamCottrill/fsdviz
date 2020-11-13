@@ -32,6 +32,14 @@ www.example.com/#foo=1&baz=red%20cars => getUrlParamValue('bar') = Null
     expect(getUrlParamValue("foo")).toBe("1");
   });
 
+  test("getUrlParamValue should parse spatialUnit", () => {
+    // this a test of an actaul url that was causing problems
+    const url = "http://127.0.0.1:8000/stocking/events/2016/#spatialUnit=geom";
+    delete window.location;
+    window.location = new URL(url);
+    expect(getUrlParamValue("spatialUnit")).toBe("geom");
+  });
+
   test("getUrlParamValue should parse csv query", () => {
     const url = "https://www.example.com/#foo=red,blue";
     delete window.location;

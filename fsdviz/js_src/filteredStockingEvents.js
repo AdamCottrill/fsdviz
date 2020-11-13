@@ -28,7 +28,8 @@ import {
 
 import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
-import { get_coordinates, makeLookup } from "./components/utils";
+import { get_coordinates } from "./components/spatial_utils";
+import { makeLookup } from "./components/utils";
 import { piechart_overlay } from "./components/piechart_overlay";
 import {
   stockingAdd,
