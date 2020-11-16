@@ -121,7 +121,7 @@ class StockingEventSerializer(serializers.ModelSerializer):
             "year_class",
             "agemonth",
             "tag_no",
-            "clipa",
+            # "clipa",
             "mark",
             "agency",
             "condition",

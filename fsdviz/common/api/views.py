@@ -119,7 +119,7 @@ def pt_spatial_attrs(request):
             stateprov_id=jurisdiction.stateprov.id,
             stateprov_abbrev=jurisdiction.stateprov.abbrev,
             stateprov_name=jurisdiction.stateprov.name,
-            # jurisdiciton attributes
+            # jurisdiction attributes
             jurisdiction_name=jurisdiction.name,
             centroid=jurisdiction.geom.centroid.wkt,
         )
@@ -231,7 +231,7 @@ def get_jurisdiction_from_pt(request):
             stateprov_id=jurisdiction.stateprov.id,
             stateprov_abbrev=jurisdiction.stateprov.abbrev,
             stateprov_name=jurisdiction.stateprov.name,
-            # jurisdiciton attributes
+            # jurisdiction attributes
             jurisdiction_name=jurisdiction.name,
             centroid=jurisdiction.geom.centroid.wkt,
             extent=jurisdiction.geom.extent,
@@ -386,7 +386,7 @@ class JurisdictionViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """from: http://ses4j.github.io/2015/11/23/
-           optimizing-slow-django-rest-framework-performance/
+        optimizing-slow-django-rest-framework-performance/
         """
         queryset = Jurisdiction.objects.all()
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
@@ -428,7 +428,7 @@ class StrainSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """from: http://ses4j.github.io/2015/11/23/
-           optimizing-slow-django-rest-framework-performance/
+        optimizing-slow-django-rest-framework-performance/
         """
         queryset = Strain.objects.distinct()
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
@@ -517,6 +517,18 @@ class CommonLookUpsAPIView(APIView):
             jur.pop("lake__abbrev", None)
             jur.pop("stateprov__abbrev", None)
 
+        jurisdiction_dict = {x["slug"]: x for x in jurisdictions}
+        # managementUnits = list(ManagementUnit.objects.filter(primary=True))
+
+        manUnits = list(
+            ManagementUnit.objects.filter(primary=True)
+            .prefetch_related("jurisdiction")
+            .values("slug", "label", "jurisdiction__slug", "description")
+        )
+        for mu in manUnits:
+            mu["jurisdiction"] = jurisdiction_dict.get(mu.get("jurisdiction__slug"))
+            mu.pop("jurisdiction__slug", None)
+
         agencies = Agency.objects.values("abbrev", "agency_name")
 
         species = Species.objects.values(
@@ -542,6 +554,7 @@ class CommonLookUpsAPIView(APIView):
             "lakes": list(lakes),
             "agencies": list(agencies),
             "jurisdictions": jurisdictions,
+            "manUnits": manUnits,
             "stateprov": list(stateprov),
             "species": list(species),
             "strains": strains,

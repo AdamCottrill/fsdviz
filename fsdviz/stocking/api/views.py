@@ -135,10 +135,10 @@ class StockingEventMapListView(generics.ListAPIView):
             "jurisdiction_slug": F("jurisdiction__slug"),
             "man_unit": F("management_unit__slug"),
             "grid10": F("grid_10__slug"),
-            "stk_method": F("stocking_method__description"),
-            "life_stage": F("lifestage__description"),
+            "stk_method": F("stocking_method__stk_meth"),
+            "life_stage": F("lifestage__abbrev"),
             "agency_abbrev": F("agency__abbrev"),
-            "species_name": F("species__common_name"),
+            "species_name": F("species__abbrev"),
             "strain": F("strain_raw__strain__strain_label"),
         }
 

@@ -1,5 +1,9 @@
 /* global  $, dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, yearRange, currentYear */
 
+// needed to build the breadcrumbs if mapstate !== basin-all
+// muMap = {}
+//common.manUnits.map(d=>muMap[d.slug] = d.jurisdiction)
+
 import debug from "debug";
 
 import crossfilter from "crossfilter2";
@@ -246,8 +250,6 @@ Promise.all([
   json("/api/v1/stocking/lookups"),
   json("/api/v1/common/lookups"),
 ]).then(([data, centroids, topodata, slugs, stocking, common]) => {
-  // center our map based on mapState variable and data in topodata
-
   species_lookup = common["species"].reduce((accumulator, d) => {
     accumulator[d.abbrev] = d.common_name;
     return accumulator;
@@ -680,6 +682,33 @@ Promise.all([
     mymap.fitBounds(bbox, { padding: [50, 50] });
 
     // add the breadcrumbs for any parents of our seleted objects
+    // addBreakcrumb take a feature type name and a slug.
+    switch (splitState[0]) {
+      case "manUnit":
+        polygons.addBreadcrumb(
+          "lake",
+          common.manUnits.filter((d) => d.slug === slug)[0].jurisdiction.lake
+            .abbrev
+        );
+        polygons.addBreadcrumb(
+          "jurisdiction",
+          common.manUnits.filter((d) => d.slug === slug)[0].jurisdiction.slug
+        );
+        break;
+
+      case "jurisdiction":
+        polygons.addBreadcrumb(
+          "lake",
+          common.jurisdictions.filter((d) => d.slug === slug)[0].lake.abbrev
+        );
+        break;
+    }
+
+    // muMap = {}
+    //common.manUnits.map(d=>muMap[d.slug] = d.jurisdiction) ;
+    // if feature type is lake - we need basin wide
+    // if feature type is jurisdiction - we need basin wide and lake
+    // if feature_type is manUnit we need basin, lake, and jurisdiction
   } else {
     polygons.updateCrossfilter(updateCrossfilter);
   }

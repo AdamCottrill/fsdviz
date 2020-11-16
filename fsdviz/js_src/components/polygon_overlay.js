@@ -122,6 +122,7 @@ export const polygon_overlay = () => {
 
   // when a geometry is clicked, zoom to its extent and add a bread
   // crumb to the list of existing breadcrumbs. Uses semantic-ui formatting.
+  // what is one of lake, jurisdiction
   const addBreadcrumb = (what, slug) => {
     let label = labelLookup[slug];
     let html = '<div class="divider"> / </div>';
@@ -295,6 +296,11 @@ export const polygon_overlay = () => {
   chart.spatialScale = function (value) {
     if (!arguments.length) return spatialScale;
     spatialScale = value;
+    return chart;
+  };
+
+  chart.addBreadcrumb = function (what, slug) {
+    addBreadcrumb(what, slug);
     return chart;
   };
 

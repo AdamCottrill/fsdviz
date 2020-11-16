@@ -175,8 +175,7 @@ class Jurisdiction(models.Model):
 
     @property
     def centroid():
-        """Return the centroid for this grid - used by the serializer.
-        """
+        """Return the centroid for this grid - used by the serializer."""
         if self.geom:
             return self.geom.centroid
         else:
@@ -202,6 +201,9 @@ class ManagementUnit(models.Model):
 
     # centroid = models.PointField(srid=4326, blank=True, null=True)
     lake = models.ForeignKey(Lake, default=1, on_delete=models.CASCADE)
+    jurisdiction = models.ForeignKey(
+        Jurisdiction, blank=True, null=True, on_delete=models.CASCADE
+    )
 
     primary = models.BooleanField(
         "Primary management unit type for this jurisdiciton.",

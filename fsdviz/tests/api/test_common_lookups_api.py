@@ -31,6 +31,7 @@ class TestCommonLookupAPI(APITestCase):
     "agencies": [(abbrev, agency_name), ....],
     "jurisdictions": [("slug", "name", "lake__abbrev", "stateprov__abbrev", "description"), ...]
     "stateprov": [("abbrev", "name", "country", "description"), ....],
+    "manUnits":[(slug", "label", "jurisdiction", "description")],
     "species": [("abbrev", "common_name", "scientific_name", "species_code", "speciescommon"), ...],
     "strains":[("id", "strain_code", "strain_label", "strain_species__abbrev"), ...]
 
@@ -66,6 +67,14 @@ class TestCommonLookupAPI(APITestCase):
             stateprov=self.stateProv,
         )
         self.jurisdiction = JurisdictionFactory(**self.jurisdiction_dict)
+
+        self.management_unit_dict = dict(
+            label="MH-45",
+            description="A management unit in Lake Huron",
+            lake=self.lake,
+            jurisdiction=self.jurisdiction,
+        )
+        self.management_unit = ManagementUnitFactory(**self.management_unit_dict)
 
         self.species_dict = {
             "abbrev": "LAT",
@@ -103,7 +112,15 @@ class TestCommonLookupAPI(APITestCase):
         assert response.status_code == status.HTTP_200_OK
 
         keys = set(
-            ["lakes", "agencies", "jurisdictions", "stateprov", "species", "strains"]
+            [
+                "lakes",
+                "agencies",
+                "jurisdictions",
+                "stateprov",
+                "manUnits",
+                "species",
+                "strains",
+            ]
         )
         obs = set(response.data.keys())
 
@@ -113,9 +130,11 @@ class TestCommonLookupAPI(APITestCase):
         assert response.data.get("agencies") == [self.agency_dict]
         assert response.data.get("stateprov") == [self.stateProv_dict]
 
+        # assert response.data.get("manUnits") == [self.management_unit_dict]
+
         assert response.data.get("species") == [self.species_dict]
 
-        # juristiction and strains are a little more complicated as
+        # juristiction, mangement_unit, and strains are a little more complicated as
         # they contains a nested objects or keys derived from nested objects
         expected = self.strain_dict.copy()
         expected["id"] = self.strain.id
@@ -129,5 +148,18 @@ class TestCommonLookupAPI(APITestCase):
         expected["lake"] = self.lake_dict.copy()
         expected["stateprov"] = self.stateProv_dict.copy()
         obs = response.data.get("jurisdictions")
+
+        assert obs == [expected]
+
+        jurisdiction_dict = expected.copy()
+
+        # mangement Unit has a nested juristiction object in it:
+        expected = self.management_unit_dict.copy()
+        expected.pop("lake")
+        expected["slug"] = self.management_unit.slug
+        expected["jurisdiction"] = jurisdiction_dict
+
+        obs = response.data.get("manUnits")
+        assert obs[0].keys() == expected.keys()
 
         assert obs == [expected]

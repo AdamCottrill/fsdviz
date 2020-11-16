@@ -113,6 +113,7 @@ class ManagementUnitFactory(factory.DjangoModelFactory):
     label = factory.Sequence(lambda n: "MH-%03d" % n)
     description = "A management unit in Lake Huron"
     lake = factory.SubFactory(LakeFactory)
+    jurisdiction = factory.SubFactory(JurisdictionFactory)
     geom = GEOSGeometry(polygon_wkt)
     mu_type = "mu"
     primary = "True"
