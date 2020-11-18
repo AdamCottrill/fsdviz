@@ -18,9 +18,13 @@ class CustomUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(CustomUserCreationForm, self).__init__(*args, **kwargs)
 
-        self.fields['email'].required = True
-        self.fields['first_name'].required = True
-        self.fields['last_name'].required = True
+        self.fields["email"].required = True
+        self.fields["first_name"].required = True
+        self.fields["last_name"].required = True
+
+    def clean_email(self):
+        data = self.cleaned_data["email"]
+        return data.lower()
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -28,4 +32,8 @@ class CustomUserChangeForm(UserChangeForm):
 
     class Meta(UserCreationForm):
         model = CustomUser
-        fields = ("first_name", "last_name", "email")
+        fields = ("first_name", "last_name", "email", "role", "agency", "lakes")
+
+    def clean_email(self):
+        data = self.cleaned_data["email"]
+        return data.lower()
