@@ -41,7 +41,7 @@ from fsdviz.tests.stocking_factories import StockingEventFactory
 @pytest.mark.django_db
 def test_unauthorized_user_receives_302(client):
     """If an unauthorized use tries to access the url, the returned status
-code should be 302.
+    code should be 302.
 
     """
     url = reverse("stocking:edit-stocking-event", kwargs={"stock_id": "foobarbaz"})

@@ -27,8 +27,7 @@ USER_PASSWORD = "Abcd1234"
 
 @pytest.fixture
 def bookmark():
-    """A single bookmark object with default values.
-    """
+    """A single bookmark object with default values."""
     bookmark = BookmarkFactory()
     return bookmark
 
@@ -322,8 +321,7 @@ def test_bookmark_detail_elements(client, db_setup):
 
 @pytest.mark.django_db
 def test_bookmark_detail_tags_render(client, db_setup):
-    """If the bookmark has tags, they should be rendered on the page:
-    """
+    """If the bookmark has tags, they should be rendered on the page:"""
 
     user = db_setup.get("homer")
     bm = db_setup.get("bm2")
@@ -439,9 +437,7 @@ def test_unique_urls_within_user(client, db_setup):
 
 @pytest.mark.django_db
 def test_duplicate_urls_allowed_different_users(client, db_setup):
-    """Different users should be able to create bookmarks to the same url.
-
-    """
+    """Different users should be able to create bookmarks to the same url."""
 
     # bart does not have the url 'http://www.thesimpsons.com' so he
     # should be able to create a new bookmark.

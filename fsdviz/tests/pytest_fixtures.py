@@ -17,10 +17,20 @@ here because they are used in several other places.
 
 
 import pytest
-from .user_factory import UserFactory
+
+# from .user_factory import UserFactory
+from fsdviz.myusers.tests.factories import UserFactory
 from django.contrib.gis.geos import GEOSGeometry
 
-from .common_factories import LatLonFlagFactory, FinClipFactory
+from .common_factories import (
+    LatLonFlagFactory,
+    FinClipFactory,
+    AgencyFactory,
+    LakeFactory,
+    StateProvinceFactory,
+    JurisdictionFactory,
+)
+from .stocking_factories import DataUploadEventFactory, StockingEventFactory
 
 from fsdviz.common.choices import LATLON_FLAGS
 
@@ -29,18 +39,135 @@ SCOPE = "function"
 
 @pytest.fixture(scope=SCOPE)
 def user(db):
-    """return a normal user named homer
-    """
+    """return a normal user named homer"""
     password = "Abcd1234"
     homer = UserFactory.create(
-        username="hsimpson", first_name="Homer", last_name="Simpson", password=password
+        username="hsimpson",
+        first_name="Homer",
+        last_name="Simpson",
+        email="homer@simpons.com",
+        password=password,
     )
     homer.save()
     return homer
 
 
-@pytest.fixture
-def roi():
+@pytest.fixture(scope=SCOPE)
+def superior(db):
+    """a fixture for lake superior"""
+    superior = LakeFactory(lake_name="Lake Superior", abbrev="SU")
+    return superior
+
+
+@pytest.fixture(scope=SCOPE)
+def huron(db):
+    """a fixture for lake superior"""
+    huron = LakeFactory(lake_name="Lake Huron", abbrev="HU")
+    return huron
+
+
+@pytest.fixture(scope=SCOPE)
+def mdnr(db):
+    """a fixture for Michigan Department of Natural Resources"""
+    mdnr = AgencyFactory(
+        abbrev="MDNR", agency_name="Michigan Department of Natural Resources"
+    )
+    return mdnr
+
+
+@pytest.fixture(scope=SCOPE)
+def usfws(db):
+    """a fixture for the US Fish and Wildlife Servce"""
+    usfws = AgencyFactory(abbrev="USWFS", agency_name="U.S. Fish and Wildlife Servce")
+    return usfws
+
+
+@pytest.fixture(scope=SCOPE)
+def glsc(db):
+    """A user who is a great lakes stocking coordinator (role)"""
+    glsc = UserFactory(
+        username="hsimpson",
+        first_name="Homer",
+        last_name="Simpson",
+        email="homer.simpson@simpsons.com",
+        password="Abcd1234",
+        role="glsc",
+    )
+    glsc.save()
+    return glsc
+
+
+@pytest.fixture(scope=SCOPE)
+def huron_mdnr_sc(mdnr, huron):
+    """A user with role and lake  who is an agency stocking coordinator"""
+
+    huron_mdnr_sc = UserFactory.create(
+        username="bsimpson",
+        first_name="bart",
+        last_name="Simpson",
+        email="bart.simpson@simpsons.com",
+        password="Abcd1234",
+        role="asc",
+        agency=mdnr,
+        lakes=[huron],
+    )
+    huron_mdnr_sc.save()
+    return huron_mdnr_sc
+
+
+@pytest.fixture(scope=SCOPE)
+def huron_mdnr_user(mdnr, huron):
+    """A user with role and lake who is an agency user"""
+
+    huron_mdnr_user = UserFactory.create(
+        username="lsimpson",
+        first_name="lisa",
+        last_name="Simpson",
+        email="lisa.simpson@simpsons.com",
+        password="Abcd1234",
+        role="au",
+        agency=mdnr,
+        lakes=[huron],
+    )
+
+    return huron_mdnr_user
+
+
+@pytest.fixture(scope=SCOPE)
+def stocking_events(usfws, mdnr, superior, huron):
+    """A user who is an agency user"""
+
+    mich = StateProvinceFactory(
+        abbrev="MI",
+        name="Michigan",
+        description="The State of Michigan",
+        country="US",
+    )
+    su_mi = JurisdictionFactory(stateprov=mich, lake=superior, slug="su_mi")
+    hu_mi = JurisdictionFactory(stateprov=mich, lake=huron, slug="hu_mi")
+
+    event1 = StockingEventFactory(agency=mdnr, jurisdiction=hu_mi)
+    event2 = StockingEventFactory(agency=usfws, jurisdiction=hu_mi)
+    event3 = StockingEventFactory(agency=mdnr, jurisdiction=su_mi)
+    event4 = StockingEventFactory(agency=usfws, jurisdiction=su_mi)
+
+    return [event1, event2, event3, event4]
+
+
+@pytest.fixture(scope=SCOPE)
+def data_uploads(usfws, mdnr, superior, huron):
+    """A user who is an agency user"""
+
+    upload1 = DataUploadEventFactory(agency=mdnr, lake=huron)
+    upload2 = DataUploadEventFactory(agency=usfws, lake=huron)
+    upload3 = DataUploadEventFactory(agency=mdnr, lake=superior)
+    upload4 = DataUploadEventFactory(agency=usfws, lake=superior)
+
+    return [upload1, upload2, upload3, upload4]
+
+
+@pytest.fixture(scope=SCOPE)
+def roi(db):
     """a region of interest that can be used in all of our tests.  Uses
     corrdinates of grid 2826, a 5-minute grid in the middle of Lake
     Huron located at the intersection of 44 degrees latitude and 82
@@ -63,18 +190,16 @@ def roi():
 
 
 @pytest.fixture(scope="function")
-def latlon_flags():
-    """populate the database with our latlon choices.
-    """
+def latlon_flags(db):
+    """populate the database with our latlon choices."""
 
     flags = [LatLonFlagFactory(value=x[0], description=x[1]) for x in LATLON_FLAGS]
     return flags
 
 
 @pytest.fixture(scope="function")
-def finclips():
-    """populate the database some finclips.
-    """
+def finclips(db):
+    """populate the database some finclips."""
 
     FIN_CLIPS = (
         ("NO", "No Clip"),
@@ -89,7 +214,7 @@ def finclips():
 
 
 @pytest.fixture(scope="function")
-def stocking_event_dict():
+def stocking_event_dict(db):
     """return a dictionary representing a complete, valid upload event.
     This dictionary is used directly to represent a stocking event, or
     is modified to verify that invalid data is handled appropriately.

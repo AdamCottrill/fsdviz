@@ -45,7 +45,8 @@ from pytest_django.asserts import assertTemplateUsed, assertContains
 from fsdviz.stocking.utils import get_cwt_sequence_dict
 from fsdviz.common.models import CWT
 
-from fsdviz.tests.pytest_fixtures import user
+# use our glsc super user for these tests:
+from fsdviz.tests.pytest_fixtures import glsc as user
 
 from fsdviz.tests.stocking_factories import StockingEventFactory
 from fsdviz.tests.common_factories import (
@@ -70,8 +71,7 @@ from fsdviz.tests.common_factories import (
 
 @pytest.fixture
 def cwt_event():
-    """A stocking event with an associated cwt series.
-    """
+    """A stocking event with an associated cwt series."""
     cwt_tag = FishTagFactory(
         tag_code="CWT", tag_type="CWT", description="coded wire tag"
     )
@@ -87,8 +87,7 @@ def cwt_event():
 
 @pytest.fixture
 def event():
-    """A stocking event *without* an associated cwt series.
-    """
+    """A stocking event *without* an associated cwt series."""
     FishTagFactory(tag_code="CWT", tag_type="CWT", description="coded wire tag")
     lake = LakeFactory()
     prov = StateProvinceFactory()
@@ -561,8 +560,7 @@ def test_can_associate_existing_cwt(client, user, event):
 
 
 def test_can_create_new_seq_tag(client, user, event):
-    """We should be able to create a new sequential cwt
-    """
+    """We should be able to create a new sequential cwt"""
 
     assert CWT.objects.count() == 0
     assert len(event.cwt_series.all()) == 0

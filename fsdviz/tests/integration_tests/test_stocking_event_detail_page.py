@@ -56,7 +56,7 @@ from datetime import datetime
 
 from pytest_django.asserts import assertTemplateUsed, assertContains, assertNotContains
 
-from ..pytest_fixtures import user
+from ..pytest_fixtures import glsc as user
 
 from ..stocking_factories import (
     StockingEventFactory,
@@ -306,11 +306,10 @@ def test_no_cwt_panel_without_cwts_appears(client, base_event):
 
 
 @pytest.mark.django_db
-def test_edit_event_button_authenticated_user(client, base_event, user):
-    """If the user is logged in, the edit-event button should
-    appear. (note this will fail once we establish roles only users who
-    can edit should be able to see the vent button).
-
+def test_edit_event_button_authorized_user(client, base_event, user):
+    """If the user is logged in, the edit-event button should appear if
+    the user has authority to edit this event. (in this case, our user
+    is the glsc super user.)
     """
 
     login = client.login(email=user.email, password="Abcd1234")
@@ -403,9 +402,7 @@ def test_latlon_flag(client, base_event):
 
 @pytest.mark.django_db
 def test_cwt_details_rended_if_present(client, base_event):
-    """If this stocking event has cwts associated with it, they should be rendered on teh page.
-
-    """
+    """If this stocking event has cwts associated with it, they should be rendered on teh page."""
 
     elements = [
         "<h5>Coded Wire Tags</h5>",

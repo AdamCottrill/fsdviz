@@ -45,7 +45,7 @@
                                     <ul class="list">
                                         {% for field in form %}
                                             {% for error in field.errors %}
-                                                <li class="error">{{ error|escape }}</li>
+                                                <li class="error">{{field.label}}: {{ error|escape }}</li>
                                             {% endfor %}
                                         {% endfor %}
                                         {% for error in form.non_field_errors %}

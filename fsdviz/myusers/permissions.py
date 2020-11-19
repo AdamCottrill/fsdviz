@@ -26,6 +26,9 @@ def user_can_create_edit_delete(user, obj):
 
     """
 
+    if not hasattr(user, "role"):
+        return False
+
     if user.role == "glsc":
         return True
     elif (

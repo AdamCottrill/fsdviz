@@ -119,10 +119,11 @@
                 <div class="ui dropdown icon item">
                     Utilities
                     <div class="menu">
-                        
+                        {% if user.role == 'asc' or user.role == 'glsc' %}
                         <div class="item"><a href="{% url 'stocking:data-upload-event-list' %}" >Data Upload List</a></div>
-                        <div class="item"><a href="{% url 'stocking:upload-stocking-events' %}" >Upload Data</a></div>                            
-                        <div class="ui divider"></div>                        
+                        <div class="item"><a href="{% url 'stocking:upload-stocking-events' %}" >Upload Data</a></div>                        
+                        <div class="ui divider"></div>
+                        {% endif %}
                         <div class="item"><a href="{% url 'common:spatial-lookup' %}" >Spatial Lookup</a></div>
                         {% if user.is_authenticated %}
                             <div class="ui divider"></div>
@@ -159,7 +160,9 @@
                         Admin
                         <div class="menu">
                             <div class="item"><a href="{% url 'password_change' %}">Change Your Password</a></div>
-                            <div class="item"><a href="{% url 'admin:index' %}" >Django Admin</a></div>                            
+                            {% if user.is_staff %}
+                                <div class="item"><a href="{% url 'admin:index' %}" >Django Admin</a></div>
+                            {% endif %}
                             <div class="ui divider"></div>
 
                             <div class="item"><a href="{% url 'tickets:ticket_list' %}">TicketTracker</a></div>

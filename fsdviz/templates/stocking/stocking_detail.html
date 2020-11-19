@@ -233,7 +233,7 @@
 
                 </div>
 
-                {% if user.is_authenticated %}
+                {% if can_edit %}
                     <a class="ui primary button" href="{% url 'stocking:edit-stocking-event' stock_id=object.stock_id %}">Edit Event</a>
                 {% endif %}
 

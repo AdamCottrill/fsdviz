@@ -5,6 +5,7 @@ Views associated with our stocking application.
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
 from django.db.models import Count, Q, Min, Max, Sum, F
 from django.http import HttpResponseRedirect
@@ -49,8 +50,9 @@ from ..common.models import (
 from .models import StockingEvent, StockingMethod, LifeStage, Condition, DataUploadEvent
 from .filters import StockingEventFilter
 
-
 from .forms import FindEventsForm, XlsEventForm, StockingEventForm
+
+from ..myusers.permissions import user_can_create_edit_delete
 
 #
 
@@ -244,32 +246,32 @@ def PieChartMapViewLatestYear(request):
 
 class PieChartMapView(TemplateView):
     """This is going to be the ront page of out application.  Most of the
-    work will done by the javascript libraries, but we will need to pass
-    in serveral variables to set things up:
+     work will done by the javascript libraries, but we will need to pass
+     in serveral variables to set things up:
 
-   ``dataurl``
+    ``dataurl``
 
-      the api url corresponding the spatial and temporal filters
-      speficied in the url.  Passed to the javascript libraries.
+       the api url corresponding the spatial and temporal filters
+       speficied in the url.  Passed to the javascript libraries.
 
-   ``year``
+    ``year``
 
-      the year of the stocking event
+       the year of the stocking event
 
-   ``spatialunit``
+    ``spatialunit``
 
-    defaults to 'basin' if not provided in the url,
-    otherwize it must be one of 'lake', 'jurisdition', 'manUnit'
+     defaults to 'basin' if not provided in the url,
+     otherwize it must be one of 'lake', 'jurisdition', 'manUnit'
 
-   ``slug`` - the slug selected lake, jurisdiction, or management unit
+    ``slug`` - the slug selected lake, jurisdiction, or management unit
 
-   ``label`` - the slug selected lake, jurisdiction, or management unit
+    ``label`` - the slug selected lake, jurisdiction, or management unit
 
 
-   ``year_range``
+    ``year_range``
 
-      the maximum and minimum year of the stocking events with the
-      same criteria as the selected queryset
+       the maximum and minimum year of the stocking events with the
+       same criteria as the selected queryset
 
     """
 
@@ -310,7 +312,6 @@ class PieChartMapView(TemplateView):
 
             year_range = year_range.filter(jurisdiction__slug=jurisdiction_slug)
 
-
         #        slug = self.kwargs.get('management_unit')
         #        if manUnit_slug:
         #            spatialUnit = 'manUnit'
@@ -318,8 +319,9 @@ class PieChartMapView(TemplateView):
 
         context["dataUrl"] = dataUrl
         context["spatialUnit"] = spatialUnit
-        context["year_range"] = year_range.aggregate(first_year=Min("year"), last_year=Max('year'))
-
+        context["year_range"] = year_range.aggregate(
+            first_year=Min("year"), last_year=Max("year")
+        )
 
         if obj:
             context["slug"] = obj.slug
@@ -533,6 +535,10 @@ class StockingEventDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["can_edit"] = user_can_create_edit_delete(
+            self.request.user, self.get_object()
+        )
+
         return context
 
     def get_object(self):
@@ -782,6 +788,14 @@ def edit_stocking_event(request, stock_id):
     edit the attibutes of a stocking event."""
 
     event = get_object_or_404(StockingEvent, stock_id=stock_id)
+
+    if user_can_create_edit_delete(request.user, event) is False:
+        return HttpResponseRedirect(
+            reverse(
+                "stocking:stocking-event-detail", kwargs={"stock_id": event.stock_id}
+            )
+        )
+
     has_cwts = True if event.cwt_series.count() else False
     choices = get_event_model_form_choices(event)
 
@@ -852,7 +866,7 @@ def edit_stocking_event(request, stock_id):
     )
 
 
-class DataUploadEventDetailView(DetailView):
+class DataUploadEventDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     """
 
     **Context**
@@ -869,6 +883,30 @@ class DataUploadEventDetailView(DetailView):
     model = DataUploadEvent
     template_name = "stocking/upload_event_detail.html"
 
+    def test_func(self):
+        """Verify that the user can access this element (they are a great
+        lakes coordinator, or the stocking coordinator foe the lake and
+        stocking agency).
+
+        Arguments:
+        - `self`:
+
+        """
+        user = self.request.user
+        item = self.get_object()
+        return user_can_create_edit_delete(user, item)
+
+    def handle_no_permission(self):
+        """If the user is logged in, but cannot access the item, send them to
+        the default home page, if they are not logged in, send them to
+        the login page.
+
+        """
+        if self.request.user.is_authenticated:
+            return redirect("home")
+        else:
+            return redirect("login")
+
     def get_context_data(self, **kwargs):
         """add our associated stocking events to the context"""
 
@@ -883,7 +921,7 @@ class DataUploadEventDetailView(DetailView):
         return context
 
 
-class DataUploadEventListView(ListView):
+class DataUploadEventListView(LoginRequiredMixin, ListView):
     """
     A generic list view that is used to display a list of upload events
     events.
@@ -902,15 +940,29 @@ class DataUploadEventListView(ListView):
     model = DataUploadEvent
     paginate_by = 100
     template_name = "stocking/upload_event_list.html"
-    queryset = (
-        DataUploadEvent.objects.prefetch_related("stocking_events__species")
-        .annotate(
-            event_count=Count("stocking_events"),
-            total_stocked=Sum("stocking_events__no_stocked"),
+
+    def get(self, *args, **kwargs):
+        if self.request.user.role not in ["glsc", "asc"]:
+            return redirect("home")
+        return super(DataUploadEventListView, self).get(*args, **kwargs)
+
+    def get_queryset(self):
+
+        queryset = (
+            DataUploadEvent.objects.prefetch_related("stocking_events__species")
+            .annotate(
+                event_count=Count("stocking_events"),
+                total_stocked=Sum("stocking_events__no_stocked"),
+            )
+            .order_by("-timestamp")
+            .all()
         )
-        .order_by("-timestamp")
-        .all()
-    )
+
+        if self.request.user.role != "glsc":
+            user = self.request.user
+            queryset = queryset.filter(lake__in=user.lakes.all(), agency=user.agency)
+
+        return queryset
 
 
 class CWTListView(ListView):

@@ -1,11 +1,11 @@
 """=============================================================
- c:/1work/fsdviz/fsdviz/myusers/tests/test_permissions.py
+~/fsdviz/myusers/tests/test_permissions.py
  Created: 17 Nov 2020 09:24:07
 
  DESCRIPTION:
 
   This test file ensures that permissions/authorizations operate as
-  expected.  There are currently 4 types of authenticated user (plut
+  expected.  There are currently 4 types of authenticated user (plus
   anonymous users):
 
    + GREAT_LAKES_COORDINATOR = "glsc"
