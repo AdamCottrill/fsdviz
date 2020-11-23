@@ -2,6 +2,8 @@ from django import forms
 
 # from django.core.exceptions import ValidationError
 from django.forms import ValidationError
+from django.contrib.gis.forms.fields import PolygonField
+from leaflet.forms.widgets import LeafletWidget
 from datetime import datetime
 
 from ..stocking.models import (
@@ -33,6 +35,8 @@ class FindEventsForm(forms.Form):
 
     # this is the right way, but causes pytest to complain....
     # year_range = StockingEvent.objects.aggregate(Min("year"), Max("year"))
+
+    roi = PolygonField(widget=LeafletWidget(), required=False)
 
     year_range = {"year__min": 1950, "year__max": 2020}
 

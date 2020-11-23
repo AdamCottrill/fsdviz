@@ -161,6 +161,10 @@ def find_events(request):
         # create a form instance and populate it with data from the request:
         form = FindEventsForm(request.POST)
 
+        # roi = form.cleaned_data["roi"][0]
+        # if roi.geom_type == "LinearRing":
+        #     roi = Polygon(roi)
+
         # the choice need to be added here so that the form can be
         # validated.
         form.fields["lake"].choices = lakes

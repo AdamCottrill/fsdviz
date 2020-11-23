@@ -1,5 +1,6 @@
 import {
   getUrlParamValue,
+  getUrlSearchValue,
   get_url_filters,
   parseParams,
   updateUrlCheckBoxParams,
@@ -75,6 +76,78 @@ www.example.com/#foo=1&baz=red%20cars => getUrlParamValue('bar') = Null
     delete window.location;
     window.location = new URL(url);
     expect(getUrlParamValue("baz")).toBeUndefined();
+  });
+});
+
+describe("tests associated with getUrlSearchValue", () => {
+  /*
+the getUrlSearchValue() returns the value in the url corresponding to the passed in key.
+
+If there is not match, it should return none.
+
+# it should return the value without any processing - everything is a
+  string exactly it appears at the end of the url.
+
+www.example.com/ => getUrlSearchValue('foo') = Null
+www.example.com/?foo=1 => getUrlSearchValue('foo') = "1"
+www.example.com/?foo=red,blue  getUrlSearchValue('foo') = 'red,blue'
+www.example.com/?foo=1&baz=red => getUrlSearchValue('foo') = "1"
+www.example.com/?foo=1&baz=red%20cars => getUrlSearchValue('baz') = "red%20cars"
+www.example.com/?foo=1&baz=red%20cars => getUrlSearchValue('bar') = Null
+
+ */
+
+  test("getUrlSearchValue should parse single query", () => {
+    const url = "https://www.example.com/?foo=1";
+    delete window.location;
+    window.location = new URL(url);
+
+    expect(getUrlSearchValue("foo")).toBe("1");
+  });
+
+  test("getUrlSearchValue should parse spatialUnit", () => {
+    // this a test of an actaul url that was causing problems
+    const url = "http://127.0.0.1:8000/stocking/events/2016/?spatialUnit=geom";
+    delete window.location;
+    window.location = new URL(url);
+    expect(getUrlSearchValue("spatialUnit")).toBe("geom");
+  });
+
+  test("getUrlSearchValue should parse csv query", () => {
+    const url = "https://www.example.com/?foo=red,blue";
+    delete window.location;
+    window.location = new URL(url);
+
+    expect(getUrlSearchValue("foo")).toBe("red,blue");
+  });
+
+  test("getUrlSearchValue returns value with spaces", () => {
+    const url = "https://www.example.com/?foo=red%20blue";
+    delete window.location;
+    window.location = new URL(url);
+
+    expect(getUrlSearchValue("foo")).toBe("red blue");
+  });
+
+  test("getUrlSearchValue should key from multiple keys", () => {
+    const url = "https://www.example.com/?foo=red,blue&baz=10&bar=large";
+    delete window.location;
+    window.location = new URL(url);
+    expect(getUrlSearchValue("foo")).toBe("red,blue");
+  });
+
+  test("getUrlSearchValue should return Null url without hash", () => {
+    const url = "https://www.example.com/";
+    delete window.location;
+    window.location = new URL(url);
+    expect(getUrlSearchValue("baz")).toBeUndefined();
+  });
+
+  test("getUrlSearchValue should return Null for nonexistent key", () => {
+    const url = "https://www.example.com/?foo=1";
+    delete window.location;
+    window.location = new URL(url);
+    expect(getUrlSearchValue("baz")).toBeUndefined();
   });
 });
 

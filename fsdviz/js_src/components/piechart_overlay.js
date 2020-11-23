@@ -34,6 +34,8 @@ export const piechart_overlay = () => {
 
   const commaFormat = format(",d");
 
+  //let roi;
+
   // the name of the field that uniquely identifies each point:
   let keyfield = "geom";
 
@@ -282,6 +284,13 @@ export const piechart_overlay = () => {
     selectedPie = value;
     return chart;
   };
+
+  // // our region of interest (it should be in wkt format)
+  // chart.roi = function (value) {
+  //   if (!arguments.length) return roi;
+  //   roi = value;
+  //   return chart;
+  // };
 
   // our object to connect pie chart keys (slugs) with their pretty labels
   chart.labelLookup = function (value) {

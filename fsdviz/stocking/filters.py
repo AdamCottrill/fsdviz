@@ -4,13 +4,29 @@ The will be used in both views and api serializers.
 """
 
 import django_filters
-
+from django.contrib.gis.geos import GEOSGeometry
 from .models import StockingEvent
 
 from ..common.utils import ValueInFilter, NumberInFilter
 
 
+class GeomFilter(django_filters.CharFilter):
+    pass
+
+
 class StockingEventFilter(django_filters.FilterSet):
+    def filter_geom_in_roi(self, queryset, name, value):
+        """A custom filter for our region of interest, only return stocking
+        events that have there geometetry in the region of interest contained
+        in value"""
+        if not value:
+            return queryset
+        try:
+            roi = GEOSGeometry(value, srid=4326)
+            queryset = queryset.filter(geom__intersects=roi)
+        except ValueError:
+            pass
+        return queryset
 
     # lake = django_filters.CharFilter(
     #     field_name='jurisdiction__lake__abbrev', lookup_expr='iexact')
@@ -50,6 +66,9 @@ class StockingEventFilter(django_filters.FilterSet):
 
     mark = ValueInFilter(field_name="mark", lookup_expr="in")
     mark_like = django_filters.CharFilter(field_name="mark", lookup_expr="icontains")
+
+    # roi = self.roi_filter('geom', roi)
+    roi = GeomFilter(field_name="geom", method="filter_geom_in_roi")
 
     class Meta:
         model = StockingEvent

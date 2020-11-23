@@ -94,6 +94,7 @@ export const get_url_filters = (chartAnchor, url) => {
 export const parseParams = (str) => {
   return str
     .replace("#", "")
+    .replace("?", "")
     .split("&")
     .reduce(function (params, param) {
       let paramSplit = param.split("=").map(function (value) {
@@ -118,6 +119,11 @@ export const updateUrlParams = (key, value) => {
 
 export const getUrlParamValue = (param) => {
   let current = parseParams(window.location.hash);
+  return current[param];
+};
+
+export const getUrlSearchValue = (param) => {
+  let current = parseParams(window.location.search);
   return current[param];
 };
 

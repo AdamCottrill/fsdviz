@@ -18,17 +18,18 @@ import {
 } from "d3";
 
 import Leaflet from "leaflet";
-
+import { wktToGeoJSON } from "@terraformer/wkt";
 import {
   update_dc_url,
   apply_url_filters,
   updateUrlParams,
   getUrlParamValue,
+  getUrlSearchValue,
 } from "./components/url_parsing";
 
 import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
-import { get_coordinates } from "./components/spatial_utils";
+import { get_coordinates, add_roi } from "./components/spatial_utils";
 import { makeLookup } from "./components/utils";
 import { piechart_overlay } from "./components/piechart_overlay";
 import {
@@ -55,6 +56,9 @@ let spatialUnit = getUrlParamValue("spatial_unit") || "jurisdiction";
 let varName = getUrlParamValue("category_var") || "species_code";
 
 let responseVar = getUrlParamValue("response_var") || "yreq";
+
+let roi = getUrlSearchValue("roi") || false;
+
 //let column = "yreq_stocked";
 // TODO:make ylabel a function of the response variable radio buttons array:
 let ylabel = "Yearly Equivalents";
@@ -103,16 +107,23 @@ const sharedColourScale = scaleOrdinal()
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
   zoomSnap: 0,
-}).fitBounds([
-  [41.38, -92.09],
-  [49.01, -76.05],
-]);
+}).fitBounds(
+  [
+    [41.38, -92.09],
+    [49.01, -76.05],
+  ],
+  { padding: [50, 50] }
+);
 
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
   maxZoom: 18,
 }).addTo(mymap);
+
+if (roi) {
+  add_roi(mymap, roi);
+}
 
 // Add a svg layer to the map
 Leaflet.svg().addTo(mymap);
@@ -216,14 +227,19 @@ Promise.all([
 
   data.forEach((d) => (d.mark = d.mark || "NC"));
 
-  // get the geographic extents of our data and update our map:
-  const latbounds = extent(data, (d) => d.dd_lat);
-  const longbounds = extent(data, (d) => d.dd_lon);
-  mymap.fitBounds([
-    [latbounds[0], longbounds[0]],
-    [latbounds[1], longbounds[1]],
-  ]);
-
+  // get the geographic extents of our data and update our map if
+  // there is no roi.
+  if (!roi) {
+    const latbounds = extent(data, (d) => d.dd_lat);
+    const longbounds = extent(data, (d) => d.dd_lon);
+    mymap.fitBounds(
+      [
+        [latbounds[0], longbounds[0]],
+        [latbounds[1], longbounds[1]],
+      ],
+      { padding: [50, 50] }
+    );
+  }
   // see if we have the maximum number of stocking events. If so, we
   // have truncated the data and should show a warning.
   select("#record-count-warning").classed(

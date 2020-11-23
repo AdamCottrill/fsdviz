@@ -1,5 +1,6 @@
 /* global $ spatialAttrURL spatialAttrs topojson */
-
+import Leaflet from "leaflet";
+import { wktToGeoJSON } from "@terraformer/wkt";
 import helpers from "@turf/helpers";
 import bbox from "@turf/bbox";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
@@ -106,4 +107,22 @@ export const turfbbToLeafletbb = (turf_bb) => {
 export const get_coordinates = (pt) => {
   let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
   return [parseFloat(coords[0]), parseFloat(coords[1])];
+};
+
+export const add_roi = (leaflet_map, roi_wkt) => {
+  // our our region of interest to our leaflet map including a
+  // widget to toggle the layer on and off, as well as pop text to
+  // make the wkt string available to users to copy for other uses.
+  let popup_text = `<h4>Region of Interest as WKT:<h4><p>${roi_wkt}<p>`;
+  let roi_geojson = wktToGeoJSON(roi_wkt);
+  let roi_layer = new Leaflet.geoJson();
+
+  roi_layer.addData(roi_geojson).bindPopup(popup_text);
+  roi_layer.addTo(leaflet_map);
+  leaflet_map.fitBounds(roi_layer.getBounds(), { padding: [50, 50] });
+
+  let overlays = {
+    "Region of Interest": roi_layer,
+  };
+  Leaflet.control.layers(null, overlays).addTo(leaflet_map);
 };

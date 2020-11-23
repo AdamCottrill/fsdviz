@@ -337,7 +337,7 @@ def form2params(formdata):
             params.append("{}={}".format(key, tmp))
 
     if len(params) >= 1:
-        return "?" + "&".join(params)
+        return "?" + "&".join(params).replace("SRID=4326;", "")
     else:
         return ""
 
