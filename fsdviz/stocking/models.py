@@ -3,7 +3,11 @@ from django.contrib.gis.db import models
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 
+import uuid
+
 from django.contrib.gis.geos import Point
+
+from fsdviz.common.utils import is_uuid4, unique_string
 
 from fsdviz.myusers.models import CustomUser
 from fsdviz.common.models import (
@@ -64,8 +68,7 @@ class DataUploadEvent(models.Model):
         super(DataUploadEvent, self).save(*args, **kwargs)
 
     def generate_slug(self):
-        """ Create the slug from the lake, agency, and timestamp.
-        """
+        """Create the slug from the lake, agency, and timestamp."""
         lake = self.lake.abbrev
         agency = self.agency.abbrev
         if self.timestamp is None:
@@ -264,6 +267,7 @@ class StockingEvent(models.Model):
         max_length=100,
         unique=True,
         db_index=True,
+        default=unique_string,
     )
 
     # if there is an agency stock_id - it has to be unique
@@ -426,6 +430,13 @@ class StockingEvent(models.Model):
             #    # self.clipa = self.get_clipa()
             # if self.fin_clips.count():
             #    self.clip_code = self.get_composite_clip_code()
+
+            # if the stock ID is null or looks like the default uuid4 value,
+            # replace it with the year & self.id
+            if not self.stock_id or is_uuid4(self.stock_id):
+                current_year = datetime.now().year
+                counter = str(self.id).zfill(5)[-5:]
+                self.stock_id = "{}{}".format(current_year, counter)
 
         super(StockingEvent, self).save(*args, **kwargs)
 

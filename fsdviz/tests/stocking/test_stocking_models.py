@@ -7,6 +7,7 @@ events, stocking methods, ect.
 from datetime import datetime
 import pytest
 
+from ...common.utils import is_uuid4
 from ...common.models import LatLonFlag
 
 from ..pytest_fixtures import latlon_flags, finclips
@@ -360,11 +361,11 @@ def test_event_has_sequentail_cwts():
 @pytest.mark.django_db
 def test_stocking_event_date_from_day_month_year():
     """When a stocking event is saved, its day month and year values
-    should be converted to a date if possible, and saved in the date
-   field.
+     should be converted to a date if possible, and saved in the date
+    field.
 
-    This should be converted to a parameterized test that takes a
-    list of day, month, year, and expected date values.
+     This should be converted to a parameterized test that takes a
+     list of day, month, year, and expected date values.
 
     """
 
@@ -506,3 +507,40 @@ def test_event_get_composite_clip_code(finclips, clip_codes, expected):
         assert cclip.clip_code == expected
     else:
         assert cclip is None
+
+
+@pytest.mark.django_db
+def test_stock_id_uuid4_updated():
+    """When a stocking object is created, if the stock_id is null, it will
+    be populated with a uuid4 string when it is first saved (the pk is
+    null).  when it is saved a second time the sstock_id will be
+    updated with a string that is composed of the current (creation
+    year) and the last five digits of the event's pk.
+
+    """
+    event = StockingEventFactory()
+    uuid = event.stock_id
+    assert is_uuid4(event.stock_id)
+    event.save()
+    counter = str(event.pk).zfill(5)[-5:]
+    yr = str(datetime.now().year)
+    expected = yr + counter
+    assert event.stock_id == expected
+    assert event.stock_id != uuid
+
+
+@pytest.mark.django_db
+def test_existing_stock_id_maintained():
+    """When a stocking object is created from an existing record (i.e. -
+    migration from ms access, it will be used), event after saving the
+    event two or more times.
+
+    """
+    orig_id = "201812345"
+    event = StockingEventFactory(stock_id=orig_id)
+    # the original stock_id should be used
+    assert event.stock_id == orig_id
+
+    # still the same after being saved
+    event.save()
+    assert event.stock_id == orig_id

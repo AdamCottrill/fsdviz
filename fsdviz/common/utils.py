@@ -10,8 +10,10 @@
  A. Cottrill
 =============================================================
 """
+import re
+import uuid
 
-from django.contrib.gis.geos import Point, GEOSGeometry
+from django.contrib.gis.geos import Point, Polygon, GEOSGeometry
 
 from django_filters import BaseInFilter, CharFilter, NumberFilter
 
@@ -24,10 +26,40 @@ class NumberInFilter(BaseInFilter, NumberFilter):
     pass
 
 
-def parse_point(data):
+def is_uuid4(x):
+    """A little helper function - does the passed in string match a uuid4
+    pattern?  Return true if it does match, false otherwise.  Used to
+    replace random stock_id with the year and ID number.
+
+    - regex from: https://stackoverflow.com/questions/11384589
+
+    Arguments:
+    - `x`: a string that may or may not be a uuid4 value.
+
+    """
+
+    regex = re.compile(
+        r"[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}"
+    )
+
+    return bool(regex.match(x))
+
+
+def unique_string():
+    """Return the string representation of a uuid4 object. It is almost
+    certainly going to be unique. Used to create unique temporary
+    stock_id value for StockingEvent objects that can be replaced with
+    the creation year and pk after the event is created.
+
+    """
+
+    return str(uuid.uuid4())
+
+
+def parse_geom(data):
     """A helper function used by the spatial lookup api views to convert
-    the reqest data to a GEOSGeometry Point object.  If it cannot be
-    coerced to a Point object return None.
+    the reqest data to a GEOSGeometry Point or Polygon object.  If it cannot be
+    coerced to a Point or Polygon object return None.
 
     TODOs:
 
@@ -41,13 +73,13 @@ def parse_point(data):
         return None
 
     try:
-        pt = GEOSGeometry(data, srid=4326)
+        geom = GEOSGeometry(data, srid=4326)
     except:
         # the data could not be converted to a valid geometry object
         return None
 
-    if isinstance(pt, Point):
-        return pt
+    if isinstance(geom, Point) or isinstance(geom, Polygon):
+        return geom
     else:
         # the data was not a valid Point in either geojson or wkt
         return None
@@ -97,25 +129,25 @@ def to_lake_dict(object_list, has_id=False):
 
 def make_mu_id_lookup(mus):
     """a function that lakes of list of management unit objects and
-returns a dictionary of dictionaryies that are keyed first by lake ,
-and then by management unit label.
+    returns a dictionary of dictionaryies that are keyed first by lake ,
+    and then by management unit label.
 
-mus = ManagementUnit.objects.values_list(
-"id", "slug", "lake__abbrev", "label")
+    mus = ManagementUnit.objects.values_list(
+    "id", "slug", "lake__abbrev", "label")
 
-This:
-(12, 'hu_mu_mh3', 'HU', 'MH3')
-(13, 'hu_mu_mh4', 'HU', 'MH4')
-(14, 'hu_mu_mh5', 'HU', 'MH5')
-(15, 'hu_mu_mh6', 'HU', 'MH6')
-(16, 'er_mu_mich', 'ER', 'MICH')
-(38, 'er_mu_ny', 'ER', 'NY')
-(39, 'er_mu_o1', 'ER', 'O1')
-(40, 'er_mu_o2', 'ER', 'O2')
-(41, 'er_mu_o3', 'ER', 'O3')
+    This:
+    (12, 'hu_mu_mh3', 'HU', 'MH3')
+    (13, 'hu_mu_mh4', 'HU', 'MH4')
+    (14, 'hu_mu_mh5', 'HU', 'MH5')
+    (15, 'hu_mu_mh6', 'HU', 'MH6')
+    (16, 'er_mu_mich', 'ER', 'MICH')
+    (38, 'er_mu_ny', 'ER', 'NY')
+    (39, 'er_mu_o1', 'ER', 'O1')
+    (40, 'er_mu_o2', 'ER', 'O2')
+    (41, 'er_mu_o3', 'ER', 'O3')
 
-becomes this:
-{"HU": {"MH3":12,"MH4": 13,...}, "ER": {"NY":16}, ...}
+    becomes this:
+    {"HU": {"MH3":12,"MH4": 13,...}, "ER": {"NY":16}, ...}
 
     """
     mu_lookup = {}

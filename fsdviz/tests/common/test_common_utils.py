@@ -1,27 +1,31 @@
 import pytest
-from django.contrib.gis.geos import Point
+import uuid
+from django.contrib.gis.geos import Point, GEOSGeometry
 
-from ...common.utils import parse_point, getOverlap, check_ranges
+from ...common.utils import is_uuid4, parse_geom, getOverlap, check_ranges
 
 
 @pytest.mark.parametrize(
-    "good_point",
+    "wkt",
     [
         "POINT(-82.3 46.0 )",
-        "010100000033333333339354C00000000000004740",
-        '{ "type": "Point", "coordinates": [ -82.3, 46.0 ] }',
+        "POLYGON ((-80.98 45.03, -81.15 44.90, -81.02 44.42, -80.38 44.45, -80.33 44.85, -80.98 45.03))",
     ],
 )
-#
-# ]
-# )
+def test_parse_geom_good_geom(wkt):
+    """Our parse_geom function accepts an string either as geojson or wkt
+    and returns django GEOS geometry object.  Compare hex values to verify
+    that the represent the same geometries.
 
+    """
 
-def test_parse_point_good(good_point):
-    """
-    """
-    expected = Point(-82.3, 46.0)
-    assert parse_point(good_point).hex == expected.hex
+    # wkt = "POLYGON ((-80.98 45.03, -81.15 44.90, -81.02 44.42, -80.38 44.45, -80.33 44.85, -80.98 45.03))"
+    geom = GEOSGeometry(wkt)
+    assert parse_geom(wkt).hex == geom.hex
+
+    # use our geos object to create the geojson (formatting in a test file is a pain).
+    geojson = geom.geojson
+    assert parse_geom(geojson).hex == geom.hex
 
 
 ## some strings the problems - typo, empty, null, geojson polygon (not point)
@@ -44,10 +48,10 @@ def test_parse_point_good(good_point):
      }""",
     ],
 )
-def test_parse_point_bad(bad_point):
-    """if our parse_point function recieves a string that cannot be
-    converted to a point object, it should return None (but not blowup!)"""
-    assert parse_point(bad_point) is None
+def test_parse_geom_pt_bad(bad_point):
+    """if our parse_geom function recieves a string that cannot be
+    converted to a geometry object, it should return None (but not blowup!)"""
+    assert parse_geom(bad_point) is None
 
 
 args = (
@@ -102,3 +106,25 @@ def test_check_ranges(range_dict, key, range, expected):
     """
 
     assert check_ranges(range_dict, key, range) == expected
+
+
+def test_is_uuid4():
+    """our helper function is_uuid4() should return true if the string
+    looks like a uuid4 object, but false otherwise
+
+    """
+
+    val = uuid.uuid4()
+    assert is_uuid4(str(val)) is True
+
+    val = uuid.uuid4()
+    assert is_uuid4(str(val)) is True
+
+    # uuid1 values are similar, but don't match exactly.
+    val = uuid.uuid1()
+    assert is_uuid4(str(val)) is False
+
+    val = uuid.uuid1()
+    assert is_uuid4(str(val)) is False
+
+    assert is_uuid4("FoobarBaz") is False
