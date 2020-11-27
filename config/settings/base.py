@@ -77,7 +77,8 @@ THIRD_PARTY_APPS = [
     "rest_framework.authtoken",
     "rest_auth",
     "rest_framework_swagger",
-    "crispy_forms",
+    "leaflet",
+    "crispy_forms",  # ticket tracker
     "taggit",
     "tickets",
     "bookmark_it",
@@ -162,7 +163,7 @@ STATIC_ROOT = os.path.join(PROJECT_ROOT, "static/")
 AUTH_USER_MODEL = "myusers.CustomUser"
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "home"
+LOGIN_REDIRECT_URL = "account-redirect"
 LOGOUT_REDIRECT_URL = "home"
 
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
@@ -202,3 +203,10 @@ SWAGGER_SETTINGS = {
 LINK_PATTERNS = [
     {"pattern": r"ticket:\s?(\d+)", "url": r'<a href="/ticket/\1">ticket \1</a>'}
 ]
+
+
+LEAFLET_CONFIG = {
+    # minx, miny, maxx,maxy
+    "SPATIAL_EXTENT": (-92.09, 41.38, -76.05, 49.01),
+    # "RESET_VIEW": True,
+}

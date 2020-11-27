@@ -4,8 +4,20 @@ from config.settings.base import *
 VIRTUAL_ENV = os.environ["VIRTUAL_ENV"]
 OSGEO_VENV = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo")
 GEOS_LIBRARY_PATH = os.path.join(OSGEO_VENV, "geos_c.dll")
-GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal300.dll")
+GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal301.dll")
 os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
+
+print("using c:/1work/fsdviz/config/settings/local.py")
+
+if not os.path.exists(OSGEO_VENV):
+    print("Unable to find OSGEO_VENV at {}".format(OSGEO_VENV))
+
+if not os.path.exists(GEOS_LIBRARY_PATH):
+    print("Unable to find GEOS_LIBRARY_PATH at {}".format(GEOS_LIBRARY_PATH))
+
+if not os.path.exists(GDAL_LIBRARY_PATH):
+    print("Unable to find GDAL_LIBRARY_PATH at {}".format(GDAL_LIBRARY_PATH))
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

@@ -54,6 +54,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", SETTINGS_FILE)
 # from: http://sontek.net/blog/detail/tips-and-tricks-for-the-python-interpreter
 if "DJANGO_SETTINGS_MODULE" in os.environ:
     # from django.db.models.loading import get_models
+
     import django
     from django.apps import apps
     from django.test.client import Client
@@ -62,12 +63,15 @@ if "DJANGO_SETTINGS_MODULE" in os.environ:
 
     django.setup()
 
-    class DjangoModels(object):
-        """Loop through all the models in INSTALLED_APPS and import them."""
+    # class DjangoModels(object):
+    #     """Loop through all the models in INSTALLED_APPS and import them."""
 
-        def __init__(self):
-            for m in apps.get_models():
-                setattr(self, m.__name__, m)
+    #     def __init__(self):
+    #         for m in apps.get_models():
+    #             setattr(self, m.__name__, m)
 
-    A = DjangoModels()
-    C = Client()
+    # A = DjangoModels()
+    # C = Client()
+
+else:
+    print("Unable to find key for DJANGO_SETTINGS_MODULE in os.environ!")

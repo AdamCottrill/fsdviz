@@ -1,6 +1,9 @@
 [run]
+include = fsdviz/*
 
 omit =
+    */.virtualenv/*,
+    */tests/*,
     django_settings.py,
     manage.py,
     .gitignore,
@@ -11,5 +14,3 @@ omit =
     *migrations/*,    
     *docs/*,
     *utils/*,
-    *fsdviz/tests/*,
-    *myusers/tests/*

@@ -8,7 +8,7 @@ from config.settings.base import *
 VIRTUAL_ENV = os.environ["VIRTUAL_ENV"]
 OSGEO_VENV = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo")
 GEOS_LIBRARY_PATH = os.path.join(OSGEO_VENV, "geos_c.dll")
-GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal300.dll")
+GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal301.dll")
 os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
 
 SECRET_KEY = "testing"

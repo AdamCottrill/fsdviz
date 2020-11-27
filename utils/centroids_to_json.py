@@ -14,6 +14,12 @@ This file should be re-run periodically to ensure consistency be the
 json file and our database.  Some day it could be replaced by an api
 endpoint.
 
+
+The easiest way regenerate the output from this file is to run it
+within a Django shell:
+
+> exec(open('./utils/centroids_to_json.py').read())
+
 """
 
 import json
@@ -58,7 +64,7 @@ jurisdiction_centroids = {
 mus = ManagementUnit.objects.filter(primary=True).exclude(geom__isnull=True)
 mus_centroids = {x.slug: [x.geom.centroid.x, x.geom.centroid.y] for x in mus}
 
-grids = Grid10.objects.all()
+grids = Grid10.objects.exclude(geom__isnull=True)
 grid_centroids = {x.slug: [x.centroid.x, x.centroid.y] for x in grids}
 
 
