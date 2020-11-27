@@ -11,6 +11,7 @@ by each of the filters.
 
 import pytest
 
+from django.contrib.gis.geos import GEOSGeometry
 
 from ..common_factories import (
     LakeFactory,
@@ -81,6 +82,9 @@ def stocking_events(db):
     truck = StockingMethodFactory(stk_meth="t", description="truck")
     plane = StockingMethodFactory(stk_meth="p", description="plane")
 
+    pt1 = GEOSGeometry("POINT(-82.0 44.0)", srid=4326)
+    pt2 = GEOSGeometry("POINT(-81.0 46.0)", srid=4326)
+
     StockingEventFactory(
         stock_id="1111",
         jurisdiction=on_hu,
@@ -93,6 +97,9 @@ def stocking_events(db):
         lifestage=yearlings,
         stocking_method=plane,
         mark="LP",
+        dd_lon=pt1.x,
+        dd_lat=pt1.y,
+        geom=pt1,
     )
     StockingEventFactory(
         stock_id="2222",
@@ -106,6 +113,9 @@ def stocking_events(db):
         lifestage=fingerlings,
         stocking_method=boat,
         mark="RP",
+        dd_lon=pt1.x,
+        dd_lat=pt1.y,
+        geom=pt1,
     )
     StockingEventFactory(
         stock_id="3333",
@@ -119,6 +129,9 @@ def stocking_events(db):
         lifestage=yearlings,
         stocking_method=boat,
         mark="LPRV",
+        dd_lon=pt2.x,
+        dd_lat=pt2.y,
+        geom=pt2,
     )
     StockingEventFactory(
         stock_id="4444",
@@ -132,13 +145,15 @@ def stocking_events(db):
         lifestage=fry,
         stocking_method=truck,
         mark="RV",
+        dd_lon=pt2.x,
+        dd_lat=pt2.y,
+        geom=pt2,
     )
 
 
 @pytest.mark.usefixtures("stocking_events")
 class TestStockingEventFilter:
-    """
-    """
+    """"""
 
     @pytest.mark.django_db
     def test_one_lake_filter(self):
@@ -625,5 +640,40 @@ class TestStockingEventFilter:
             assert val in values
 
         excluded = ["RV", "RP"]
+        for val in excluded:
+            assert val not in values
+
+    @pytest.mark.django_db
+    def test_roi_filter(self):
+        """The roi filter should only return stocking events that occured
+        within the roi and not any that occured elsewhere
+
+        """
+        # create a polygon that encompasses our first point (but not the second)
+        # "POINT(-82.0 44.0)"
+        wkt = (
+            "POLYGON((-81.5 43.5,"
+            + "-82.5 43.5,"
+            + "-82.5 44.5,"
+            + "-81.5 44.5,"
+            + "-81.5 43.5))"
+        )
+
+        roi = GEOSGeometry(wkt.replace("\n", ""), srid=4326)
+
+        events = StockingEvent.objects.all()
+
+        [print(x.stock_id, x.geom.wkt) for x in events]
+
+        filter = {"roi": roi.wkt}
+        qs = StockingEventFilter(filter, events).qs
+        assert len(qs) == 2
+
+        values = list(set([x.stock_id for x in qs]))
+        expected = ["1111", "2222"]
+        for val in expected:
+            assert val in values
+
+        excluded = ["3333", "4444"]
         for val in excluded:
             assert val not in values

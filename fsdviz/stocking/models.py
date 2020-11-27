@@ -240,7 +240,7 @@ class StockingEvent(models.Model):
         null=True,
     )
 
-    # primary management unit for this event - other can be found with queries.
+    # primary management unit for this event - other can be found with spatial queries.
     management_unit = models.ForeignKey(
         ManagementUnit, on_delete=models.CASCADE, related_name="stocking_events"
     )

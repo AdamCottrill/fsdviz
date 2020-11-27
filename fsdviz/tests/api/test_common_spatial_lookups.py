@@ -45,8 +45,7 @@ from ..common_factories import (
 
 @pytest.fixture()
 def polygonA():
-    """A polygon somewhere in Lake Huron.
-    """
+    """A polygon somewhere in Lake Huron."""
 
     wkt = (
         "MULTIPOLYGON(((-82.0 44.0,"
@@ -60,8 +59,7 @@ def polygonA():
 
 @pytest.fixture()
 def polygonB():
-    """A polygon somewhere in Lake Superior
-    """
+    """A polygon somewhere in Lake Superior"""
     wkt = (
         "MULTIPOLYGON(((-87.0 48.0,"
         + "-87.5 48.0,"

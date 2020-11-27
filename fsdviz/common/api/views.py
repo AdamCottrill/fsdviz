@@ -100,8 +100,9 @@ def roi_spatial_attrs(request):
 
     ret = dict()
 
-    # TODO -  move dictionary creation into queryset
-    lakes = Lake.objects.filter(geom__overlaps=roi).values("id", "abbrev", "lake_name")
+    lakes = Lake.objects.filter(geom__intersects=roi).values(
+        "id", "abbrev", "lake_name"
+    )
 
     if lakes:
         ret["lakes"] = list(lakes)
@@ -110,7 +111,7 @@ def roi_spatial_attrs(request):
 
     jurisdictions = (
         Jurisdiction.objects.select_related("lake", "stateprov")
-        .filter(geom__overlaps=roi)
+        .filter(geom__intersects=roi)
         .values(
             # jurisdiction attributes
             "id",
@@ -136,7 +137,7 @@ def roi_spatial_attrs(request):
 
     # get our stat disctricts too. for now just return the slugs
     man_units = (
-        ManagementUnit.objects.filter(geom__overlaps=roi)
+        ManagementUnit.objects.filter(geom__intersects=roi)
         .filter(primary=True)
         .values("slug", "mu_type", "primary")
     )
