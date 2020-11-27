@@ -1,4 +1,4 @@
-/* global topojson   */
+y; /* global topojson   */
 
 import bbox from "@turf/bbox";
 import Leaflet from "leaflet";

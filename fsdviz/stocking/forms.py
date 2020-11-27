@@ -36,7 +36,10 @@ class FindEventsForm(forms.Form):
     # this is the right way, but causes pytest to complain....
     # year_range = StockingEvent.objects.aggregate(Min("year"), Max("year"))
 
-    roi = PolygonField(widget=LeafletWidget(), required=False)
+    roi = PolygonField(
+        widget=LeafletWidget(),
+        required=False,
+    )
 
     year_range = {"year__min": 1950, "year__max": 2020}
 

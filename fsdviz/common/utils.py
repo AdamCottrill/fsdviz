@@ -14,6 +14,8 @@ import re
 import uuid
 
 from django.contrib.gis.geos import Point, Polygon, GEOSGeometry
+from django.contrib.gis.geos.error import GEOSException
+from django.contrib.gis.gdal.error import GDALException
 
 from django_filters import BaseInFilter, CharFilter, NumberFilter
 
@@ -74,7 +76,7 @@ def parse_geom(data):
 
     try:
         geom = GEOSGeometry(data, srid=4326)
-    except:
+    except (ValueError, GEOSException, GDALException):
         # the data could not be converted to a valid geometry object
         return None
 

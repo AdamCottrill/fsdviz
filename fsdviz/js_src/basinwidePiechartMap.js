@@ -469,11 +469,11 @@ Promise.all([
 
   calcMapGroups();
 
-  update_stats_panel(all, {
-    fillScale: speciesColourScale,
-    label: slices.filter((d) => d.name === sliceVar)[0].label,
-    what: sliceVar,
-  });
+  // update_stats_panel(all, {
+  //   fillScale: speciesColourScale,
+  //   label: slices.filter((d) => d.name === sliceVar)[0].label,
+  //   what: sliceVar,
+  //});
 
   //A function to set all of the filters to checked - called when
   //the page loads of if the reset button is clicked.

@@ -73,6 +73,7 @@ def find_events(request):
         "strain": F("strain_raw__strain"),
         "stage": F("lifestage__abbrev"),
         "method": F("stocking_method__stk_meth"),
+        "manUnit": F("management_unit__slug"),
         "jurisd": F("jurisdiction__slug"),
         "lake": F("jurisdiction__lake__abbrev"),
         "state": F("jurisdiction__stateprov__abbrev"),
@@ -88,6 +89,7 @@ def find_events(request):
         "strain",
         "stage",
         "method",
+        "manUnit",
         "jurisd",
         "lake",
         "state",
@@ -100,6 +102,7 @@ def find_events(request):
         "strain",
         "lifestage",
         "stocking_method",
+        "managementunit",
         "jurisdition__lake",
         "jurisdiction__stateprov",
     ]
@@ -109,6 +112,8 @@ def find_events(request):
     values = list(
         StockingEvent.objects.select_related(*related_tables)
         .annotate(**field_aliases)
+        .filter(management_unit__primary=True)
+        .distinct()
         .values(*fields)
         .order_by()
         .annotate(**counts)

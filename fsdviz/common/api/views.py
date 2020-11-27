@@ -6,14 +6,14 @@ The veiws in this file should all be publicly available as readonly.
 
 
 from django.contrib.gis.db.models.functions import Distance
-
+from django.db.models import F
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from fsdviz.common.utils import parse_point
+from fsdviz.common.utils import parse_geom
 
 from fsdviz.common.models import (
     Agency,
@@ -66,6 +66,91 @@ class AgencyViewSet(viewsets.ReadOnlyModelViewSet):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+def roi_spatial_attrs(request):
+    """This function accepts post requests that contain a geojson
+    representation of a polygon and returns a dictionary containing
+    the basic elements needed to validate the find-events forms and
+    limit the choices in the drop-downs for spatial fields to the
+    enties that overlap with the roi.  (if the region of interest in
+    entirely within lake michigan - there is no point in including the
+    aother lakes, or their children in the select widget).
+
+    Given a valid polygon geometry, return a dictionary with the following elements:
+
+    + lakes - list of lakes with id, lake name, lake abbrev
+
+    + juristictions - list of jurisdictions with id, stateprov name, stateprov abbrev
+
+    + manUnits - list of management units including the slug,
+      management unit type, and wether or not it should be considered to
+      be a primary management unit.
+
+    post data should contain a json string of the form:
+
+    {"roi":
+    "POLYGON ((-80.98 45.03, -81.15 44.90, -81.02 44.42, -80.38 44.45, -80.33 44.85, -80.98 45.03))"
+    }
+
+    """
+
+    roi = parse_geom(request.data.get("roi"))
+
+    if roi is None:
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+    ret = dict()
+
+    # TODO -  move dictionary creation into queryset
+    lakes = Lake.objects.filter(geom__overlaps=roi).values("id", "abbrev", "lake_name")
+
+    if lakes:
+        ret["lakes"] = list(lakes)
+    else:
+        ret["lakes"] = ""
+
+    jurisdictions = (
+        Jurisdiction.objects.select_related("lake", "stateprov")
+        .filter(geom__overlaps=roi)
+        .values(
+            # jurisdiction attributes
+            "id",
+            "lake_id",
+            "stateprov_id",
+            jurisd=F("slug"),
+            jurisdiction_name=F("name"),
+            # centroid=F("geom__centroid__wkt"),
+            # lake attributes:
+            lake_abbrev=F("lake__abbrev"),
+            lake_name=F("lake__lake_name"),
+            # state prov__ attributes:
+            stateprov_abbrev=F("stateprov__abbrev"),
+            stateprov_name=F("stateprov__name"),
+        )
+    )
+
+    if jurisdictions:
+        ret["jurisdictions"] = list(jurisdictions)
+
+    else:
+        ret["jurisdictions"] = ""
+
+    # get our stat disctricts too. for now just return the slugs
+    man_units = (
+        ManagementUnit.objects.filter(geom__overlaps=roi)
+        .filter(primary=True)
+        .values("slug", "mu_type", "primary")
+    )
+
+    if man_units:
+        ret["manUnits"] = list(man_units)
+    else:
+        ret["manUnits"] = ""
+
+    return Response(ret, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
 def pt_spatial_attrs(request):
     """This function accepts post requests that contain a geojson
     representation of a point and returns a dictionary containing the
@@ -85,7 +170,7 @@ def pt_spatial_attrs(request):
 
     """
 
-    pt = parse_point(request.data.get("point"))
+    pt = parse_geom(request.data.get("point"))
     if pt is None:
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -171,7 +256,7 @@ def get_lake_from_pt(request):
     """
 
     geom = request.query_params.get("geom")
-    pt = parse_point(request.data.get("point"))
+    pt = parse_geom(request.data.get("point"))
     if pt is None:
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -210,7 +295,7 @@ def get_jurisdiction_from_pt(request):
     """
 
     geom = request.query_params.get("geom")
-    pt = parse_point(request.data.get("point"))
+    pt = parse_geom(request.data.get("point"))
     if pt is None:
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -292,7 +377,7 @@ def get_management_unit_from_pt(request):
     mu_type = request.query_params.get("mu_type")
     all_mus = request.query_params.get("all")
 
-    pt = parse_point(request.data.get("point"))
+    pt = parse_geom(request.data.get("point"))
     if pt is None:
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -338,7 +423,7 @@ def get_grid10_from_pt(request):
 
     """
 
-    pt = parse_point(request.data.get("point"))
+    pt = parse_geom(request.data.get("point"))
     if pt is None:
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
 

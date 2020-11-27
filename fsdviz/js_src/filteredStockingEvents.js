@@ -53,7 +53,7 @@ const height2 = 300;
 let spatialUnit = getUrlParamValue("spatial_unit") || "jurisdiction";
 
 // this should probably be 'category'
-let varName = getUrlParamValue("category_var") || "species_code";
+let sliceVar = getUrlParamValue("category_var") || "species_code";
 
 let responseVar = getUrlParamValue("response_var") || "yreq";
 
@@ -143,6 +143,7 @@ function projectPoint(x, y) {
 }
 
 let piecharts = piechart_overlay(mymap)
+  .responseVar(responseVar)
   .getProjection(projectPoint)
   .fillScale(speciesColourScale);
 
@@ -189,7 +190,7 @@ let categories = [
 let categorySelector = RadioButtons()
   .selector("#category-selector")
   .options(categories)
-  .checked(varName);
+  .checked(sliceVar);
 
 categorySelector();
 const category_selector = selectAll("#category-selector input");
@@ -445,47 +446,48 @@ Promise.all([
   let grid10MapGroup = {};
   let geomMapGroup = {};
 
-  const calcMapGroups = (varName) => {
+  const calcMapGroups = () => {
     all = ndx
       .groupAll()
-      .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     lakeMapGroup = lakeDim
       .group()
-      .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     jurisdictionMapGroup = jurisdictionDim
       .group()
-      .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     stateProvMapGroup = stateProvDim
       .group()
-      .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     //      manUnitMapGroup = manUnitDim
     //        .group()
     //        .reduce(
-    //          stockingAdd(varName),
-    //          stockingRemove(varName),
+    //          stockingAdd(sliceVar),
+    //          stockingRemove(sliceVar),
     //            stockingInitial
     //        );
 
     grid10MapGroup = grid10Dim
       .group()
-      .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     geomMapGroup = geomDim
       .group()
-      .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
   };
 
-  calcMapGroups(varName);
+  calcMapGroups();
 
   // initialize the stats panel
   update_stats_panel(all, {
     fillScale: sharedColourScale,
-    label: categories.filter((d) => d.name === varName)[0].label,
-    what: responseVar,
+    label: categories.filter((d) => d.name === sliceVar)[0].label,
+    //what: responseVar,
+    what: sliceVar,
   });
 
   // set up an array of years:
@@ -599,7 +601,7 @@ Promise.all([
   // byYearLookup so that our tooltips work.
   let byYear = yearDim
     .group()
-    .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+    .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
   let byYearWith0s = ensure_group_bins(byYear, items);
 
@@ -1170,8 +1172,8 @@ Promise.all([
     update_stats_panel(all, {
       //fillScale: speciesColourScale,
       fillScale: sharedColourScale,
-      label: categories.filter((d) => d.name === varName)[0].label,
-      what: varName,
+      label: categories.filter((d) => d.name === sliceVar)[0].label,
+      what: sliceVar,
     });
   };
 
@@ -1186,7 +1188,7 @@ Promise.all([
   // if the pie chart slice selector radio buttons changes, update
   // the global variable and update the pie charts
   const update_sliceValue = (value) => {
-    varName = value;
+    sliceVar = value;
     calcMapGroups();
     updatePieCharts();
   };
@@ -1199,7 +1201,7 @@ Promise.all([
     updatePieCharts();
     update_stats_panel(all, {
       fillScale: sharedColourScale,
-      label: categories.filter((d) => d.name === varName)[0].label,
+      label: categories.filter((d) => d.name === sliceVar)[0].label,
       what: responseVar,
     });
   });
@@ -1208,13 +1210,11 @@ Promise.all([
   //         RADIO BUTTON CHANGE LISTENERS
 
   spatial_resolution.on("change", function () {
-    console.log("update_dc_url to include spatial_unit=", this.value);
     updateUrlParams("spatial_unit", this.value);
     update_spatialUnit(this.value);
   });
 
   pie_size_selector.on("change", function () {
-    console.log("update_dc_url to include response_var=", this.value);
     updateUrlParams("response_var", this.value);
     responseVar = this.value;
     updateGroups(responseVar);
@@ -1231,13 +1231,12 @@ Promise.all([
   //==========================================================
   //     CATEGORY VARIABLE HAS CHANGED!
   category_selector.on("change", function () {
-    varName = this.value;
-    //update_CategoryValue(varName);
-    console.log("update_dc_url to include category_var=", this.value);
+    sliceVar = this.value;
+    //update_CategoryValue(sliceVar);
     updateUrlParams("category_var", this.value);
     resetChartColours();
 
-    switch (varName) {
+    switch (sliceVar) {
       case "species_code":
         items = uniqueSpecies;
         lookupMap = speciesMap;
@@ -1313,7 +1312,7 @@ Promise.all([
 
     // these need to be recalculated.  All Species is Global to the application,
     // items list of unique values of the resposne variable available when the page loaded.
-    if (varName === "species_code") {
+    if (sliceVar === "species_code") {
       sharedColourScale.domain(all_species);
     } else {
       sharedColourScale.domain(items);
@@ -1321,11 +1320,11 @@ Promise.all([
 
     byYear = yearDim
       .group()
-      .reduce(stockingAdd(varName), stockingRemove(varName), stockingInitial);
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     byYearWith0s = ensure_group_bins(byYear, items);
 
-    calcMapGroups(varName);
+    calcMapGroups(sliceVar);
     updateStackeBarLabel(plotLabel);
     updatePieCharts();
 
@@ -1339,7 +1338,7 @@ Promise.all([
 
     update_stats_panel(all, {
       fillScale: sharedColourScale,
-      label: categories.filter((d) => d.name === varName)[0].label,
+      label: categories.filter((d) => d.name === sliceVar)[0].label,
       what: responseVar,
     });
 
