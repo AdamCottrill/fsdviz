@@ -18,3 +18,11 @@ fsdviz/static/js/accessToken.js
 *sandbox*
 *htmlcov*
 *#*
+.babelrc
+.eslint.json
+.flake8
+utils/fsdviz.wksp
+utils/fsdviz.wksp.1
+utils/stocking_database_report2.txt
+yarn-error.log
+yarn.lock
