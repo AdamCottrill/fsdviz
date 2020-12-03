@@ -514,6 +514,10 @@
                                     <div id="point-info"></div>
                                 </div>
                             </div>
+                            <a class="ui mini primary button" id="download-events-btn" href="#">Download Events
+                                <i class="arrow alternate circle down icon"></i>
+                            </a>
+                            
                         </div>
                     </div>
                     <div class="ui bottom attached tab segment" data-tab="settings">
@@ -551,6 +555,15 @@
      const slugURL = "{% static "data/slugs.csv" %}";
      const maxEvents = {{ maxEvents }};
 
+     // add the url parameters to our download button so the same filters can be
+     // sent to our download button:
+     let search = window.location.search;
+     let download_url = "{% url 'api:api-stocking-event-list-xlsx' %}";
+     document.getElementById("download-events-btn").href = download_url + search;
+     //document.getElementById("download-events-button").href();
+
+     
+     
     </script>
 
     <!--

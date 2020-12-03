@@ -26,7 +26,7 @@ INTERNAL_IPS = ("127.0.0.1",)
 
 MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
-ALLOWED_HOSTS = ["142.143.160.65", "142.143.160.81", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # ALLOWED_HOSTS = ['*']
 
@@ -44,4 +44,6 @@ DATABASES = {
     }
 }
 
-CORS_ORIGIN_WHITELIST += ["localhost:3000", "142.143.160.65:3000"]
+# CORS_ORIGIN_WHITELIST += [
+#     "localhost:3000",
+# ]

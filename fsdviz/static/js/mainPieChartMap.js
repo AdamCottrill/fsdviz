@@ -6040,7 +6040,7 @@
         : "");
   }
 
-  function dsvFormat(delimiter) {
+  function dsv(delimiter) {
     var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
         DELIMITER = delimiter.charCodeAt(0);
 
@@ -6146,11 +6146,25 @@
     };
   }
 
-  var csv = dsvFormat(",");
+  var csv = dsv(",");
 
   var csvParse = csv.parse;
+  var csvParseRows = csv.parseRows;
+  var csvFormat = csv.format;
+  var csvFormatBody = csv.formatBody;
+  var csvFormatRows = csv.formatRows;
+  var csvFormatRow = csv.formatRow;
+  var csvFormatValue = csv.formatValue;
 
-  var tsv = dsvFormat("\t");
+  var tsv = dsv("\t");
+
+  var tsvParse = tsv.parse;
+  var tsvParseRows = tsv.parseRows;
+  var tsvFormat = tsv.format;
+  var tsvFormatBody = tsv.formatBody;
+  var tsvFormatRows = tsv.formatRows;
+  var tsvFormatRow = tsv.formatRow;
+  var tsvFormatValue = tsv.formatValue;
 
   // https://github.com/d3/d3-dsv/issues/45
   var fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours();

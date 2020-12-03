@@ -6,10 +6,12 @@ The veiws in this file should all be publicly available as readonly.
 
 from django.conf import settings
 from django.db.models import Count, F, Q, Sum
+from django.contrib.postgres.aggregates import StringAgg
 from rest_framework import generics, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.renderers import JSONRenderer
 
 import json
 
@@ -23,7 +25,152 @@ from .serializers import (
     StockingMethodSerializer,
     StockingEventSerializer,
     StockingEventFastSerializer,
+    StockingEventXlsxSerializer,
 )
+
+
+from rest_framework.viewsets import ReadOnlyModelViewSet
+from drf_renderer_xlsx.mixins import XLSXFileMixin
+from drf_renderer_xlsx.renderers import XLSXRenderer
+
+
+class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
+    """This view set will export the stockign data to execl in the same
+    format as the data submission template."""
+
+    queryset = StockingEvent.objects.all()
+    serializer_class = StockingEventXlsxSerializer
+    filterset_class = StockingEventFilter
+    # queryset = LifeStage.objects.all()
+    # serializer_class = LifeStageSerializer
+    renderer_classes = (XLSXRenderer, JSONRenderer)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filename = "glfsd_export.xlsx"
+
+    column_header = {
+        "height": 15,
+        "style": {
+            "fill": {
+                "fill_type": "solid",
+                "start_color": "00C0C0C0",
+            },
+            "alignment": {
+                "horizontal": "center",
+                "vertical": "center",
+                "wrapText": True,
+                "shrink_to_fit": True,
+            },
+            "font": {
+                "name": "Calibri",
+                "size": 12,
+                "bold": True,
+            },
+        },
+    }
+    body = {
+        "style": {
+            "font": {
+                "name": "Calibri",
+                "size": 11,
+                "bold": False,
+            }
+        },
+        "height": 15,
+    }
+
+    def get_queryset(self):
+
+        field_aliases = {
+            "glfsd_stock_id": F("stock_id"),
+            "agency_code": F("agency__abbrev"),
+            "_lake": F("jurisdiction__lake__abbrev"),
+            "state_prov": F("jurisdiction__stateprov__abbrev"),
+            "manUnit": F("management_unit__label"),
+            "grid_10min": F("grid_10__grid"),
+            "location_primary": F("st_site"),
+            "location_secondary": F("site"),
+            "latitude": F("dd_lat"),
+            "longitude": F("dd_lon"),
+            "stock_method": F("stocking_method__stk_meth"),
+            "species_code": F("species__abbrev"),
+            "_strain": F("strain_raw__strain__strain_code"),
+            "yearclass": F("year_class"),
+            "life_stage": F("lifestage__abbrev"),
+            "age_months": F("agemonth"),
+            "_clip": F("clip_code__clip_code"),
+            "phys_chem_mark": F("physchem_marks"),
+            "cwt_number": F("tag_no"),
+            "tag_retention": F("tag_ret"),
+            "mean_length_mm": F("length"),
+            "total_weight_kg": F("weight"),
+            "stocking_mortality": F("condition__condition"),
+            "lot_code": F("lotcode"),
+            "hatchery_abbrev": F("hatchery__abbrev"),
+            "number_stocked": F("no_stocked"),
+            "tag_type": StringAgg("fish_tags__tag_code", ""),
+        }
+
+        fields = [
+            "glfsd_stock_id",
+            "agency_stock_id",
+            "agency_code",
+            "_lake",
+            "state_prov",
+            "manUnit",
+            "grid_10min",
+            "location_primary",
+            "location_secondary",
+            "latitude",
+            "longitude",
+            "year",
+            "month",
+            "day",
+            "stock_method",
+            "species_code",
+            "_strain",
+            "yearclass",
+            "life_stage",
+            "age_months",
+            "_clip",
+            "clip_efficiency",
+            "phys_chem_mark",
+            "tag_type",
+            "cwt_number",
+            "tag_retention",
+            "mean_length_mm",
+            "total_weight_kg",
+            "stocking_mortality",
+            "lot_code",
+            "hatchery_abbrev",
+            "number_stocked",
+            "notes",
+        ]
+
+        queryset = (
+            StockingEvent.objects.select_related(
+                "jurisdiction",
+                "agency",
+                "species",
+                "strain_raw__strain",
+                "lifestage",
+                "condition",
+                "grid_10",
+                "stocking_method",
+                "hatchery",
+                "fish_tags",
+                "jurisdiction__lake",
+                "jurisdiction__stateprov",
+            )
+            .order_by("-year", "stock_id")
+            .annotate(**field_aliases)
+            .values(*fields)
+        )
+
+        filtered = StockingEventFilter(self.request.GET, queryset=queryset).qs.values(
+            *fields
+        )
+
+        return filtered
 
 
 class LifeStageViewSet(viewsets.ReadOnlyModelViewSet):
@@ -259,9 +406,8 @@ class StockingEventListAPIView(APIView):
             "grid10",
             "dd_lat",
             "dd_lon",
-            "year",
-            "month",
             "st_site",
+            "year",
             "date",
             "month",
             "mark",
@@ -300,14 +446,14 @@ class StockingEventListAPIView(APIView):
 
 class StockingEventLookUpsAPIView(APIView):
     """This api endpoint will return a json object that contains lookups
-     for the stocking model objects needed to label stocking events.
-     The api endpoint that returns the stocking events contains only
-     id's or slugs form most fields to that the payload is compact and
-     the javscript processing on the front end is as efficient as
-     possible.  This endpoint provides the lookup values so that the
-     stocking method 'b' can be displayed as "boat, offshore
-     stocking".  Originally, this information was collected through
-     separate api calls for each attribute.
+    for the stocking model objects needed to label stocking events.
+    The api endpoint that returns the stocking events contains only
+    id's or slugs form most fields to that the payload is compact and
+    the javscript processing on the front end is as efficient as
+    possible.  This endpoint provides the lookup values so that the
+    stocking method 'b' can be displayed as "boat, offshore
+    stocking".  Originally, this information was collected through
+    separate api calls for each attribute.
 
     """
 

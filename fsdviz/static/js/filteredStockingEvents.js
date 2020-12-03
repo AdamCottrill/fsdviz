@@ -38730,13 +38730,16 @@
 	var width1 = 425;
 	var height1 = 400;
 	var width2 = 300;
-	var height2 = 300; // intial values of global variabls that control the state of our page:
+	var height2 = 300;
+	var roi = getUrlSearchValue("roi") || false; // intial values of global variabls that control the state of our page:
 
-	var spatialUnit = getUrlParamValue("spatial_unit") || "jurisdiction"; // this should probably be 'category'
+	var spatialUnit = getUrlParamValue("spatial_unit") || "geom"; // let spatialUnit = roi
+	//   ? "geom"
+	//   : getUrlParamValue("spatial_unit") || "jurisdiction";
+	// this should probably be 'category'
 
 	var sliceVar = getUrlParamValue("category_var") || "species_code";
-	var responseVar = getUrlParamValue("response_var") || "yreq";
-	var roi = getUrlSearchValue("roi") || false; //let column = "yreq_stocked";
+	var responseVar = getUrlParamValue("response_var") || "yreq"; //let column = "yreq_stocked";
 	// TODO:make ylabel a function of the response variable radio buttons array:
 
 	var ylabel = "Yearly Equivalents"; // a global object that will hold slug:label pairs for the labels of

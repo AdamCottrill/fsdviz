@@ -11,6 +11,7 @@ from .views import (
     StockingEventMapListView,
     StockingEventListAPIView,
     StockingEventLookUpsAPIView,
+    StockingEvent2xlsxViewSet,
 )
 
 
@@ -42,6 +43,11 @@ urlpatterns += [
         "events/",
         StockingEventViewSet.as_view({"get": "list"}),
         name="api-stocking-event-list",
+    ),
+    path(
+        "events_xlsx/",
+        StockingEvent2xlsxViewSet.as_view({"get": "list"}),
+        name="api-stocking-event-list-xlsx",
     ),
     path(
         "events/<int:year>/",
