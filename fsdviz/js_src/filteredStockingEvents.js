@@ -49,15 +49,18 @@ const height1 = 400;
 const width2 = 300;
 const height2 = 300;
 
+let roi = getUrlSearchValue("roi") || false;
 // intial values of global variabls that control the state of our page:
-let spatialUnit = getUrlParamValue("spatial_unit") || "jurisdiction";
+let spatialUnit = getUrlParamValue("spatial_unit") || "geom";
+
+// let spatialUnit = roi
+//   ? "geom"
+//   : getUrlParamValue("spatial_unit") || "jurisdiction";
 
 // this should probably be 'category'
 let sliceVar = getUrlParamValue("category_var") || "species_code";
 
 let responseVar = getUrlParamValue("response_var") || "yreq";
-
-let roi = getUrlSearchValue("roi") || false;
 
 //let column = "yreq_stocked";
 // TODO:make ylabel a function of the response variable radio buttons array:

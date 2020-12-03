@@ -489,7 +489,7 @@
 	  reduceSubtract
 	};
 
-	function deep(t,e,i,n,r){for(r in n=(i=i.split(".")).splice(-1,1),i)e=e[i[r]]=e[i[r]]||{};return t(e,n)}
+	function deep(t,e,i,n,r){for(r in n=(i=i.split(".")).splice(-1,1),i)e=e[i[r]]=e[i[r]]||{};return t(e,n)}//# sourceMappingURL=deepobj.m.js.map
 
 	// Note(cg): result was previsouly using lodash.result, not ESM compatible.
 	 
@@ -5346,7 +5346,7 @@
 	      : "");
 	}
 
-	function dsv(delimiter) {
+	function dsvFormat(delimiter) {
 	  var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
 	      DELIMITER = delimiter.charCodeAt(0);
 
@@ -5452,25 +5452,11 @@
 	  };
 	}
 
-	var csv = dsv(",");
+	var csv = dsvFormat(",");
 
 	var csvParse = csv.parse;
-	var csvParseRows = csv.parseRows;
-	var csvFormat = csv.format;
-	var csvFormatBody = csv.formatBody;
-	var csvFormatRows = csv.formatRows;
-	var csvFormatRow = csv.formatRow;
-	var csvFormatValue = csv.formatValue;
 
-	var tsv = dsv("\t");
-
-	var tsvParse = tsv.parse;
-	var tsvParseRows = tsv.parseRows;
-	var tsvFormat = tsv.format;
-	var tsvFormatBody = tsv.formatBody;
-	var tsvFormatRows = tsv.formatRows;
-	var tsvFormatRow = tsv.formatRow;
-	var tsvFormatValue = tsv.formatValue;
+	var tsv = dsvFormat("\t");
 
 	// https://github.com/d3/d3-dsv/issues/45
 	var fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours();
@@ -6722,6 +6708,7 @@
 	    return (end - start) / k;
 	  });
 	};
+	var milliseconds = millisecond.range;
 
 	var durationSecond = 1e3;
 	var durationMinute = 6e4;
@@ -6738,6 +6725,7 @@
 	}, function(date) {
 	  return date.getUTCSeconds();
 	});
+	var seconds = second.range;
 
 	var minute = newInterval(function(date) {
 	  date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond);
@@ -6748,6 +6736,7 @@
 	}, function(date) {
 	  return date.getMinutes();
 	});
+	var minutes = minute.range;
 
 	var hour = newInterval(function(date) {
 	  date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond - date.getMinutes() * durationMinute);
@@ -6758,6 +6747,7 @@
 	}, function(date) {
 	  return date.getHours();
 	});
+	var hours = hour.range;
 
 	var day = newInterval(function(date) {
 	  date.setHours(0, 0, 0, 0);
@@ -6768,6 +6758,7 @@
 	}, function(date) {
 	  return date.getDate() - 1;
 	});
+	var days = day.range;
 
 	function weekday(i) {
 	  return newInterval(function(date) {
@@ -6788,6 +6779,8 @@
 	var friday = weekday(5);
 	var saturday = weekday(6);
 
+	var sundays = sunday.range;
+
 	var month = newInterval(function(date) {
 	  date.setDate(1);
 	  date.setHours(0, 0, 0, 0);
@@ -6798,6 +6791,7 @@
 	}, function(date) {
 	  return date.getMonth();
 	});
+	var months = month.range;
 
 	var year = newInterval(function(date) {
 	  date.setMonth(0, 1);
@@ -6820,6 +6814,7 @@
 	    date.setFullYear(date.getFullYear() + step * k);
 	  });
 	};
+	var years = year.range;
 
 	var utcMinute = newInterval(function(date) {
 	  date.setUTCSeconds(0, 0);
@@ -6830,6 +6825,7 @@
 	}, function(date) {
 	  return date.getUTCMinutes();
 	});
+	var utcMinutes = utcMinute.range;
 
 	var utcHour = newInterval(function(date) {
 	  date.setUTCMinutes(0, 0, 0);
@@ -6840,6 +6836,7 @@
 	}, function(date) {
 	  return date.getUTCHours();
 	});
+	var utcHours = utcHour.range;
 
 	var utcDay = newInterval(function(date) {
 	  date.setUTCHours(0, 0, 0, 0);
@@ -6850,6 +6847,7 @@
 	}, function(date) {
 	  return date.getUTCDate() - 1;
 	});
+	var utcDays = utcDay.range;
 
 	function utcWeekday(i) {
 	  return newInterval(function(date) {
@@ -6870,6 +6868,8 @@
 	var utcFriday = utcWeekday(5);
 	var utcSaturday = utcWeekday(6);
 
+	var utcSundays = utcSunday.range;
+
 	var utcMonth = newInterval(function(date) {
 	  date.setUTCDate(1);
 	  date.setUTCHours(0, 0, 0, 0);
@@ -6880,6 +6880,7 @@
 	}, function(date) {
 	  return date.getUTCMonth();
 	});
+	var utcMonths = utcMonth.range;
 
 	var utcYear = newInterval(function(date) {
 	  date.setUTCMonth(0, 1);
@@ -6902,6 +6903,7 @@
 	    date.setUTCFullYear(date.getUTCFullYear() + step * k);
 	  });
 	};
+	var utcYears = utcYear.range;
 
 	function localDate(d) {
 	  if (0 <= d.y && d.y < 100) {
@@ -22558,7 +22560,7 @@
 	  window.L = exports;
 
 	})));
-
+	//# sourceMappingURL=leaflet-src.js.map
 	});
 
 	/* @preserve
@@ -38728,13 +38730,16 @@
 	var width1 = 425;
 	var height1 = 400;
 	var width2 = 300;
-	var height2 = 300; // intial values of global variabls that control the state of our page:
+	var height2 = 300;
+	var roi = getUrlSearchValue("roi") || false; // intial values of global variabls that control the state of our page:
 
-	var spatialUnit = getUrlParamValue("spatial_unit") || "jurisdiction"; // this should probably be 'category'
+	var spatialUnit = getUrlParamValue("spatial_unit") || "geom"; // let spatialUnit = roi
+	//   ? "geom"
+	//   : getUrlParamValue("spatial_unit") || "jurisdiction";
+	// this should probably be 'category'
 
 	var sliceVar = getUrlParamValue("category_var") || "species_code";
-	var responseVar = getUrlParamValue("response_var") || "yreq";
-	var roi = getUrlSearchValue("roi") || false; //let column = "yreq_stocked";
+	var responseVar = getUrlParamValue("response_var") || "yreq"; //let column = "yreq_stocked";
 	// TODO:make ylabel a function of the response variable radio buttons array:
 
 	var ylabel = "Yearly Equivalents"; // a global object that will hold slug:label pairs for the labels of

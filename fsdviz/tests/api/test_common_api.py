@@ -498,8 +498,7 @@ class TestStrainAPI(APITestCase):
     """
 
     def setUp(self):
-        """
-        """
+        """"""
         self.species_dict = {
             "abbrev": "LAT",
             "common_name": "Lake Trout",

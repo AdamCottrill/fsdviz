@@ -399,6 +399,7 @@ class StockingEventListView(ListView):
         context = super(StockingEventListView, self).get_context_data(**kwargs)
 
         context["search_criteria"] = self.request.GET.get("q")
+        context["filters"] = self.request.GET
         jurisdiction_slug = self.kwargs.get("jurisdiction")
         lake_name = self.kwargs.get("lake_name")
 
