@@ -48,6 +48,8 @@ urlpatterns = [
     # for all lakes:
     path("events/", PieChartMapViewLatestYear, name="stocking-events-latest-year"),
     # stocking event lists
+    #  These urls should no longer be needed:
+    # <---------- begin --------------->
     path(
         "events_list/<int:year>/",
         StockingEventListView.as_view(),
@@ -73,9 +75,9 @@ urlpatterns = [
         StockingEventListView.as_view(),
         name="stocking-event-list-jurisdiction-year",
     ),
+    # <---------- END --------------->
     path(
         "events_list/",
-        # StockingEventListLatestYear,
         StockingEventListView.as_view(),
         name="stocking-event-list",
     ),

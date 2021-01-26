@@ -5,6 +5,7 @@ application.
 """
 
 from django import template
+import calendar
 
 register = template.Library()
 
@@ -156,3 +157,17 @@ def last_year(context, year):
     if query:
         mypath += "?" + query.urlencode()
     return mypath
+
+
+@register.filter
+def month_name(month_number):
+    """Given a number return the associated month name (e.g month_name(1)
+    returns "January")
+
+    from: https://stackoverflow.com/questions/7385751/
+
+    """
+    if month_number is None:
+        return None
+    else:
+        return calendar.month_name[month_number]

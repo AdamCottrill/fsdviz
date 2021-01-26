@@ -21,6 +21,12 @@
          padding-right: 10px;
      }
 
+     button .ui .mini .button{
+
+         margin-top:10px;
+
+     }
+     
     </style>
 
 {% endblock %}
@@ -47,7 +53,7 @@
 
         <div class="ui grid">
             <div class="two wide column">
-
+                
                 {% include 'stocking/_refine_events_sidebar.html' %}
 
             </div>
@@ -59,30 +65,30 @@
                         <div class="ui column">
 
                             {% if filters %}
-                            {% for filter, values in  filters.items %}
-                                
-                                <a href="{% strip_parameter param=filter %}" class="mini ui icon {{ filter | filter_colour }} button">
-                                    {{ filter }} = {{values}}
-                                    <i class="times icon"></i>
+                                {% for filter, values in  filters.items %}
+                                    
+                                    <a href="{% strip_parameter param=filter %}" class="mini ui icon {{ filter | filter_colour }} button">
+                                        {{ filter }} = {{values}}
+                                        <i class="times icon"></i>
+                                    </a>
+                                    
+                                {% endfor %}
+
+                                <a href="#" id="visualize-events-btn" class="mini ui icon right floated green button">
+                                    Visualize Events
+                                    <i class="map marked alternate icon"></i>
                                 </a>
+
                                 
-                            {% endfor %}
-
-                            <a href="#" id="visualize-events-btn" class="mini ui icon right floated green button">
-                                Visualize Events
-                                <i class="map marked alternate icon"></i>
-                            </a>
-
-                            
-                            <a href="#" id="download-events-btn" class="mini ui icon right floated primary button">
-                                Download events
-                                <i class="arrow alternate circle down icon"></i>
-                            </a>
+                                <a href="#" id="download-events-btn" class="mini ui icon right floated primary button">
+                                    Download events
+                                    <i class="arrow alternate circle down icon"></i>
+                                </a>
 
 
-                            
+                                
                             {% endif %}
-                           
+                            
                             
                             {% include '_paginator.html' %}
 
@@ -141,6 +147,7 @@
 
     </div>
 
+
 {% endblock %}
 
 {% block extra_js%}
@@ -153,14 +160,214 @@
 
     <script type="text/javascript">
 
+     
+     function getUrlVars() {
+         var vars = {};
+         var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+             vars[key] = value;
+         });
+         return vars;
+     }; 
+     function getUrlParam(parameter, defaultvalue){
+         var urlparameter = defaultvalue;
+         if(window.location.href.indexOf(parameter) > -1){
+             urlparameter = getUrlVars()[parameter];
+         }
+         return urlparameter;
+     };
+
+
+
+     $(document).ready(function(){
+
+         // reload the page with the updated values.
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+
+         if (urlFirstYear){
+             document.getElementById("first-year").value = urlFirstYear;
+         }
+
+         if (urlLastYear){
+             document.getElementById("last-year").value = urlLastYear;
+         }
+
+     })
+     
+
+     const resetYears = function() {
+         let url = window.location.href;
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+         url = url.replace("first_year="+ urlFirstYear, "")
+                  .replace("last_year="+ urlLastYear, "");
+         url = url.replace('&&', '&').replace('?&', '?');
+         url = url.endsWith("?") ? url.replace("?","") : url;
+         window.location.replace(url);
+     }
+
+     
+     const updateYearsClick = function() {
+         // get the value of the first year and last inputs
+
+         // if first year is null, strip the first_year parameter from the query list
+         // if last year is null, strip the last_year parameter from the query list
+         let firstYear = document.getElementById("first-year").value;
+         let lastYear = document.getElementById("last-year").value;
+
+         
+         // if first_year exists and can be parsed to an integer between 1950 and 2050, update the query string
+         // if last_year exists and can be parsed to an integer between 1950 and 2050, update the query string
+
+         // reload the page with the updated values.
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+
+         let url = window.location.search;
+         
+         if (firstYear && urlFirstYear){
+             // replace an existing firstYear filter
+             url = url.replace("first_year="+ urlFirstYear, "first_year=" + firstYear)
+             
+         } else if (urlFirstYear) {
+             // delete the existing filter
+             url = url.replace("first_year="+ urlFirstYear, "");
+         } else if (firstYear) {
+             // add a new firstYear filter
+             tmp = url.indexOf("?") >=0 ? "&first_year="+ firstYear :
+                   "?first_year="+ firstYear;               
+             url = url + tmp ;
+         }
+         
+         if (lastYear && urlLastYear){
+             // replace existing
+             url = url.replace("last_year="+ urlLastYear, "last_year=" + lastYear)         
+         } else if (urlLastYear) {
+             // delete the existing filter
+             url = url.replace("last_year="+ urlLastYear, "");
+         } else if (lastYear) {
+             // ad new
+             tmp = url.indexOf("?") >=0 ? "&last_year="+ lastYear :
+                   "?last_year="+ lastYear;              
+             url = url + tmp ;
+         }
+
+
+         url = url.replace('&&', '&').replace('?&', '?')
+         window.location.search = url;
+         
+         
+     };
+
+     const updateLakeClick = () => {
+         updateUrl('lake');
+     };
+
+     const updateAgenciesClick = () => {
+         updateUrl('agency');
+     };
+
+     const updateStateProvClick = () => {
+         updateUrl('stateprov');
+     };
+
+     const updateJurisdictionClick = () => {
+         updateUrl('jurisdiction');
+     };
+
+     const updateSpeciesClick = () => {
+         updateUrl('species');
+     };
+
+     const updateStrainClick = () => {
+         updateUrl('strain', 'strain_name');
+     };
+
+     const updateClipcodeClick = () => {
+         updateUrl('clip_code')
+     };     
+     
+     const updateFinClipClick = () => {
+         updateUrl('finclips')
+     };    
+
+     const updateFishTagsClick = () => {
+         updateUrl('fishtags')
+     };
+
+     const updatePhysChemMarksClick = () => {
+         updateUrl('physchem_marks')
+     };
+     
+     const updateLifestageClick = () => {
+         updateUrl('lifestage');
+     };
+
+     const updateStockingMonthClick = () => {
+         updateUrl('stocking_month');
+     };
+
+     
+     const updateStockingMethodClick = () => {
+         updateUrl('stocking_method');
+     };
+
+     const updateHatcheryClick = () => {
+         updateUrl('hatchery');
+     };
+
+     
+     const updateUrl = function(name, filter_tag="") {
+         // given the name of the checkbox group, find the checked
+         // checkboxes and update the url based on the filter_tag
+         filter_tag = filter_tag==="" ? name : filter_tag 
+         
+         let url = window.location.search;
+         let checked = [];
+         
+         $.each($("input[name='" + name + "']:checked"), function(){
+             checked.push($(this).val());
+         });
+
+         // remove any existing query strings for this parameter
+         // just incase our widget is updated:
+         let regex = new RegExp(filter_tag + "=.+&|"+ filter_tag + "=.+$");
+         url = url.replace(regex, "").replace(/&$/, '')
+
+         // build our query string....
+         if (checked.length){         
+             let query_string = filter_tag + '=' + checked.join(',')
+             tmp = url.indexOf("?") >=0 ? "&"+ query_string :
+                   "?"+ query_string;
+             url = url + tmp ;
+         }
+
+         window.location.search = url.replace('?&', "?").replace(/\\?$/, '');
+         
+         
+     }
+
+
+     
+
+
+
+     
      // add the url parameters to our download button so the same filters can be
      // sent to our download button:
      let search = window.location.search;
      let download_url = "{% url 'api:api-stocking-event-list-xlsx' %}";
-     document.getElementById("download-events-btn").href = download_url + search;
+     let download_button = document.getElementById("download-events-btn");
+     if (download_button){
+         download_button.href = download_url + search;
+     }
      
      let visualize_url = "{% url 'stocking:filtered-stocking-events' %}";
-     document.getElementById("visualize-events-btn").href = visualize_url + search;
+     let visualize_button = document.getElementById("visualize-events-btn");
+     if (visualize_button){
+         visualize_button.href = visualize_url + search;
+     }
+     
      
      //document.getElementById("download-events-button").href();
 

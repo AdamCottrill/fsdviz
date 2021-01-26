@@ -331,6 +331,8 @@ class StockingEvent(models.Model):
     )
     tag_ret = models.FloatField("CWT retention as a percentage", blank=True, null=True)
 
+    # fin clips are the individual clips applied to the fish of a stocking event.
+    # fish is an ADLP clip code would have an AD and and LP clip.
     fin_clips = models.ManyToManyField(FinClip, related_name="stocking_events")
 
     clip_code = models.ForeignKey(

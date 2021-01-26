@@ -41,35 +41,10 @@
                     Stocking
                     <div class="menu">
                         <div class="item">
-                            <span class="text">Event List</span>
+                            <a href="{% url 'stocking:stocking-event-list' %}">Events List</a>
                         </div>
                         <div class="item">
-
                             <a href="{% url 'stocking:find-stocking-events' %}">Find Events</a>
-
-                        </div>
-
-                        <div class="item">
-                            <i class="dropdown icon"></i>
-                            <span class="text">Lake</span>
-                            <div class="menu">
-                                {% if year %}
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'SU' year %}">Lake Superior</a></div>
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'MI' year %}">Lake Michigan</a></div>
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'HU' year %}">Lake Huron</a></div>
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'SC' year %}">St Clair</a></div>
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'ER' year %}">Lake Erie</a></div>
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake-year' 'ON' year %}">Lake Ontario</a></div>
-                                {% else %}
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'SU' %}">Lake Superior</a></div>
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'MI' %}">Lake Michigan</a></div>
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'HU' %}">Lake Huron</a></div>
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'SC' %}">St Clair</a></div>
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'ER' %}">Lake Erie</a></div>
-                                    <div class="item"><a href="{% url 'stocking:stocking-event-list-lake' 'ON' %}">Lake Ontario</a></div>
-                                {%endif%}
-
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -46,6 +46,9 @@ from ..common.models import (
     Agency,
     Grid10,
     CWTsequence,
+    FinClip,
+    FishTag,
+    PhysChemMark,
 )
 from .models import StockingEvent, StockingMethod, LifeStage, Condition, DataUploadEvent
 from .filters import StockingEventFilter
@@ -55,6 +58,29 @@ from .forms import FindEventsForm, XlsEventForm, StockingEventForm
 from ..myusers.permissions import user_can_create_edit_delete
 
 #
+
+
+def add_is_checked(values_list, urlfilter, to_str=False):
+    """A helper function that accepts a values list of items, and a url
+    filter( query parameters) and applies a boolean to each item in
+    the itme list indicating whehter or not that element is selected
+    in the current request.  Used by list views to add checkbox boxes
+    to refine selections.
+
+    Arguments:
+    - `items`: - queryset values_list of items for checkboxes
+    - `url_filter`: - url query parameters associated with this category
+
+    """
+
+    if urlfilter:
+        my_filter = urlfilter.split(",")
+
+        values_list = [list(x) for x in values_list]
+
+        for item in values_list:
+            item.append(str(item[0]) in my_filter)
+    return values_list
 
 
 def find_events(request):
@@ -398,14 +424,20 @@ class StockingEventListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(StockingEventListView, self).get_context_data(**kwargs)
 
+        filters = self.request.GET
+        context["filters"] = filters
         context["search_criteria"] = self.request.GET.get("q")
-        context["filters"] = self.request.GET
-        jurisdiction_slug = self.kwargs.get("jurisdiction")
-        lake_name = self.kwargs.get("lake_name")
 
         basequery = StockingEventFilter(
             self.request.GET, StockingEvent.objects.all()
         ).qs
+
+        # =============== START DELETE  ==================
+        # getting year, lake and jurisdiction from the url has been superceeded by query
+        # parameter filters. These lines of code are obsolete and should be delted.
+
+        jurisdiction_slug = self.kwargs.get("jurisdiction")
+        lake_name = self.kwargs.get("lake_name")
 
         if lake_name:
             basequery = basequery.filter(jurisdiction__lake__abbrev=lake_name)
@@ -421,51 +453,157 @@ class StockingEventListView(ListView):
             basequery = basequery.filter(jurisdiction__slug=jurisdiction_slug)
             jurisdiction = Jurisdiction.objects.get(slug=jurisdiction_slug)
 
-        context["year_list"] = (
-            basequery.values_list("year").annotate(n=Count("id")).order_by("-year")
+        # ===============  END DELETE  ==================
+
+        lake_list = (
+            basequery.values_list(
+                "jurisdiction__lake__abbrev", "jurisdiction__lake__lake_name"
+            )
+            .annotate(n=Count("id"))
+            .order_by("jurisdiction__lake__lake_name")
         )
 
-        context["agency_list"] = (
-            basequery.values_list("agency__abbrev").annotate(n=Count("id")).order_by()
+        context["lake_list"] = add_is_checked(lake_list, filters.get("lake"))
+
+        stateprov_list = (
+            basequery.values_list(
+                "jurisdiction__stateprov__abbrev",
+                "jurisdiction__stateprov__name",
+            )
+            .annotate(n=Count("id"))
+            .order_by("jurisdiction__stateprov__abbrev")
         )
 
-        context["jurisdiction_list"] = (
+        context["stateprov_list"] = add_is_checked(
+            stateprov_list, filters.get("stateprov")
+        )
+
+        jurisdiction_list = (
             basequery.values_list("jurisdiction__slug", "jurisdiction__name")
             .annotate(n=Count("id"))
-            .order_by()
+            .order_by("jurisdiction__slug")
         )
 
-        context["species_list"] = (
+        context["jurisdiction_list"] = add_is_checked(
+            jurisdiction_list, filters.get("jurisdiction")
+        )
+
+        agency_list = (
+            basequery.values_list("agency__abbrev", "agency__agency_name")
+            .annotate(n=Count("id"))
+            .order_by("agency__abbrev")
+        )
+
+        context["agency_list"] = add_is_checked(agency_list, filters.get("agency"))
+
+        species_list = (
             basequery.values_list("species__abbrev", "species__common_name")
             .annotate(n=Count("id"))
-            .order_by()
+            .order_by("species__common_name")
         )
 
-        context["strain_list"] = (
+        context["species_list"] = add_is_checked(species_list, filters.get("species"))
+
+        strain_list = (
             basequery.values_list(
                 "strain_raw__strain__strain_code", "strain_raw__strain__strain_label"
             )
             .annotate(n=Count("id"))
-            .order_by()
+            .order_by("strain_raw__strain__strain_label")
         )
 
-        context["lifestage_list"] = (
+        context["strain_list"] = add_is_checked(strain_list, filters.get("strain_name"))
+
+        lifestage_list = (
             basequery.values_list("lifestage__abbrev", "lifestage__description")
             .annotate(n=Count("id"))
-            .order_by()
+            .order_by("lifestage__description")
         )
 
-        context["mark_list"] = (
-            basequery.values_list("mark").annotate(n=Count("id")).order_by()
+        context["lifestage_list"] = add_is_checked(
+            lifestage_list, filters.get("lifestage")
         )
 
-        context["stocking_method_list"] = (
+        clip_code_list = (
+            basequery.values_list("clip_code__clip_code", "clip_code__description")
+            .annotate(n=Count("id"))
+            .order_by("clip_code__clip_code")
+        )
+
+        context["clip_code_list"] = add_is_checked(
+            clip_code_list, filters.get("clip_code")
+        )
+
+        stocking_month_list = (
+            basequery.values_list("month").annotate(n=Count("id")).order_by("month")
+        )
+
+        # this is not currently working:
+        context["stocking_month_list"] = add_is_checked(
+            stocking_month_list, filters.get("stocking_month"), True
+        )
+
+        stocking_method_list = (
             basequery.values_list(
                 "stocking_method__stk_meth", "stocking_method__description"
             )
             .annotate(n=Count("id"))
-            .order_by()
+            .order_by("stocking_method__description")
         )
+
+        context["stocking_method_list"] = add_is_checked(
+            stocking_method_list, filters.get("stocking_method")
+        )
+
+        hatchery_list = (
+            basequery.values_list("hatchery__abbrev", "hatchery__hatchery_name")
+            .annotate(n=Count("id"))
+            .order_by("hatchery__abbrev")
+        )
+
+        context["hatchery_list"] = add_is_checked(
+            hatchery_list, filters.get("hatchery")
+        )
+
+        # finclips, tags, and phys_chem_marks are slightly different as
+        # they are many-to-many relationships we need filter the
+        # 'many' side using the stocking events in our current base
+        # query and then tally up the results and add a boolean
+        # indicating whether or not each clip has already been
+        # selected with the current filters:
+
+        finclip_list = (
+            FinClip.objects.filter(stocking_events__in=basequery)
+            .values_list("abbrev", "description")
+            .annotate(n=Count("stocking_events__id"))
+            .order_by("abbrev")
+        )
+
+        finclip_list = add_is_checked(finclip_list, filters.get("finclips"))
+        context["finclip_list"] = finclip_list
+
+        fishtags_list = (
+            FishTag.objects.filter(stocking_events__in=basequery)
+            .values_list("tag_code", "description")
+            .annotate(n=Count("stocking_events__id"))
+            .order_by("tag_code")
+        )
+
+        context["fishtags_list"] = add_is_checked(
+            fishtags_list, filters.get("fishtags")
+        )
+
+        physchem_marks_list = (
+            PhysChemMark.objects.filter(stocking_events__in=basequery)
+            .values_list("mark_code", "description")
+            .annotate(n=Count("stocking_events__id"))
+            .order_by("mark_code")
+        )
+
+        context["physchem_marks_list"] = add_is_checked(
+            physchem_marks_list, filters.get("physchem_marks")
+        )
+
         return context
 
     def get_queryset(self):

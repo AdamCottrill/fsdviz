@@ -1,5 +1,7 @@
 
 {% load fsdviz_tags %}
+{% load humanize %}
+
 
 <h5>Refine By</h5>
 
@@ -7,94 +9,159 @@
 
     <div class="title">
         <i class="dropdown icon"></i>
-        Year
+        Years
     </div>
     <div class="content">
-        <ul>
-            {% if year %}
-                {% if lake %}
-                    <li><a href="{% url 'stocking:stocking-event-list-lake' lake.abbrev %}">All Years</a></li>
-                {% elif jurisdiction %}
-                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' jurisdiction.slug %}">All Years</a></li>
-                {% else %}
-                    <li><a href="{% url 'stocking:stocking-event-list' %}">All Years</a></li>
-                {% endif %}
+        <form class="ui mini form" id="years" action={{request.get_full_path}} method="get">
 
-
-            {% endif %}
-            {% for yr in year_list %}
-                {% if yr.0 == year %}
-                    <li>{{ yr.0 }}({{yr.1}})</li>
-                {% else %}
-                    {% if lake %}
-                        <li><a href="{% url 'stocking:stocking-event-list-lake-year' lake.abbrev yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
-                    {% elif jurisdiction %}
-                        <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' jurisdiction.slug yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
-                    {%else%}
-                        <li><a href="{% url 'stocking:stocking-event-list-year' yr.0 %}">{{ yr.0 }}({{ yr.1 }})</a></li>
-                    {% endif %}
-                {% endif  %}
-            {% endfor %}
-        </ul>
-
+            <div class="field">
+                <input type="text"  id="first-year" name="first_year" placeholder =
+                             "first year">
+            </div>
+            <div class="field">
+                <input type="text"  id="last-year" name="last_year" placeholder =
+                             "last year">
+            </div>
+            <div class="ui hidden divider"></div>
+            <button class="mini ui blue button" type="button" onClick=updateYearsClick()>
+                Update years
+            </button>
+        </form>
 
     </div>
+
 
     <div class="title">
         <i class="dropdown icon"></i>
-        Jurisdiction
+        Lakes
     </div>
     <div class="content">
-        <ul>
-            {% if jurisdiction %}
-                {% if year %}
-                    <li><a href="{% url 'stocking:stocking-event-list-lake-year' jurisdiction.lake.abbrev year %}">{{ jurisdiction.lake.lake_name }}</a></li>
-                {% else %}
-                    <li><a href="{% url 'stocking:stocking-event-list-lake' jurisdiction.lake.abbrev %}">{{ jurisdiction.lake.lake_name }}</a></li>
-
-                {% endif %}
-            {% endif %}
-
-            {% for obj in jurisdiction_list %}
-                {% if year %}
-                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction-year' obj.0 year %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
-                {%else%}
-                    <li><a href="{% url 'stocking:stocking-event-list-jurisdiction' obj.0 %}">Lake {{ obj.1 }}({{ obj.2 }})</a></li>
-                {% endif  %}
+        <div class="list" id="filter_lake_list">
+            {% for item in lake_list %}
+                <div class="item">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="lake" {% if item.3 %}checked{% endif%}  value="{{item.0}}">
+                        <label>
+                            {{item.1}} ({{item.0}}) (N={{item.2 | intcomma}})
+                        </label>
+                    </div>
+                </div>
             {% endfor %}
-        </ul>
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateLakeClick()>
+            Update Lakes
+        </button>
+
     </div>
+
 
     <div class="title">
         <i class="dropdown icon"></i>
-        Agency
+        States/Province
     </div>
     <div class="content">
-        <ul>
-            {% if 'agency' in request.GET %}
-                <li><a href="{% strip_parameter 'agency' %}">All Agencies</a></li>
-            {% endif %}
+        <div class="list" id="filter_stateprov_list">
+            {% for item in stateprov_list %}
 
-            {% for object in agency_list %}
-                <li><a href="?{% query_transform agency=object.0 %}">{{object.0}}({{object.1}})</a></li>
+                <div class="item">
+                    <div class="ui tiny checkbox" data-tooltip="{{item.1}}" data-position="right center">
+                        <input type="checkbox" name="stateprov" {% if item.3 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{item.0}} (N={{item.2  | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
             {% endfor %}
-        </ul>
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateStateProvClick()>
+            Update States/Province
+        </button>
+
     </div>
+
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Waters of ...
+    </div>
+    <div class="content">
+        <div class="list" id="filter_jurisdiction_list">
+            {% for item in jurisdiction_list %}
+
+                <div class="item">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="jurisdiction" {% if item.3 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            Lake {{item.1}} (N={{item.2  | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateJurisdictionClick()>
+            Update Waters Of...
+        </button>
+
+    </div>
+
+
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Agencies
+    </div>
+    <div class="content">
+        <div class="list" id="filter_agency_list">
+            {% for item in agency_list %}
+
+                <div class="item" data-tooltip="{{item.1}}" data-position="right center">
+                    <div class="ui tiny checkbox">
+                        <input title="Agency Full Name" type="checkbox" {% if item.3 %}checked{% endif%} name="agency" value="{{item.0}}">
+                        <label>
+                            {{item.0}} (N={{item.2  | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateAgenciesClick()>
+            Update Agencies
+        </button>
+
+    </div>
+
 
     <div class="title">
         <i class="dropdown icon"></i>
         Species
     </div>
     <div class="content">
-        <ul>
-            {% if 'species' in request.GET %}
-                <li><a href="{% strip_parameter 'species' %}">All Species</a></li>
-            {% endif %}
+        <div class="list" id="filter_species_list">
+            {% for item in species_list %}
 
-            {% for object in species_list %}
-                <li><a href="?{% query_transform species=object.0 %}">{{object.1}}({{object.2}})</a></li>
+                <div class="item">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="species" {% if item.3 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{item.1}} (N={{item.2 | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
             {% endfor %}
-        </ul>
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateSpeciesClick()>
+            Update Species
+        </button>
+
     </div>
 
     <div class="title">
@@ -102,63 +169,244 @@
         Strain
     </div>
     <div class="content">
-        <ul>
-            {% if 'strain' in request.GET %}
-                <li><a href="{% strip_parameter 'strain' %}">All Strains</a></li>
-            {% endif %}
-            {% for object in strain_list %}
-                <li><a href="?{% query_transform strain=object.0 %}">{{object.1}}({{object.2}})</a></li>
+        <div class="list" id="filter_strain_list">
+            {% for item in strain_list %}
+
+                <div class="item">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="strain" {% if item.3 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{item.1}} (N={{item.2 | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
             {% endfor %}
-        </ul>
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateStrainClick()>
+            Update Strain
+        </button>
 
     </div>
 
 
     <div class="title">
         <i class="dropdown icon"></i>
-        Life Stage
+        Lifestage
     </div>
     <div class="content">
-        <ul>
-            {% if 'lifestage' in request.GET %}
-                <li><a href="{% strip_parameter 'lifestage' %}">All Life Stages</a></li>
-            {% endif %}
+        <div class="list" id="filter_lifestage_list">
+            {% for item in lifestage_list %}
 
-            {% for object in lifestage_list %}
-                <li><a href="?{% query_transform lifestage=object.0 %}">{{object.1}}({{object.2}})</a></li>
+                <div class="item">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="lifestage" {% if item.3 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{item.1 | title}} (N={{item.2 | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
             {% endfor %}
-        </ul>
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateLifestageClick()>
+            Update Lifestage
+        </button>
+
     </div>
+
+
 
     <div class="title">
         <i class="dropdown icon"></i>
-        Mark
+        Clip Code
     </div>
     <div class="content">
-        <ul>
-            {% if 'mark' in request.GET %}
-                <li><a href="{% strip_parameter 'mark' %}">All Marks</a></li>
-            {% endif %}
+        <div class="list" id="filter_clip_code_list">
+            {% for item in clip_code_list %}
 
-            {% for object in mark_list %}
-                <li><a href="?{% query_transform mark=object.0 %}">{{object.0}}({{object.1}})</a></li>
+                <div class="item" data-tooltip="{{item.1}}" data-position="right center">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="clip_code" {% if item.3 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{item.0}} (N={{item.2 | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
             {% endfor %}
-        </ul>
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateClipcodeClick()>
+            Update Clip Code
+        </button>
+
     </div>
+
+
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Clip Contains...
+    </div>
+    <div class="content">
+        <div class="list" id="filter_finclip_list">
+            {% for item in finclip_list %}
+
+                <div class="item" >
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="finclips" {% if item.3 %}checked{% endif%}  value="{{item.0}}">
+                        <label>
+                            {{item.0}} (N={{item.2 | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateFinClipClick()>
+            Update Clip Contains...
+        </button>
+
+    </div>
+
+
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Fish Tags
+    </div>
+    <div class="content">
+        <div class="list" id="filter_fishtags_list">
+            {% for item in fishtags_list %}
+                
+                
+                <div class="item" data-tooltip="{{item.1}}" data-position="right center">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="fishtags" {% if item.3 %}checked{% endif%}  value="{{item.0}}">
+                        <label>
+                            {{item.0}} (N={{item.2 | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateFishTagsClick()>
+            Update Tags
+        </button>
+
+    </div>
+
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Physical-Chemical Marks
+    </div>
+    <div class="content">
+        <div class="list" id="filter_physchem_marks_list">
+            {% for item in physchem_marks_list %}
+
+                <div class="item" data-tooltip="{{item.1}}" data-position="right center">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="physchem_marks" {% if item.3 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{item.0}} (N={{item.2  | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updatePhysChemMarksClick()>
+            Update Physical Chemical Marks
+        </button>
+
+    </div>
+
 
     <div class="title">
         <i class="dropdown icon"></i>
         Stocking Method
     </div>
     <div class="content">
-        <ul>
-            {% if 'stocking_method' in request.GET %}
-                <li><a href="{% strip_parameter 'stocking_method' %}">All Stocking Methods</a></li>
-            {% endif %}
-            {% for object in stocking_method_list %}
-                <li><a href="?{% query_transform stocking_method=object.0 %}">{{object.1}}({{object.2}})</a></li>
+        <div class="list" id="filter_stocking_method_list">
+            {% for item in stocking_method_list %}
+
+                <div class="item">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="stocking_method" {% if item.3 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{item.1 | title }} (N={{item.2 | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
             {% endfor %}
-        </ul>
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateStockingMethodClick()>
+            Update Stocking Method
+        </button>
+
     </div>
 
-</div>
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Month of Stocking
+    </div>
+    <div class="content">
+        <div class="list" id="filter_stocking_month_list">
+            {% for item in stocking_month_list %}
+
+                <div class="item">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="stocking_month" {% if item.2 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{ item.0 | month_name }} (N={{item.1 | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateStockingMonthClick()>
+            Update Stocking Month
+        </button>
+
+    </div>
+
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Hatchery
+    </div>
+    <div class="content">
+        <div class="list" id="filter_hatchery_list">
+            {% for item in hatchery_list %}
+
+                <div class="item">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="hatchery" {% if item.3 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{item.1}} (N={{item.2}})
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateHatcheryClick()>
+            Update Hatchery
+            </button>
+
+        </div>
+
+    </div>
