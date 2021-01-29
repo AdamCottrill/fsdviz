@@ -186,8 +186,8 @@ def stocking_events(db):
         jurisdiction=on_er,
         agency=mnrf,
         year=2012,
-        month=6,
-        day=15,
+        month=None,
+        day=None,
         species=lat,
         strain_raw=raw_lat1,
         lifestage=yearlings,
@@ -241,8 +241,8 @@ def stocking_events(db):
         jurisdiction=on_su,
         agency=mnrf,
         year=2050,
-        month=4,
-        day=55,
+        month=6,
+        day=15,
         species=lat,
         strain_raw=raw_lat1,
         lifestage=yearlings,
@@ -397,6 +397,34 @@ class TestCWTSequenceFilter:
             "events",
         ),
         (
+            {"stocking_month": "4"},
+            [
+                "111111",
+            ],
+            ["222222", "333333", "444444", "551111", "111166"],
+            "events",
+        ),
+        (
+            {"stocking_month": "99"},
+            [
+                "333333",
+            ],
+            ["111111", "222222", "444444", "551111", "111166"],
+            "events",
+        ),
+        (
+            {"stocking_month": "4,99"},
+            ["111111", "333333"],
+            ["222222", "444444", "551111", "111166"],
+            "events",
+        ),
+        (
+            {"stocking_month": "4,6"},
+            ["111111", "222222", "551111"],
+            ["333333", "444444", "111166"],
+            "events",
+        ),
+        (
             {"species": "LAT"},
             ["111111", "333333", "551111"],
             ["222222", "444444", "111166"],
@@ -445,7 +473,6 @@ class TestCWTSequenceFilter:
             ["111111", "333333", "551111"],
             "events__lifestage",
         ),
-        # TODO: CLIP_CODE here:
         (
             {"fin_clips": "RP"},
             ["111111", "222222", "333333", "551111"],
@@ -598,8 +625,9 @@ class TestCWTSequenceFilter:
 
     @pytest.mark.django_db
     def test_roi_filter(self):
-        """The roi filter should only return stocking events that occured
-        within the roi and not any that occured elsewhere
+        """The roi filter should only return cwts that are associated wth
+        stocking events that occured within the roi and not any that
+        occured elsewhere.
 
         """
         # create a polygon that encompasses our first point (but not the second)

@@ -153,8 +153,8 @@ def stocking_events(db):
         jurisdiction=mi_hu,
         agency=mdnr,
         year=2010,
-        month=6,
-        day=15,
+        month=None,
+        day=None,
         species=cos,
         strain_raw=raw_cos,
         lifestage=fingerlings,
@@ -449,7 +449,7 @@ class TestStockingEventFilter:
         events = StockingEvent.objects.all()
         filter = {"stocking_month": "6"}
         qs = StockingEventFilter(filter, events).qs
-        assert len(qs) == 2
+        assert len(qs) == 1
 
         values = list(set([x.month for x in qs]))
         assert 6 in values
@@ -457,6 +457,37 @@ class TestStockingEventFilter:
         excludes = [4, 8]
         for val in excludes:
             assert val not in values
+
+    @pytest.mark.django_db
+    def test_null_stocking_month_filter(self):
+        """99 is used to filter for stocking events that do not have a
+        stocking month.
+
+        """
+        events = StockingEvent.objects.all()
+        filter = {"stocking_month": "99"}
+        qs = StockingEventFilter(filter, events).qs
+        assert len(qs) == 1
+
+        assert qs[0].stock_id == "2222"
+
+    @pytest.mark.django_db
+    def test_stocking_month_or_null_filter(self):
+        """99 is used to filter for stocking events that do not have a
+        stocking month. It should work in combination with other
+        months too. In this case month is June or unknown.
+
+        """
+        events = StockingEvent.objects.all()
+        filter = {"stocking_month": "6,99"}
+        qs = StockingEventFilter(filter, events).qs
+        assert len(qs) == 2
+
+        values = list(set([x.stock_id for x in qs]))
+
+        expected = ["2222", "3333"]
+        for val in expected:
+            assert val in values
 
     @pytest.mark.django_db
     def test_multiple_stocking_month_filter(self):

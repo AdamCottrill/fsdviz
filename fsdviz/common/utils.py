@@ -13,6 +13,7 @@
 import re
 import uuid
 
+from django.db.models import Q
 from django.contrib.gis.geos import Point, Polygon, GEOSGeometry
 from django.contrib.gis.geos.error import GEOSException
 from django.contrib.gis.gdal.error import GDALException
@@ -28,17 +29,21 @@ class NumberInFilter(BaseInFilter, NumberFilter):
     pass
 
 
-class MyMonthFilter(ValueInFilter):
-    empty_value = "99"
+class NumberInOrNullFilter(NumberInFilter):
+    """a filter for an array of integer numbers - 99 and 9999 are special
+    placeholders for missing values."""
 
     def filter(self, qs, value):
+        if value is None:
+            return super(NumberInFilter, self).filter(qs, value)
+        if 99 not in value:
+            return super(NumberInFilter, self).filter(qs, value)
 
-        if value != self.empty_value:
-            return super().filter(qs, value)
+        value.remove(99)
 
-        qs = self.get_method(qs)(**{"%s__%s" % (self.field_name, self.lookup_expr): ""})
-        # qs = self.get_method(qs)(**{"%s__isnull" % (self.field_name): None})
-        return qs.distinct() if self.distinct else qs
+        q1 = Q(**{"%s__%s" % (self.field_name, "in"): value})
+        q2 = Q(**{"%s__%s" % (self.field_name, "isnull"): True})
+        return qs.filter(q1 | q2)
 
 
 def is_uuid4(x):

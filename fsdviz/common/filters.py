@@ -5,7 +5,7 @@ The will be used in both views and api serializers.
 
 import django_filters
 from django.contrib.gis.geos import GEOSGeometry
-from .utils import NumberInFilter, ValueInFilter, MyMonthFilter
+from .utils import NumberInFilter, ValueInFilter, NumberInOrNullFilter
 
 from .models import (
     ManagementUnit,
@@ -164,8 +164,7 @@ class CWTSequenceFilter(django_filters.FilterSet):
     )
     year = django_filters.CharFilter(field_name="events__year", lookup_expr="exact")
 
-    # TODO:
-    stocking_month = MyMonthFilter(field_name="events__month", lookup_expr="in")
+    stocking_month = NumberInOrNullFilter(field_name="events__month", lookup_expr="in")
 
     species = ValueInFilter(field_name="events__species__abbrev", lookup_expr="in")
 

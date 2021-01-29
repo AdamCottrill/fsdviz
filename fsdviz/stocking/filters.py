@@ -7,7 +7,7 @@ import django_filters
 from django.contrib.gis.geos import GEOSGeometry
 from .models import StockingEvent
 
-from ..common.utils import ValueInFilter, NumberInFilter, MyMonthFilter
+from ..common.utils import ValueInFilter, NumberInFilter, NumberInOrNullFilter
 
 
 class GeomFilter(django_filters.CharFilter):
@@ -28,9 +28,6 @@ class StockingEventFilter(django_filters.FilterSet):
             pass
         return queryset
 
-    # lake = django_filters.CharFilter(
-    #     field_name='jurisdiction__lake__abbrev', lookup_expr='iexact')
-
     lake = ValueInFilter(field_name="jurisdiction__lake__abbrev", lookup_expr="in")
 
     agency = ValueInFilter(field_name="agency__abbrev", lookup_expr="in")
@@ -39,14 +36,11 @@ class StockingEventFilter(django_filters.FilterSet):
     )
     jurisdiction = ValueInFilter(field_name="jurisdiction__slug", lookup_expr="in")
 
-    # year will have more than one filter eventually
-    # still need between, greater than and less than
-
     first_year = django_filters.NumberFilter(field_name="year", lookup_expr="gte")
     last_year = django_filters.NumberFilter(field_name="year", lookup_expr="lte")
     year = django_filters.CharFilter(field_name="year", lookup_expr="exact")
 
-    stocking_month = MyMonthFilter(field_name="month", lookup_expr="in")
+    stocking_month = NumberInOrNullFilter(field_name="month", lookup_expr="in")
 
     species = ValueInFilter(field_name="species__abbrev", lookup_expr="in")
 
@@ -80,10 +74,7 @@ class StockingEventFilter(django_filters.FilterSet):
 
     hatchery = ValueInFilter(field_name="hatchery__abbrev", lookup_expr="in")
 
-    # roi = self.roi_filter('geom', roi)
     roi = GeomFilter(field_name="geom", method="filter_geom_in_roi")
-
-    # add clips_in, fish_tags, phys_chem_marks
 
     class Meta:
         model = StockingEvent
