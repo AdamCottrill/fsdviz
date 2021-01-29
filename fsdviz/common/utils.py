@@ -28,6 +28,19 @@ class NumberInFilter(BaseInFilter, NumberFilter):
     pass
 
 
+class MyMonthFilter(ValueInFilter):
+    empty_value = "99"
+
+    def filter(self, qs, value):
+
+        if value != self.empty_value:
+            return super().filter(qs, value)
+
+        qs = self.get_method(qs)(**{"%s__%s" % (self.field_name, self.lookup_expr): ""})
+        # qs = self.get_method(qs)(**{"%s__isnull" % (self.field_name): None})
+        return qs.distinct() if self.distinct else qs
+
+
 def is_uuid4(x):
     """A little helper function - does the passed in string match a uuid4
     pattern?  Return true if it does match, false otherwise.  Used to

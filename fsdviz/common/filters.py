@@ -4,8 +4,8 @@ The will be used in both views and api serializers.
 """
 
 import django_filters
-
-from .utils import NumberInFilter, ValueInFilter
+from django.contrib.gis.geos import GEOSGeometry
+from .utils import NumberInFilter, ValueInFilter, MyMonthFilter
 
 from .models import (
     ManagementUnit,
@@ -19,6 +19,10 @@ from .models import (
     FinClip,
     PhysChemMark,
 )
+
+
+class GeomFilter(django_filters.CharFilter):
+    pass
 
 
 class ManagementUnitFilter(django_filters.FilterSet):
@@ -116,12 +120,30 @@ class CWTSequenceFilter(django_filters.FilterSet):
     based on attributes of the cwt, or the associated stocking events.
     """
 
-    cwt_number = django_filters.CharFilter(
+    def filter_geom_in_roi(self, queryset, name, value):
+        """A custom filter for our region of interest, only return stocking
+        events that have there geometetry in the region of interest contained
+        in value"""
+        if not value:
+            return queryset
+        try:
+            roi = GEOSGeometry(value, srid=4326)
+            queryset = queryset.filter(events__geom__intersects=roi)
+        except ValueError:
+            pass
+        return queryset
+
+    # tag attributes
+    cwt_number = ValueInFilter(field_name="cwt__cwt_number", lookup_expr="in")
+
+    cwt_number_like = django_filters.CharFilter(
         field_name="cwt__cwt_number", lookup_expr="icontains"
     )
+
     manufacturer = django_filters.CharFilter(field_name="cwt__manufacturer")
     tag_type = django_filters.CharFilter(field_name="cwt__tag_type")
 
+    # stocking event attributs
     lake = ValueInFilter(
         field_name="events__jurisdiction__lake__abbrev", lookup_expr="in"
     )
@@ -142,6 +164,9 @@ class CWTSequenceFilter(django_filters.FilterSet):
     )
     year = django_filters.CharFilter(field_name="events__year", lookup_expr="exact")
 
+    # TODO:
+    stocking_month = MyMonthFilter(field_name="events__month", lookup_expr="in")
+
     species = ValueInFilter(field_name="events__species__abbrev", lookup_expr="in")
 
     # strain abbrev (human friendly)
@@ -154,24 +179,39 @@ class CWTSequenceFilter(django_filters.FilterSet):
         field_name="events__strain_raw__strain__id", lookup_expr="in"
     )
 
-    lifestage = ValueInFilter(field_name="events__lifestage__abbrev", lookup_expr="in")
-
     stocking_method = ValueInFilter(
         field_name="events__stocking_method__stk_meth", lookup_expr="in"
     )
 
-    physchem_marks = django_filters.ModelMultipleChoiceFilter(
-        field_name="events__physchem_marks__mark_code",
-        conjoined=True,
-        queryset=PhysChemMark.objects.all(),
+    lifestage = ValueInFilter(field_name="events__lifestage__abbrev", lookup_expr="in")
+
+    clip_code = ValueInFilter(
+        field_name="events__clip_code__clip_code", lookup_expr="in"
     )
 
-    # ?fin_clip=AD&fin_clip=RP with return all recods with clip ADRP.
-    fin_clips = django_filters.ModelMultipleChoiceFilter(
-        field_name="events__fin_clips__abbrev",
-        queryset=FinClip.objects.all(),
-        # conjoined=True,
+    fin_clips = ValueInFilter(field_name="events__fin_clips__abbrev", lookup_expr="in")
+    physchem_marks = ValueInFilter(
+        field_name="events__physchem_marks__mark_code", lookup_expr="in"
     )
+
+    ### ?fin_clip=AD&fin_clip=RP with return all recods with clip ADRP.
+    # fin_clips = django_filters.ModelMultipleChoiceFilter(
+    #    field_name="events__fin_clips__abbrev",
+    #    queryset=FinClip.objects.all(),
+    #    # conjoined=True,
+    # )
+
+    # physchem_marks = django_filters.ModelMultipleChoiceFilter(
+    #    field_name="events__physchem_marks__mark_code",
+    #    conjoined=True,
+    #    queryset=PhysChemMark.objects.all(),
+    # )
+
+    fishtags = ValueInFilter(field_name="events__fish_tags__tag_code", lookup_expr="in")
+
+    hatchery = ValueInFilter(field_name="events__hatchery__abbrev", lookup_expr="in")
+
+    roi = GeomFilter(field_name="geom", method="filter_geom_in_roi")
 
     class Meta:
         model = CWTsequence

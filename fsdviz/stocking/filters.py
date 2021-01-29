@@ -7,24 +7,11 @@ import django_filters
 from django.contrib.gis.geos import GEOSGeometry
 from .models import StockingEvent
 
-from ..common.utils import ValueInFilter, NumberInFilter
+from ..common.utils import ValueInFilter, NumberInFilter, MyMonthFilter
 
 
 class GeomFilter(django_filters.CharFilter):
     pass
-
-
-class MyMonthFilter(ValueInFilter):
-    empty_value = "None"
-
-    def filter(self, qs, value):
-
-        if value != self.empty_value:
-            return super().filter(qs, value)
-
-        # qs = self.get_method(qs)(**{"%s__%s" % (self.field_name, self.lookup_expr): ""})
-        qs = self.get_method(qs)(**{"%s__isnull" % (self.field_name): ""})
-        return qs.distinct() if self.distinct else qs
 
 
 class StockingEventFilter(django_filters.FilterSet):
