@@ -138,6 +138,80 @@
     </div>
 
 
+
+
+    {% if cwt_type %}
+
+
+        <div class="title">
+            <i class="dropdown icon"></i>
+            CWT Type
+        </div>
+        <div class="content">
+            <div class="list" id="filter_cwt_type_list">
+                {% for item in cwt_type_list %}
+
+                    <div class="item">
+                        <div class="ui tiny checkbox">
+                            <input type="checkbox" name="cwt_type" {% if item.2 %}checked{% endif%} value="{{item.0}}">
+                            <label>
+                                {{item.0 | title}} (N={{item.1 | intcomma}})
+                            </label>
+                        </div>
+                    </div>
+
+                {% endfor %}
+            </div>
+            <div class="ui hidden divider"></div>
+            <button class="mini ui blue button" type="button" onClick=updateYearClassClick()>
+                Update CWT Type
+            </button>
+
+        </div>
+
+        
+    {% endif %}
+
+
+    {% if cwt_maker %}
+
+
+        <div class="title">
+            <i class="dropdown icon"></i>
+            CWT Manufacturer
+        </div>
+        <div class="content">
+            <div class="list" id="filter_cwt_maker_list">
+                {% for item in cwt_maker_list %}
+
+                    <div class="item">
+                        <div class="ui tiny checkbox">
+                            <input type="checkbox" name="cwt_maker" {% if item.2 %}checked{% endif%} value="{{item.0}}">
+                            <label>
+                                {{item.0 | title}} (N={{item.1 | intcomma}})
+                            </label>
+                        </div>
+                    </div>
+
+                {% endfor %}
+            </div>
+            <div class="ui hidden divider"></div>
+            <button class="mini ui blue button" type="button" onClick=updateYearClassClick()>
+                Update CWT manufacturer
+            </button>
+
+        </div>
+
+        
+    {% endif %}
+
+    
+
+
+
+
+    
+
     <div class="title">
         <i class="dropdown icon"></i>
         Species
@@ -190,6 +264,34 @@
 
     </div>
 
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Year Class
+    </div>
+    <div class="content">
+        <div class="list" id="filter_year_class_list">
+            {% for item in year_class_list %}
+
+                <div class="item">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="year_class" {% if item.2 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{item.0 | title}} (N={{item.1 | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateYearClassClick()>
+            Update Year Class
+        </button>
+
+    </div>
+
+    
 
     <div class="title">
         <i class="dropdown icon"></i>

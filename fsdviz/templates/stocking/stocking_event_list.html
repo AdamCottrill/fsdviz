@@ -298,6 +298,11 @@
      const updatePhysChemMarksClick = () => {
          updateUrl('physchem_marks')
      };
+
+     const updateYearClassClick = () => {
+         updateUrl('year_class');
+     };
+
      
      const updateLifestageClick = () => {
          updateUrl('lifestage');
@@ -324,9 +329,11 @@
          
          let url = window.location.search;
          let checked = [];
-         
+
+
          $.each($("input[name='" + name + "']:checked"), function(){
-             checked.push($(this).val());
+             let value =  $(this).val() !== "None" ? $(this).val() : 99;
+             checked.push(value);
          });
 
          // remove any existing query strings for this parameter

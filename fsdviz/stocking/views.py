@@ -60,10 +60,10 @@ from ..myusers.permissions import user_can_create_edit_delete
 #
 
 
-def add_is_checked(values_list, urlfilter, to_str=False):
+def add_is_checked(values_list, urlfilter, to_str=False, replace_none=False):
     """A helper function that accepts a values list of items, and a url
     filter( query parameters) and applies a boolean to each item in
-    the itme list indicating whehter or not that element is selected
+    the item list indicating whether or not that element is selected
     in the current request.  Used by list views to add checkbox boxes
     to refine selections.
 
@@ -75,9 +75,11 @@ def add_is_checked(values_list, urlfilter, to_str=False):
 
     if urlfilter:
         my_filter = urlfilter.split(",")
-
+        if replace_none:
+            # these values will be replaced if they appear in our url filter:
+            replacements = {"99": "None"}
+            my_filter = [replacements.get(x, x) for x in my_filter]
         values_list = [list(x) for x in values_list]
-
         for item in values_list:
             item.append(str(item[0]) in my_filter)
     return values_list
@@ -432,29 +434,6 @@ class StockingEventListView(ListView):
             self.request.GET, StockingEvent.objects.all()
         ).qs
 
-        # =============== START DELETE  ==================
-        # getting year, lake and jurisdiction from the url has been superceeded by query
-        # parameter filters. These lines of code are obsolete and should be delted.
-
-        jurisdiction_slug = self.kwargs.get("jurisdiction")
-        lake_name = self.kwargs.get("lake_name")
-
-        if lake_name:
-            basequery = basequery.filter(jurisdiction__lake__abbrev=lake_name)
-            lake = Lake.objects.get(abbrev=lake_name)
-            context["lake"] = lake
-
-        year = self.kwargs.get("year")
-        if year:
-            context["year"] = int(year)
-            basequery = basequery.filter(year=year)
-
-        if jurisdiction_slug:
-            basequery = basequery.filter(jurisdiction__slug=jurisdiction_slug)
-            jurisdiction = Jurisdiction.objects.get(slug=jurisdiction_slug)
-
-        # ===============  END DELETE  ==================
-
         lake_list = (
             basequery.values_list(
                 "jurisdiction__lake__abbrev", "jurisdiction__lake__lake_name"
@@ -514,6 +493,16 @@ class StockingEventListView(ListView):
 
         context["strain_list"] = add_is_checked(strain_list, filters.get("strain_name"))
 
+        year_class_list = (
+            basequery.values_list("year_class")
+            .annotate(n=Count("id"))
+            .order_by("-year_class")
+        )
+
+        context["year_class_list"] = add_is_checked(
+            year_class_list, filters.get("year_class"), True, True
+        )
+
         lifestage_list = (
             basequery.values_list("lifestage__abbrev", "lifestage__description")
             .annotate(n=Count("id"))
@@ -538,9 +527,8 @@ class StockingEventListView(ListView):
             basequery.values_list("month").annotate(n=Count("id")).order_by("month")
         )
 
-        # this is not currently working:
         context["stocking_month_list"] = add_is_checked(
-            stocking_month_list, filters.get("stocking_month"), True
+            stocking_month_list, filters.get("stocking_month"), True, True
         )
 
         stocking_method_list = (
@@ -608,10 +596,6 @@ class StockingEventListView(ListView):
 
     def get_queryset(self):
 
-        lake_name = self.kwargs.get("lake_name")
-        year = self.kwargs.get("year")
-        jurisdiction = self.kwargs.get("jurisdiction")
-
         # get the value of q from the request kwargs
         search_q = self.request.GET.get("q")
 
@@ -627,16 +611,6 @@ class StockingEventListView(ListView):
             "strain_raw__strain",
             "stocking_method",
         )
-
-        if lake_name:
-            # Return a filtered queryset
-            queryset = queryset.filter(jurisdiction__lake__abbrev=lake_name)
-
-        if year:
-            queryset = queryset.filter(year=year)
-
-        if jurisdiction:
-            queryset = queryset.filter(jurisdiction__slug=jurisdiction)
 
         if search_q:
             queryset = queryset.filter(
