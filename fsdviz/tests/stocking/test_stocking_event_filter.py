@@ -134,6 +134,7 @@ def stocking_events(db):
         year=2010,
         month=4,
         day=15,
+        year_class=2009,
         species=lat,
         strain_raw=raw_lat1,
         lifestage=yearlings,
@@ -155,6 +156,7 @@ def stocking_events(db):
         year=2010,
         month=None,
         day=None,
+        year_class=2009,
         species=cos,
         strain_raw=raw_cos,
         lifestage=fingerlings,
@@ -176,6 +178,7 @@ def stocking_events(db):
         jurisdiction=on_er,
         agency=mnrf,
         year=2012,
+        year_class=2011,
         month=6,
         day=15,
         species=lat,
@@ -198,6 +201,7 @@ def stocking_events(db):
         jurisdiction=oh_er,
         agency=odnr,
         year=2008,
+        year_class=2008,
         month=8,
         day=15,
         species=rbt,
@@ -435,6 +439,51 @@ class TestStockingEventFilter:
         assert 2010 in values
 
         excludes = [2008, 2012]
+        for val in excludes:
+            assert val not in values
+
+    # =====================================
+    #       YEAR CLASS
+
+    @pytest.mark.django_db
+    def test_one_year_class_filter(self):
+        """If we filter for a single year class, we should get only those events
+        associated with that year_class.
+        """
+
+        expected = ["1111", "2222"]
+        excludes = ["3333", "4444"]
+
+        events = StockingEvent.objects.all()
+        filter = {"year_class": "2009"}
+        qs = StockingEventFilter(filter, events).qs
+        assert len(qs) == len(expected)
+
+        values = list(set([x.stock_id for x in qs]))
+        for val in expected:
+            assert val in values
+
+        for val in excludes:
+            assert val not in values
+
+    @pytest.mark.django_db
+    def test_multiple_year_class_filter(self):
+        """If we filter for a more than one year class, we should get only those events
+        associated with those year_classes.
+        """
+
+        expected = ["3333", "4444"]
+        excludes = ["1111", "2222"]
+
+        events = StockingEvent.objects.all()
+        filter = {"year_class": "2008,2011"}
+        qs = StockingEventFilter(filter, events).qs
+        assert len(qs) == len(expected)
+
+        values = list(set([x.stock_id for x in qs]))
+        for val in expected:
+            assert val in values
+
         for val in excludes:
             assert val not in values
 

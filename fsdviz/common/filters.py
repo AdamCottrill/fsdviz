@@ -164,6 +164,7 @@ class CWTSequenceFilter(django_filters.FilterSet):
     )
     year = django_filters.CharFilter(field_name="events__year", lookup_expr="exact")
 
+    year_class = NumberInOrNullFilter(field_name="events__year_class", lookup_expr="in")
     stocking_month = NumberInOrNullFilter(field_name="events__month", lookup_expr="in")
 
     species = ValueInFilter(field_name="events__species__abbrev", lookup_expr="in")

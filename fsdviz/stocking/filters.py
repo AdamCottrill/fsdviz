@@ -40,6 +40,8 @@ class StockingEventFilter(django_filters.FilterSet):
     last_year = django_filters.NumberFilter(field_name="year", lookup_expr="lte")
     year = django_filters.CharFilter(field_name="year", lookup_expr="exact")
 
+    year_class = NumberInOrNullFilter(field_name="year_class", lookup_expr="in")
+
     stocking_month = NumberInOrNullFilter(field_name="month", lookup_expr="in")
 
     species = ValueInFilter(field_name="species__abbrev", lookup_expr="in")
@@ -51,10 +53,6 @@ class StockingEventFilter(django_filters.FilterSet):
 
     # by strain id (form)
     strain = NumberInFilter(field_name="strain_raw__strain__id", lookup_expr="in")
-
-    # mark is going away...
-    mark = ValueInFilter(field_name="mark", lookup_expr="in")
-    mark_like = django_filters.CharFilter(field_name="mark", lookup_expr="icontains")
 
     stocking_method = ValueInFilter(
         field_name="stocking_method__stk_meth", lookup_expr="in"
