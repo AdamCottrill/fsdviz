@@ -1,0 +1,39 @@
+{% extends 'fsdviz_base.html' %}
+
+{% load static %}
+{% load humanize %}
+{% load fsdviz_tags %}
+
+
+{% block navbar_search %}
+
+    <div class="right menu" id="cwt-menu-search" >
+        <form class="item">
+            <div class="ui right aligned category search item">
+                <div class="ui transparent icon input">
+                    <input class="prompt" type="text" placeholder="CWT contains..." name="contains">
+                    <i class="search link icon"></i>
+                </div>
+            </div>
+        </form>
+    </div>
+
+{% endblock navbar_search%}
+
+{% block content %}
+
+    <div class="ui container fluid" id="content">
+        <h1>CWT DETAILS ABOUT {{cwt_number | format_cwt}}</h1>
+
+        <p>This page will contain all of the available information about a cwt including:</p>
+
+        <ul>
+            <li>A map of the associtated stocking event(s)</li>
+            <li>a list of associated stocking event(s)</li>
+            <li>Any warnings about this tag - multiple year classes, species, agencies, ect</li>
+            <li>a tabbed view if the tag has been used for multiple purposes...</li>
+        </ul>
+        
+    </div>
+{% endblock %}
+

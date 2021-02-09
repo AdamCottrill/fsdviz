@@ -27,7 +27,7 @@
 
 {% block navbar_search %}
 
-    <div class="right menu">
+    <div class="right menu" id="cwt-menu-search" >
         <form class="item">
             <div class="ui right aligned category search item">
                 <div class="ui transparent icon input">
@@ -73,7 +73,7 @@
                             {% include '_paginator.html' %}
 
 
-                            <table class="ui very compact celled table tablesorter" style="font-size: 0.9em">
+                            <table id="cwt-list" class="ui very compact celled table tablesorter" style="font-size: 0.9em">
                                 <thead>
                                     <tr>
                                         <th scope="col">CWT</th>
@@ -95,7 +95,7 @@
                                     {% for object in object_list %}
 
                                         <tr>
-                                            <td> <a href="#">{{ object.cwt_number | format_cwt}}</a></td>
+                                            <td> <a href="{% url 'stocking:cwt-detail' cwt_number=object.cwt_number%}">{{ object.cwt_number | format_cwt}}</a></td>
                                             <td> {{ object.tag_type}}</td>
                                             <td> {{ object.agency_code}}</td>
                                             <td> {{ object.lake}}</td>
@@ -131,27 +131,238 @@
 
 {% block extra_js%}
 
+
     <!-- tablesorter plugin-->
-    <script src=<td> {{ object.https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js<td> {{ object.></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js"></script>
 
     <!-- tablesorter widget file - loaded after the plugin -->
-    <script src=<td> {{ object.http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js<td> {{ object.></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
 
-    <script type=<td> {{ object.text/javascript<td> {{ object.>
+    <script type="text/javascript">
 
-         $(<td> {{ object..tablesorter<td> {{ object.).tablesorter({
-             theme: 'bootstrap',
-             widthFixed: true,
-             showProcessing: true,
-             headerTemplate: '{content} {icon}',
-             widgets: ['zebra', 'uitheme', 'scroller'],
-             widgetOptions: {
-                 scroller_height: 300,
-                 scroller_barWidth: 17,
-                 scroller_jumpToHeader: true,
-                 scroller_idPrefix: 's_'
-             }
+     
+     function getUrlVars() {
+         var vars = {};
+         var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+             vars[key] = value;
          });
+         return vars;
+     }; 
+     function getUrlParam(parameter, defaultvalue){
+         var urlparameter = defaultvalue;
+         if(window.location.href.indexOf(parameter) > -1){
+             urlparameter = getUrlVars()[parameter];
+         }
+         return urlparameter;
+     };
+
+
+
+     $(document).ready(function(){
+
+         // reload the page with the updated values.
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+
+         if (urlFirstYear){
+             document.getElementById("first-year").value = urlFirstYear;
+         }
+
+         if (urlLastYear){
+             document.getElementById("last-year").value = urlLastYear;
+         }
+
+     })
+     
+
+     const resetYears = function() {
+         let url = window.location.href;
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+         url = url.replace("first_year="+ urlFirstYear, "")
+                  .replace("last_year="+ urlLastYear, "");
+         url = url.replace('&&', '&').replace('?&', '?');
+         url = url.endsWith("?") ? url.replace("?","") : url;
+         window.location.replace(url);
+     }
+
+     
+     const updateYearsClick = function() {
+         // get the value of the first year and last inputs
+
+         // if first year is null, strip the first_year parameter from the query list
+         // if last year is null, strip the last_year parameter from the query list
+         let firstYear = document.getElementById("first-year").value;
+         let lastYear = document.getElementById("last-year").value;
+
+         
+         // if first_year exists and can be parsed to an integer between 1950 and 2050, update the query string
+         // if last_year exists and can be parsed to an integer between 1950 and 2050, update the query string
+
+         // reload the page with the updated values.
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+
+         let url = window.location.search;
+         
+         if (firstYear && urlFirstYear){
+             // replace an existing firstYear filter
+             url = url.replace("first_year="+ urlFirstYear, "first_year=" + firstYear)
+             
+         } else if (urlFirstYear) {
+             // delete the existing filter
+             url = url.replace("first_year="+ urlFirstYear, "");
+         } else if (firstYear) {
+             // add a new firstYear filter
+             tmp = url.indexOf("?") >=0 ? "&first_year="+ firstYear :
+                   "?first_year="+ firstYear;               
+             url = url + tmp ;
+         }
+         
+         if (lastYear && urlLastYear){
+             // replace existing
+             url = url.replace("last_year="+ urlLastYear, "last_year=" + lastYear)         
+         } else if (urlLastYear) {
+             // delete the existing filter
+             url = url.replace("last_year="+ urlLastYear, "");
+         } else if (lastYear) {
+             // ad new
+             tmp = url.indexOf("?") >=0 ? "&last_year="+ lastYear :
+                   "?last_year="+ lastYear;              
+             url = url + tmp ;
+         }
+
+
+         url = url.replace('&&', '&').replace('?&', '?')
+         window.location.search = url;
+         
+         
+     };
+
+     const updateLakeClick = () => {
+         updateUrl('lake');
+     };
+
+     const updateAgenciesClick = () => {
+         updateUrl('agency');
+     };
+
+     const updateStateProvClick = () => {
+         updateUrl('stateprov');
+     };
+
+     const updateJurisdictionClick = () => {
+         updateUrl('jurisdiction');
+     };
+
+     const updateSpeciesClick = () => {
+         updateUrl('species');
+     };
+
+     const updateStrainClick = () => {
+         updateUrl('strain', 'strain_name');
+     };
+
+     const updateClipcodeClick = () => {
+         updateUrl('clip_code')
+     };     
+     
+     const updateFinClipClick = () => {
+         updateUrl('finclips')
+     };    
+
+     const updateFishTagsClick = () => {
+         updateUrl('fishtags')
+     };
+
+     const updatePhysChemMarksClick = () => {
+         updateUrl('physchem_marks')
+     };
+
+     const updateYearClassClick = () => {
+         updateUrl('year_class');
+     };
+
+     
+     const updateLifestageClick = () => {
+         updateUrl('lifestage');
+     };
+
+     const updateStockingMonthClick = () => {
+         updateUrl('stocking_month');
+     };
+
+     
+     const updateStockingMethodClick = () => {
+         updateUrl('stocking_method');
+     };
+
+     const updateHatcheryClick = () => {
+         updateUrl('hatchery');
+     };
+
+     const updateCwtManufacturerClick = () => {
+         console.log("updateCwtManufacturerClick - clicked")
+         updateUrl('manufacturer');
+     };
+
+     const updateCwtTagTypeClick = () => {
+         console.log("updateCwtTagTypeClick - clicked")
+         updateUrl('tag_type');
+     };
+
+     
+     
+     const updateUrl = function(name, filter_tag="") {
+         // given the name of the checkbox group, find the checked
+         // checkboxes and update the url based on the filter_tag
+         filter_tag = filter_tag==="" ? name : filter_tag 
+         
+         let url = window.location.search;
+         let checked = [];
+
+
+         $.each($("input[name='" + name + "']:checked"), function(){
+             let value =  $(this).val() !== "None" ? $(this).val() : 99;
+             checked.push(value);
+         });
+
+         // remove any existing query strings for this parameter
+         // just incase our widget is updated:
+         let regex = new RegExp(filter_tag + "=.+&|"+ filter_tag + "=.+$");
+         url = url.replace(regex, "").replace(/&$/, '')
+
+         // build our query string....
+         if (checked.length){         
+             let query_string = filter_tag + '=' + checked.join(',')
+             tmp = url.indexOf("?") >=0 ? "&"+ query_string :
+                   "?"+ query_string;
+             url = url + tmp ;
+         }
+
+         window.location.search = url.replace('?&', "?").replace(/\\?$/, '');
+         
+         
+     }
+
+
+     
+     //document.getElementById("download-events-button").href();
+
+     
+     $(".tablesorter").tablesorter({
+         theme: 'bootstrap',
+         widthFixed: true,
+         showProcessing: true,
+         headerTemplate: '{content} {icon}',
+         widgets: ['zebra', 'uitheme', 'scroller'],
+         widgetOptions: {
+             scroller_height: 300,
+             scroller_barWidth: 17,
+             scroller_jumpToHeader: true,
+             scroller_idPrefix: 's_'
+         }
+     });
 
     </script>
 

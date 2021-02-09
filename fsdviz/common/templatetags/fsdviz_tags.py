@@ -31,7 +31,7 @@ def filter_colour(x):
         # still have grey, black, and purple
     }
 
-    return button_colours.get(x)
+    return button_colours.get(x, "")
 
 
 @register.filter(name="format_cwt")

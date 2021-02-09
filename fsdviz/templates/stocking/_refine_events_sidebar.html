@@ -134,15 +134,9 @@
         <button class="mini ui blue button" type="button" onClick=updateAgenciesClick()>
             Update Agencies
         </button>
-
     </div>
 
-
-
-
-    {% if cwt_type %}
-
-
+    {% if cwt_type_list %}
         <div class="title">
             <i class="dropdown icon"></i>
             CWT Type
@@ -150,45 +144,37 @@
         <div class="content">
             <div class="list" id="filter_cwt_type_list">
                 {% for item in cwt_type_list %}
-
-                    <div class="item">
+                    <div class="item" data-tooltip="{{item.1}}" data-position="right center">
                         <div class="ui tiny checkbox">
-                            <input type="checkbox" name="cwt_type" {% if item.2 %}checked{% endif%} value="{{item.0}}">
+                            <input type="checkbox" name="tag_type" {% if item.3 %}checked{% endif%} value="{{item.0}}">
                             <label>
-                                {{item.0 | title}} (N={{item.1 | intcomma}})
+                                {{item.0 | title}} (N={{item.2 | intcomma}})
                             </label>
                         </div>
                     </div>
-
                 {% endfor %}
             </div>
             <div class="ui hidden divider"></div>
-            <button class="mini ui blue button" type="button" onClick=updateYearClassClick()>
+            <button class="mini ui blue button" type="button" onClick=updateCwtTagTypeClick()>
                 Update CWT Type
             </button>
-
-        </div>
-
-        
+        </div>        
     {% endif %}
 
-
-    {% if cwt_maker %}
-
-
+    {% if cwt_manufacturer_list %}
         <div class="title">
             <i class="dropdown icon"></i>
             CWT Manufacturer
         </div>
         <div class="content">
             <div class="list" id="filter_cwt_maker_list">
-                {% for item in cwt_maker_list %}
+                {% for item in cwt_manufacturer_list %}
 
-                    <div class="item">
+                    <div class="item" data-tooltip="{{item.1}}" data-position="right center">
                         <div class="ui tiny checkbox">
-                            <input type="checkbox" name="cwt_maker" {% if item.2 %}checked{% endif%} value="{{item.0}}">
+                            <input type="checkbox" name="manufacturer" {% if item.3 %}checked{% endif%} value="{{item.0}}">
                             <label>
-                                {{item.0 | title}} (N={{item.1 | intcomma}})
+                                {{item.0 | title}} (N={{item.2 | intcomma}})
                             </label>
                         </div>
                     </div>
@@ -196,21 +182,11 @@
                 {% endfor %}
             </div>
             <div class="ui hidden divider"></div>
-            <button class="mini ui blue button" type="button" onClick=updateYearClassClick()>
+            <button class="mini ui blue button" type="button" onClick=updateCwtManufacturerClick()>
                 Update CWT manufacturer
             </button>
-
         </div>
-
-        
     {% endif %}
-
-    
-
-
-
-
-    
 
     <div class="title">
         <i class="dropdown icon"></i>
@@ -235,7 +211,6 @@
         <button class="mini ui blue button" type="button" onClick=updateSpeciesClick()>
             Update Species
         </button>
-
     </div>
 
     <div class="title">
@@ -357,7 +332,7 @@
         <div class="list" id="filter_finclip_list">
             {% for item in finclip_list %}
 
-                <div class="item" >
+                <div class="item" data-tooltip="{{item.1}}" data-position="right center">
                     <div class="ui tiny checkbox">
                         <input type="checkbox" name="finclips" {% if item.3 %}checked{% endif%}  value="{{item.0}}">
                         <label>

@@ -45,6 +45,7 @@ from ..common.models import (
     ManagementUnit,
     Agency,
     Grid10,
+    CWT,
     CWTsequence,
     FinClip,
     FishTag,
@@ -1112,9 +1113,10 @@ class CWTListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(CWTListView, self).get_context_data(**kwargs)
 
+        filters = self.request.GET
+        context["filters"] = filters
         contains = self.request.GET.get("contains")
         context["contains_criteria"] = contains
-        context["filters"] = self.request.GET
 
         # jurisdiction_slug = self.kwargs.get("jurisdiction")
         # lake_name = self.kwargs.get("lake_name")
@@ -1140,73 +1142,209 @@ class CWTListView(ListView):
         #     basequery = basequery.filter(jurisdiction__slug=jurisdiction_slug)
         #    jurisdiction = Jurisdiction.objects.get(slug=jurisdiction_slug)
 
-        context["year_list"] = (
-            basequery.values_list("events__year")
-            .annotate(n=Count("id"))
-            .order_by("-events__year")
+        cwt_type_list = (
+            basequery.values_list("cwt__tag_type")
+            .annotate(n=Count("events"))
+            .order_by()
         )
+        # cwt type and manufacturer require us to get the choices from the model object
+        # rather than the queryset:
+        tmp = add_is_checked(cwt_type_list, filters.get("tag_type"))
+        choices = {x[0]: x[1] for x in CWT.TAG_TYPE_CHOICES}
+        context["cwt_type_list"] = [(x[0], choices.get(x[0]), x[1]) for x in tmp]
 
-        context["agency_list"] = (
-            basequery.values_list("events__agency__abbrev")
-            .annotate(n=Count("id"))
+        cwt_manufacturer_list = (
+            basequery.values_list("cwt__manufacturer")
+            .annotate(n=Count("events"))
             .order_by()
         )
 
-        context["jurisdiction_list"] = (
+        tmp = add_is_checked(cwt_manufacturer_list, filters.get("manufacturer"))
+        choices = {x[0]: x[1] for x in CWT.TAG_MANUFACTURER_CHOICES}
+
+        context["cwt_manufacturer_list"] = [
+            (x[0], choices.get(x[0]), x[1]) for x in tmp
+        ]
+
+        lake_list = (
+            basequery.values_list(
+                "events__jurisdiction__lake__abbrev",
+                "events__jurisdiction__lake__lake_name",
+            )
+            .annotate(n=Count("events"))
+            .order_by("events__jurisdiction__lake__lake_name")
+        )
+
+        context["lake_list"] = add_is_checked(lake_list, filters.get("lake"))
+
+        stateprov_list = (
+            basequery.values_list(
+                "events__jurisdiction__stateprov__abbrev",
+                "events__jurisdiction__stateprov__name",
+            )
+            .annotate(n=Count("events"))
+            .order_by("events__jurisdiction__stateprov__abbrev")
+        )
+
+        context["stateprov_list"] = add_is_checked(
+            stateprov_list, filters.get("stateprov")
+        )
+
+        jurisdiction_list = (
             basequery.values_list(
                 "events__jurisdiction__slug", "events__jurisdiction__name"
             )
-            .annotate(n=Count("id"))
-            .order_by()
+            .annotate(n=Count("events"))
+            .order_by("events__jurisdiction__slug")
         )
 
-        context["species_list"] = (
+        context["jurisdiction_list"] = add_is_checked(
+            jurisdiction_list, filters.get("jurisdiction")
+        )
+
+        agency_list = (
+            basequery.values_list(
+                "events__agency__abbrev", "events__agency__agency_name"
+            )
+            .annotate(n=Count("events"))
+            .order_by("events__agency__abbrev")
+        )
+        context["agency_list"] = add_is_checked(agency_list, filters.get("agency"))
+
+        species_list = (
             basequery.values_list(
                 "events__species__abbrev", "events__species__common_name"
             )
-            .annotate(n=Count("id"))
-            .order_by()
+            .annotate(n=Count("events"))
+            .order_by("events__species__common_name")
         )
 
-        context["strain_list"] = (
+        context["species_list"] = add_is_checked(species_list, filters.get("species"))
+
+        strain_list = (
             basequery.values_list(
                 "events__strain_raw__strain__strain_code",
                 "events__strain_raw__strain__strain_label",
             )
-            .annotate(n=Count("id"))
-            .order_by()
+            .annotate(n=Count("events"))
+            .order_by("events__strain_raw__strain__strain_label")
         )
 
-        context["lifestage_list"] = (
+        context["strain_list"] = add_is_checked(strain_list, filters.get("strain_name"))
+
+        year_class_list = (
+            basequery.values_list("events__year_class")
+            .annotate(n=Count("events"))
+            .order_by("-events__year_class")
+        )
+
+        context["year_class_list"] = add_is_checked(
+            year_class_list, filters.get("year_class"), True, True
+        )
+
+        lifestage_list = (
             basequery.values_list(
                 "events__lifestage__abbrev", "events__lifestage__description"
             )
-            .annotate(n=Count("id"))
-            .order_by()
+            .annotate(n=Count("events"))
+            .order_by("events__lifestage__description")
         )
 
-        context["mark_list"] = (
-            basequery.values_list("events__mark").annotate(n=Count("id")).order_by()
+        context["lifestage_list"] = add_is_checked(
+            lifestage_list, filters.get("lifestage")
         )
 
-        context["stocking_method_list"] = (
+        clip_code_list = (
+            basequery.values_list(
+                "events__clip_code__clip_code", "events__clip_code__description"
+            )
+            .annotate(n=Count("events"))
+            .order_by("events__clip_code__clip_code")
+        )
+
+        context["clip_code_list"] = add_is_checked(
+            clip_code_list, filters.get("clip_code")
+        )
+
+        stocking_month_list = (
+            basequery.values_list("events__month")
+            .annotate(n=Count("events"))
+            .order_by("events__month")
+        )
+
+        context["stocking_month_list"] = add_is_checked(
+            stocking_month_list, filters.get("stocking_month"), True, True
+        )
+
+        stocking_method_list = (
             basequery.values_list(
                 "events__stocking_method__stk_meth",
                 "events__stocking_method__description",
             )
-            .annotate(n=Count("id"))
-            .order_by()
+            .annotate(n=Count("events"))
+            .order_by("events__stocking_method__description")
+        )
+
+        context["stocking_method_list"] = add_is_checked(
+            stocking_method_list, filters.get("stocking_method")
+        )
+
+        hatchery_list = (
+            basequery.values_list(
+                "events__hatchery__abbrev", "events__hatchery__hatchery_name"
+            )
+            .annotate(n=Count("events"))
+            .order_by("events__hatchery__abbrev")
+        )
+
+        context["hatchery_list"] = add_is_checked(
+            hatchery_list, filters.get("hatchery")
+        )
+
+        # finclips, tags, and phys_chem_marks are slightly different as
+        # they are many-to-many relationships we need filter the
+        # 'many' side using the stocking events in our current base
+        # query and then tally up the results and add a boolean
+        # indicating whether or not each clip has already been
+        # selected with the current filters:
+
+        event_ids = basequery.values("events__id")
+
+        finclip_list = (
+            FinClip.objects.filter(stocking_events__in=event_ids)
+            .values_list("abbrev", "description")
+            .annotate(n=Count("stocking_events__id"))
+            .order_by("abbrev")
+        )
+
+        finclip_list = add_is_checked(finclip_list, filters.get("finclips"))
+        context["finclip_list"] = finclip_list
+
+        fishtags_list = (
+            FishTag.objects.filter(stocking_events__in=event_ids)
+            .values_list("tag_code", "description")
+            .annotate(n=Count("stocking_events__id"))
+            .order_by("tag_code")
+        )
+
+        context["fishtags_list"] = add_is_checked(
+            fishtags_list, filters.get("fishtags")
+        )
+
+        physchem_marks_list = (
+            PhysChemMark.objects.filter(stocking_events__in=event_ids)
+            .values_list("mark_code", "description")
+            .annotate(n=Count("stocking_events__id"))
+            .order_by("mark_code")
+        )
+
+        context["physchem_marks_list"] = add_is_checked(
+            physchem_marks_list, filters.get("physchem_marks")
         )
 
         return context
 
     def get_queryset(self):
-
-        lake_name = self.kwargs.get("lake_name")
-        year = self.kwargs.get("year")
-        jurisdiction = self.kwargs.get("jurisdiction")
-        # get the value of q from the request kwargs
-        contains = self.request.GET.get("contains")
 
         field_aliases = {
             "cwt_number": F("cwt__cwt_number"),
@@ -1257,24 +1395,9 @@ class CWTListView(ListView):
             "events__jurisdiction__stateprov",
         ]
 
-        counts = {"events": Count("id")}
+        counts = {"events": Count("events")}
 
         queryset = CWTsequence.objects.select_related(*related_tables)
-
-        if lake_name:
-            # Return a filtered queryset
-            queryset = queryset.filter(jurisdiction__lake__abbrev=lake_name)
-
-        if year:
-            queryset = queryset.filter(year=year)
-
-        if jurisdiction:
-            queryset = queryset.filter(jurisdiction__slug=jurisdiction)
-
-        if contains:
-            queryset = queryset.filter(
-                cwt__cwt_number__icontains=contains.replace("-", "")
-            )
 
         filtered_list = CWTSequenceFilter(self.request.GET, queryset=queryset).qs
 
@@ -1286,3 +1409,33 @@ class CWTListView(ListView):
         )
 
         return values
+
+
+class CWTSequenceListView(ListView):
+    """
+
+    **Context**
+
+    ``object_list``
+
+    **Template:**
+
+    :template:`stocking/cwt_sequence_detail.html`
+
+    """
+
+    model = CWTsequence
+    template_name = "stocking/cwt_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(CWTSequenceListView, self).get_context_data(**kwargs)
+        context["cwt_number"] = self.kwargs.get("cwt_number")
+
+        return context
+
+    def get_queryset(self):
+
+        cwt_number = self.kwargs.get("cwt_number")
+        queryset = CWTsequence.objects.filter(cwt__cwt_number=cwt_number)
+
+        return queryset
