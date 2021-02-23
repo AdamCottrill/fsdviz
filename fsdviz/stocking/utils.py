@@ -494,7 +494,7 @@ def get_choices():
 
 
 def get_or_create_cwt_sequence(
-    cwt_number, tag_type="cwt", manufacturer="nmt", sequence=(0, 0)
+    cwt_number, tag_type="cwt", manufacturer="nmt", sequence=(0, 1)
 ):
     """given a cwt_number, maker and type retrieve, or create and
     retrieve a cwt series.  The cwt may or may not exist, and may have

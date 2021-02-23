@@ -510,9 +510,9 @@ def test_event_get_composite_clip_code(finclips, clip_codes, expected):
 
 
 @pytest.mark.django_db
-def test_stock_id_uuid4_updated():
+def test_glfsd_stock_id():
     """When a stocking object is created, if the stock_id is null, it will
-    be populated with a uuid4 string when it is first saved (the pk is
+    be populated with a string when it is first saved (the pk is
     null).  when it is saved a second time the sstock_id will be
     updated with a string that is composed of the current (creation
     year) and the last five digits of the event's pk.

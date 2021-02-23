@@ -56,6 +56,7 @@ from fsdviz.tests.common_factories import (
     LakeFactory,
     StateProvinceFactory,
     JurisdictionFactory,
+    LatLonFlagFactory,
 )
 
 
@@ -92,6 +93,9 @@ def event():
     lake = LakeFactory()
     prov = StateProvinceFactory()
     jurisdiction = JurisdictionFactory(lake=lake, stateprov=prov)
+
+    latlong_flag = LatLonFlagFactory(value=1, description="Reported")
+    latlong_flag.save()
 
     event = StockingEventFactory(jurisdiction=jurisdiction)
 

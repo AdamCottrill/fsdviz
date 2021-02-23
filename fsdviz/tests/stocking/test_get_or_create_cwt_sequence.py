@@ -132,7 +132,7 @@ def test_seq_start_and_end_ignored_with_cwt_tag_type():
 
     assert cwt_series.cwt.cwt_number == cwt_number
     assert cwt_series.sequence.lower == 0
-    assert cwt_series.sequence.upper == 0
+    assert cwt_series.sequence.upper == 1
 
 
 @pytest.mark.django_db

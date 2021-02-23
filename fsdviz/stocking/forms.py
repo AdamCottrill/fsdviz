@@ -828,7 +828,10 @@ class StockingEventForm(forms.Form):
                         cwt_number=cwt_number,
                         tag_type=item.get("tag_type"),
                         manufacturer=item.get("manufacturer"),
-                        sequence=(item.get("sequence_start"), item.get("sequence_end")),
+                        sequence=(
+                            item.get("sequence_start", 0),
+                            item.get("sequence_end", 1),
+                        ),
                     )
                 except ValidationError as err:
                     cwt_series = None

@@ -3,11 +3,9 @@ from django.contrib.gis.db import models
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 
-import uuid
-
 from django.contrib.gis.geos import Point
 
-from fsdviz.common.utils import is_uuid4, unique_string
+from fsdviz.common.utils import unique_string, is_uuid4
 
 from fsdviz.myusers.models import CustomUser
 from fsdviz.common.models import (
@@ -155,6 +153,7 @@ class Hatchery(models.Model):
         ("state", "State"),
         ("provincial", "Provincial"),
         ("federal", "Federal"),
+        ("tribal", "Tribal"),
         ("other", "Other"),
     ]
 
@@ -263,17 +262,14 @@ class StockingEvent(models.Model):
 
     # unique fish stocking event identifier
     stock_id = models.CharField(
-        "unique event identifier provided by agency",
         max_length=100,
-        unique=True,
         db_index=True,
+        unique=True,
         default=unique_string,
     )
 
     # if there is an agency stock_id - it has to be unique
-    agency_stock_id = models.CharField(
-        max_length=100, unique=True, blank=True, null=True
-    )
+    agency_stock_id = models.CharField(max_length=100, blank=True, null=True)
 
     date = models.DateField("Stocking event date", blank=True, null=True)
 
@@ -293,8 +289,12 @@ class StockingEvent(models.Model):
         Jurisdiction, on_delete=models.CASCADE, related_name="stocking_events"
     )
 
-    dd_lat = models.FloatField("Latitude in decimal degrees", blank=True, null=True)
-    dd_lon = models.FloatField("Longitude in decimal degrees", blank=True, null=True)
+    dd_lat = models.FloatField(
+        "Reported latitude in decimal degrees", blank=True, null=True
+    )
+    dd_lon = models.FloatField(
+        "Reported ongitude in decimal degrees", blank=True, null=True
+    )
 
     geom = models.PointField(
         "GeoDjango spatial point field", srid=4326, blank=True, null=True

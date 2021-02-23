@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.gis.db.models import Extent
 from django.db import transaction
 from django.db.models import Count, Q, Min, Max, Sum, F
 from django.http import HttpResponseRedirect
@@ -20,7 +21,8 @@ from django.forms import formset_factory
 from datetime import datetime
 
 import json
-from uuid import uuid1
+
+# from uuid import uuid1
 
 from .utils import (
     form2params,
@@ -429,11 +431,18 @@ class StockingEventListView(ListView):
 
         filters = self.request.GET
         context["filters"] = filters
-        context["search_criteria"] = self.request.GET.get("q")
+        search_q = self.request.GET.get("q")
+        context["search_criteria"] = search_q
 
         basequery = StockingEventFilter(
             self.request.GET, StockingEvent.objects.all()
         ).qs
+
+        # add the contains filter to make sure our tallies are right
+        if search_q:
+            basequery = basequery.filter(
+                Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q)
+            )
 
         lake_list = (
             basequery.values_list(
@@ -880,14 +889,8 @@ def xls_events(request):
                     # this is also not right - just getting it to work ...
                     data["latlong_flag_id"] = 1
 
-                    # another hack = ensures that stock
-                    data["stock_id"] = uuid1()
-
                     event = StockingEvent(**data)
                     event.save()
-                    # events.append(StockingEvent(**data))
-
-                #            StockingEvent.objects.bulk_create(events)
 
                 url = data_upload_event.get_absolute_url()
                 return HttpResponseRedirect(url)
@@ -1118,29 +1121,12 @@ class CWTListView(ListView):
         contains = self.request.GET.get("contains")
         context["contains_criteria"] = contains
 
-        # jurisdiction_slug = self.kwargs.get("jurisdiction")
-        # lake_name = self.kwargs.get("lake_name")
-
         basequery = CWTSequenceFilter(self.request.GET, CWTsequence.objects.all()).qs
 
         if contains:
             basequery = basequery.filter(
-                Q(cwt__cwt_number__icontains=contains.replace("-", ""))
+                cwt__cwt_number__icontains=contains.replace("-", "")
             )
-
-        # if lake_name:
-        #     basequery = basequery.filter(jurisdiction__lake__abbrev=lake_name)
-        #     lake = Lake.objects.get(abbrev=lake_name)
-        #     context["lake"] = lake
-
-        # year = self.kwargs.get("year")
-        # if year:
-        #     context["year"] = int(year)
-        #     basequery = basequery.filter(year=year)
-
-        # if jurisdiction_slug:
-        #     basequery = basequery.filter(jurisdiction__slug=jurisdiction_slug)
-        #    jurisdiction = Jurisdiction.objects.get(slug=jurisdiction_slug)
 
         cwt_type_list = (
             basequery.values_list("cwt__tag_type")
@@ -1346,6 +1332,8 @@ class CWTListView(ListView):
 
     def get_queryset(self):
 
+        contains = self.request.GET.get("contains")
+
         field_aliases = {
             "cwt_number": F("cwt__cwt_number"),
             "tag_type": F("cwt__tag_type"),
@@ -1356,7 +1344,7 @@ class CWTListView(ListView):
             "mark": F("events__mark"),
             "agency_code": F("events__agency__abbrev"),
             "spc": F("events__species__abbrev"),
-            "strain": F("events__strain_raw__strain"),
+            "strain": F("events__strain_raw__strain__strain_label"),
             "stage": F("events__lifestage__description"),
             "method": F("events__stocking_method__description"),
             "jurisd": F("events__jurisdiction__slug"),
@@ -1391,13 +1379,18 @@ class CWTListView(ListView):
             "events__strain",
             "events__lifestage",
             "events__stocking_method",
-            "events__jurisdition__lake",
+            "events__jurisdiction__lake",
             "events__jurisdiction__stateprov",
         ]
 
         counts = {"events": Count("events")}
 
         queryset = CWTsequence.objects.select_related(*related_tables)
+
+        if contains:
+            queryset = queryset.filter(
+                cwt__cwt_number__icontains=contains.replace("-", "")
+            )
 
         filtered_list = CWTSequenceFilter(self.request.GET, queryset=queryset).qs
 
@@ -1429,13 +1422,45 @@ class CWTSequenceListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(CWTSequenceListView, self).get_context_data(**kwargs)
-        context["cwt_number"] = self.kwargs.get("cwt_number")
+        cwt_number = self.kwargs.get("cwt_number")
+        context["cwt_number"] = cwt_number
+        context["cwts"] = CWT.objects.filter(cwt_number=cwt_number)
 
+        events = StockingEvent.objects.filter(cwt_series__cwt__cwt_number=cwt_number)
+
+        event_points = [
+            (x[0], x[1].x, x[1].y) for x in events.values_list("stock_id", "geom")
+        ]
+        context["event_points"] = event_points
+
+        extent = events.aggregate(bbox=Extent("jurisdiction__lake__geom"))
+        if extent:
+            context["bbox"] = extent["bbox"]
+        else:
+            extent = Lake.objects.aggregate(bbox=Extent(Extent("geom")))
+            context["bbox"] = extent["bbox"]
         return context
 
     def get_queryset(self):
 
+        related_tables = [
+            "cwt",
+            "events",
+            "events__agency",
+            "events__species",
+            "events__strain_raw",
+            "events__strain_raw__strain",
+            "events__lifestage",
+            "events__stocking_method",
+            "events__jurisdiction",
+            "events__jurisdiction__lake",
+            # "events__jurisdiction__stateprov",
+        ]
+
         cwt_number = self.kwargs.get("cwt_number")
-        queryset = CWTsequence.objects.filter(cwt__cwt_number=cwt_number)
+
+        queryset = CWTsequence.objects.filter(
+            cwt__cwt_number=cwt_number
+        ).prefetch_related(*related_tables)
 
         return queryset

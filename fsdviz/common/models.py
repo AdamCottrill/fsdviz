@@ -13,6 +13,7 @@ from django.template.defaultfilters import slugify
 # from django.contrib.postgres.constraints import ExclusionConstraint
 from django.contrib.postgres.fields import IntegerRangeField
 
+
 from .validators import validate_cwt_sequence_range
 
 
@@ -681,7 +682,7 @@ class CWTsequence(models.Model):
     # https://docs.djangoproject.com/en/2.2/ref/contrib/postgres/fields/#integerrangefield
     # NOTE: the range includes the lower bound and excludes the upper bound; that is [)
     sequence = IntegerRangeField(
-        default=(0, 0), validators=[validate_cwt_sequence_range]
+        default=(0, 1), validators=[validate_cwt_sequence_range]
     )
 
     class Meta:

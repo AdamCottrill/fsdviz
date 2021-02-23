@@ -102,6 +102,6 @@ urlpatterns = [
     ),
     path("cwts/", CWTListView.as_view(), name="cwt-list"),
     path(
-        "cwt_detail/<int:cwt_number>/", CWTSequenceListView.as_view(), name="cwt-detail"
+        "cwt_detail/<str:cwt_number>/", CWTSequenceListView.as_view(), name="cwt-detail"
     ),
 ]

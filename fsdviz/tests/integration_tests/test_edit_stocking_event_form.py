@@ -33,7 +33,7 @@ submitted.
 import pytest
 from django.urls import reverse
 
-from fsdviz.tests.pytest_fixtures import user
+from fsdviz.tests.pytest_fixtures import user, glsc
 
 from fsdviz.tests.stocking_factories import StockingEventFactory
 
@@ -97,9 +97,10 @@ def test_404_for_nonexistant_event(client, user):
 
 
 @pytest.mark.django_db
-def test_event_form_renders(client, user):
-    """When a logged in user accesses the url with a valid stock_id, the form
-    should render with correct components.
+def test_event_form_renders_for_coordinator(client, glsc):
+    """When a logged in user who is a glfc or agency coordinator accesses
+    the url with a valid stock_id, the form should render with correct
+    components:
 
     Specific elements include:
     "Edit Stocking Event {stock_id}"
@@ -126,14 +127,15 @@ def test_event_form_renders(client, user):
         "Reset Form",
     ]
 
-    event = StockingEventFactory()
+    event = StockingEventFactory(stock_id="202199999")
 
-    login = client.login(email=user.email, password="Abcd1234")
+    login = client.login(email=glsc.email, password="Abcd1234")
     assert login is True
 
     url = reverse("stocking:edit-stocking-event", kwargs={"stock_id": event.stock_id})
 
-    response = client.get(url)
+    response = client.get(url, follow=True)
+
     assert response.status_code == 200
 
     templates = [x.name for x in response.templates]
