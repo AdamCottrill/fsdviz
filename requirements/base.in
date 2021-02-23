@@ -6,8 +6,11 @@ django-rest-auth==0.9.5
 django-rest-swagger==2.2.0
 django-crispy-forms==1.10.0
 django-taggit==1.1.0
+django-leaflet
 drf-renderer-xlsx==0.3.8
+gdal==3.2.1
 markdown2==2.3.10
+markdown==3.3.3
 psycopg2==2.8.6
 pyyaml==5.1
 coreapi==2.3.3
