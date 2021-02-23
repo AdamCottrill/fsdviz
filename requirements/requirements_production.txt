@@ -17,7 +17,8 @@ django-rest-auth==0.9.5   # via -r base.in
 django-rest-swagger==2.2.0  # via -r base.in
 django-taggit==1.1.0      # via -r base.in
 django==2.2.17            # via -r base.in, django-cors-headers, django-filter, django-rest-auth, django-taggit, djangorestframework
-djangorestframework==3.12.2  # via -r base.in, django-rest-auth, django-rest-swagger
+djangorestframework==3.12.2  # via -r base.in, django-rest-auth, django-rest-swagger, drf-renderer-xlsx
+drf-renderer-xlsx==0.3.8  # via -r base.in
 et-xmlfile==1.0.1         # via openpyxl
 idna==2.8                 # via requests
 itypes==1.1.0             # via coreapi
@@ -26,7 +27,7 @@ jinja2==2.10.1            # via coreschema
 markdown2==2.3.10         # via -r base.in
 markupsafe==1.1.1         # via jinja2
 openapi-codec==1.3.2      # via django-rest-swagger
-openpyxl==3.0.5           # via -r base.in
+openpyxl==3.0.5           # via -r base.in, drf-renderer-xlsx
 psycopg2==2.8.6           # via -r base.in
 pytz==2018.9              # via django
 pyyaml==5.1               # via -r base.in
