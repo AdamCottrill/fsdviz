@@ -5,6 +5,9 @@ VIRTUAL_ENV = os.environ["VIRTUAL_ENV"]
 OSGEO_VENV = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo")
 GEOS_LIBRARY_PATH = os.path.join(OSGEO_VENV, "geos_c.dll")
 GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal301.dll")
+# os.environ["GDAL_DATA"] = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo/data/gdal")
+
+
 os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
 
 print("using c:/1work/fsdviz/config/settings/local.py")

@@ -14,7 +14,9 @@ select * from common_strain limit 10;
 
 
 -- find cwt numbers that have been stocked by more than one agency
+
 update common_cwt set multiple_agencies=true where cwt_number in (
+
 SELECT cwt_number
 --       ,COUNT(agency_id) AS Agencies
 FROM (SELECT DISTINCT cwt_number,
@@ -25,19 +27,22 @@ FROM (SELECT DISTINCT cwt_number,
         JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id) AS tmp
 GROUP BY cwt_number
 HAVING COUNT(cwt_number) > 1
-);
 
+);
 commit;
 -- find cwt numbers that have been stocked in more than one species
 update common_cwt set multiple_species=true where cwt_number in (
 SELECT cwt_number
-       --COUNT(species_id) AS Species
-FROM (SELECT DISTINCT cwt_number,
+       --,COUNT(species_id) AS Species
+FROM (
+SELECT DISTINCT cwt_number,
              events.species_id
       FROM stocking_stockingevent AS events
         JOIN common_cwtsequence_events ON common_cwtsequence_events.stockingevent_id = events.id
         JOIN common_cwtsequence ON common_cwtsequence_events.cwtsequence_id = common_cwtsequence.id
-        JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id) AS tmp
+        JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id
+        
+) AS tmp
 GROUP BY cwt_number
 HAVING COUNT(species_id) > 1
 );
@@ -46,43 +51,47 @@ commit;
 -- find cwt numbers that have the same number but have been stocked in more than one lake
 -- regardless of what species they were stocked in (a tag that was used in chinook in
 -- Huron and lake trout in michigan will be flagged).
-
-SELECT cwt_number,
-       COUNT(lake_id) AS Lakes
-FROM (SELECT DISTINCT cwt_number,
-             events.lake_id
+update common_cwt set multiple_lakes=true where cwt_number in (
+SELECT cwt_number
+       --,COUNT(lake_id) AS Lakesb
+FROM (
+SELECT DISTINCT cwt_number,
+             jurisdiction.lake_id
       FROM stocking_stockingevent AS events
+      join common_jurisdiction as jurisdiction on jurisdiction.id=events.jurisdiction_id
         JOIN common_cwtsequence_events ON common_cwtsequence_events.stockingevent_id = events.id
         JOIN common_cwtsequence ON common_cwtsequence_events.cwtsequence_id = common_cwtsequence.id
-        JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id) AS tmp
+        JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id
+        
+) AS tmp
 GROUP BY cwt_number
 HAVING COUNT(lake_id) > 1
-
-
+);
+commit;
 
 -- find cwt numbers that have the same number but have been stocked in more than one lake and species
 -- lake trout stocked in both huron and Michigan will be flagged
 -- lake trout in michigan, salmon in huron will not.
-update common_cwt set multiple_lakes=true where cwt_number in (
-SELECT cwt_number
-       --COUNT(lake_id) AS Lakes
-FROM (SELECT DISTINCT cwt_number,
-             events.species_id,
-             jurisdiction.lake_id
-      FROM stocking_stockingevent AS events
-        join common_jurisdiction as jurisdiction on jurisdiction.id=events.jurisdiction_id
-        JOIN common_cwtsequence_events ON common_cwtsequence_events.stockingevent_id = events.id
-        JOIN common_cwtsequence ON common_cwtsequence_events.cwtsequence_id = common_cwtsequence.id
-        JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id) AS tmp
-GROUP BY cwt_number, species_id
-HAVING COUNT(lake_id) > 1
-);
+-- update common_cwt set multiple_lakes=true where cwt_number in (
+-- SELECT cwt_number
+--        --COUNT(lake_id) AS Lakes
+-- FROM (SELECT DISTINCT cwt_number,
+--              events.species_id,
+--              jurisdiction.lake_id
+--       FROM stocking_stockingevent AS events
+--         join common_jurisdiction as jurisdiction on jurisdiction.id=events.jurisdiction_id
+--         JOIN common_cwtsequence_events ON common_cwtsequence_events.stockingevent_id = events.id
+--         JOIN common_cwtsequence ON common_cwtsequence_events.cwtsequence_id = common_cwtsequence.id
+--         JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id) AS tmp
+-- GROUP BY cwt_number, species_id
+-- HAVING COUNT(lake_id) > 1
+-- );
 
 
 -- find cwt numbers that have been stocked in more than one year class within a species
 update common_cwt set multiple_yearclasses=true where cwt_number in (
 SELECT cwt_number
-       --COUNT(year_class) AS YearClasses
+--       ,COUNT(year_class) AS YearClasses
 FROM (SELECT DISTINCT cwt_number,
              events.species_id,
              events.year_class
@@ -98,18 +107,18 @@ commit;
 
 -- find cwt numbers that have been stocked in more than one lifestage - within the same species!!
 
-SELECT cwt_number
-       --COUNT(lifestage_id) AS lifestages
-FROM (SELECT DISTINCT cwt_number,
-             events.species_id,
-             events.lifestage_id
-      FROM stocking_stockingevent AS events
-        JOIN common_cwtsequence_events ON common_cwtsequence_events.stockingevent_id = events.id
-        JOIN common_cwtsequence ON common_cwtsequence_events.cwtsequence_id = common_cwtsequence.id
-        JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id) AS tmp
-GROUP BY cwt_number,
-         species_id
-HAVING COUNT(cwt_number) > 1
+-- SELECT cwt_number
+--        --COUNT(lifestage_id) AS lifestages
+-- FROM (SELECT DISTINCT cwt_number,
+--              events.species_id,
+--              events.lifestage_id
+--       FROM stocking_stockingevent AS events
+--         JOIN common_cwtsequence_events ON common_cwtsequence_events.stockingevent_id = events.id
+--         JOIN common_cwtsequence ON common_cwtsequence_events.cwtsequence_id = common_cwtsequence.id
+--         JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id) AS tmp
+-- GROUP BY cwt_number,
+--          species_id
+-- HAVING COUNT(cwt_number) > 1
 
 
 -- find cwt numbers that have been stocked in more than one strain - within the same species!!
@@ -148,10 +157,14 @@ WHERE cwt_number IN (SELECT cwt_number
                      WHERE multiple_species = TRUE
                      OR    multiple_strains = TRUE
                      OR    multiple_yearclasses = TRUE
-                     OR    multiple_makers = TRUE
+--                     OR    multiple_makers = TRUE
                      OR    multiple_agencies = TRUE
-                     OR    multiple_lakes = TRUE)
-s
+                     OR    multiple_lakes = TRUE);
+
+commit;
+
+
+
 
 
 --- Data for ted - April 17, 2020:

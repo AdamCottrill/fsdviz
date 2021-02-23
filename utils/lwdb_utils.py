@@ -34,6 +34,109 @@ from fsdviz.common.models import (
 )
 
 
+class GridCache(object):
+    """a helper class that acts as a cache for grid objects. The add
+    method accepts a grid10 object and then adds the associated lkae
+    to an interal, nested dictionary - keyed by lake and grid number.
+
+    The get_grid method accepts a lake abbreviation and a grid number,
+    and returns the corresponding grid object or None if one cannot be
+    found.
+
+    # allows us to find the grid associated with a stocking event
+    # coming from the GLFSD database without hitting the atabase each time
+
+    """
+
+    def __init__(self):
+        self._cache = {}
+
+    def add_grid(self, grid10):
+        # grid10 is a django orm object.
+        lake_abbrev = grid10.lake.abbrev
+        lake = self._cache.get(lake_abbrev)
+        if not lake:
+            self._cache[lake_abbrev] = {}
+        self._cache[lake_abbrev][str(grid10.grid)] = grid10
+
+    def get_grid(self, lake_abbrev, grid10):
+        # lake_abbrev and grid10 are both strings
+        lake = self._cache.get(lake_abbrev)
+        if lake:
+            return lake.get(str(grid10))
+        else:
+            return None
+
+
+class StrainCache(object):
+    """a helper class that acts as a cache for strain objects. THe add
+    method accepts a raw strain object and then add the associated strain
+    to an interal, nested dictionary - keyed by species and raw_strain_code.
+
+    The get_strain method accepts a species abbreviation and a raw
+    strain code, and returns the corresponding strain object.
+
+    # allows us to find the strain associated with a stocking event
+    # coming from the GLFSD database.
+
+    """
+
+    def __init__(self):
+        self._cache = {}
+
+    def add_strain(self, rawstrain):
+        # raw strain is a django orm object.
+        species_abbrev = rawstrain.species.abbrev
+        species = self._cache.get(species_abbrev)
+        if not species:
+            self._cache[species_abbrev] = {}
+        strain_key = rawstrain.raw_strain
+        self._cache[species_abbrev][strain_key] = rawstrain.strain
+
+    def get_strain(self, species_abbrev, raw_strain_code):
+        # species Abbrev and raw_strain are both strings
+        species = self._cache.get(species_abbrev)
+        if species:
+            return species.get(raw_strain_code)
+        else:
+            return None
+
+
+class RawStrainCache(object):
+    """a helper class that acts as a cache for raw strain objects. THe add
+    method accepts a raw strain object and then adds the associated
+    raw strain object to an interal, nested dictionary - keyed by
+    species and raw_strain_code.
+
+    The get_strain method accepts a species abbreviation and a raw
+    strain code, and returns the corresponding raw strain object.
+
+    # allows us to find the raw strain associated with a stocking event
+    # coming from the GLFSD database.
+
+    """
+
+    def __init__(self):
+        self._cache = {}
+
+    def add_strain(self, rawstrain):
+        # raw strain is a django orm object.
+        species_abbrev = rawstrain.species.abbrev
+        species = self._cache.get(species_abbrev)
+        if not species:
+            self._cache[species_abbrev] = {}
+        strain_key = rawstrain.raw_strain
+        self._cache[species_abbrev][strain_key] = rawstrain
+
+    def get_strain(self, species_abbrev, raw_strain_code):
+        # species Abbrev and raw_strain are both strings
+        species = self._cache.get(species_abbrev)
+        if species:
+            return species.get(raw_strain_code)
+        else:
+            return None
+
+
 def build_years_array(db_years, first_year=None, last_year=None):
     """The database queries are parameterized to accept a single year of
     data.  This function takes a two element array [db_years] (which
@@ -57,8 +160,7 @@ def build_years_array(db_years, first_year=None, last_year=None):
 
 
 def grid_or_None(lake, grid):
-    """
-    """
+    """"""
     mygrid = int_or_None(grid)
     if mygrid:
         try:
@@ -186,6 +288,9 @@ def get_mark_codes(mark_string, valid_marks):
     'ADOX' becomes ['AD', 'OX'] and '----' because 'DO' is matched
     twice (AD, DO and OX) and the fin clips are ambiguous
 
+    'LP' shoule return ['LP']
+    'BV' shoule return [] and "BV"
+
     Arguments:
 
     - `mark_string`: a mark string as found in the GLFC stocking
@@ -224,6 +329,11 @@ def get_mark_codes(mark_string, valid_marks):
             for k in valid_marks:
                 mark_string = mark_string.replace(k, "-" * len(k))
             return_dict["unmatched"] = mark_string
+    else:
+        # we could't match anything - return the whole string as is
+        return_dict["codes"] = []
+        return_dict["unmatched"] = mark_string
+
     return return_dict
 
 
@@ -323,7 +433,7 @@ def get_latlon(record, grid_pts=None, mu_pts=None, lake_pts=None):
 
 
 def associate_cwt(
-    event, cwt_number, seq_start=1, seq_end=1, cwt_maker="nmt", tag_count=0
+    event, cwt_number, seq_start=0, seq_end=0, cwt_maker="nmt", tag_count=0
 ):
     """Given a stocking event, get or create an associated cwt and
     cwt_sequence object and save them to the database.
@@ -349,10 +459,10 @@ def associate_cwt(
 
     """
 
-    if seq_start == 1 and seq_end == 1:
-        tag_type = "cwt"
-    else:
+    if seq_start and seq_end:
         tag_type = "sequential"
+    else:
+        tag_type = "cwt"
 
     cwt_obj, x = CWT.objects.get_or_create(
         cwt_number=cwt_number.strip(),
@@ -362,7 +472,7 @@ def associate_cwt(
     )
 
     cwt_seq, x = CWTsequence.objects.get_or_create(
-        cwt=cwt_obj, seq_start=seq_start, seq_end=seq_end
+        cwt=cwt_obj, sequence=(seq_start, seq_end)
     )
 
     event.cwt_series.add(cwt_seq)

@@ -62,8 +62,12 @@ from fsdviz.common.models import (
     Strain,
     StrainRaw,
     Grid10,
+    PhysChemMark,
+    FishTag,
+    FinClip,
 )
-from fsdviz.stocking.models import LifeStage, Condition, Mark, StockingMethod
+
+from fsdviz.stocking.models import LifeStage, Condition, Mark, StockingMethod, Hatchery
 
 from utils.lwdb_utils import recode_mark, get_mark_codes, check_null_records
 from utils.common_lookups import MARK_SHOULDBE, CLIP2MARK
@@ -101,14 +105,10 @@ CWT_REGEX = "[0-9]{6}|999"  # ignores tags '999'
 #     + "fsdviz/utils/PrepareGLFSDB.accdb"
 # )
 
-MDB = (
-    "C:/Users/COTTRILLAD/1work/LakeTrout/Stocking/GLFSD_Datavis/"
-    + "data/GLFSD_Jan2020.accdb"
-)
+MDB = "F:/1work/LakeTrout/Stocking/GLFSD_Datavis/data/GLFSD_Jan2021.accdb"
 
 
 TABLE_NAME = "GLFSD"
-
 
 src_constr = r"DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={}"
 
@@ -128,7 +128,7 @@ RECORD_COUNT = 15
 # but aren't.
 
 # execute a query that will get all columns, but no rows:
-mdbcur.execute("select * from [GLFSD] where year='234'")
+mdbcur.execute("select * from [GLFSD] where year=234")
 characterFields = [
     x[0]
     for x in mdbcur.description
@@ -175,7 +175,7 @@ required_fields = [
     "tag_ret",
     "length",
     "weight",
-    "condition",
+    "stock_mortality",
     "lot_code",
     "stock_meth",
     "agency",
@@ -184,7 +184,7 @@ required_fields = [
 ]
 
 # run a query that should never return any records:
-mdbcur.execute("select * from [GLFSD] where year='1234'")
+mdbcur.execute("select * from [GLFSD] where year=1234")
 
 # get the field names from our empty query
 fields = [x[0].lower() for x in mdbcur.description]
@@ -345,6 +345,8 @@ missing = list(source - lookup)
 missing = ["<empty>" if x == "" else x for x in missing]
 missing = [x.strip() for x in missing]
 
+missing.sort()
+
 if missing:
     msg = "Oh-oh!. Stat Districts missing from lookup table(n={}):\n"
     msg = msg.format(len(missing)) + ",\n".join(missing)
@@ -429,7 +431,9 @@ else:
 
 # get the distcinct combinations of species and strains
 sql = """select distinct SPECIES, iif(isnull([STRAIN]),'',
-         [STRAIN]) as strain2 from [{}];"""
+         [STRAIN]) as strain2 from [{}]
+order by [SPECIES]
+;"""
 mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()
 
@@ -442,6 +446,7 @@ missing = list(source - target)
 
 
 if missing:
+    missing.sort()
     msg = "\nOh-oh! The following new strain codes were found:"
     print(msg)
     for item in missing:
@@ -465,7 +470,7 @@ else:
 # the lifestage codes in the source data have a corresponding value in
 # our lookup tables.
 
-sql = """select distinct stage from [{}];"""
+sql = """select distinct stage from [{}] where stage is not null;"""
 mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()
 source = set([x[0] for x in rs])
@@ -492,7 +497,7 @@ else:
 # the stocking method values in the source data have a corresponding value in
 # our lookup tables.
 
-sql = """select distinct stock_meth from [{}];"""
+sql = """select distinct new_stock_meth from [{}] where new_stock_meth is not null;"""
 mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()
 source = set([x[0] for x in rs])
@@ -519,12 +524,12 @@ else:
 # the condition codes in the source data have a corresponding value in
 # our lookup tables.
 
-sql = """select distinct condition from [{}];"""
+sql = """select distinct stock_mortality from [{}] where stock_mortality is not null;"""
 mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()
 source = set([x[0] for x in rs])
 
-lookup = set([str(x.condition) for x in Condition.objects.all()])
+lookup = set([x.condition for x in Condition.objects.all()])
 
 
 missing = list(source - lookup)
@@ -539,35 +544,129 @@ else:
     print("{msg:.<{width}}OK".format(width=REPORT_WIDTH, msg=msg))
 
 
-# ====================================================
-#                  MARKS
+# # ====================================================
+# #                  MARKS
 
-# if who=='Ontario':
-#     MARK_SHOULDBE.update(CLIP2MARK)
+# #this no longer applies - it has been replaced by clip, physchem-mark and tagtype
+
+# # if who=='Ontario':
+# #     MARK_SHOULDBE.update(CLIP2MARK)
+# #
+# sql = """select distinct MARK from [{}] where MARK is not null;"""
+# mdbcur.execute(sql.format(TABLE_NAME))
+# rs = mdbcur.fetchall()
+
+# valid_marks = [x.mark_code for x in Mark.objects.all()]
+
+# tmp = []
+# for record in rs:
+#     mark = recode_mark(record[0], MARK_SHOULDBE)
+#     markcodes = get_mark_codes(mark, valid_marks)
+#     ohoh = markcodes.get("unmatched")
+#     if ohoh:
+#         tmp.append((record[0], ohoh))
+
+# if len(tmp) > 0:
+#     msg = "Oh-oh! Unrecognized marks found (n={}). For example:"
+#     msg = msg.format(len(tmp))
+#     print(msg)
+#     print("\t#('<mark>', '<unmatched part>')")
+#     for x in tmp[:RECORD_COUNT]:
+#         print("\t" + str(x))
+# else:
+#     msg = "Checking MARKs"
+#     print("{msg:.<{width}}OK".format(width=REPORT_WIDTH, msg=msg))
+
+
+# ====================================================
+#                  CLIP
 #
-sql = """select distinct MARK from [{}] where MARK is not null;"""
+sql = """select clip, count(stock_id) as N from [{}]
+group by clip
+having clip is not null and clip <> 'NONE' and clip <> 'Unknown';"""
+
 mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()
 
-valid_marks = [x.mark_code for x in Mark.objects.all()]
+valid_clips = [x.abbrev for x in FinClip.objects.all()]
 
-tmp = []
+unmatched = []
 for record in rs:
-    mark = recode_mark(record[0], MARK_SHOULDBE)
-    markcodes = get_mark_codes(mark, valid_marks)
-    ohoh = markcodes.get("unmatched")
+    clipcodes = get_mark_codes(record[0], valid_clips)
+    ohoh = clipcodes.get("unmatched")
     if ohoh:
-        tmp.append((record[0], ohoh))
+        unmatched.append((record[0], ohoh, record[1]))
 
-if len(tmp) > 0:
-    msg = "Oh-oh! Unrecognized marks found (n={}). For example:"
-    msg = msg.format(len(tmp))
+if len(unmatched) > 0:
+    msg = "Oh-oh! Unrecognized clips found (n={}). For example:"
+    msg = msg.format(len(unmatched))
     print(msg)
-    print("\t#('<mark>', '<unmatched part>')")
-    for x in tmp[:RECORD_COUNT]:
-        print("\t" + str(x))
+    print("\t#('<mark>', '<unmatched part>', N)")
+    for x in unmatched[:RECORD_COUNT]:
+        print("\t{}\t{}\t{}".format(*x))
 else:
-    msg = "Checking MARKs"
+    msg = "Checking Clips"
+    print("{msg:.<{width}}OK".format(width=REPORT_WIDTH, msg=msg))
+
+
+# ====================================================
+#                  PhysChemMarks
+#
+sql = """select phys_chem_mark, count(stock_id) as N from [{}]
+group by phys_chem_mark
+having phys_chem_mark is not null and phys_chem_mark <> 'NONE';"""
+
+mdbcur.execute(sql.format(TABLE_NAME))
+rs = mdbcur.fetchall()
+
+valid_marks = [x.mark_code for x in PhysChemMark.objects.all()]
+
+missing_values = []
+for row in rs:
+    values = row[0].replace(" ", "").split(";")
+    if not all([x in valid_marks for x in values]):
+        missing_values.append(row)
+
+if len(missing_values) > 0:
+    msg = "Oh-oh! Unrecognized phys-chem marks found (n={}). For example:"
+    msg = msg.format(len(missing_values))
+    print(msg)
+    for x in missing_values[:RECORD_COUNT]:
+        print("\t{} (n={})".format(*x))
+else:
+    msg = "Checking phys-chem marks"
+    print("{msg:.<{width}}OK".format(width=REPORT_WIDTH, msg=msg))
+
+
+# ====================================================
+#                  TAG_TYPE
+#
+sql = """select tag_type, count(stock_id) as N from [{}]
+group by tag_type
+having tag_type is not null and tag_type <> 'NONE';"""
+
+mdbcur.execute(sql.format(TABLE_NAME))
+rs = mdbcur.fetchall()
+
+valid_tags = [x.tag_code for x in FishTag.objects.all()]
+
+# tmp = [x for x in rs if x[0] not in valid_tags]
+
+
+missing_values = []
+for row in rs:
+    values = row[0].replace(" ", "").split(";")
+    if not all([x in valid_tags for x in values]):
+        missing_values.append(row)
+
+if len(missing_values) > 0:
+    msg = "Oh-oh! Unrecognized fish tags found (n={}). For example:"
+    msg = msg.format(len(missing_values))
+    print(msg)
+    for x in missing_values[:RECORD_COUNT]:
+        print("\t{} (n={})".format(*x))
+else:
+    msg = "Checking fish tags"
     print("{msg:.<{width}}OK".format(width=REPORT_WIDTH, msg=msg))
 
 
@@ -583,7 +682,8 @@ else:
 # if grid is populated, it must be a valid grid for the lake in which
 # the stocking event occured.
 
-sql = """select trim([{}].lake) as Lake, grid from [{}] group by lake, grid;"""
+sql = """select trim([{}].lake) as Lake, int([{}].grid) as grid, count(stock_id) as Events from [{}]
+group by lake, grid having grid is not null order by lake, grid;"""
 mdbcur.execute(sql.format(TABLE_NAME, TABLE_NAME, TABLE_NAME))
 rs = mdbcur.fetchall()
 
@@ -592,17 +692,18 @@ rs = mdbcur.fetchall()
 # the lakes are the keys, the list of grids are the values:
 grids = {}
 for record in rs:
+    msg = "{:.0f} (N={})".format(record[1], record[2])
     if grids.get(record[0]):
-        grids[record[0]].append(str(record[1]))
+        grids[record[0]].append(msg)
     else:
-        grids[record[0]] = [str(record[1])]
+        grids[record[0]] = [msg]
 
 # connect to our lookup tables and get the list of known src_grids for each
 # lake, convert that list to a set and see if there are any src_grids in
 # our source data that do not exist in the lookup table.
 
 for lake, src_grids in grids.items():
-    src_grids = set(src_grids)
+    grids = set([x.split()[0] for x in src_grids])
     # lookup_grids = session.query(Grid10).join(Lake).\
     #           filter(Lake.abbrev==lake).all()
 
@@ -610,13 +711,14 @@ for lake, src_grids in grids.items():
     lookup_grids = set([x.grid for x in lookup_grids])
 
     # check for any girds that are not in the lookup table:
-    unknown_grids = list(src_grids - lookup_grids)
+    diff = list(grids - lookup_grids)
+    unknown_grids = [x for x in src_grids if x.split()[0] in diff]
 
     if unknown_grids:
         msg = "Oh-oh. {} unknown grids where found for {}. For example:"
         print(msg.format(len(unknown_grids), lake))
         for grid in unknown_grids[:RECORD_COUNT]:
-            print("\t" + str(grid))
+            print("\t" + grid)
     else:
         msg = "Checking grids {}.".format(lake)
         print("{msg:.<{width}}OK".format(width=REPORT_WIDTH, msg=msg))
@@ -705,7 +807,7 @@ else:
 this_year = datetime.now().year
 
 sql = """select stock_id, [year], [month], [day] from [{}]
-         where [YEAR] < '1950' or [YEAR] > '{}' ;"""
+         where [YEAR] < 1950 or [YEAR] > {} ;"""
 
 mdbcur.execute(sql.format(TABLE_NAME, this_year))
 rs = mdbcur.fetchall()
@@ -759,8 +861,11 @@ else:
 # spawners being planted on or before Dec.31).  If that ever happens,
 # this query might have to be re-considered.
 
-sql = """select stock_id, [year], [year_class], [stage] from [{}]
-         where int([year_class])>int([year]);"""
+sql = """select stock_id, [year],
+         iif([calcYearclass]=9999, [year_class], [calcYearclass]) as yr_class,
+         [stage] from [{}]
+         where
+         iif([calcYearclass]=9999, [year_class], [calcYearclass]) >int([year]);"""
 
 mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()
@@ -794,7 +899,7 @@ else:
 
 # emperical limits of data as of Jan. 2020 - includes events in
 # St. Louis River and Salmon Rivers.
-bbox = [-92.3085022, 41.4203, -75.980751, 48.3760044]
+bbox = [-92.3085022, 41.380807, -75.980751, 49.015810]
 
 
 sql = """select stock_id, Latitude, longitude from [{}]
@@ -812,6 +917,49 @@ if rs:
         print("\t" + str(record))
 else:
     msg = "Checking for obvious problems with lat-lon"
+    print("{msg:.<{width}}OK".format(width=REPORT_WIDTH, msg=msg))
+
+
+# ====================================================
+#                    HATCHERY
+
+# hatchery are a bit of a mess right now.
+
+# if this snippet of code returns any records, we need to add the the
+# corresponding entries to the hatchery table -
+
+# *NOTE* - this is bit of a hack because there is a hatchery lookup
+# table in the GLFSD database too that joins on the free form hatchey
+# name field!!
+#
+
+sql = """
+SELECT [{0}].HATCHERY, hatchery_abbrev
+FROM [{0}] LEFT JOIN TL_Hatcheries ON [{0}].HATCHERY = TL_Hatcheries.HATCHERY
+GROUP BY [{0}].HATCHERY, TL_Hatcheries.hatchery_abbrev
+HAVING [{0}].HATCHERY Is Not Null And Not [{0}].HATCHERY='';
+"""
+
+mdbcur.execute(sql.format(TABLE_NAME))
+rs = mdbcur.fetchall()
+
+
+known_hatcheries = [x.abbrev for x in Hatchery.objects.all()]
+
+missing = [x for x in rs if x[1] not in known_hatcheries]
+
+
+if missing:
+    msg = (
+        "Oh-oh! there are {} hatcheries that do not appear to be documented"
+        "in the hatcheries lookup table : \n\t"
+        "GLFSD.HATCHERY, FSDVIZ.[HATCHERY_ABBREV"
+    )
+    print(msg.format(len(missing)))
+    for record in missing[:RECORD_COUNT]:
+        print("\t" + str(record))
+else:
+    msg = "Checking for undocumented hatcheries"
     print("{msg:.<{width}}OK".format(width=REPORT_WIDTH, msg=msg))
 
 
@@ -835,9 +983,10 @@ numeric_flds = [
     "agemonth",
     "mark_eff",
     "tag_ret",
+    "clip_efficiency",
     "weight",
     "length",
-    "condition",
+    "stock_mortality",
     "validation",
 ]
 
@@ -870,3 +1019,90 @@ else:
 # Tidy-up
 mdbcur.close()
 mdbcon.close()
+
+
+# get grid number for events without a grid from their lat-lon
+
+# src_constr = r"DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={}"
+
+# mdbcon = pyodbc.connect(src_constr.format(MDB))
+# mdbcur = mdbcon.cursor()
+
+# sql = """
+# SELECT STOCK_ID, GRID, LATITUDE, LONGITUDE
+# FROM GLFSD
+# WHERE GRID Is Null
+# AND LATITUDE IS NOT Null
+# AND LONGITUDE Is Not Null;
+# """
+
+# mdbcur.execute(sql)
+# events = mdbcur.fetchall()
+
+# ret = []
+# for event in events:
+#     pt = Point(event[3], event[2])
+#     grid = Grid10.objects.filter(geom__contains=pt).first()
+#     if grid:
+#         ret.append([event[0], grid.grid])
+
+# import csv
+# csv_file = "c:/1work/fsdviz/utils/grid_from_geom.csv"
+
+# with open(csv_file, 'w', newline='') as f:
+#     writer = csv.writer(f)
+#     writer.writerows(ret)
+
+# mdbcur.close()
+# mdbcon.close()
+
+
+# src_constr = r"DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={}"
+
+# mdbcon = pyodbc.connect(src_constr.format(MDB))
+# mdbcur = mdbcon.cursor()
+
+# sql = """SELECT LAKE, STATE_PROV, SITE, ST_SITE, GRID
+# FROM GLFSD
+# GROUP BY LAKE, STATE_PROV, GRID, SITE, ST_SITE
+# HAVING GRID Is Null;"""
+
+# mdbcur.execute(sql)
+# events = mdbcur.fetchall()
+
+
+# ret = []
+# for event in events:
+
+#     qs = StockingEvent.objects.filter(
+#         jurisdiction__lake__abbrev=event[0],
+#         jurisdiction__stateprov__abbrev=event[1],
+#         site=event[2],
+#     )
+#     if event[3]:
+#         qs = qs.filter(st_site=event[3])
+#     else:
+#         qs = qs.filter(st_site__isnull=True)
+
+#     if qs:
+#         grid = qs.first().grid_10
+#     else:
+#         grid = None
+
+#     if grid:
+#         tmp = list(event)
+#         tmp.append(grid.grid)
+#         ret.append(tmp)
+
+
+# import csv
+
+# csv_file = "c:/1work/fsdviz/utils/grid_from_sitename.csv"
+
+# with open(csv_file, "w", newline="") as f:
+#     writer = csv.writer(f)
+#     writer.writerow(["LAKE", "STATE_PROV", "SITE", "ST_SITE", "GRID", "GRID_SHOULD_BE"])
+#     writer.writerows(ret)
+
+# mdbcur.close()
+# mdbcon.close()
