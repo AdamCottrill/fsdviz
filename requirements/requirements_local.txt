@@ -18,7 +18,7 @@ django==2.2.17            # via django-debug-toolbar
 docutils==0.14            # via -r local.in, sphinx
 factory_boy==2.11.1       # via -r local.in
 faker==1.0.2              # via factory-boy
-httpie==1.0.2             # via -r local.in
+httpie==1.0.3             # via -r local.in
 idna==2.8                 # via requests
 imagesize==1.1.0          # via sphinx
 iniconfig==1.1.1          # via pytest
