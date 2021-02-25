@@ -36,7 +36,7 @@ class TestCWTListView:
         response = client.get(url)
         assert response.status_code == 200
 
-        assertTemplateUsed("stocking/cwt_list.hmlt")
+        assertTemplateUsed("stocking/cwt_list.html")
 
         elements = [
             'id="cwt-list"',

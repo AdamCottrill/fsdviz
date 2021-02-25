@@ -560,7 +560,7 @@ def cwt_stocking_events(db):
 
     # rainbow trout stocked in Lake Superior
     cwt6 = CWTFactory(cwt_number="111166", tag_type="sequential")
-    cwtseq6 = CWTsequenceFactory(cwt=cwt6)
+    cwtseq6 = CWTsequenceFactory(cwt=cwt6, sequence=(1, 500))
 
     # no marks or clips
     event6 = StockingEventFactory(
