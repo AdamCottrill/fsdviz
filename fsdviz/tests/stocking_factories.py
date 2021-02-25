@@ -34,7 +34,7 @@ from .common_factories import (
 from .user_factory import UserFactory
 
 
-class LifeStageFactory(factory.DjangoModelFactory):
+class LifeStageFactory(factory.django.DjangoModelFactory):
     """
     A factory for LatLonFlag objects.
     """
@@ -47,7 +47,7 @@ class LifeStageFactory(factory.DjangoModelFactory):
     description = "Yearling"
 
 
-class ConditionFactory(factory.DjangoModelFactory):
+class ConditionFactory(factory.django.DjangoModelFactory):
     """
     A factory for Condition objects.
     """
@@ -60,7 +60,7 @@ class ConditionFactory(factory.DjangoModelFactory):
     description = '<1% mortality observed, "excellent"'
 
 
-class HatcheryFactory(factory.DjangoModelFactory):
+class HatcheryFactory(factory.django.DjangoModelFactory):
     """
     A factory for Hatchery objects.
     """
@@ -75,7 +75,7 @@ class HatcheryFactory(factory.DjangoModelFactory):
     abbrev = "CWC"
 
 
-class StockingMethodFactory(factory.DjangoModelFactory):
+class StockingMethodFactory(factory.django.DjangoModelFactory):
     """
     A factory for StockingMethod objects.
     """
@@ -88,7 +88,7 @@ class StockingMethodFactory(factory.DjangoModelFactory):
     description = "boat, offshore stocking"
 
 
-class StockingEventFactory(factory.DjangoModelFactory):
+class StockingEventFactory(factory.django.DjangoModelFactory):
     """
     A factory for StockingEvent objects.
     """
@@ -141,7 +141,7 @@ class StockingEventFactory(factory.DjangoModelFactory):
     mark = "RPLV"
 
 
-class DataUploadEventFactory(factory.DjangoModelFactory):
+class DataUploadEventFactory(factory.django.DjangoModelFactory):
     """
     A factory for DataUploadEvent objects.
     """

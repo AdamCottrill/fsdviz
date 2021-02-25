@@ -2,7 +2,7 @@ import factory
 from ..myusers.models import CustomUser
 
 
-class UserFactory(factory.DjangoModelFactory):
+class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = CustomUser
 

@@ -5,7 +5,7 @@ from fsdviz.myusers.models import CustomUser
 from fsdviz.tests.common_factories import AgencyFactory
 
 
-class UserFactory(factory.DjangoModelFactory):
+class UserFactory(factory.django.DjangoModelFactory):
     """
     A factory for Lake objects.
     """

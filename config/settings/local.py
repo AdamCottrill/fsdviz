@@ -4,9 +4,9 @@ from config.settings.base import *
 VIRTUAL_ENV = os.environ["VIRTUAL_ENV"]
 OSGEO_VENV = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo")
 GEOS_LIBRARY_PATH = os.path.join(OSGEO_VENV, "geos_c.dll")
-GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal301.dll")
-# os.environ["GDAL_DATA"] = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo/data/gdal")
-
+GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal302.dll")
+os.environ["GDAL_DATA"] = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo/data/gdal")
+os.environ["PROJ_LIB"] = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo/data/proj")
 
 os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
 
@@ -29,7 +29,7 @@ INTERNAL_IPS = ("127.0.0.1",)
 
 MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "10.210.24.114"]
 
 # ALLOWED_HOSTS = ['*']
 

@@ -38,7 +38,7 @@ polygon_wkt = (
 ).replace("\n", "")
 
 
-class LakeFactory(factory.DjangoModelFactory):
+class LakeFactory(factory.django.DjangoModelFactory):
     """
     A factory for Lake objects.
     """
@@ -52,7 +52,7 @@ class LakeFactory(factory.DjangoModelFactory):
     geom = GEOSGeometry(polygon_wkt)
 
 
-class AgencyFactory(factory.DjangoModelFactory):
+class AgencyFactory(factory.django.DjangoModelFactory):
     """
     A factory for Agency objects.
     """
@@ -65,7 +65,7 @@ class AgencyFactory(factory.DjangoModelFactory):
     agency_name = factory.Sequence(lambda n: "MyAgency-%03d" % n)
 
 
-class StateProvinceFactory(factory.DjangoModelFactory):
+class StateProvinceFactory(factory.django.DjangoModelFactory):
     """
     A factory for State-Province objects.
     """
@@ -80,7 +80,7 @@ class StateProvinceFactory(factory.DjangoModelFactory):
     country = "CAN"
 
 
-class JurisdictionFactory(factory.DjangoModelFactory):
+class JurisdictionFactory(factory.django.DjangoModelFactory):
     """
     A factory for Jurisdiction objects.  This is effectively a
     many-to-many table between states and lakes.
@@ -101,7 +101,7 @@ class JurisdictionFactory(factory.DjangoModelFactory):
     description = "The waters of some entity"
 
 
-class ManagementUnitFactory(factory.DjangoModelFactory):
+class ManagementUnitFactory(factory.django.DjangoModelFactory):
     """
     A factory for ManagementUnit objects.
     """
@@ -119,7 +119,7 @@ class ManagementUnitFactory(factory.DjangoModelFactory):
     primary = "True"
 
 
-class Grid10Factory(factory.DjangoModelFactory):
+class Grid10Factory(factory.django.DjangoModelFactory):
     """
     A factory for 10-minute grid objects.
     """
@@ -136,7 +136,7 @@ class Grid10Factory(factory.DjangoModelFactory):
     geom = GEOSGeometry(polygon_wkt)
 
 
-class SpeciesFactory(factory.DjangoModelFactory):
+class SpeciesFactory(factory.django.DjangoModelFactory):
     """
     A factory for Species objects.
     """
@@ -151,7 +151,7 @@ class SpeciesFactory(factory.DjangoModelFactory):
     species_code = factory.Sequence(lambda n: "%03d" % n)
 
 
-class StrainFactory(factory.DjangoModelFactory):
+class StrainFactory(factory.django.DjangoModelFactory):
     """
     A factory for Strain objects.
     """
@@ -166,7 +166,7 @@ class StrainFactory(factory.DjangoModelFactory):
     strain_species = factory.SubFactory(SpeciesFactory)
 
 
-class StrainRawFactory(factory.DjangoModelFactory):
+class StrainRawFactory(factory.django.DjangoModelFactory):
     """
     A factory for Raw Strain objects.
     """
@@ -181,7 +181,7 @@ class StrainRawFactory(factory.DjangoModelFactory):
     strain = factory.SubFactory(StrainFactory)
 
 
-class MarkFactory(factory.DjangoModelFactory):
+class MarkFactory(factory.django.DjangoModelFactory):
     """
     A factory for Mark objects (fin clips, cwts and chemical tags)
     """
@@ -195,7 +195,7 @@ class MarkFactory(factory.DjangoModelFactory):
     description = "Adipose Fin"
 
 
-class PhysChemMarkFactory(factory.DjangoModelFactory):
+class PhysChemMarkFactory(factory.django.DjangoModelFactory):
     """
     A factory for PhysChemMark objects (chemical tags or physical marks)
     """
@@ -209,7 +209,7 @@ class PhysChemMarkFactory(factory.DjangoModelFactory):
     description = "oxytetracycline"
 
 
-class CompositeFinClipFactory(factory.DjangoModelFactory):
+class CompositeFinClipFactory(factory.django.DjangoModelFactory):
     """A factory for CompositeFinClip objects - the string reported by
     agency representing a concatenation of one or more fin clips.
 
@@ -223,7 +223,7 @@ class CompositeFinClipFactory(factory.DjangoModelFactory):
     description = "adipose, dorsal fin clip"
 
 
-class FinClipFactory(factory.DjangoModelFactory):
+class FinClipFactory(factory.django.DjangoModelFactory):
     """
     A factory for FinClip objects
     """
@@ -236,7 +236,7 @@ class FinClipFactory(factory.DjangoModelFactory):
     description = "adipose clip"
 
 
-class FishTagFactory(factory.DjangoModelFactory):
+class FishTagFactory(factory.django.DjangoModelFactory):
     """
     A factory for CompositeFinClip objects (chemical tags or physical marks)
     """
@@ -250,7 +250,7 @@ class FishTagFactory(factory.DjangoModelFactory):
     description = "coded wire tag"
 
 
-class LatLonFlagFactory(factory.DjangoModelFactory):
+class LatLonFlagFactory(factory.django.DjangoModelFactory):
     """
     A factory for LatLonFlag objects.
     """
@@ -263,7 +263,7 @@ class LatLonFlagFactory(factory.DjangoModelFactory):
     description = "Reported"
 
 
-class CWTFactory(factory.DjangoModelFactory):
+class CWTFactory(factory.django.DjangoModelFactory):
     """
     A factory for CWT objects.
     """
@@ -282,7 +282,7 @@ class CWTFactory(factory.DjangoModelFactory):
     # agency = factory.SubFactory(AgencyFactory)
 
 
-class CWTsequenceFactory(factory.DjangoModelFactory):
+class CWTsequenceFactory(factory.django.DjangoModelFactory):
     """
     A factory for CWTsequence objects.
     """
@@ -290,6 +290,6 @@ class CWTsequenceFactory(factory.DjangoModelFactory):
     class Meta:
         model = CWTsequence
 
-    sequence = [0, 0]
+    sequence = [0, 1]
 
     cwt = factory.SubFactory(CWTFactory)
