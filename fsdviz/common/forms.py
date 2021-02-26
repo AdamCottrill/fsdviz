@@ -23,8 +23,7 @@ from .utils import check_ranges
 
 
 class CWTSequenceForm(forms.Form):
-    """
-    """
+    """"""
 
     delete = forms.BooleanField(required=False)
 
@@ -45,7 +44,7 @@ class CWTSequenceForm(forms.Form):
         widget=forms.Select(attrs={"class": "cwt-tag-type"}),
     )
     sequence_start = forms.IntegerField(label="Seq. Start", required=False, min_value=0)
-    sequence_end = forms.IntegerField(label="Seq. End", required=False, min_value=0)
+    sequence_end = forms.IntegerField(label="Seq. End", required=False, min_value=1)
 
     def __init__(self, *args, **kwargs):
         super(CWTSequenceForm, self).__init__(*args, **kwargs)

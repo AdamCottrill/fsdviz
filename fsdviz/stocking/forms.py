@@ -27,6 +27,7 @@ from ..common.models import (
 )
 
 from ..common.widgets import SemanticDatePicker
+from ..common.validators import validate_cwt
 
 from .utils import get_or_create_cwt_sequence
 
@@ -715,8 +716,8 @@ class StockingEventForm(forms.Form):
             raise forms.ValidationError(msg, code="missing_fish_tag")
 
         # # if cwt_number is populated - cwt must be one of the tag types.
-        # cwt_numbers = data.get("cwt_numbers")
-        # validate_cwt(cwt_numbers)
+        cwt_numbers = data.get("cwt_numbers")
+        validate_cwt(cwt_numbers)
 
         has_cwts = self.has_cwts
         cwt_formset = self.cwt_formset
@@ -740,6 +741,36 @@ class StockingEventForm(forms.Form):
         if cwts is False and "CWT" in fish_tags:
             msg = "At least one CWT needs to be associated with this event if tag type 'CWT' is selected."
             raise forms.ValidationError(msg, code="invalid_missing_cwt")
+
+        # # cwt data must be unique
+
+        # # if cwt tagtype is sequential, both start and end must be
+        # # provided and start must be less than end.
+
+        # if cwts:
+        #     for cwt in cwt_formset:
+        #         if cwt.get("delete", False):
+        #             continue
+        #         # cwt_number = cwt.get("cwt_number")
+        #         tag_type = cwt.get("tag_type")
+        #         # manufacturer=cwt.get("manufacturer")
+        #         seq_start = cwt.get("sequence_start")
+        #         seq_end = cwt.get("sequence_end")
+
+        #         print(tag_type, seq_start, seq_end)
+
+        #         if tag_type == "sequential" and seq_start is None and seq_end is None:
+        #             msg = "Sequence start and end must be provided for sequential tags."
+        #             raise forms.ValidationError(msg, code="invalid_cwt_sequence")
+        #         if tag_type == "sequential" and seq_start is None:
+        #             msg = "Sequence start must be provided for sequential tags."
+        #             raise forms.ValidationError(msg, code="invalid_cwt_sequence")
+        #         if tag_type == "sequential" and seq_end is None:
+        #             msg = "Sequence end must be provided for sequential tags."
+        #             raise forms.ValidationError(msg, code="invalid_cwt_sequence")
+
+        #         if tag_type == "sequential":
+        #             validate_cwt_sequence_range([seq_start, seq_end])
 
         # FINCLIPS, MARKS and MARK EFFICIENCY
 

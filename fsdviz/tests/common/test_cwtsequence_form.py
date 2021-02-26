@@ -11,14 +11,13 @@ def valid_data():
         "manufacturer": "nmt",
         "tag_type": "cwt",
         "sequence_start": 0,
-        "sequence_end": 0,
+        "sequence_end": 1,
     }
     return data
 
 
 def test_valid_data(valid_data):
-    """If we pass good data to our form, it should be valid.
-    """
+    """If we pass good data to our form, it should be valid."""
 
     myform = CWTSequenceForm(valid_data)
     assert myform.is_valid() is True
@@ -81,9 +80,7 @@ manufacturer_list = [("nmt", True), ("mm", True), ("acme", False)]
 
 @pytest.mark.parametrize("manufacturer, form_is_valid", manufacturer_list)
 def test_valid_manufacturer(valid_data, manufacturer, form_is_valid):
-    """manufacturer must be 'nmt' or 'mm'
-
-    """
+    """manufacturer must be 'nmt' or 'mm'"""
     valid_data["manufacturer"] = manufacturer
     myform = CWTSequenceForm(valid_data)
     is_valid = myform.is_valid()
@@ -94,14 +91,14 @@ def test_valid_manufacturer(valid_data, manufacturer, form_is_valid):
         assert expected in error_message
 
 
-invalid_integers = [
+invalid_start_integers = [
     (-10, "Ensure this value is greater than or equal to 0."),
     ("1.5", "Enter a whole number."),
     ("A", "Enter a whole number."),
 ]
 
 
-@pytest.mark.parametrize("value, msg", invalid_integers)
+@pytest.mark.parametrize("value, msg", invalid_start_integers)
 def test_sequence_start_is_integer(valid_data, value, msg):
     """Sequence_start must be a positive initeger and will be zero by default
     and can only be a number other than one if tag type is sequential.
@@ -115,7 +112,14 @@ def test_sequence_start_is_integer(valid_data, value, msg):
     assert expected in error_message
 
 
-@pytest.mark.parametrize("value, msg", invalid_integers)
+invalid_end_integers = [
+    (-10, "Ensure this value is greater than or equal to 1."),
+    ("1.5", "Enter a whole number."),
+    ("A", "Enter a whole number."),
+]
+
+
+@pytest.mark.parametrize("value, msg", invalid_end_integers)
 def test_sequence_end_is_integer(valid_data, value, msg):
     """Sequence_end must be a positive initeger and will be zero by default
     and can only be a number other than one if tag type is sequential.

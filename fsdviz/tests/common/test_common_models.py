@@ -325,7 +325,10 @@ def test_cwt_sequence_overlapping_range():
 
 
 invalid_ranges = [
-    ([-10, 10], "Invalid Range. Values in range must be greater than or equal to zero"),
+    (
+        [-10, 10],
+        "Invalid Range. Values in range must be greater than or equal to zero.",
+    ),
     ([20, 10], "Invalid Range. The lower limit is greater than the upper limit."),
 ]
 

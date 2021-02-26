@@ -278,16 +278,16 @@ def test_sequential_must_be_nmt(client, user, cwt_event):
 
 
 arg_list = (
-    {
-        "seq_start": None,
-        "seq_end": 100,
-        "msg": "Sequence start must be provided for sequential tags.",
-    },
-    {
-        "seq_start": 1,
-        "seq_end": None,
-        "msg": "Sequence end must be provided for sequential tags.",
-    },
+    # {
+    #     "seq_start": None,
+    #     "seq_end": 100,
+    #     "msg": "Sequence start must be provided for sequential tags.",
+    # },
+    # {
+    #     "seq_start": 1,
+    #     "seq_end": None,
+    #     "msg": "Sequence end must be provided for sequential tags.",
+    # },
     {
         "seq_start": None,
         "seq_end": None,
@@ -315,6 +315,10 @@ def test_sequential_sequence_range(client, user, cwt_event, args):
     seq_end = args.get("seq_end")
     if seq_end:
         event_dict["cwtseries-0-sequence_end"] = seq_end
+    else:
+        event_dict.pop("cwtseries-0-sequence_end")
+
+    print("event_dict={}".format(event_dict))
 
     login = client.login(email=user.email, password="Abcd1234")
     assert login is True
@@ -355,6 +359,10 @@ def test_duplicate_cwt_attributes(client, user, cwt_event):
         "stocking:edit-stocking-event", kwargs={"stock_id": cwt_event.stock_id}
     )
     response = client.post(url, data=event_dict, follow=True)
+
+    fname = "c:/1work/scrapbook/wtf.html"
+    with open(fname, "wb") as f:
+        f.write(response.content)
 
     assert response.status_code == 200
     assertTemplateUsed(response, "stocking/stocking_event_form.html")
