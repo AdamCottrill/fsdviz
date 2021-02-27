@@ -876,6 +876,11 @@ def reused_cwt_stocking_events(db):
     been reused to ensure that filters still work as expected when
     cwts are associated with events that have differnt attributes.
 
+    ** NOTE ** - tag reuse flags are arbitrarily set in this fixture -
+       if we ever set up triggers intthe data base to update those
+       fields as stocking events are added or modified, these will
+       alsmost certainly be wrong and the tests will fail.
+
     """
 
     huron = LakeFactory(abbrev="HU", lake_name="Huron")
@@ -956,7 +961,11 @@ def reused_cwt_stocking_events(db):
     pt1 = GEOSGeometry("POINT(-82.0 44.0)", srid=4326)
     pt2 = GEOSGeometry("POINT(-81.0 46.0)", srid=4326)
 
-    cwt1 = CWTFactory(cwt_number="111111")
+    cwt1 = CWTFactory(
+        cwt_number="111111",
+        multiple_agencies=True,
+        multiple_species=True,
+    )
     cwtseq1 = CWTsequenceFactory(cwt=cwt1)
 
     event1 = StockingEventFactory(
@@ -1008,7 +1017,11 @@ def reused_cwt_stocking_events(db):
     event2.fin_clips.add(rp_clip)
     event2.save()
 
-    cwt3 = CWTFactory(cwt_number="333333")
+    cwt3 = CWTFactory(
+        cwt_number="333333",
+        multiple_species=True,
+        multiple_strains=True,
+    )
     cwtseq3 = CWTsequenceFactory(cwt=cwt3)
 
     event3 = StockingEventFactory(
@@ -1062,7 +1075,13 @@ def reused_cwt_stocking_events(db):
     event4.save()
 
     # lake trout stocked in Lake Superior
-    cwt5 = CWTFactory(cwt_number="551111", manufacturer="mm")
+    cwt5 = CWTFactory(
+        cwt_number="551111",
+        manufacturer="mm",
+        tag_reused=True,
+        multiple_lakes=True,
+        multiple_yearclasses=True,
+    )
     cwtseq5 = CWTsequenceFactory(cwt=cwt5)
 
     event5 = StockingEventFactory(
@@ -1134,6 +1153,91 @@ def reused_cwt_stocking_events(db):
 
 
 reused_cwt_parameters = [
+    (
+        {"tag_reused": True},
+        ["5555"],
+        ["1111", "2222", "3333", "4444", "6666", "7777"],
+        None,
+    ),
+    (
+        {"tag_reused": False},
+        ["1111", "2222", "3333", "4444", "6666"],
+        ["5555", "7777"],
+        None,
+    ),
+    (
+        {"multiple_lakes": True},
+        ["5555"],
+        ["1111", "2222", "3333", "4444", "6666", "7777"],
+        None,
+    ),
+    (
+        {"multiple_lakes": False},
+        ["1111", "2222", "3333", "4444", "6666"],
+        ["5555", "7777"],
+        None,
+    ),
+    (
+        {"multiple_yearclasses": True},
+        ["5555"],
+        ["1111", "2222", "3333", "4444", "6666", "7777"],
+        None,
+    ),
+    (
+        {"multiple_yearclasses": False},
+        ["1111", "2222", "3333", "4444", "6666"],
+        ["5555", "7777"],
+        None,
+    ),
+    (
+        {"multiple_agencies": True},
+        ["1111", "2222"],
+        ["3333", "4444", "5555", "6666", "7777"],
+        None,
+    ),
+    (
+        {"multiple_agencies": False},
+        [
+            "3333",
+            "4444",
+            "5555",
+            "6666",
+        ],
+        ["1111", "2222", "7777"],
+        None,
+    ),
+    (
+        {"multiple_species": True},
+        ["1111", "2222", "3333", "4444"],
+        ["5555", "6666", "7777"],
+        None,
+    ),
+    (
+        {"multiple_species": False},
+        [
+            "5555",
+            "6666",
+        ],
+        ["1111", "2222", "3333", "4444", "7777"],
+        None,
+    ),
+    (
+        {"multiple_strains": True},
+        ["3333", "4444"],
+        ["1111", "2222", "5555", "6666", "7777"],
+        None,
+    ),
+    (
+        {"multiple_strains": False},
+        [
+            "1111",
+            "2222",
+            "5555",
+            "6666",
+        ],
+        ["3333", "4444", "7777"],
+        None,
+    ),
     (
         {"cwt_number_like": "1111"},
         ["1111", "2222", "5555", "6666"],

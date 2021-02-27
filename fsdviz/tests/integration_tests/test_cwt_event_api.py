@@ -109,6 +109,12 @@ def test_reused_cwt_list_filters(
     filter to be applied, the excepted list of cwts numbers, a list of cwt
     numbers that should not be returned, and an optional string specifying
     a prefetch_related to pass to the queryset.
+
+    Several of the cwts in the supplied fixture have been
+    re-used. These tests verify that filters applied to events with
+    re-used tags, returns the correct events (not other events that
+    used the same tag number.)
+
     """
 
     url = reverse("stocking_api:api-get-cwt-stocking-events")
@@ -118,10 +124,6 @@ def test_reused_cwt_list_filters(
     observed = [x["stock_id"] for x in response.data]
     observed.sort()
     expected.sort()
-
-    print("filter={}".format(filter))
-    print("osbserved={}".format(observed))
-    print("expected={}".format(expected))
 
     assert expected == observed
     for item in excluded:

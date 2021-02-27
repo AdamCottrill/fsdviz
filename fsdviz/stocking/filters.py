@@ -28,7 +28,7 @@ class StockingEventFilter(django_filters.FilterSet):
             pass
         return queryset
 
-    # tag attributes
+    # CWT tag attributes
     cwt_number = ValueInFilter(
         field_name="cwt_series__cwt__cwt_number", lookup_expr="in"
     )
@@ -39,6 +39,23 @@ class StockingEventFilter(django_filters.FilterSet):
 
     manufacturer = django_filters.CharFilter(field_name="cwt_series__cwt__manufacturer")
     tag_type = django_filters.CharFilter(field_name="cwt_series__cwt__tag_type")
+
+    tag_reused = django_filters.BooleanFilter(field_name="cwt_series__cwt__tag_reused")
+    multiple_lakes = django_filters.BooleanFilter(
+        field_name="cwt_series__cwt__multiple_lakes"
+    )
+    multiple_species = django_filters.BooleanFilter(
+        field_name="cwt_series__cwt__multiple_species"
+    )
+    multiple_strains = django_filters.BooleanFilter(
+        field_name="cwt_series__cwt__multiple_strains"
+    )
+    multiple_yearclasses = django_filters.BooleanFilter(
+        field_name="cwt_series__cwt__multiple_yearclasses"
+    )
+    multiple_agencies = django_filters.BooleanFilter(
+        field_name="cwt_series__cwt__multiple_agencies"
+    )
 
     lake = ValueInFilter(field_name="jurisdiction__lake__abbrev", lookup_expr="in")
 
