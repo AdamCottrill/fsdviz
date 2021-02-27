@@ -12,6 +12,7 @@ from .views import (
     StockingEventListAPIView,
     StockingEventLookUpsAPIView,
     StockingEvent2xlsxViewSet,
+    CWTEventListAPIView,
 )
 
 
@@ -83,6 +84,11 @@ urlpatterns += [
         "stocking_event/<stock_id>/",
         StockingEventViewSet.as_view({"get": "retrieve"}),
         name="api-stocking-event-detail",
+    ),
+    path(
+        "get_cwt_events/",
+        CWTEventListAPIView.as_view(),
+        name="api-get-cwt-stocking-events",
     ),
     # ========================================
     # simplified map serializers:

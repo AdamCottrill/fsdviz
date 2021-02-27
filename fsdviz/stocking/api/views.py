@@ -15,8 +15,10 @@ from rest_framework.renderers import JSONRenderer
 
 import json
 
-from fsdviz.stocking.models import LifeStage, Condition, StockingMethod, StockingEvent
+from fsdviz.common.models import CWTsequence
+from fsdviz.common.filters import CWTSequenceFilter
 
+from fsdviz.stocking.models import LifeStage, Condition, StockingMethod, StockingEvent
 from fsdviz.stocking.filters import StockingEventFilter
 
 from .serializers import (
@@ -439,8 +441,6 @@ class StockingEventListAPIView(APIView):
 
         maxEvents = settings.MAX_FILTERED_EVENT_COUNT
 
-        print("request.GET={}".format(request.GET))
-
         return Response(filtered[:maxEvents])
 
 
@@ -470,3 +470,236 @@ class StockingEventLookUpsAPIView(APIView):
         }
 
         return Response(lookups)
+
+
+# class CWTEventListAPIView(APIView):
+#     """*TODO* A list view of individual stocking events. This view is meant to be
+#     called from find_events view and should always return a reasonable
+#     subset of the database (say less than 5000 records?).
+
+#     query parmeters are parsed from the url and used to filter the
+#     returned queryest.
+
+#     To maximize performance, this view does not use a serializer and
+#     instead returns just the values from the queryset was recommended here:
+
+#     https://www.dabapps.com/blog/api-performance-profiling-django-rest-framework/
+
+#     Note: this is something we might want to consider for our other views too.
+
+#     TODO: when slug is available for strain, use it. for now we will
+#     build it on the front end.
+
+#     """
+
+#     permission_classes = [IsAuthenticatedOrReadOnly]
+
+#     def get(self, request):
+
+#         field_aliases = {
+#             "cwt_number": F("cwt__cwt_number"),
+#             "tag_type": F("cwt__tag_type"),
+#             "manufacturer": F("cwt__manufacturer"),
+#             "tag_reused": F("cwt__tag_reused"),
+#             "multiple_lakes": F("cwt__multiple_lakes"),
+#             "multiple_species": F("cwt__multiple_species"),
+#             "multiple_strains": F("cwt__multiple_strains"),
+#             "multiple_yearclasses": F("cwt__multiple_yearclasses"),
+#             "multiple_agencies": F("cwt__multiple_agencies"),
+#             "stock_id": F("events__stock_id"),
+#             "agency_stock_id": F("events__agency_stock_id"),
+#             "agency_code": F("events__agency__abbrev"),
+#             "lake": F("events__jurisdiction__lake__abbrev"),
+#             "state": F("events__jurisdiction__stateprov__abbrev"),
+#             "jurisd": F("events__jurisdiction__slug"),
+#             "management_unit": F("events__management_unit__label"),
+#             "grid_10": F("events__grid_10__grid"),
+#             # "geom": F("events__geom"),
+#             "primary_location": F("events__site"),
+#             "secondary_location": F("events__st_site"),
+#             "year": F("events__year"),
+#             "month": F("events__month"),
+#             "day": F("events__day"),
+#             "spc": F("events__species__abbrev"),
+#             "strain": F("events__strain_raw__strain__strain_label"),
+#             "year_class": F("events__year_class"),
+#             "clip_code": F("events__clip_code__clip_code"),
+#             "mark": F("events__mark"),
+#             "stage": F("events__lifestage__description"),
+#             "method": F("events__stocking_method__description"),
+#             "no_stocked": F("events__no_stocked"),
+#         }
+
+#         # use our shorter field names in the list of fields to select:
+#         fields = [
+#             "cwt_number",
+#             "tag_type",
+#             "manufacturer",
+#             "tag_reused",
+#             "multiple_lakes",
+#             "multiple_species",
+#             "multiple_strains",
+#             "multiple_yearclasses",
+#             "multiple_agencies",
+#             # "sequence",
+#             "stock_id",
+#             "agency_stock_id",
+#             "agency_code",
+#             "lake",
+#             "state",
+#             "jurisd",
+#             "management_unit",
+#             "grid_10",
+#             "primary_location",
+#             "secondary_location",
+#             # "geom",
+#             "year",
+#             "month",
+#             "day",
+#             "spc",
+#             "strain",
+#             "year_class",
+#             "mark",
+#             "clip_code",
+#             "stage",
+#             "method",
+#             "no_stocked",
+#         ]
+
+#         related_tables = [
+#             "cwt",
+#             "events__agency",
+#             "events__species",
+#             "events__strain",
+#             "events__lifestage",
+#             "events__stocking_method",
+#             "events__jurisdiction__lake",
+#             "events__jurisdiction__stateprov",
+#             "events__jurisdiction",
+#             "events__grid10",
+#         ]
+
+#         queryset = CWTsequence.objects.select_related(*related_tables).annotate(
+#             **field_aliases
+#         )
+
+#         filtered = CWTSequenceFilter(self.request.GET, queryset=queryset).qs.values(
+#             *fields
+#         )
+
+#         maxEvents = settings.MAX_FILTERED_EVENT_COUNT
+
+#         return Response(filtered[:maxEvents])
+
+
+class CWTEventListAPIView(APIView):
+    """*TODO* A list view of individual stocking events. This view is meant to be
+    called from find_events view and should always return a reasonable
+    subset of the database (say less than 5000 records?).
+
+    query parmeters are parsed from the url and used to filter the
+    returned queryest.
+
+    To maximize performance, this view does not use a serializer and
+    instead returns just the values from the queryset was recommended here:
+
+    https://www.dabapps.com/blog/api-performance-profiling-django-rest-framework/
+
+    Note: this is something we might want to consider for our other views too.
+
+    TODO: when slug is available for strain, use it. for now we will
+    build it on the front end.
+
+    """
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+
+        field_aliases = {
+            "cwt_number": F("cwt_series__cwt__cwt_number"),
+            "tag_type": F("cwt_series__cwt__tag_type"),
+            "manufacturer": F("cwt_series__cwt__manufacturer"),
+            "tag_reused": F("cwt_series__cwt__tag_reused"),
+            "multiple_lakes": F("cwt_series__cwt__multiple_lakes"),
+            "multiple_species": F("cwt_series__cwt__multiple_species"),
+            "multiple_strains": F("cwt_series__cwt__multiple_strains"),
+            "multiple_yearclasses": F("cwt_series__cwt__multiple_yearclasses"),
+            "multiple_agencies": F("cwt_series__cwt__multiple_agencies"),
+            "agency_code": F("agency__abbrev"),
+            "lake": F("jurisdiction__lake__abbrev"),
+            "state": F("jurisdiction__stateprov__abbrev"),
+            "jurisd": F("jurisdiction__slug"),
+            "man_unit": F("management_unit__label"),
+            "grid10": F("grid_10__grid"),
+            "primary_location": F("site"),
+            "secondary_location": F("st_site"),
+            "spc": F("species__abbrev"),
+            "strain": F("strain_raw__strain__strain_label"),
+            "clipcode": F("clip_code__clip_code"),
+            "stage": F("lifestage__description"),
+            "method": F("stocking_method__description"),
+        }
+
+        # use our shorter field names in the list of fields to select:
+        fields = [
+            "cwt_number",
+            "tag_type",
+            "manufacturer",
+            "tag_reused",
+            "multiple_lakes",
+            "multiple_species",
+            "multiple_strains",
+            "multiple_yearclasses",
+            "multiple_agencies",
+            # "sequence",
+            "stock_id",
+            "agency_stock_id",
+            "agency_code",
+            "lake",
+            "state",
+            "jurisd",
+            "man_unit",
+            "grid10",
+            "primary_location",
+            "secondary_location",
+            # "geom",
+            "year",
+            "month",
+            "day",
+            "spc",
+            "strain",
+            "year_class",
+            "mark",
+            "clipcode",
+            "stage",
+            "method",
+            "no_stocked",
+        ]
+
+        related_tables = [
+            "cwt_series__cwt",
+            "cwt_series" "agency",
+            "species",
+            "strain",
+            "lifestage",
+            "stocking_method",
+            "jurisdiction__lake",
+            "jurisdiction__stateprov",
+            "jurisdiction",
+            "grid10",
+        ]
+
+        queryset = (
+            StockingEvent.objects.exclude(cwt_series__cwt__cwt_number__isnull=True)
+            .select_related(*related_tables)
+            .annotate(**field_aliases)
+        )
+
+        filtered = StockingEventFilter(self.request.GET, queryset=queryset).qs.values(
+            *fields
+        )
+
+        maxEvents = settings.MAX_FILTERED_EVENT_COUNT
+
+        return Response(filtered[:maxEvents])
