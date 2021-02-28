@@ -6,6 +6,7 @@ The veiws in this file should all be publicly available as readonly.
 
 from django.conf import settings
 from django.db.models import Count, F, Q, Sum
+
 from django.contrib.postgres.aggregates import StringAgg
 from rest_framework import generics, viewsets
 from rest_framework.views import APIView
@@ -13,10 +14,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.renderers import JSONRenderer
 
-import json
-
-from fsdviz.common.models import CWTsequence
-from fsdviz.common.filters import CWTSequenceFilter
 
 from fsdviz.stocking.models import LifeStage, Condition, StockingMethod, StockingEvent
 from fsdviz.stocking.filters import StockingEventFilter
@@ -37,7 +34,7 @@ from drf_renderer_xlsx.renderers import XLSXRenderer
 
 
 class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
-    """This view set will export the stockign data to execl in the same
+    """This view set will export the stockign data to excel in the same
     format as the data submission template."""
 
     queryset = StockingEvent.objects.all()
@@ -204,13 +201,6 @@ class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
 
-        lake_name = self.kwargs.get("lake_name")
-        year = self.kwargs.get("year")
-        jurisdiction = self.kwargs.get("jurisdiction")
-
-        # get the value of q from the request kwargs
-        search_q = self.request.GET.get("q")
-
         queryset = StockingEvent.objects.all()
         queryset = queryset.select_related(
             "agency",
@@ -225,21 +215,6 @@ class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
             "strain_raw__strain",
             "stocking_method",
         )
-
-        if lake_name:
-            # Return a filtered queryset
-            queryset = queryset.filter(jurisdiction__lake__abbrev=lake_name)
-
-        if year:
-            queryset = queryset.filter(year=year)
-
-        if jurisdiction:
-            queryset = queryset.filter(jurisdiction__slug=jurisdiction)
-
-        if search_q:
-            queryset = queryset.filter(
-                Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q)
-            )
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         # finally django-filter
@@ -262,6 +237,7 @@ class StockingEventMapListView(generics.ListAPIView):
     """
 
     serializer_class = StockingEventFastSerializer
+    filterset_class = StockingEventFilter
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def list(self, request, *args, **kwargs):
@@ -271,9 +247,6 @@ class StockingEventMapListView(generics.ListAPIView):
     def get_queryset(self):
 
         # get any url parameters:
-        lake_name = self.kwargs.get("lake_name")
-        year = self.kwargs.get("year")
-        jurisdiction = self.kwargs.get("jurisdiction")
         upload_event = self.kwargs.get("upload_event_slug")
 
         # count our events and sum the yreq_stocked, give each field
@@ -320,17 +293,6 @@ class StockingEventMapListView(generics.ListAPIView):
             "strain_raw__strain",
             "stocking_method",
         )
-
-        # filter by lake, year and jurisdiction if they were included in the url
-        if lake_name:
-            # Return a filtered queryset
-            queryset = queryset.filter(jurisdiction__lake__abbrev=lake_name)
-
-        if year:
-            queryset = queryset.filter(year=year)
-
-        if jurisdiction:
-            queryset = queryset.filter(jurisdiction__slug=jurisdiction)
 
         if upload_event:
             queryset = queryset.filter(upload_event__slug=upload_event)
@@ -582,3 +544,15 @@ class CWTEventListAPIView(APIView):
         maxEvents = settings.MAX_FILTERED_EVENT_COUNT
 
         return Response(filtered[:maxEvents])
+
+
+# class CWTStockingEventViewSet(ReadOnlyModelViewSet):
+#     """This view set will export the stockign data to excel in the same
+#     format as the data submission template."""
+
+#     queryset = StockingEvent.objects.all()
+#     serializer_class = CWTEventSerializer
+#     filterset_class = StockingEventFilter
+#     # renderer_classes = (XLSXRenderer, JSONRenderer)
+#     permission_classes = [IsAuthenticatedOrReadOnly]
+#     # filename = "glfsd_export.xlsx"

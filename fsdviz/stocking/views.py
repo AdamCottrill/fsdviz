@@ -1404,7 +1404,7 @@ class CWTListView(ListView):
         return values
 
 
-class CWTSequenceListView(ListView):
+class CWTSequenceDetail(ListView):
     """
 
     **Context**
@@ -1421,7 +1421,7 @@ class CWTSequenceListView(ListView):
     template_name = "stocking/cwt_detail.html"
 
     def get_context_data(self, **kwargs):
-        context = super(CWTSequenceListView, self).get_context_data(**kwargs)
+        context = super(CWTSequenceDetail, self).get_context_data(**kwargs)
         cwt_number = self.kwargs.get("cwt_number")
         context["cwt_number"] = cwt_number
         context["cwts"] = CWT.objects.filter(cwt_number=cwt_number)

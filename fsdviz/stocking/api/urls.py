@@ -50,36 +50,36 @@ urlpatterns += [
         StockingEvent2xlsxViewSet.as_view({"get": "list"}),
         name="api-stocking-event-list-xlsx",
     ),
-    path(
-        "events/<int:year>/",
-        StockingEventViewSet.as_view({"get": "list"}),
-        name="api-stocking-event-list-year",
-    ),
-    path(
-        "events/<lake_name>/",
-        StockingEventViewSet.as_view({"get": "list"}),
-        name="api-stocking-event-list-lake",
-    ),
-    path(
-        "events/<lake_name>/<int:year>/",
-        StockingEventViewSet.as_view({"get": "list"}),
-        name="api-stocking-event-list-lake-year",
-    ),
-    path(
-        "events/jurisdiction/<jurisdiction>/",
-        StockingEventViewSet.as_view({"get": "list"}),
-        name="api-stocking-event-list-jurisdiction",
-    ),
-    path(
-        "events/jurisdiction/<jurisdiction>/<int:year>",
-        StockingEventViewSet.as_view({"get": "list"}),
-        name="api-stocking-event-list-jurisdiction-year",
-    ),
-    path(
-        "events/<lake_name>/<int:year>/",
-        StockingEventViewSet.as_view({"get": "list"}),
-        name="api-stocking-event-list-lake-year",
-    ),
+    # path(
+    #     "events/<int:year>/",
+    #     StockingEventViewSet.as_view({"get": "list"}),
+    #     name="api-stocking-event-list-year",
+    # ),
+    # path(
+    #     "events/<lake_name>/",
+    #     StockingEventViewSet.as_view({"get": "list"}),
+    #     name="api-stocking-event-list-lake",
+    # ),
+    # path(
+    #     "events/<lake_name>/<int:year>/",
+    #     StockingEventViewSet.as_view({"get": "list"}),
+    #     name="api-stocking-event-list-lake-year",
+    # ),
+    # path(
+    #     "events/jurisdiction/<jurisdiction>/",
+    #     StockingEventViewSet.as_view({"get": "list"}),
+    #     name="api-stocking-event-list-jurisdiction",
+    # ),
+    # path(
+    #     "events/jurisdiction/<jurisdiction>/<int:year>",
+    #     StockingEventViewSet.as_view({"get": "list"}),
+    #     name="api-stocking-event-list-jurisdiction-year",
+    # ),
+    # path(
+    #     "events/<lake_name>/<int:year>/",
+    #     StockingEventViewSet.as_view({"get": "list"}),
+    #     name="api-stocking-event-list-lake-year",
+    # ),
     path(
         "stocking_event/<stock_id>/",
         StockingEventViewSet.as_view({"get": "retrieve"}),
@@ -98,33 +98,33 @@ urlpatterns += [
         name="api-stocking-event-map-list",
     ),
     path(
-        "mapdata/events/<int:year>/",
-        StockingEventMapListView.as_view(),
-        name="api-stocking-event-map-list-year",
-    ),
-    path(
-        "mapdata/events/<lake_name>/",
-        StockingEventMapListView.as_view(),
-        name="api-stocking-event-map-list-lake",
-    ),
-    path(
         "mapdata/events/upload_event/<upload_event_slug>/",
         StockingEventMapListView.as_view(),
         name="api-stocking-event-upload-map",
     ),
     path(
-        "mapdata/events/<lake_name>/<int:year>/",
+        "mapdata/events/<int:year>/",
         StockingEventMapListView.as_view(),
-        name="api-stocking-event-map-list-lake-year",
+        name="api-stocking-event-map-list-year",
     ),
-    path(
-        "mapdata/events/jurisdiction/<jurisdiction>/",
-        StockingEventMapListView.as_view(),
-        name="api-stocking-event-map-list-jurisdiction",
-    ),
-    path(
-        "mapdata/events/jurisdiction/<jurisdiction>/<int:year>",
-        StockingEventMapListView.as_view(),
-        name="api-stocking-event-map-list-jurisdiction-year",
-    ),
+    # path(
+    #     "mapdata/events/<lake_name>/",
+    #     StockingEventMapListView.as_view(),
+    #     name="api-stocking-event-map-list-lake",
+    # ),
+    # path(
+    #     "mapdata/events/<lake_name>/<int:year>/",
+    #     StockingEventMapListView.as_view(),
+    #     name="api-stocking-event-map-list-lake-year",
+    # ),
+    # path(
+    #     "mapdata/events/jurisdiction/<jurisdiction>/",
+    #     StockingEventMapListView.as_view(),
+    #     name="api-stocking-event-map-list-jurisdiction",
+    # ),
+    # path(
+    #     "mapdata/events/jurisdiction/<jurisdiction>/<int:year>",
+    #     StockingEventMapListView.as_view(),
+    #     name="api-stocking-event-map-list-jurisdiction-year",
+    # ),
 ]
