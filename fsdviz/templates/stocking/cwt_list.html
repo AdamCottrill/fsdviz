@@ -94,7 +94,7 @@
                                 <tbody>
                                     {% for object in object_list %}
 
-                                        <tr>
+                                        <tr id="{{object.stock_id}}">
                                             <td> <a href="{% url 'stocking:cwt-detail' cwt_number=object.cwt_number%}">{{ object.cwt_number | format_cwt}}</a></td>
                                             <td> {{ object.tag_type}}</td>
                                             <td> {{ object.agency_code}}</td>
@@ -106,7 +106,7 @@
                                             <td> {{ object.year_class}}</td>
                                             <td> {{ object.stage}}</td>
                                             <td> {{ object.method}}</td>
-                                            <td> {{ object.clip_code}}</td>
+                                            <td> {{ object.clipcode}}</td>
                                             <td> {{ object.mark}}</td>
                                             
                                         </tr>

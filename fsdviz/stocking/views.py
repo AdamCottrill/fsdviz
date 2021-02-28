@@ -1108,10 +1108,10 @@ class CWTListView(ListView):
 
     """
 
-    model = CWTsequence
+    model = StockingEvent
     paginate_by = 200
     template_name = "stocking/cwt_list.html"
-    filter_class = CWTSequenceFilter
+    filter_class = StockingEventFilter
 
     def get_context_data(self, **kwargs):
         context = super(CWTListView, self).get_context_data(**kwargs)
@@ -1121,16 +1121,20 @@ class CWTListView(ListView):
         contains = self.request.GET.get("contains")
         context["contains_criteria"] = contains
 
-        basequery = CWTSequenceFilter(self.request.GET, CWTsequence.objects.all()).qs
+        # only inlude stocking events with a cwt number:
+        basequery = StockingEventFilter(
+            self.request.GET,
+            StockingEvent.objects.filter(cwt_series__cwt__cwt_number__isnull=False),
+        ).qs
 
         if contains:
             basequery = basequery.filter(
-                cwt__cwt_number__icontains=contains.replace("-", "")
+                cwt_series__cwt__cwt_number__icontains=contains.replace("-", "")
             )
 
         cwt_type_list = (
-            basequery.values_list("cwt__tag_type")
-            .annotate(n=Count("events"))
+            basequery.values_list("cwt_series__cwt__tag_type")
+            .annotate(n=Count("stock_id"))
             .order_by()
         )
         # cwt type and manufacturer require us to get the choices from the model object
@@ -1140,8 +1144,8 @@ class CWTListView(ListView):
         context["cwt_type_list"] = [(x[0], choices.get(x[0]), x[1]) for x in tmp]
 
         cwt_manufacturer_list = (
-            basequery.values_list("cwt__manufacturer")
-            .annotate(n=Count("events"))
+            basequery.values_list("cwt_series__cwt__manufacturer")
+            .annotate(n=Count("stock_id"))
             .order_by()
         )
 
@@ -1154,22 +1158,22 @@ class CWTListView(ListView):
 
         lake_list = (
             basequery.values_list(
-                "events__jurisdiction__lake__abbrev",
-                "events__jurisdiction__lake__lake_name",
+                "jurisdiction__lake__abbrev",
+                "jurisdiction__lake__lake_name",
             )
-            .annotate(n=Count("events"))
-            .order_by("events__jurisdiction__lake__lake_name")
+            .annotate(n=Count("stock_id"))
+            .order_by("jurisdiction__lake__lake_name")
         )
 
         context["lake_list"] = add_is_checked(lake_list, filters.get("lake"))
 
         stateprov_list = (
             basequery.values_list(
-                "events__jurisdiction__stateprov__abbrev",
-                "events__jurisdiction__stateprov__name",
+                "jurisdiction__stateprov__abbrev",
+                "jurisdiction__stateprov__name",
             )
-            .annotate(n=Count("events"))
-            .order_by("events__jurisdiction__stateprov__abbrev")
+            .annotate(n=Count("stock_id"))
+            .order_by("jurisdiction__stateprov__abbrev")
         )
 
         context["stateprov_list"] = add_is_checked(
@@ -1177,11 +1181,9 @@ class CWTListView(ListView):
         )
 
         jurisdiction_list = (
-            basequery.values_list(
-                "events__jurisdiction__slug", "events__jurisdiction__name"
-            )
-            .annotate(n=Count("events"))
-            .order_by("events__jurisdiction__slug")
+            basequery.values_list("jurisdiction__slug", "jurisdiction__name")
+            .annotate(n=Count("stock_id"))
+            .order_by("jurisdiction__slug")
         )
 
         context["jurisdiction_list"] = add_is_checked(
@@ -1189,39 +1191,35 @@ class CWTListView(ListView):
         )
 
         agency_list = (
-            basequery.values_list(
-                "events__agency__abbrev", "events__agency__agency_name"
-            )
-            .annotate(n=Count("events"))
-            .order_by("events__agency__abbrev")
+            basequery.values_list("agency__abbrev", "agency__agency_name")
+            .annotate(n=Count("stock_id"))
+            .order_by("agency__abbrev")
         )
         context["agency_list"] = add_is_checked(agency_list, filters.get("agency"))
 
         species_list = (
-            basequery.values_list(
-                "events__species__abbrev", "events__species__common_name"
-            )
-            .annotate(n=Count("events"))
-            .order_by("events__species__common_name")
+            basequery.values_list("species__abbrev", "species__common_name")
+            .annotate(n=Count("stock_id"))
+            .order_by("species__common_name")
         )
 
         context["species_list"] = add_is_checked(species_list, filters.get("species"))
 
         strain_list = (
             basequery.values_list(
-                "events__strain_raw__strain__strain_code",
-                "events__strain_raw__strain__strain_label",
+                "strain_raw__strain__strain_code",
+                "strain_raw__strain__strain_label",
             )
-            .annotate(n=Count("events"))
-            .order_by("events__strain_raw__strain__strain_label")
+            .annotate(n=Count("stock_id"))
+            .order_by("strain_raw__strain__strain_label")
         )
 
         context["strain_list"] = add_is_checked(strain_list, filters.get("strain_name"))
 
         year_class_list = (
-            basequery.values_list("events__year_class")
-            .annotate(n=Count("events"))
-            .order_by("-events__year_class")
+            basequery.values_list("year_class")
+            .annotate(n=Count("stock_id"))
+            .order_by("-year_class")
         )
 
         context["year_class_list"] = add_is_checked(
@@ -1229,11 +1227,9 @@ class CWTListView(ListView):
         )
 
         lifestage_list = (
-            basequery.values_list(
-                "events__lifestage__abbrev", "events__lifestage__description"
-            )
-            .annotate(n=Count("events"))
-            .order_by("events__lifestage__description")
+            basequery.values_list("lifestage__abbrev", "lifestage__description")
+            .annotate(n=Count("stock_id"))
+            .order_by("lifestage__description")
         )
 
         context["lifestage_list"] = add_is_checked(
@@ -1241,11 +1237,9 @@ class CWTListView(ListView):
         )
 
         clip_code_list = (
-            basequery.values_list(
-                "events__clip_code__clip_code", "events__clip_code__description"
-            )
-            .annotate(n=Count("events"))
-            .order_by("events__clip_code__clip_code")
+            basequery.values_list("clip_code__clip_code", "clip_code__description")
+            .annotate(n=Count("stock_id"))
+            .order_by("clip_code__clip_code")
         )
 
         context["clip_code_list"] = add_is_checked(
@@ -1253,9 +1247,9 @@ class CWTListView(ListView):
         )
 
         stocking_month_list = (
-            basequery.values_list("events__month")
-            .annotate(n=Count("events"))
-            .order_by("events__month")
+            basequery.values_list("month")
+            .annotate(n=Count("stock_id"))
+            .order_by("month")
         )
 
         context["stocking_month_list"] = add_is_checked(
@@ -1264,11 +1258,11 @@ class CWTListView(ListView):
 
         stocking_method_list = (
             basequery.values_list(
-                "events__stocking_method__stk_meth",
-                "events__stocking_method__description",
+                "stocking_method__stk_meth",
+                "stocking_method__description",
             )
-            .annotate(n=Count("events"))
-            .order_by("events__stocking_method__description")
+            .annotate(n=Count("stock_id"))
+            .order_by("stocking_method__description")
         )
 
         context["stocking_method_list"] = add_is_checked(
@@ -1276,11 +1270,9 @@ class CWTListView(ListView):
         )
 
         hatchery_list = (
-            basequery.values_list(
-                "events__hatchery__abbrev", "events__hatchery__hatchery_name"
-            )
-            .annotate(n=Count("events"))
-            .order_by("events__hatchery__abbrev")
+            basequery.values_list("hatchery__abbrev", "hatchery__hatchery_name")
+            .annotate(n=Count("stock_id"))
+            .order_by("hatchery__abbrev")
         )
 
         context["hatchery_list"] = add_is_checked(
@@ -1294,10 +1286,10 @@ class CWTListView(ListView):
         # indicating whether or not each clip has already been
         # selected with the current filters:
 
-        event_ids = basequery.values("events__id")
+        event_ids = basequery.values("id")
 
         finclip_list = (
-            FinClip.objects.filter(stocking_events__in=event_ids)
+            FinClip.objects.filter(id__in=event_ids)
             .values_list("abbrev", "description")
             .annotate(n=Count("stocking_events__id"))
             .order_by("abbrev")
@@ -1307,7 +1299,7 @@ class CWTListView(ListView):
         context["finclip_list"] = finclip_list
 
         fishtags_list = (
-            FishTag.objects.filter(stocking_events__in=event_ids)
+            FishTag.objects.filter(id__in=event_ids)
             .values_list("tag_code", "description")
             .annotate(n=Count("stocking_events__id"))
             .order_by("tag_code")
@@ -1318,7 +1310,7 @@ class CWTListView(ListView):
         )
 
         physchem_marks_list = (
-            PhysChemMark.objects.filter(stocking_events__in=event_ids)
+            PhysChemMark.objects.filter(id__in=event_ids)
             .values_list("mark_code", "description")
             .annotate(n=Count("stocking_events__id"))
             .order_by("mark_code")
@@ -1335,32 +1327,33 @@ class CWTListView(ListView):
         contains = self.request.GET.get("contains")
 
         field_aliases = {
-            "cwt_number": F("cwt__cwt_number"),
-            "tag_type": F("cwt__tag_type"),
-            "manufacturer": F("cwt__manufacturer"),
-            "year": F("events__year"),
-            "year_class": F("events__year_class"),
-            "clip_code": F("events__clip_code__clip_code"),
-            "mark": F("events__mark"),
-            "agency_code": F("events__agency__abbrev"),
-            "spc": F("events__species__abbrev"),
-            "strain": F("events__strain_raw__strain__strain_label"),
-            "stage": F("events__lifestage__description"),
-            "method": F("events__stocking_method__description"),
-            "jurisd": F("events__jurisdiction__slug"),
-            "lake": F("events__jurisdiction__lake__abbrev"),
-            "state": F("events__jurisdiction__stateprov__abbrev"),
+            "cwt_number": F("cwt_series__cwt__cwt_number"),
+            "tag_type": F("cwt_series__cwt__tag_type"),
+            "manufacturer": F("cwt_series__cwt__manufacturer"),
+            # "year": F("year"),
+            # "year_class": F("year_class"),
+            "clipcode": F("clip_code__clip_code"),
+            # "mark": F("mark"),
+            "agency_code": F("agency__abbrev"),
+            "spc": F("species__abbrev"),
+            "strain": F("strain_raw__strain__strain_label"),
+            "stage": F("lifestage__description"),
+            "method": F("stocking_method__description"),
+            "jurisd": F("jurisdiction__slug"),
+            "lake": F("jurisdiction__lake__abbrev"),
+            "state": F("jurisdiction__stateprov__abbrev"),
         }
 
         # use our shorter field names in the list of fields to select:
         fields = [
+            "stock_id",
             "cwt_number",
             "tag_type",
             "manufacturer",
             "year",
             "year_class",
             "mark",
-            "clip_code",
+            "clipcode",
             "agency_code",
             "spc",
             "strain",
@@ -1373,26 +1366,28 @@ class CWTListView(ListView):
 
         related_tables = [
             "cwt",
-            "events__jurisdiction",
-            "events__agency",
-            "events__species",
-            "events__strain",
-            "events__lifestage",
-            "events__stocking_method",
-            "events__jurisdiction__lake",
-            "events__jurisdiction__stateprov",
+            "cwt_series" "jurisdiction",
+            "agency",
+            "species",
+            "strain",
+            "lifestage",
+            "stocking_method",
+            "jurisdiction__lake",
+            "jurisdiction__stateprov",
         ]
 
-        counts = {"events": Count("events")}
+        counts = {"events": Count("stock_id")}
 
-        queryset = CWTsequence.objects.select_related(*related_tables)
+        queryset = StockingEvent.objects.filter(
+            cwt_series__cwt__cwt_number__isnull=False
+        ).select_related(*related_tables)
 
         if contains:
             queryset = queryset.filter(
-                cwt__cwt_number__icontains=contains.replace("-", "")
+                cwt_series__cwt__cwt_number__icontains=contains.replace("-", "")
             )
 
-        filtered_list = CWTSequenceFilter(self.request.GET, queryset=queryset).qs
+        filtered_list = StockingEventFilter(self.request.GET, queryset=queryset).qs
 
         values = list(
             filtered_list.annotate(**field_aliases)

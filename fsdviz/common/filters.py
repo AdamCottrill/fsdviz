@@ -189,7 +189,7 @@ class CWTSequenceFilter(django_filters.FilterSet):
         field_name="events__clip_code__clip_code", lookup_expr="in"
     )
 
-    fin_clips = ValueInFilter(field_name="events__fin_clips__abbrev", lookup_expr="in")
+    finclips = ValueInFilter(field_name="events__fin_clips__abbrev", lookup_expr="in")
     physchem_marks = ValueInFilter(
         field_name="events__physchem_marks__mark_code", lookup_expr="in"
     )
