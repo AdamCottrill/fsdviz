@@ -435,21 +435,17 @@ class StockingEventLookUpsAPIView(APIView):
 
 
 class CWTEventListAPIView(APIView):
-    """*TODO* A list view of individual cwt stocking events, inlcuding
-    attributes of the associated cwt. This view is meant to be called
-    from find_events view and should always return a reasonable subset
-    of the database (say less than 5000 records?).
+    """A list view of individual cwt stocking events, inlcuding
+    attributes of the associated cwt.
 
-    query parmeters are parsed from the url and used to filter the
-    returned queryset.
+    Query parmeters are parsed from the url and used to filter the
+    returned queryset.  See the swagger documentation enpoint for the
+    complete list of available filters.
 
     To maximize performance, this view does not use a serializer and
     instead returns just the values from the queryset as recommended here:
 
     https://www.dabapps.com/blog/api-performance-profiling-django-rest-framework/
-
-    TODO: when slug is available for strain, use it. for now we will
-    build it on the front end.
 
     """
 
@@ -459,6 +455,8 @@ class CWTEventListAPIView(APIView):
 
         field_aliases = {
             "cwt_number": F("cwt_series__cwt__cwt_number"),
+            "seq_lower": F("cwt_series__seq_lower"),
+            "seq_upper": F("cwt_series__seq_upper"),
             "tag_type": F("cwt_series__cwt__tag_type"),
             "manufacturer": F("cwt_series__cwt__manufacturer"),
             "tag_reused": F("cwt_series__cwt__tag_reused"),
@@ -473,6 +471,8 @@ class CWTEventListAPIView(APIView):
             "jurisd": F("jurisdiction__slug"),
             "man_unit": F("management_unit__label"),
             "grid10": F("grid_10__grid"),
+            "latitude": F("_dd_lat"),
+            "longitude": F("_dd_lon"),
             "primary_location": F("site"),
             "secondary_location": F("st_site"),
             "spc": F("species__abbrev"),
@@ -486,6 +486,8 @@ class CWTEventListAPIView(APIView):
         fields = [
             "cwt_number",
             "tag_type",
+            "seq_lower",
+            "seq_upper",
             "manufacturer",
             "tag_reused",
             "multiple_lakes",
@@ -493,7 +495,6 @@ class CWTEventListAPIView(APIView):
             "multiple_strains",
             "multiple_yearclasses",
             "multiple_agencies",
-            # "sequence",
             "stock_id",
             "agency_stock_id",
             "agency_code",
@@ -504,7 +505,8 @@ class CWTEventListAPIView(APIView):
             "grid10",
             "primary_location",
             "secondary_location",
-            # "geom",
+            "latitude",
+            "longitude",
             "year",
             "month",
             "day",
@@ -519,21 +521,24 @@ class CWTEventListAPIView(APIView):
         ]
 
         related_tables = [
-            "cwt_series__cwt",
-            "cwt_series" "agency",
+            # "cwt_series__cwt",
+            # "cwt_series",
+            "agency",
             "species",
-            "strain",
+            "strain_raw",
+            "strain_raw__strain",
             "lifestage",
             "stocking_method",
             "jurisdiction__lake",
             "jurisdiction__stateprov",
             "jurisdiction",
-            "grid10",
+            "grid_10",
         ]
 
         queryset = (
             StockingEvent.objects.exclude(cwt_series__cwt__cwt_number__isnull=True)
             .select_related(*related_tables)
+            .prefetch_related("cwt_series", "cwt_series__cwt")
             .annotate(**field_aliases)
         )
 
@@ -544,15 +549,3 @@ class CWTEventListAPIView(APIView):
         maxEvents = settings.MAX_FILTERED_EVENT_COUNT
 
         return Response(filtered[:maxEvents])
-
-
-# class CWTStockingEventViewSet(ReadOnlyModelViewSet):
-#     """This view set will export the stockign data to excel in the same
-#     format as the data submission template."""
-
-#     queryset = StockingEvent.objects.all()
-#     serializer_class = CWTEventSerializer
-#     filterset_class = StockingEventFilter
-#     # renderer_classes = (XLSXRenderer, JSONRenderer)
-#     permission_classes = [IsAuthenticatedOrReadOnly]
-#     # filename = "glfsd_export.xlsx"

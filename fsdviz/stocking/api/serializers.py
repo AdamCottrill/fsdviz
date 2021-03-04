@@ -5,7 +5,9 @@ needed).
 
   """
 
+from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import serializers
+
 from fsdviz.stocking.models import LifeStage, Condition, StockingMethod, StockingEvent
 
 from fsdviz.common.api.serializers import (
@@ -133,6 +135,8 @@ class StockingEventSerializer(serializers.ModelSerializer):
             "yreq_stocked",
             "jurisdiction",
         )
+
+        read_only_fields = fields
 
 
 class StockingEventXlsxSerializer(serializers.Serializer):
