@@ -293,11 +293,18 @@ class StockingEvent(models.Model):
         "Reported latitude in decimal degrees", blank=True, null=True
     )
     dd_lon = models.FloatField(
-        "Reported ongitude in decimal degrees", blank=True, null=True
+        "Reported longitude in decimal degrees", blank=True, null=True
     )
 
     geom = models.PointField(
         "GeoDjango spatial point field", srid=4326, blank=True, null=True
+    )
+
+    _dd_lat = models.FloatField(
+        "Latitude in decimal degrees derived from geom", editable=False, default=45.00
+    )
+    _dd_lon = models.FloatField(
+        "Longitude in decimal degrees derived from geom", editable=False, default=-81.00
     )
 
     latlong_flag = models.ForeignKey(
@@ -415,6 +422,9 @@ class StockingEvent(models.Model):
             # need to additional elif statments here:
             self.geom = self.grid_10.centroid
             self.latlong_flag = flag_cache[4]
+
+        self._dd_lat = self.geom.y
+        self._dd_lon = self.geom.x
 
         # figure out what juristiction this event occured in depending
         # on state/province and lake.

@@ -7,6 +7,8 @@ events, stocking methods, ect.
 from datetime import datetime
 import pytest
 
+from django.contrib.gis.geos import GEOSGeometry
+
 from ...common.utils import is_uuid4
 from ...common.models import LatLonFlag
 
@@ -410,6 +412,57 @@ def test_best_stocking_event_date():
 
     event = StockingEventFactory(date=None, day=None, month=None, year=2010)
     assert event.best_date_str() == "2010"
+
+
+@pytest.mark.django_db
+def test_stocking_event__lat__lon_from_reported_lat_lon():
+    """The stocking event model has two non-editable fields _lat and _lon
+    that are updated with corridinates of the geometry when the
+    stocking event is saved. These fields are used by the serializers
+    to provide better performance as Point objects are not easily
+    serialized outside of a model serializer, which is painfully slow
+    for a large number of objects.
+
+    """
+
+    dd_lat = 45.125
+    dd_lon = -81.125
+    event = StockingEventFactory(dd_lat=dd_lat, dd_lon=dd_lon)
+    event.save()
+
+    # our reported lat-lon are accurate
+    assert event.dd_lon == dd_lon
+    assert event.dd_lat == dd_lat
+
+    # our internal lat-lon are accurate too:
+    assert event._dd_lon == dd_lon
+    assert event._dd_lat == dd_lat
+
+
+@pytest.mark.django_db
+def test_stocking_event__lat__lon_from_grid10(latlon_flags):
+    """The stocking event model has two non-editable fields _lat and _lon
+    that are updated with corridinates of the geometry when the
+    stocking event is saved.  If lat-lon are not provided, they should
+    be derived from the centroid of the grid.
+
+    This test requires the latlon_flag becuase a relationship is
+    created when the internal coordinates are populated form the grid
+    centoid.
+
+    """
+
+    grid10 = Grid10Factory()
+    event = StockingEventFactory(dd_lat=None, dd_lon=None, grid_10=grid10)
+    event.save()
+
+    # the reported lat-lon should be none:
+    assert event.dd_lon is None
+    assert event.dd_lat is None
+
+    # the internal lat-lon values should be the same as our grid:
+    assert event._dd_lon == grid10.centroid.x
+    assert event._dd_lat == grid10.centroid.y
 
 
 @pytest.mark.django_db
