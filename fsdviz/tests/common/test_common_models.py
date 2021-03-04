@@ -352,6 +352,31 @@ def test_cwt_sequence_invalid_range(range, errmsg):
     assert CWTsequence.objects.count() == 0
 
 
+sequence_ranges = [
+    (0, 1),
+    (10, 100),
+]
+
+
+@pytest.mark.parametrize("lower, upper", sequence_ranges)
+@pytest.mark.django_db
+def test_cwt_sequence_seq_bounds_on_save(lower, upper):
+    """The cwtsequence model has a save method that populates the
+    seq_lower and seq_upper values - these fields were added to the
+    model so that the range could be included in the serialized
+    responses. They are not editable, but are updated when the seq object is updated.
+
+    """
+    cwt_number = "123456"
+    cwt = CWTFactory(cwt_number=cwt_number, tag_type="sequential")
+
+    cwtsequence = CWTsequence(cwt=cwt, sequence=(lower, upper))
+    cwtsequence.save()
+
+    assert cwtsequence.seq_lower == lower
+    assert cwtsequence.seq_upper == upper
+
+
 @pytest.mark.django_db
 def test_physchemmark_str():
     """Verify that the string representation of a PhysChemMark object is

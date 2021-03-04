@@ -685,6 +685,9 @@ class CWTsequence(models.Model):
         default=(0, 1), validators=[validate_cwt_sequence_range]
     )
 
+    seq_lower = models.PositiveIntegerField(default=0, editable=False)
+    seq_upper = models.PositiveIntegerField(default=1, editable=False)
+
     class Meta:
         ordering = ["cwt__cwt_number", "sequence"]
 
@@ -729,4 +732,6 @@ class CWTsequence(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+        self.seq_lower = self.sequence.lower
+        self.seq_upper = self.sequence.upper
         super(CWTsequence, self).save()
