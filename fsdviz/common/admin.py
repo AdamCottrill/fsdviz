@@ -61,6 +61,7 @@ class Grid10Admin(admin.OSMGeoAdmin):
 @admin.register(Species)
 class SpeciesModelAdmin(admin.ModelAdmin):
     list_display = ("abbrev", "common_name", "scientific_name")
+    search_fields = ["abbrev", "common_name"]
 
 
 @admin.register(Strain)
@@ -90,14 +91,20 @@ class MarkModelAdmin(admin.ModelAdmin):
 class PhysChemMarkModelAdmin(admin.ModelAdmin):
     list_display = ("mark_code", "mark_type", "description")
     list_filter = ("mark_type",)
-    search_fields = ("description",)
+    search_fields = (
+        "mark_code",
+        "description",
+    )
 
 
 @admin.register(FishTag)
 class FishTagModelAdmin(admin.ModelAdmin):
     list_display = ("tag_code", "tag_type", "tag_colour", "description")
     list_filter = ("tag_code", "tag_type", "tag_colour")
-    search_fields = ("description",)
+    search_fields = (
+        "tag_code",
+        "description",
+    )
 
 
 @admin.register(FinClip)

@@ -1366,7 +1366,8 @@ class CWTListView(ListView):
 
         related_tables = [
             "cwt",
-            "cwt_series" "jurisdiction",
+            "cwt_series",
+            "jurisdiction",
             "agency",
             "species",
             "strain",

@@ -521,8 +521,8 @@ class CWTEventListAPIView(APIView):
         ]
 
         related_tables = [
-            # "cwt_series__cwt",
-            # "cwt_series",
+            "cwt",
+            "cwt_series",
             "agency",
             "species",
             "strain_raw",
@@ -535,17 +535,12 @@ class CWTEventListAPIView(APIView):
             "grid_10",
         ]
 
-        queryset = (
-            StockingEvent.objects.exclude(cwt_series__cwt__cwt_number__isnull=True)
-            .select_related(*related_tables)
-            .prefetch_related("cwt_series", "cwt_series__cwt")
-            .annotate(**field_aliases)
-        )
+        queryset = StockingEvent.objects.filter(
+            cwt_series__cwt__cwt_number__isnull=False
+        ).select_related(*related_tables)
 
-        filtered = StockingEventFilter(self.request.GET, queryset=queryset).qs.values(
-            *fields
-        )
+        filtered_qs = StockingEventFilter(self.request.GET, queryset=queryset).qs
 
+        values = filtered_qs.annotate(**field_aliases).values(*fields)
         maxEvents = settings.MAX_FILTERED_EVENT_COUNT
-
-        return Response(filtered[:maxEvents])
+        return Response(values[:maxEvents])
