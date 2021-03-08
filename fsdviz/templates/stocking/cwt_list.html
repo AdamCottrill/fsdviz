@@ -58,6 +58,7 @@
 
                         <div class="ui column">
 
+                            {% if filters %}
 
                             {% for filter, values in  filters.items %}
                                                             
@@ -68,10 +69,25 @@
                                 
                             {% endfor %}
 
+                            <a href="#" id="visualize-events-btn" class="mini ui icon right floated green button">
+                                Visualize CWT Events
+                                <i class="map marked alternate icon"></i>
+                            </a>
+                            
+                            
+                            <a href="#" id="download-events-btn" class="mini ui icon right floated primary button">
+                                Download CWT Events
+                                <i class="arrow alternate circle down icon"></i>
+                            </a>
 
+
+                            {% endif %}
+                            
                             
                             {% include '_paginator.html' %}
 
+
+                            
 
                             <table id="cwt-list" class="ui very compact celled table tablesorter" style="font-size: 0.9em">
                                 <thead>
@@ -348,6 +364,21 @@
 
      
      //document.getElementById("download-events-button").href();
+     // add the url parameters to our download button so the same filters can be
+     // sent to our download button:
+     let search = window.location.search;
+     let download_url = "{% url 'api:api-cwt-event-list-xlsx' %}";
+     let download_button = document.getElementById("download-events-btn");
+     if (download_button){
+         download_button.href = download_url + search;
+     }
+     
+     /* let visualize_url = "{% url 'stocking:filtered-stocking-events' %}";
+      * let visualize_button = document.getElementById("visualize-events-btn");
+      * if (visualize_button){
+      *     visualize_button.href = visualize_url + search;
+      * } */
+     
 
      
      $(".tablesorter").tablesorter({

@@ -25,6 +25,7 @@ from .serializers import (
     StockingEventSerializer,
     StockingEventFastSerializer,
     StockingEventXlsxSerializer,
+    CWTEventXlsxSerializer,
 )
 
 
@@ -40,8 +41,6 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
     queryset = StockingEvent.objects.all()
     serializer_class = StockingEventXlsxSerializer
     filterset_class = StockingEventFilter
-    # queryset = LifeStage.objects.all()
-    # serializer_class = LifeStageSerializer
     renderer_classes = (XLSXRenderer, JSONRenderer)
     permission_classes = [IsAuthenticatedOrReadOnly]
     filename = "glfsd_export.xlsx"
@@ -544,3 +543,141 @@ class CWTEventListAPIView(APIView):
         values = filtered_qs.annotate(**field_aliases).values(*fields)
         maxEvents = settings.MAX_FILTERED_EVENT_COUNT
         return Response(values[:maxEvents])
+
+
+class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
+    """This view set will export the stockign data to excel in the same
+    format as the data submission template."""
+
+    serializer_class = CWTEventXlsxSerializer
+    renderer_classes = (XLSXRenderer, JSONRenderer)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filename = "glfsd_cwt_export.xlsx"
+
+    column_header = {
+        "height": 15,
+        "style": {
+            "fill": {
+                "fill_type": "solid",
+                "start_color": "00C0C0C0",
+            },
+            "alignment": {
+                "horizontal": "center",
+                "vertical": "center",
+                "wrapText": True,
+                "shrink_to_fit": True,
+            },
+            "font": {
+                "name": "Calibri",
+                "size": 12,
+                "bold": True,
+            },
+        },
+    }
+    body = {
+        "style": {
+            "font": {
+                "name": "Calibri",
+                "size": 11,
+                "bold": False,
+            }
+        },
+        "height": 15,
+    }
+
+    def get(self, request):
+        """"""
+
+        field_aliases = {
+            "cwt_number": F("cwt_series__cwt__cwt_number"),
+            "seq_lower": F("cwt_series__seq_lower"),
+            "seq_upper": F("cwt_series__seq_upper"),
+            "tag_type": F("cwt_series__cwt__tag_type"),
+            "manufacturer": F("cwt_series__cwt__manufacturer"),
+            "tag_reused": F("cwt_series__cwt__tag_reused"),
+            "multiple_lakes": F("cwt_series__cwt__multiple_lakes"),
+            "multiple_species": F("cwt_series__cwt__multiple_species"),
+            "multiple_strains": F("cwt_series__cwt__multiple_strains"),
+            "multiple_yearclasses": F("cwt_series__cwt__multiple_yearclasses"),
+            "multiple_agencies": F("cwt_series__cwt__multiple_agencies"),
+            "agency_code": F("agency__abbrev"),
+            "lake": F("jurisdiction__lake__abbrev"),
+            "state": F("jurisdiction__stateprov__abbrev"),
+            "jurisd": F("jurisdiction__slug"),
+            "man_unit": F("management_unit__label"),
+            "grid10": F("grid_10__grid"),
+            "latitude": F("_dd_lat"),
+            "longitude": F("_dd_lon"),
+            "primary_location": F("site"),
+            "secondary_location": F("st_site"),
+            "spc": F("species__abbrev"),
+            "strain": F("strain_raw__strain__strain_label"),
+            "clipcode": F("clip_code__clip_code"),
+            "stage": F("lifestage__description"),
+            "method": F("stocking_method__description"),
+        }
+
+        # use our shorter field names in the list of fields to select:
+        fields = [
+            "cwt_number",
+            "tag_type",
+            "seq_lower",
+            "seq_upper",
+            "manufacturer",
+            "tag_reused",
+            "multiple_lakes",
+            "multiple_species",
+            "multiple_strains",
+            "multiple_yearclasses",
+            "multiple_agencies",
+            "stock_id",
+            "agency_stock_id",
+            "agency_code",
+            "lake",
+            "state",
+            "jurisd",
+            "man_unit",
+            "grid10",
+            "primary_location",
+            "secondary_location",
+            "latitude",
+            "longitude",
+            "year",
+            "month",
+            "day",
+            "spc",
+            "strain",
+            "year_class",
+            "mark",
+            "clipcode",
+            "stage",
+            "method",
+            "no_stocked",
+        ]
+
+        related_tables = [
+            "cwt",
+            "cwt_series",
+            "agency",
+            "species",
+            "strain_raw",
+            "strain_raw__strain",
+            "lifestage",
+            "stocking_method",
+            "jurisdiction__lake",
+            "jurisdiction__stateprov",
+            "jurisdiction",
+            "grid_10",
+        ]
+
+        queryset = StockingEvent.objects.filter(
+            cwt_series__cwt__cwt_number__isnull=False
+        ).select_related(*related_tables)
+
+        filtered_qs = StockingEventFilter(self.request.GET, queryset=queryset).qs
+
+        values = filtered_qs.annotate(**field_aliases).values(*fields)
+
+        print(values[:2])
+
+        return Response(list(values))

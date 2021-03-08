@@ -13,6 +13,7 @@ from .views import (
     StockingEventLookUpsAPIView,
     StockingEvent2xlsxViewSet,
     CWTEventListAPIView,
+    CWTEvent2xlsxViewSet,
 )
 
 
@@ -89,6 +90,11 @@ urlpatterns += [
         "get_cwt_events/",
         CWTEventListAPIView.as_view(),
         name="api-get-cwt-stocking-events",
+    ),
+    path(
+        "cwt_events_xlsx/",
+        CWTEvent2xlsxViewSet.as_view(),
+        name="api-cwt-event-list-xlsx",
     ),
     # ========================================
     # simplified map serializers:
