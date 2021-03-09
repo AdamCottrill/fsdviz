@@ -157,3 +157,28 @@ def test_xlsx_download_events_json_event_filters(client, cwt_stocking_events):
             "SU",
         ]
     )
+
+
+def test_xlsx_download_events_xlsx_event_cwt_numbers(client, cwt_stocking_events):
+    """Verify that the xlsx endpoint returns an excel spreadsheet with the
+    appropraite keys and subset of the records specified in the url
+    parameters - specific cwts.  This endpoint uses the same
+    StockingEventFilter as other endpoints.
+
+    """
+
+    url = reverse("api:api-cwt-event-list-xlsx")
+
+    response = client.get(url, {"cwt_number": "111111,222222"})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.accepted_media_type == "application/xlsx"
+    assert len(response.data) == 2
+    expected_fields = set(FIELD_NAMES)
+    observed_fields = set(response.data[0].keys())
+
+    assert expected_fields == observed_fields
+
+    # we filtered for one lake, so make sure that our response includes
+    # events from just that lake:
+    cwts = set([x["cwt_number"] for x in response.data])
+    assert cwts == set(["111111", "222222"])
