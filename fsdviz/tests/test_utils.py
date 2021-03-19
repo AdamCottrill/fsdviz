@@ -1,5 +1,5 @@
 import pytest
-
+import re
 
 from ..stocking.utils import xls2dicts, validate_upload
 from fsdviz.tests.pytest_fixtures import invalid_xlsfiles

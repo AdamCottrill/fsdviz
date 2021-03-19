@@ -248,6 +248,8 @@ class StockingEventMapListView(generics.ListAPIView):
         # get any url parameters:
         upload_event = self.kwargs.get("upload_event_slug")
 
+        year = self.kwargs.get("year")
+
         # count our events and sum the yreq_stocked, give each field
         # that is from a child table as a simple label
         metrics = {
@@ -292,6 +294,9 @@ class StockingEventMapListView(generics.ListAPIView):
             "strain_raw__strain",
             "stocking_method",
         )
+
+        if year:
+            queryset = queryset.filter(year=year)
 
         if upload_event:
             queryset = queryset.filter(upload_event__slug=upload_event)
@@ -532,6 +537,102 @@ class CWTEventListAPIView(APIView):
             "jurisdiction__stateprov",
             "jurisdiction",
             "grid_10",
+        ]
+
+        queryset = StockingEvent.objects.filter(
+            cwt_series__cwt__cwt_number__isnull=False
+        ).select_related(*related_tables)
+
+        filtered_qs = StockingEventFilter(self.request.GET, queryset=queryset).qs
+
+        values = filtered_qs.annotate(**field_aliases).values(*fields)
+        maxEvents = settings.MAX_FILTERED_EVENT_COUNT
+        return Response(values[:maxEvents])
+
+
+class CWTEventMapAPIView(APIView):
+    """THis is an api endpoint that returns just the data required to
+    populate the found CWT event view - populate the cross filter, widgets
+    and map. In most cases, the serialzed date includes the slugs rather
+    than human readable labels.
+
+    Only fields that are used in the filters or required for display
+    on the map or filtering the events table are inlcuded in this
+    endpoint.  More complete enpoints are provided for the cwt_list,
+    and/or the xlsx download.
+
+    Query parmeters are parsed from the url and used to filter the
+    returned queryset.  See the swagger documentation enpoint for the
+    complete list of available filters.
+
+    To maximize performance, this view does not use a serializer and
+    instead returns just the values from the queryset as recommended here:
+
+    https://www.dabapps.com/blog/api-performance-profiling-django-rest-framework/
+
+    """
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+
+        field_aliases = {
+            "cwt_number": F("cwt_series__cwt__cwt_number"),
+            "tag_type": F("cwt_series__cwt__tag_type"),
+            "manufacturer": F("cwt_series__cwt__manufacturer"),
+            "tag_reused": F("cwt_series__cwt__tag_reused"),
+            "agency_code": F("agency__abbrev"),
+            "lake": F("jurisdiction__lake__abbrev"),
+            "state": F("jurisdiction__stateprov__abbrev"),
+            "jurisd": F("jurisdiction__slug"),
+            "man_unit": F("management_unit__slug"),
+            "latitude": F("_dd_lat"),
+            "longitude": F("_dd_lon"),
+            "spc": F("species__abbrev"),
+            "strain": F("strain_raw__strain__slug"),
+            "clipcode": F("clip_code__clip_code"),
+            "stage": F("lifestage__abbrev"),
+            "method": F("stocking_method__stk_meth"),
+        }
+
+        # use our shorter field names in the list of fields to select:
+        fields = [
+            "cwt_number",
+            "tag_type",
+            "manufacturer",
+            "tag_reused",
+            "stock_id",
+            "agency_code",
+            "lake",
+            "state",
+            "jurisd",
+            "man_unit",
+            "latitude",
+            "longitude",
+            "year",
+            "month",
+            "spc",
+            "strain",
+            "year_class",
+            "mark",
+            "clipcode",
+            "stage",
+            "method",
+        ]
+
+        related_tables = [
+            "cwt",
+            "cwt_series",
+            "agency",
+            "species",
+            "strain_raw",
+            "strain_raw__strain",
+            "lifestage",
+            "stocking_method",
+            "jurisdiction__lake",
+            "jurisdiction__stateprov",
+            "jurisdiction",
+            # "grid_10",
         ]
 
         queryset = StockingEvent.objects.filter(

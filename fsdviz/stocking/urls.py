@@ -15,6 +15,8 @@ from .views import (
     DataUploadEventDetailView,
     CWTListView,
     CWTSequenceDetail,
+    find_cwt_events,
+    filtered_cwt_events,
 )
 
 app_name = "stocking"
@@ -54,5 +56,9 @@ urlpatterns = [
     path("cwts/", CWTListView.as_view(), name="cwt-list"),
     path(
         "cwt_detail/<str:cwt_number>/", CWTSequenceDetail.as_view(), name="cwt-detail"
+    ),
+    path("find_cwt_events/", find_cwt_events, name="find-cwt-stocking-events"),
+    path(
+        "filtered_cwt_events/", filtered_cwt_events, name="filtered-cwt-stocking-events"
     ),
 ]

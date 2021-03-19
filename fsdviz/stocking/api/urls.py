@@ -14,6 +14,7 @@ from .views import (
     StockingEvent2xlsxViewSet,
     CWTEventListAPIView,
     CWTEvent2xlsxViewSet,
+    CWTEventMapAPIView,
 )
 
 
@@ -92,12 +93,22 @@ urlpatterns += [
         name="api-get-cwt-stocking-events",
     ),
     path(
+        "cwt_events_map/",
+        CWTEventMapAPIView.as_view(),
+        name="api-cwt-stocking-events-map",
+    ),
+    path(
         "cwt_events_xlsx/",
         CWTEvent2xlsxViewSet.as_view(),
         name="api-cwt-event-list-xlsx",
     ),
     # ========================================
     # simplified map serializers:
+    path(
+        "mapdata/events/<int:year>/",
+        StockingEventMapListView.as_view(),
+        name="api-stocking-event-map-list-year",
+    ),
     path(
         "mapdata/events/",
         StockingEventMapListView.as_view(),
@@ -107,11 +118,6 @@ urlpatterns += [
         "mapdata/events/upload_event/<upload_event_slug>/",
         StockingEventMapListView.as_view(),
         name="api-stocking-event-upload-map",
-    ),
-    path(
-        "mapdata/events/<int:year>/",
-        StockingEventMapListView.as_view(),
-        name="api-stocking-event-map-list-year",
     ),
     # path(
     #     "mapdata/events/<lake_name>/",

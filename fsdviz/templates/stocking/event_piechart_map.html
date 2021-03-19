@@ -289,20 +289,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 
 
+
+
     {{ year_range|json_script:"year-range" }}
-    
+
     <script type="text/javascript">
 
      const yearRange = JSON.parse(document.getElementById('year-range').textContent);
      const currentYear = {{year}};
 
-     
+
      const dataURL =
          "/api/v1/stocking/mapdata/events/{{ year }}/";
 
      const topoURL = "{% static "data/fsdviz.geojson" %}";
      const centroidsURL = "{% static "data/centroids.json" %}";
      const slugURL = "{% static "data/slugs.csv" %}";
+
 
      let spatialUnit = "jurisdiction";
      let sliceVar = "species_name";

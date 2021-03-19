@@ -14,7 +14,7 @@
      td {
          text-transform: capitalize;
      }
-     
+
     </style>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
@@ -273,7 +273,8 @@
                                         <tbody>
                                             {% for cwt in object.cwt_series.all %}
                                                 <tr>
-                                                    <td><a href="#">{{ cwt.cwt.cwt_number|format_cwt }}</a></td>
+                                                    <td><a href="{% url 'stocking:cwt-detail' cwt_number=cwt.cwt.cwt_number%}">{{ cwt.cwt.cwt_number|format_cwt }}</a></td>
+
                                                     <td>{{ cwt.cwt.get_tag_type_display }}</td>
 
                                                     {% if object.has_sequential_cwts %}

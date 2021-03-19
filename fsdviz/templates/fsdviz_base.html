@@ -6,10 +6,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <link rel="stylesheet" type="text/css" href="https://unpkg.com/fomantic-ui@2.8.3/dist/semantic.min.css">   
+        <link rel="stylesheet" type="text/css" href="https://unpkg.com/fomantic-ui@2.8.3/dist/semantic.min.css">
 
         <script src="{% static "bookmark_modal_form.js" %}"></script>
-        
+
         <style type="text/css" media="screen">
 
          .ui.grid {
@@ -55,7 +55,9 @@
                             <a href="{% url 'stocking:cwt-list' %}">CWT List</a>
                         </div>
                         <div class="item">
-                            <span class="text">Region of Interest</span>
+                            <span class="text">
+                                <a href="{% url 'stocking:find-cwt-stocking-events' %}">Find CWT Events</a>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -65,7 +67,7 @@
                     <div class="menu">
                         {% if user.role == 'asc' or user.role == 'glsc' %}
                         <div class="item"><a href="{% url 'stocking:data-upload-event-list' %}" >Data Upload List</a></div>
-                        <div class="item"><a href="{% url 'stocking:upload-stocking-events' %}" >Upload Data</a></div>                        
+                        <div class="item"><a href="{% url 'stocking:upload-stocking-events' %}" >Upload Data</a></div>
                         <div class="ui divider"></div>
                         {% endif %}
                         <div class="item"><a href="{% url 'common:spatial-lookup' %}" >Spatial Lookup</a></div>
@@ -79,10 +81,10 @@
                         {% endif %}
                     </div>
                 </div>
-                
+
                 <div class="ui dropdown icon item">
                     Resources
-                    <div class="menu">                        
+                    <div class="menu">
                         <div class="item">
                             <span class="text">Documentation</span>
                         </div>
@@ -110,14 +112,14 @@
                             <div class="ui divider"></div>
 
                             <div class="item"><a href="{% url 'tickets:ticket_list' %}">TicketTracker</a></div>
-                            
+
                             <div class="ui divider"></div>
                             <div class="item"><a href="{% url 'logout' %}">Logout</a></div>
 
                         </div>
                     </div>
 
-                            
+
                     <div class="ui dropdown icon item" id="welcome">
 
                         Welcome {{ user.first_name }}!
@@ -184,19 +186,19 @@
         {% endblock footer %}
 
 
-        
+
         <script
             src="http://code.jquery.com/jquery-3.3.1.min.js"
             integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
             crossorigin="anonymous"></script>
 
 
-        <script src="https://unpkg.com/fomantic-ui@2.8.3/dist/semantic.min.js"></script>        
+        <script src="https://unpkg.com/fomantic-ui@2.8.3/dist/semantic.min.js"></script>
 
 
-        
+
         <script>
-         
+
          $(document).ready(function() {
 
              $('.ui.accordion')
@@ -219,12 +221,12 @@
 
         </script>
 
-        
+
         {% block bookmark_modal_form %}
-            {% include 'bookmark_it/bookmark_modal_form.html' %}    
+            {% include 'bookmark_it/bookmark_modal_form.html' %}
         {% endblock bookmark_modal_form %}
 
-        
+
         {% block extra_js %}
 
 

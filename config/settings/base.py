@@ -49,9 +49,6 @@ root = lambda *x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = '6x%z++y!eh)@y^_mtwy&-pys5(gs0x7&w5s#rwr^b3b&kncu3k'
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
@@ -214,4 +211,5 @@ LEAFLET_CONFIG = {
     # minx, miny, maxx,maxy
     "SPATIAL_EXTENT": (-92.09, 41.38, -76.05, 49.01),
     # "RESET_VIEW": True,
+    "DEFAULT_PRECISION": 5,
 }

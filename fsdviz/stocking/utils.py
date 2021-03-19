@@ -348,7 +348,7 @@ def validate_upload(events):
     data has between 1 and the max number of rows, that all of the
     required fields are included, but no more, and that the upload is
     limited to a single, year, agency and lake.  If any of these
-    criteria fail, the events are considered invalid (valid=False),
+    criteria fail, the events are considered invalid (valid=False),-wro
     and a meaningful message is returned.
 
     """

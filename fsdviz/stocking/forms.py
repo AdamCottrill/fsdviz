@@ -1,6 +1,5 @@
 from django import forms
 
-# from django.core.exceptions import ValidationError
 from django.forms import ValidationError
 from django.contrib.gis.forms.fields import PolygonField
 from leaflet.forms.widgets import LeafletWidget
@@ -27,22 +26,28 @@ from ..common.models import (
 )
 
 from ..common.widgets import SemanticDatePicker
-from ..common.validators import validate_cwt
+from ..common.validators import validate_cwt, cwt_list_validator
 
 from .utils import get_or_create_cwt_sequence
 
 
 class FindEventsForm(forms.Form):
+    """this form is used to find stocking events that match the criteria
+    provided by the user, inlucding an arbitrary region of interest.  The
+    choices are populated via javascript when the form is loaded so the
+    they can be dynamically filtered to include only those choices that
+    are available given the exsiting filters.
 
-    # this is the right way, but causes pytest to complain....
-    # year_range = StockingEvent.objects.aggregate(Min("year"), Max("year"))
+    """
 
     roi = PolygonField(
         widget=LeafletWidget(),
         required=False,
     )
 
-    year_range = {"year__min": 1950, "year__max": 2020}
+    # this is the right way, but causes pytest to complain....
+    # year_range = StockingEvent.objects.aggregate(Min("year"), Max("year"))
+    year_range = {"year__min": 1950, "year__max": datetime.now().year}
 
     MONTHS = (
         (1, "Jan"),
@@ -87,7 +92,10 @@ class FindEventsForm(forms.Form):
 
     #   LAKE
     lake = forms.MultipleChoiceField(
-        label="Lake", widget=forms.SelectMultiple, required=False
+        label="Lake",
+        widget=forms.SelectMultiple,
+        required=False,
+        error_messages={"errorlist": "Please limit your choices to the list."},
     )
 
     lake.widget.attrs["class"] = "ui dropdown"
@@ -157,16 +165,28 @@ class FindEventsForm(forms.Form):
         return self.cleaned_data
 
 
-#    #   STRAIN
-#    # this might need to be deactivated until at least one species is selected
-#    strain = forms.ModelMultipleChoiceField(
-#        queryset=Strain.objects.all(), to_field_name="strain_code"
-#    )
-#
-#    strain.widget.attrs["class"] = "ui dropdown"
+class FindCWTEventsForm(FindEventsForm):
+    """The FindCWTEvetns form is exactly the same as the FindEventsForm,
+    with an additional field and associated clean method for cwts."""
 
+    cwt_number = forms.CharField(
+        label="CWT Number(s)",
+        required=False,
+        validators=[
+            cwt_list_validator,
+        ],
+    )
 
-# validation: first year must be <= last year.
+    def clean_cwt_number(self):
+        """strip out any spaces and repace any semi-colons with commas"""
+        cwt_numbers = self.cleaned_data.get("cwt_number")
+        if cwt_numbers:
+            cwt_numbers = (
+                cwt_numbers.replace(" ", "").replace(";", ",").replace("-", "")
+            )
+            return cwt_numbers.strip()
+        else:
+            return None
 
 
 class MySelect(forms.Select):
