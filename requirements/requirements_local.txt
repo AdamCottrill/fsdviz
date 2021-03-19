@@ -16,6 +16,8 @@ attrs==20.3.0
     # via pytest
 babel==2.6.0
     # via sphinx
+brotli==1.0.9
+    # via -r base.in
 certifi==2018.11.29
     # via requests
 chardet==3.0.4
@@ -242,6 +244,8 @@ urllib3==1.24.2
     # via requests
 werkzeug==1.0.1
     # via -r local.in
+whitenoise==5.2.0
+    # via -r base.in
 wrapt==1.11.1
     # via astroid
 zipp==3.4.0

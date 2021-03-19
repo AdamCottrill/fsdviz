@@ -4,6 +4,8 @@
 #
 #    pip-compile --output-file=requirements_production.txt base.in
 #
+brotli==1.0.9
+    # via -r base.in
 certifi==2019.3.9
     # via requests
 chardet==3.0.4
@@ -97,5 +99,7 @@ uritemplate==3.0.0
     # via coreapi
 urllib3==1.25.2
     # via requests
+whitenoise==5.2.0
+    # via -r base.in
 zipp==3.4.0
     # via importlib-metadata
