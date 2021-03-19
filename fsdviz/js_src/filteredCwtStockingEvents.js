@@ -8,8 +8,6 @@
 //import crossfilter from "crossfilter2";
 import { select, selectAll, json, extent, scaleOrdinal } from "d3";
 
-//import { timeParse } from "d3-time-format";
-
 import Leaflet from "leaflet";
 
 import { checkBoxes } from "./components/checkBoxArray";
@@ -157,7 +155,11 @@ Promise.all([
     "description"
   );
 
-  const clipcodeLookup = [];
+  const clipcodeLookup = makeLookup(
+    common["clipcodes"],
+    "clip_code",
+    "description"
+  );
 
   const lookup_values = {
     //lake: lakeGroup.top(Infinity).map((d) => d.key),
@@ -210,8 +212,6 @@ Promise.all([
 
   // //=======================================================================
   // //                         CROSSFILTER
-
-  console.log("data[1] = ", data[0]);
 
   const ndx = crossfilter(data);
 
@@ -333,12 +333,6 @@ Promise.all([
     return acc;
   }, {});
   lookup_values["yearClass"]["9999"] = "Unknown";
-
-  // total work around for today:
-  lookup_values["clipcode"] = unique_values["clipcode"].reduce((acc, x) => {
-    acc[x] = x;
-    return acc;
-  }, {});
 
   lookup_values["cwtReused"] = { yes: "Yes", no: "No" };
 
@@ -596,6 +590,7 @@ Promise.all([
     } else {
       colourScale.domain(items);
     }
+
     updateUrlParams("categoryVar", categoryVar);
     update_category_legend(colourScale, itemList, category_label);
     update_map();

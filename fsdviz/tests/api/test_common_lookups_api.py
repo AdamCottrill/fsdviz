@@ -21,6 +21,7 @@ from ..common_factories import (
     StateProvinceFactory,
     JurisdictionFactory,
     ManagementUnitFactory,
+    CompositeFinClipFactory,
 )
 
 
@@ -33,7 +34,8 @@ class TestCommonLookupAPI(APITestCase):
     "stateprov": [("abbrev", "name", "country", "description"), ....],
     "manUnits":[(slug", "label", "jurisdiction", "description")],
     "species": [("abbrev", "common_name", "scientific_name", "species_code", "speciescommon"), ...],
-    "strains":[("id", "strain_code", "strain_label", "strain_species__abbrev"), ...]
+    "strains":[("id", "strain_code", "strain_label", "strain_species__abbrev"), ...],
+    "clipcodes": [(clip_code, description), ....],
 
     """
 
@@ -50,7 +52,7 @@ class TestCommonLookupAPI(APITestCase):
             abbrev="MNRF",
             agency_name="Ontario Ministry of Natural Resources and Forestry",
         )
-        self.agecny = AgencyFactory(**self.agency_dict)
+        self.agency = AgencyFactory(**self.agency_dict)
 
         self.stateProv_dict = dict(
             abbrev="ON",
@@ -95,6 +97,12 @@ class TestCommonLookupAPI(APITestCase):
 
         self.strain = StrainFactory(**self.strain_dict)
 
+        self.clipcode_dict = dict(
+            clip_code="ADLP",
+            description="Adipose, Left Pectoral",
+        )
+        self.clipcodes = CompositeFinClipFactory(**self.clipcode_dict)
+
     def test_common_lookups_api(self):
         """the common lookups api should return a list of dictionaries/json
         corresponding to objects from common application (agencies,
@@ -120,6 +128,7 @@ class TestCommonLookupAPI(APITestCase):
                 "manUnits",
                 "species",
                 "strains",
+                "clipcodes",
             ]
         )
         obs = set(response.data.keys())
@@ -134,6 +143,7 @@ class TestCommonLookupAPI(APITestCase):
 
         assert response.data.get("species") == [self.species_dict]
 
+        assert response.data.get("clipcodes") == [self.clipcode_dict]
         # juristiction, mangement_unit, and strains are a little more complicated as
         # they contains a nested objects or keys derived from nested objects
         expected = self.strain_dict.copy()

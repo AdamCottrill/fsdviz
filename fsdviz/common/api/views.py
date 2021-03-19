@@ -28,6 +28,7 @@ from fsdviz.common.models import (
     Grid10,
     LatLonFlag,
     Mark,
+    CompositeFinClip,
 )
 
 from fsdviz.common.filters import (
@@ -630,6 +631,10 @@ class CommonLookUpsAPIView(APIView):
             .distinct()
         )
 
+        clipcodes = CompositeFinClip.objects.order_by("clip_code").values(
+            "clip_code", "description"
+        )
+
         # now update the strains with the nested species dicts and add a slug
         # while we are at it.
         for strain in strains:
@@ -644,6 +649,7 @@ class CommonLookUpsAPIView(APIView):
             "stateprov": list(stateprov),
             "species": list(species),
             "strains": strains,
+            "clipcodes": list(clipcodes),
         }
 
         return Response(lookups)
