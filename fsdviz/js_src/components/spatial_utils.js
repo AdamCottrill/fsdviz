@@ -1,57 +1,10 @@
 /* global $ spatialAttrURL spatialAttrs topojson */
-import Leaflet from "leaflet";
+import L from "leaflet";
 import { wktToGeoJSON } from "@terraformer/wkt";
-import helpers from "@turf/helpers";
+
 import bbox from "@turf/bbox";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 
-//export const checkPointInPoly = (lat, lon, spatialObjects, what) => {
-//  // given a coordinate, and a key for our spatial objects, see if the
-//  // point falls in the geometry of the object stored in that key:
-//
-//  let contained = false;
-//  let turfpt = helpers.point([lon, lat]);
-//  let geom = spatialObjects[what].geom;
-//
-//  if (typeof geom !== "undefined") {
-//    contained = booleanPointInPolygon(
-//      turfpt,
-//      helpers.feature(JSON.parse(geom))
-//    );
-//  }
-//
-//  return contained;
-//};
-//
-//export const getPolygon = (
-//  dd_lat,
-//  dd_lon,
-//  url,
-//  token,
-//  spatialObjects,
-//  what
-//) => {
-//  // given a lat, lon, a url, csrf_token, a success function, and an
-//  // error function, call our spatial lookup api.
-//  let success = data => (spatialObjects[what] = data);
-//  let error = () => {
-//    console.log("Error retrieving polygon for " + what);
-//    spatialObjects[what] = "";
-//  };
-//
-//  $.ajax({
-//    type: "POST",
-//    url: url + "?geom=geom",
-//    dataType: "json",
-//    data: {
-//      point: `POINT(${dd_lon} ${dd_lat})`,
-//      csrfmiddlewaretoken: token
-//    },
-//    success: success,
-//    error: error
-//  });
-//};
-//
 export async function getSpatialAttrs(coords, url, token, success, error) {
   // given a lat, lon, a url, csrf_token, a success function, and an
   // error function, call our spatial lookup api to get that
@@ -115,7 +68,7 @@ export const add_roi = (leaflet_map, roi_wkt) => {
   // make the wkt string available to users to copy for other uses.
   let popup_text = `<h4>Region of Interest as WKT:<h4><p>${roi_wkt}<p>`;
   let roi_geojson = wktToGeoJSON(roi_wkt);
-  let roi_layer = new Leaflet.geoJson();
+  let roi_layer = new L.geoJson();
 
   roi_layer.addData(roi_geojson).bindPopup(popup_text);
   roi_layer.addTo(leaflet_map);
@@ -124,5 +77,5 @@ export const add_roi = (leaflet_map, roi_wkt) => {
   let overlays = {
     "Region of Interest": roi_layer,
   };
-  Leaflet.control.layers(null, overlays).addTo(leaflet_map);
+  L.control.layers(null, overlays).addTo(leaflet_map);
 };

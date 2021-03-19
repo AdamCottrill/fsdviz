@@ -1,7 +1,7 @@
 /* global  $, lakeURL, jurisdictionURL, manUnitURL, grid10URL, csrf_token */
 
 import Leaflet from "leaflet";
-import helpers from "@turf/helpers";
+import { point, feature } from "@turf/helpers";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 //import * as turf from "@turf/turf";
 import { select, selectAll } from "d3";
@@ -28,10 +28,10 @@ const updatePolygon = (item, geom) => {
     mymap.flyToBounds(
       [
         [bbox[1], bbox[0]],
-        [bbox[3], bbox[2]]
+        [bbox[3], bbox[2]],
       ],
       {
-        padding: [50, 50]
+        padding: [50, 50],
       }
     );
   }
@@ -52,7 +52,10 @@ const changeGeom = () => {
   } else if (what === "grid10") {
     updatePolygon(grid10, grid10Geom);
   } else {
-    updatePolygon(manUnits.filter(d => d.slug == what)[0], manUnitGeoms[what]);
+    updatePolygon(
+      manUnits.filter((d) => d.slug == what)[0],
+      manUnitGeoms[what]
+    );
   }
 };
 
@@ -63,7 +66,7 @@ const add_radio_buttons = (data, label, value, label_function) => {
 
   let radioButtons = radioButtonsDiv
     .selectAll(`.${label}-btn`)
-    .data(data, d => d.id);
+    .data(data, (d) => d.id);
 
   radioButtons.exit().remove();
 
@@ -72,7 +75,7 @@ const add_radio_buttons = (data, label, value, label_function) => {
     .enter()
     .append("div")
     .attr("class", `field ${label}-btn`)
-    .attr("id", d => d.id)
+    .attr("id", (d) => d.id)
     .append("div")
     .attr("class", "ui radio checkbox");
 
@@ -93,15 +96,15 @@ const add_radio_buttons = (data, label, value, label_function) => {
   $(".ui.radio.checkbox").checkbox();
 };
 
-const update_grid_radio = obj => {
-  const label_function = d => `${d.grid} (${d.lake_abbrev})`;
+const update_grid_radio = (obj) => {
+  const label_function = (d) => `${d.grid} (${d.lake_abbrev})`;
   add_radio_buttons(obj, "grid10", "grid10", label_function);
 };
 
 const get_grid10 = (dd_lat, dd_lon) => {
   let pt = `POINT(${dd_lon} ${dd_lat})`;
   let contained = false;
-  let turfpt = helpers.point([dd_lon, dd_lat]);
+  let turfpt = point([dd_lon, dd_lat]);
 
   if (typeof grid10Geom !== "undefined") {
     contained = booleanPointInPolygon(turfpt, grid10Geom);
@@ -114,24 +117,24 @@ const get_grid10 = (dd_lat, dd_lon) => {
       dataType: "json",
       data: {
         point: pt,
-        csrfmiddlewaretoken: csrf_token
+        csrfmiddlewaretoken: csrf_token,
       },
-      success: data => {
+      success: (data) => {
         grid10 = [data];
-        grid10Geom = helpers.feature(JSON.parse(data.geom));
+        grid10Geom = feature(JSON.parse(data.geom));
         update_grid_radio(grid10);
       },
-      error: data => {
+      error: (data) => {
         grid10 = [];
         grid10Geom = undefined;
         update_grid_radio(grid10);
-      }
+      },
     });
   }
 };
 
-const update_lake_radio = obj => {
-  const label_function = d => `${d.lake_name} (${d.abbrev})`;
+const update_lake_radio = (obj) => {
+  const label_function = (d) => `${d.lake_name} (${d.abbrev})`;
 
   add_radio_buttons(obj, "lake", "lake", label_function);
 };
@@ -140,7 +143,7 @@ const get_lake = (dd_lat, dd_lon) => {
   let pt = `POINT(${dd_lon} ${dd_lat})`;
 
   let contained = false;
-  let turfpt = helpers.point([dd_lon, dd_lat]);
+  let turfpt = point([dd_lon, dd_lat]);
 
   if (typeof lakeGeom !== "undefined") {
     contained = booleanPointInPolygon(turfpt, lakeGeom);
@@ -155,24 +158,24 @@ const get_lake = (dd_lat, dd_lon) => {
       dataType: "json",
       data: {
         point: pt,
-        csrfmiddlewaretoken: csrf_token
+        csrfmiddlewaretoken: csrf_token,
       },
-      success: data => {
+      success: (data) => {
         lake = [data];
-        lakeGeom = helpers.feature(JSON.parse(data.geom));
+        lakeGeom = feature(JSON.parse(data.geom));
         update_lake_radio(lake);
       },
-      error: data => {
+      error: (data) => {
         lake = [];
         lakeGeom = undefined;
         update_lake_radio(lake);
-      }
+      },
     });
   }
 };
 
-const update_jurisdiction_radio = obj => {
-  const label_function = d => `${d.stateprov_name} (${d.stateprov_abbrev})`;
+const update_jurisdiction_radio = (obj) => {
+  const label_function = (d) => `${d.stateprov_name} (${d.stateprov_abbrev})`;
   add_radio_buttons(obj, "jurisdiction", "jurisdiction", label_function);
 };
 
@@ -180,7 +183,7 @@ const get_jurisdiction = (dd_lat, dd_lon) => {
   let pt = `POINT(${dd_lon} ${dd_lat})`;
 
   let contained = false;
-  let turfpt = helpers.point([dd_lon, dd_lat]);
+  let turfpt = point([dd_lon, dd_lat]);
 
   if (typeof jurisdictionGeom !== "undefined") {
     contained = booleanPointInPolygon(turfpt, jurisdictionGeom);
@@ -194,25 +197,25 @@ const get_jurisdiction = (dd_lat, dd_lon) => {
       dataType: "json",
       data: {
         point: pt,
-        csrfmiddlewaretoken: csrf_token
+        csrfmiddlewaretoken: csrf_token,
       },
-      success: data => {
+      success: (data) => {
         jurisdiction = [data];
-        jurisdictionGeom = helpers.feature(JSON.parse(data.geom));
+        jurisdictionGeom = feature(JSON.parse(data.geom));
         update_jurisdiction_radio(jurisdiction);
       },
-      error: data => {
+      error: (data) => {
         jurisdiction = [];
         jurisdictionGeom = undefined;
         update_jurisdiction_radio(jurisdiction);
-      }
+      },
     });
   }
 };
 
-const update_manUnit_radio = mus => {
-  const label_function = d => `${d.label} (${d.mu_type})`;
-  const value = d => d.slug;
+const update_manUnit_radio = (mus) => {
+  const label_function = (d) => `${d.label} (${d.mu_type})`;
+  const value = (d) => d.slug;
   add_radio_buttons(mus, "mu", value, label_function);
 };
 
@@ -227,20 +230,20 @@ const get_manUnits = (dd_lat, dd_lon) => {
     dataType: "json",
     data: {
       point: pt,
-      csrfmiddlewaretoken: csrf_token
+      csrfmiddlewaretoken: csrf_token,
     },
-    success: data => {
+    success: (data) => {
       manUnits = data;
-      manUnits.forEach(mu => {
-        manUnitGeoms[mu.slug] = helpers.feature(JSON.parse(mu.geom));
+      manUnits.forEach((mu) => {
+        manUnitGeoms[mu.slug] = feature(JSON.parse(mu.geom));
       });
       update_manUnit_radio(manUnits);
     },
-    error: data => {
+    error: (data) => {
       manUnits = [];
       manUnitGeoms = {};
       update_manUnit_radio(manUnits);
-    }
+    },
   });
 };
 
@@ -258,14 +261,14 @@ let max_lat = bbox[3];
 // this will be tweaked later):
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
-  zoomSnap: 0
+  zoomSnap: 0,
 }).fitBounds(
   [
     [bbox[1], bbox[0]],
-    [bbox[3], bbox[2]]
+    [bbox[3], bbox[2]],
   ],
   {
-    padding: [50, 50]
+    padding: [50, 50],
   }
 );
 
@@ -277,7 +280,7 @@ $(".leaflet-container").css("cursor", "default");
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-  maxZoom: 18
+  maxZoom: 18,
 }).addTo(mymap);
 
 //this should be a util
@@ -288,7 +291,7 @@ const drawPt = (lat, lon) => {
     color: "red",
     fillColor: "#f03",
     fillOpacity: 0.5,
-    radius: 5
+    radius: 5,
   }).addTo(mymap);
 };
 
@@ -311,7 +314,7 @@ const update_widgets = (lat, lon) => {
 };
 
 // if we click on the map, update the lat-lon inputs:
-mymap.on("click", function(e) {
+mymap.on("click", function (e) {
   lat = e.latlng.lat;
   lon = e.latlng.lng;
   update_widgets(lat, lon);
@@ -320,12 +323,12 @@ mymap.on("click", function(e) {
 });
 
 //watch our lat-lon inputs and update the point if they change:
-$("#id_dd_lat").on("change", function(e) {
+$("#id_dd_lat").on("change", function (e) {
   lat = parseFloat(e.target.value);
   update_widgets(lat, lon);
 });
 
-$("#id_dd_lon").on("change", function(e) {
+$("#id_dd_lon").on("change", function (e) {
   lon = parseFloat(e.target.value);
   update_widgets(lat, lon);
 });
@@ -364,7 +367,7 @@ const update_text_inputs = (ddlat, ddlon) => {
   $('input[id="dms_lon_sec"]').val(lon_seconds.toFixed(3));
 };
 
-$('input[name="ddm_lat"]').change(function() {
+$('input[name="ddm_lat"]').change(function () {
   //if any of the latitude elements on the ddm page change, update the other formats.
   var lat_idegrees = parseFloat($('input[id="ddm_lat_deg"]').val());
   var lat_dminutes = parseFloat($('input[id="ddm_lat_min"]').val());
@@ -377,7 +380,7 @@ $('input[name="ddm_lat"]').change(function() {
   }
 });
 
-$('input[name="ddm_lon"]').change(function() {
+$('input[name="ddm_lon"]').change(function () {
   let lon_idegrees = parseFloat($('input[id="ddm_lon_deg"]').val());
   let lon_dminutes = parseFloat($('input[id="ddm_lon_min"]').val());
 
@@ -390,7 +393,7 @@ $('input[name="ddm_lon"]').change(function() {
   }
 });
 
-$('input[name="dms_lat"]').change(function() {
+$('input[name="dms_lat"]').change(function () {
   //if any of the latitude elements on the dms page change, update the other formats.
 
   let lat_idegrees = parseFloat($('input[id="dms_lat_deg"]').val());
@@ -404,7 +407,7 @@ $('input[name="dms_lat"]').change(function() {
   }
 });
 
-$('input[name="dms_lon"]').change(function() {
+$('input[name="dms_lon"]').change(function () {
   //if any of the longitude elements on the dms page change, update the other formats.
 
   let lon_idegrees = parseFloat($('input[id="dms_lon_deg"]').val());

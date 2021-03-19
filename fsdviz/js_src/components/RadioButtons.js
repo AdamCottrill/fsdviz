@@ -1,11 +1,11 @@
-import { select, selectAll } from "d3";
+import { select, selectAll } from "d3-selection";
 
 export const spatialRadioButtons = () => {
   let strata = [
     { strata: "basin", label: "Basin" },
     { strata: "grid10", label: "10-Minute Grid" },
     { strata: "grid5", label: "5-Minute Grid" },
-    { strata: "site", label: "Named Site" }
+    { strata: "site", label: "Named Site" },
   ];
 
   let checked = strata[strata.length - 1].strata;
@@ -26,29 +26,29 @@ export const spatialRadioButtons = () => {
     strataButtons
       .append("input")
       .attr("type", "radio")
-      .attr("value", d => d.strata)
+      .attr("value", (d) => d.strata)
       .attr("class", "strataButtons")
-      .property("checked", d => d.strata === checked);
+      .property("checked", (d) => d.strata === checked);
 
     strataButtons
       .insert("text")
-      .text(d => d.label)
+      .text((d) => d.label)
       .append("br");
   }
 
-  buttons.checked = function(value) {
+  buttons.checked = function (value) {
     if (!arguments.length) return checked;
     checked = value;
     return buttons;
   };
 
-  buttons.strata = function(value) {
+  buttons.strata = function (value) {
     if (!arguments.length) return strata;
     strata = value;
     return buttons;
   };
 
-  buttons.selector = function(value) {
+  buttons.selector = function (value) {
     if (!arguments.length) return selector;
     selector = value;
     return buttons;
@@ -59,7 +59,7 @@ export const spatialRadioButtons = () => {
   buttons.refresh = () => {
     let strataButtons = selectAll(".strataButtons").property(
       "checked",
-      d => d.strata === checked
+      (d) => d.strata === checked
     );
   };
 

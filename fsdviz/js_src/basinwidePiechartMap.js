@@ -6,14 +6,23 @@
 
 import debug from "debug";
 
-import crossfilter from "crossfilter2";
-import { csv, selectAll, json, select, sum, scaleOrdinal } from "d3";
-
 import Leaflet from "leaflet";
+import crossfilter from "crossfilter2";
+
+import { scaleOrdinal, selectAll, select, csv, json, sum } from "d3";
+
+// import { scaleOrdinal } from "d3-scale";
+// import { selectAll, select } from "d3-selection";
+// import { csv, json } from "d3-fetch";
+// import { sum } from "d3-array";
 
 import { checkBoxes } from "./components/checkBoxArray";
 
-import { prepare_stocking_data, initialize_filter } from "./components/utils";
+import {
+  prepare_stocking_data,
+  initialize_filter,
+  update_clear_button_state,
+} from "./components/utils";
 
 import {
   get_feature_bbox,
@@ -51,16 +60,6 @@ if (ENV !== "production") {
 } else {
   debug.disable();
 }
-
-const update_clear_button_state = (filters) => {
-  // see if there are any check box filters:
-  let filter_states = Object.values(filters).map((d) => d.is_filtered);
-
-  let filtered = !filter_states.every((d) => d === false);
-
-  let clear_button = select("#clear-filters-button");
-  clear_button.classed("disabled", !filtered);
-};
 
 const updateYearButtons = () => {
   // if any of the url parameters change, update the href of the previous and next years
@@ -250,6 +249,9 @@ Promise.all([
   json("/api/v1/stocking/lookups"),
   json("/api/v1/common/lookups"),
 ]).then(([data, centroids, topodata, slugs, stocking, common]) => {
+  // prepare our stocking data and set up our cross filters:
+  data.forEach((d) => prepare_stocking_data(d));
+
   species_lookup = common["species"].reduce((accumulator, d) => {
     accumulator[d.abbrev] = d.common_name;
     return accumulator;
@@ -376,10 +378,6 @@ Promise.all([
     updateYearButtons();
   };
 
-  // prepare our stocking data and set up our cross filters:
-
-  data.forEach((d) => prepare_stocking_data(d));
-
   slugs.forEach((d) => (labelLookup[d.slug] = d.label));
   piecharts.labelLookup(labelLookup);
 
@@ -476,7 +474,7 @@ Promise.all([
   //});
 
   //A function to set all of the filters to checked - called when
-  //the page loads of if the reset button is clicked.
+  //the page loads or if the reset button is clicked.
   const set_or_reset_filters = (query_args) => {
     initialize_filter(filters, "lake", lakeDim, query_args);
     initialize_filter(filters, "stateProv", stateProvDim, query_args);

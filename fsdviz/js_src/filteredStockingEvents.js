@@ -1,23 +1,17 @@
 /* global values dc, dataURL, maxEvents, all_species, speciesColours, markLookup, tagLookup, clipLookup */
 
 import crossfilter from "crossfilter2";
-import {
-  select,
-  selectAll,
-  mouse,
-  event,
-  csv,
-  json,
-  format,
-  scaleLinear,
-  scaleOrdinal,
-  timeParse,
-  range,
-  extent,
-  sum,
-} from "d3";
-
 import Leaflet from "leaflet";
+
+import { mouse, event } from "d3";
+
+import { select, selectAll } from "d3-selection";
+import { csv, json } from "d3-fetch";
+import { format } from "d3-format";
+import { scaleLinear, scaleOrdinal } from "d3-scale";
+import { range, extent, sum } from "d3-array";
+import { timeParse } from "d3-time-format";
+
 import { wktToGeoJSON } from "@terraformer/wkt";
 import {
   update_dc_url,
@@ -50,6 +44,7 @@ const width2 = 300;
 const height2 = 300;
 
 let roi = getUrlSearchValue("roi") || false;
+
 // intial values of global variabls that control the state of our page:
 let spatialUnit = getUrlParamValue("spatial_unit") || "geom";
 
@@ -234,8 +229,8 @@ Promise.all([
   // get the geographic extents of our data and update our map if
   // there is no roi.
   if (!roi) {
-    const latbounds = extent(data, (d) => d.dd_lat);
-    const longbounds = extent(data, (d) => d.dd_lon);
+    const latbounds = extent(data, (d) => d.latitude);
+    const longbounds = extent(data, (d) => d.longitude);
     mymap.fitBounds(
       [
         [latbounds[0], longbounds[0]],
@@ -325,8 +320,8 @@ Promise.all([
   data.forEach((d) => {
     //d.date: "2016-02-01"
     d.date = d.date ? dateParser(d.date) : "";
-    d.dd_lat = parseFloat(d.dd_lat);
-    d.dd_lon = parseFloat(d.dd_lon);
+    d.latitude = parseFloat(d.latitude);
+    d.longitude = parseFloat(d.longitude);
     //d.grid_10 = d.lake.toLowerCase() + "_" + d.grid_10; // this should be the slug
     d.grid_10 = d.grid10;
     d.month = d.month ? parseInt(d.month) : 0;
@@ -343,8 +338,8 @@ Promise.all([
     d.tag = tagMap[d.mark] ? tagMap[d.mark] : "Unknown";
     d.mark = markMap[d.mark] ? markMap[d.mark] : "Unknown";
 
-    d.point = [+d.dd_lon, +d.dd_lat];
-    d.geom = "Point(" + d.dd_lon + " " + d.dd_lat + ")";
+    d.point = [+d.longitude, +d.latitude];
+    d.geom = `Point(${d.longitude} ${d.latitude})`;
 
     return d;
   });

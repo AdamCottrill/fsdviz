@@ -1,9 +1,11 @@
-y; /* global topojson   */
+/* global topojson   */
 
 import bbox from "@turf/bbox";
 import Leaflet from "leaflet";
 
-import { select, geoPath, geoTransform, min, max } from "d3";
+import { geoPath, geoTransform } from "d3-geo";
+import { select } from "d3-selection";
+import { min, max } from "d3-array";
 
 import { turfbbToLeafletbb } from "./spatial_utils";
 

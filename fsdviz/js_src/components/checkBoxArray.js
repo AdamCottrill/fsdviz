@@ -1,4 +1,4 @@
-import { select } from "d3";
+import { select } from "d3-selection";
 
 import { updateUrlCheckBoxParams } from "./url_parsing";
 
@@ -15,13 +15,13 @@ export const checkBoxes = (selection, props) => {
 
   let myfilters = filters[filterkey].values;
 
-  let keys = xfgroup.top("Infinity").filter(d => d.value > 0);
+  let keys = xfgroup.top("Infinity").filter((d) => d.value > 0);
   keys.sort((a, b) => a.key - b.key);
 
   // an object to contain the checkbox status for each checkbox
   let checkbox_map = {};
   keys.forEach(
-    d => (checkbox_map[d.key] = myfilters.indexOf(d.key) > -1 ? true : false)
+    (d) => (checkbox_map[d.key] = myfilters.indexOf(d.key) > -1 ? true : false)
   );
 
   let filtered = !Object.values(checkbox_map).every(
@@ -35,19 +35,13 @@ export const checkBoxes = (selection, props) => {
   let selector = selection.attr("id");
   let titleclass = select(`#${selector}-title`).classed("filtered", filtered);
 
-  let cbarray = selection
-    .enter()
-    .append("div")
-    .merge(selection);
+  let cbarray = selection.enter().append("div").merge(selection);
 
-  let boxes = cbarray.selectAll("div").data(keys, d => d.key);
+  let boxes = cbarray.selectAll("div").data(keys, (d) => d.key);
 
   boxes.exit().remove();
 
-  let boxesEnter = boxes
-    .enter()
-    .append("div")
-    .attr("class", "inline field");
+  let boxesEnter = boxes.enter().append("div").attr("class", "inline field");
 
   boxesEnter = boxesEnter.merge(boxes);
 
@@ -56,23 +50,23 @@ export const checkBoxes = (selection, props) => {
   uiCheckbox
     .append("input")
     .attr("type", "checkbox")
-    .property("checked", d => {
+    .property("checked", (d) => {
       return checkbox_map[d.key];
     })
-    .attr("value", d => d.key)
-    .on("click", function() {
+    .attr("value", (d) => d.key)
+    .on("click", function () {
       if (this.checked) {
         // add the value that was just selected.
         myfilters.push(this.value);
       } else {
         // remove the value of the box that was just unchecked
-        myfilters = myfilters.filter(val => val !== this.value);
+        myfilters = myfilters.filter((val) => val !== this.value);
       }
       filters[filterkey].values = myfilters;
-      xfdim.filter(val => myfilters.indexOf(val) > -1);
+      xfdim.filter((val) => myfilters.indexOf(val) > -1);
     });
 
-  uiCheckbox.append("label").text(d => d.key + " (n=" + d.value + ")");
+  uiCheckbox.append("label").text((d) => d.key + " (n=" + d.value + ")");
 
   let buttonbar = select(`#${selector}-buttons`).attr("class", "ui buttons");
 
@@ -83,7 +77,7 @@ export const checkBoxes = (selection, props) => {
     .append("button")
     .attr("class", "clear-link ui mini basic primary left floated button")
     .text("Clear All")
-    .on("click", function() {
+    .on("click", function () {
       let checkboxes = cbarray
         .selectAll("input[type=checkbox]")
         .property("checked", false);
@@ -99,12 +93,12 @@ export const checkBoxes = (selection, props) => {
     .append("button")
     .attr("class", "select-link ui mini basic primary right floated button")
     .text("Select All")
-    .on("click", function() {
+    .on("click", function () {
       let checkboxes = cbarray
         .selectAll("input[type=checkbox]")
         .property("checked", true);
-      filters[filterkey].values = keys.map(d => d.key);
+      filters[filterkey].values = keys.map((d) => d.key);
       updateUrlCheckBoxParams(filters);
-      xfdim.filter(val => myfilters.indexOf(val) > -1);
+      xfdim.filter((val) => myfilters.indexOf(val) > -1);
     });
 };

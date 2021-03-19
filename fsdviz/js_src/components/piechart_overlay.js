@@ -1,18 +1,11 @@
 // a re-usabel chart component that will overlay points a map.
 
-import {
-  arc,
-  pie,
-  descending,
-  event,
-  select,
-  selectAll,
-  max,
-  sum,
-  scaleSqrt,
-  scaleOrdinal,
-  format,
-} from "d3";
+//import { event } from "d3";
+import { format } from "d3-format";
+import { arc, pie } from "d3-shape";
+import { select, selectAll } from "d3-selection";
+import { scaleSqrt, scaleOrdinal } from "d3-scale";
+import { descending, max, sum } from "d3-array";
 
 export const piechart_overlay = () => {
   // default values:
@@ -198,7 +191,7 @@ export const piechart_overlay = () => {
             }
             tooltip.style("visibility", "visible").html(html);
           })
-          .on("mousemove", function () {
+          .on("mousemove", function (event) {
             return tooltip
               .style("top", event.layerY - 5 + "px")
               .style("left", event.layerX + 15 + "px");

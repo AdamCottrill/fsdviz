@@ -20,7 +20,7 @@ export let speciesColours = [
   "#ffd8b1",
   "#000075",
   "#808080",
-  "#ffffff"
+  "#ffffff",
 ];
 
 //19 species
@@ -42,22 +42,45 @@ export const all_species = [
   "Lake Sturgeon",
   "Muskellunge",
   "Smallmouth Bass",
-  "Esox Sp.",
-  "Northern Pike"
+  "Tiger Musky",
+  "Northern Pike",
+];
+
+//19 species
+export const all_species_abbrev = [
+  "LAT",
+  "CHS",
+  "RBT",
+  "BRT",
+  "COS",
+  "WAE",
+  "LTC",
+  "ATS",
+  "SPE",
+  "BKT",
+  "SOS",
+  "YEP",
+  "LAH",
+  "BLO",
+  "LAS",
+  "MUE",
+  "SMB",
+  "TIM",
+  "NOP",
 ];
 
 export const month_lookup = {
-  "1": "Jan",
-  "2": "Feb",
-  "3": "Mar",
-  "4": "Apr",
-  "5": "May",
-  "6": "Jun",
-  "7": "Jul",
-  "8": "Aug",
-  "9": "Sept",
-  "10": "Oct",
-  "11": "Nov",
-  "12": "Dec",
-  "0": "Unkn"
+  1: "Jan",
+  2: "Feb",
+  3: "Mar",
+  4: "Apr",
+  5: "May",
+  6: "Jun",
+  7: "Jul",
+  8: "Aug",
+  9: "Sept",
+  10: "Oct",
+  11: "Nov",
+  12: "Dec",
+  0: "Unkn",
 };

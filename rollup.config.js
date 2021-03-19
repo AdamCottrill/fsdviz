@@ -1,10 +1,12 @@
-import babel from "rollup-plugin-babel";
-import { eslint } from "rollup-plugin-eslint";
-import resolve from "rollup-plugin-node-resolve";
-import json from "rollup-plugin-json";
-import commonjs from "rollup-plugin-commonjs";
-import uglify from "rollup-plugin-uglify-es";
-import replace from "rollup-plugin-replace";
+import commonjs from "@rollup/plugin-commonjs";
+import { babel } from "@rollup/plugin-babel";
+
+import { nodeResolve as resolve } from "@rollup/plugin-node-resolve";
+import json from "@rollup/plugin-json";
+import replace from "@rollup/plugin-replace";
+import { terser } from "rollup-plugin-terser";
+
+import eslint from "@rollup/plugin-eslint";
 
 function onwarn(warning, warn) {
   // skip certain warnings
@@ -28,13 +30,15 @@ const plugins = [
   }),
 
   replace({
+    preventAssignment: true,
     ENV: JSON.stringify(process.env.NODE_ENV || "development"),
   }),
 
-  process.env.NODE_ENV === "production" && uglify(),
+  process.env.NODE_ENV === "production" && terser(),
+
   babel({
     exclude: "node_modules/**",
-    runtimeHelpers: true,
+    babelHelpers: "runtime",
   }),
 ];
 
@@ -46,7 +50,7 @@ export default [
       name: "MainPieChartMap",
       file: "fsdviz/static/js/mainPieChartMap.js",
       format: "iife",
-      sourceMap: "inline",
+      sourcemap: "inline",
       globals: {
         topojson: "topojson",
         crossfilter2: "crossfilter",
@@ -54,6 +58,7 @@ export default [
     },
     plugins: plugins,
   },
+
   {
     input: "fsdviz/js_src/findEventsForm.js",
     onwarn: onwarn,
@@ -61,7 +66,7 @@ export default [
       name: "FindEventsForm",
       file: "fsdviz/static/js/findEventsForm.js",
       format: "iife",
-      sourceMap: "inline",
+      sourcemap: "inline",
       globals: {
         crossfilter2: "crossfilter",
         d3: "d3",
@@ -77,11 +82,27 @@ export default [
       name: "FilteredStockingEvents",
       file: "fsdviz/static/js/filteredStockingEvents.js",
       format: "iife",
-      sourceMap: "inline",
+      sourcemap: "inline",
       globals: {
         crossfilter2: "crossfilter",
         d3: "d3",
         dc: "dc",
+      },
+    },
+    plugins: plugins,
+  },
+
+  {
+    input: "fsdviz/js_src/filteredCwtStockingEvents.js",
+    onwarn: onwarn,
+    output: {
+      name: "FilteredCwtStockingEvents",
+      file: "fsdviz/static/js/filteredCwtStockingEvents.js",
+      format: "iife",
+      sourcemap: "inline",
+      globals: {
+        crossfilter2: "crossfilter",
+        d3: "d3",
       },
     },
     plugins: plugins,
@@ -94,7 +115,7 @@ export default [
       name: "UploadEvent",
       file: "fsdviz/static/js/upload_event_detail.js",
       format: "iife",
-      sourceMap: "inline",
+      sourcemap: "inline",
       globals: {
         leaflet: "leaflet",
         d3: "d3",
@@ -110,7 +131,7 @@ export default [
       name: "StockingEventForm",
       file: "fsdviz/static/js/stocking_event_form.js",
       format: "iife",
-      sourceMap: "inline",
+      sourcemap: "inline",
       globals: {
         leaflet: "leaflet",
       },
@@ -125,7 +146,7 @@ export default [
       name: "SpatialLookup",
       file: "fsdviz/static/js/spatial_lookup.js",
       format: "iife",
-      sourceMap: "inline",
+      sourcemap: "inline",
       globals: {
         leaflet: "leaflet",
         d3: "d3",

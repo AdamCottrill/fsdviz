@@ -15,12 +15,12 @@ import {
   checkEmpty,
   checkDdLat,
   checkDdLon,
-  checkLatLon
+  checkLatLon,
 } from "./components/form_utils";
 
 import {
   //checkPointInPoly, getPolygon,
-  getSpatialAttrs
+  getSpatialAttrs,
 } from "./components/spatial_utils";
 
 //=================================================
@@ -37,7 +37,7 @@ let spatialAttrs = {
   grid10: "",
   jurisdiction: "",
   lake: "",
-  manUnit: ""
+  manUnit: "",
 };
 
 //=================================================
@@ -47,10 +47,10 @@ let spatialAttrs = {
 // this will be tweaked later):
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
-  zoomSnap: 0
+  zoomSnap: 0,
 }).fitBounds([
   [bbox[1], bbox[0]],
-  [bbox[3], bbox[2]]
+  [bbox[3], bbox[2]],
 ]);
 
 // set up a cross hair on our map - better for clicking
@@ -59,7 +59,7 @@ $(".leaflet-container").css("cursor", "default");
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-  maxZoom: 18
+  maxZoom: 18,
 }).addTo(mymap);
 
 const drawPt = (lat, lon) => {
@@ -71,13 +71,13 @@ const drawPt = (lat, lon) => {
       color: "red",
       fillColor: "#f03",
       fillOpacity: 0.5,
-      radius: 5
+      radius: 5,
     }).addTo(mymap);
   }
 };
 
 // if we click on the map, update the lat-lon inputs:
-mymap.on("click", function(e) {
+mymap.on("click", function (e) {
   lat = e.latlng.lat;
   lon = e.latlng.lng;
   $("#id_dd_lat").val(Number(lat).toFixed(4));
@@ -86,13 +86,13 @@ mymap.on("click", function(e) {
 });
 
 //watch our lat-lon inputs and update the point if they change:
-$("#id_dd_lat").on("change", function() {
+$("#id_dd_lat").on("change", function () {
   if (!checkDdLat(this, bbox)) return false;
   if (!checkLatLon(this)) return false;
   updateMapPt();
 });
 
-$("#id_dd_lon").on("change", function() {
+$("#id_dd_lon").on("change", function () {
   if (!checkDdLon(this, bbox)) return false;
   if (!checkLatLon(this)) return false;
   updateMapPt();
@@ -188,7 +188,7 @@ const updateStateProvChoices = () => {
     return accumulator;
   };
 
-  const success = data => {
+  const success = (data) => {
     options = data.reduce(reducer, {});
   };
   let errmsg = "ajax error getting states and provinces!";
@@ -217,7 +217,7 @@ const updateManUnitChoices = () => {
     return accumulator;
   };
 
-  const success = data => {
+  const success = (data) => {
     options = data.reduce(reducer, {});
   };
   let errmsg = "ajax error getting management units!";
@@ -243,7 +243,7 @@ const updateGrid10Choices = () => {
   };
 
   let options;
-  const success = data => {
+  const success = (data) => {
     options = data.reduce(reducer, {});
   };
   let errmsg = "ajax error getting grids!";
@@ -257,13 +257,13 @@ const updateGrid10Choices = () => {
 
 // a function to update the lake, province, manUnit and grid based on lat lon.
 const updateSpatialAttrs = (lat, lon) => {
-  let success = data => (spatialAttrs = data);
+  let success = (data) => (spatialAttrs = data);
   let error = () => {
     spatialAttrs = {
       grid10: "",
       jurisdiction: "",
       lake: "",
-      manUnit: ""
+      manUnit: "",
     };
   };
   let pt = { dd_lat: lat, dd_lon: lon };
@@ -336,7 +336,7 @@ const validateSpatialField = (shouldbe, fieldid) => {
 // when species changes, update the list of strains - if there is a
 // strain selected, keep it but flag it as invalid
 
-$("#id_species_id").on("change", function(e) {
+$("#id_species_id").on("change", function (e) {
   //let url = "/api/v1/common/strainraw/?species_id=" + e.target.value;
   let url = `${strainURL}?species_id=${e.target.value}`;
 
@@ -347,7 +347,7 @@ $("#id_species_id").on("change", function(e) {
 
   let options;
   const myid = this.id;
-  const success = data => {
+  const success = (data) => {
     options = data.reduce(reducer, {});
   };
   const errmsg = "ajax error getting strains!";
@@ -356,7 +356,7 @@ $("#id_species_id").on("change", function(e) {
   });
 });
 
-$("#id_strain_raw_id").on("change", function() {
+$("#id_strain_raw_id").on("change", function () {
   const myId = this.id;
   const parentId = "id_species_id";
   checkMyChoice(myId, parentId);
@@ -368,7 +368,7 @@ $("#id_strain_raw_id").on("change", function() {
 $(".ui.calendar").calendar({
   type: "date",
   maxDate: new Date(),
-  onChange: function(date, text) {
+  onChange: function (date, text) {
     const myDate = new Date(text);
 
     let yr = myDate.getFullYear();
@@ -389,10 +389,10 @@ $(".ui.calendar").calendar({
       monthField.value = month + 1;
       setValid(monthField);
     }
-  }
+  },
 });
 
-const updateCalendar = function() {
+const updateCalendar = function () {
   // set the calendar widget to the date represented by the day,
   // month and year fields.
   const yearElement = document.getElementById("id_year");
@@ -412,16 +412,16 @@ const updateCalendar = function() {
   }
 };
 
-$("#id_day").on("change", function() {
+$("#id_day").on("change", function () {
   updateCalendar();
   checkDate();
 });
 
-$("#id_month").on("change", function() {
+$("#id_month").on("change", function () {
   if (validate_month(this)) checkDate();
 });
 
-$("#id_year").on("change", function() {
+$("#id_year").on("change", function () {
   if (validate_year(this)) checkDate();
 });
 
@@ -458,7 +458,7 @@ function validate_year(field) {
   return true;
 }
 
-const checkDate = function() {
+const checkDate = function () {
   let yearElement = document.getElementById("id_year");
   let monthElement = document.getElementById("id_month");
   let dayElement = document.getElementById("id_day");

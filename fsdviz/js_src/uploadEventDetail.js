@@ -19,16 +19,16 @@ let selectedPt;
 // this will be tweaked later):
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
-  zoomSnap: 0
+  zoomSnap: 0,
 }).fitBounds([
   [bbox[1], bbox[0]],
-  [bbox[3], bbox[2]]
+  [bbox[3], bbox[2]],
 ]);
 
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-  maxZoom: 18
+  maxZoom: 18,
 }).addTo(mymap);
 
 const recalc_bbox = (bbox, dd_lat, dd_lon) => {
@@ -58,39 +58,45 @@ function onClick(e) {
   if (pt == selectedPt) {
     selectedPt = "";
     rows = document.querySelectorAll("[data-coord]");
-    rows.forEach(row => (row.style.display = ""));
+    rows.forEach((row) => (row.style.display = ""));
   } else {
     selectedPt = pt;
     marker.setAttribute("class", classes + " active-marker");
     //hide them all
     rows = document.querySelectorAll("[data-coord]");
-    rows.forEach(row => (row.style.display = "none"));
+    rows.forEach((row) => (row.style.display = "none"));
     //make the selected one appear:
     let selector = `[data-coord='${pt}']`;
     rows = document.querySelectorAll(selector);
-    rows.forEach(row => (row.style.display = ""));
+    rows.forEach((row) => (row.style.display = ""));
   }
 }
 
-json(dataURL).then(data => {
-  data.forEach(d => {
-    let circle = Leaflet.circleMarker([d.dd_lat, d.dd_lon], {
-      color: speciesColourScale(d.species_name),
-      fillColor: speciesColourScale(d.species_name),
-      fillOpacity: 0.5,
-      opacity: 0.6,
-      weight: 2,
-      radius: 6
-    });
-    circle.addTo(mymap).on("click", onClick);
+json(dataURL).then((data) => {
+  data.forEach((d) => {
+    d.latitude = +d.latitude;
+    d.longitude = +d.longitude;
+    if (d.latitude & d.longitude) {
+      let circle = Leaflet.circleMarker([d.latitude, +d.longitude], {
+        color: speciesColourScale(d.species_name),
+        fillColor: speciesColourScale(d.species_name),
+        fillOpacity: 0.5,
+        opacity: 0.6,
+        weight: 2,
+        radius: 6,
+      });
+      circle.addTo(mymap).on("click", onClick);
+    }
   });
 
   //reset the the bounds of our map if required.
-  let lat_extent = extent(data, d => d.dd_lat);
-  let lon_extent = extent(data, d => d.dd_lon);
+  let lat_extent = extent(data, (d) => d.latitude);
+  let lon_extent = extent(data, (d) => d.longitude);
   bbox = recalc_bbox(bbox, lat_extent, lon_extent);
-  mymap.fitBounds([
-    [bbox[1], bbox[0]],
-    [bbox[3], bbox[2]]
-  ]);
+  if (bbox.every((x) => !typeof undefined)) {
+    mymap.fitBounds([
+      [bbox[1], bbox[0]],
+      [bbox[3], bbox[2]],
+    ]);
+  }
 });

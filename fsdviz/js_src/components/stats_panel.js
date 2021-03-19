@@ -1,4 +1,6 @@
-import { sum, format, select, selectAll } from "d3";
+import { sum } from "d3-array";
+import { format } from "d3-format";
+import { select, selectAll } from "d3-selection";
 
 const update_summary_table = (data, props) => {
   // generate the html for rows of our summary table body.  for each species in data
@@ -21,8 +23,8 @@ const update_summary_table = (data, props) => {
   //  let tmp = props.slices.filter(d => d.name === what);
   //  let sliceVarLabel = tmp[0].label;
 
-  Object.keys(data).forEach(x => (data[x]["category"] = x));
-  let dataArray = Object.keys(data).map(x => data[x]);
+  Object.keys(data).forEach((x) => (data[x]["category"] = x));
+  let dataArray = Object.keys(data).map((x) => data[x]);
 
   dataArray.sort((a, b) => b.yreq - a.yreq);
 
@@ -32,8 +34,8 @@ const update_summary_table = (data, props) => {
   let rectSize = 15;
 
   dataArray
-    .filter(d => d.events > 0)
-    .forEach(row => {
+    .filter((d) => d.events > 0)
+    .forEach((row) => {
       html += `<tr>
            <td class="species-name">
 <svg width="${rectSize}" height="${rectSize}">
@@ -64,10 +66,10 @@ export const update_stats_panel = (allxf, props) => {
   const get_total = (varname, count = false) => {
     let mykeys = Object.keys(current);
     if (count) {
-      mykeys = mykeys.filter(x => current[x]["events"] > 0);
+      mykeys = mykeys.filter((x) => current[x]["events"] > 0);
       return mykeys.length;
     } else {
-      return sum(mykeys.map(x => current[x][varname]));
+      return sum(mykeys.map((x) => current[x][varname]));
     }
   };
 
@@ -90,4 +92,28 @@ export const update_stats_panel = (allxf, props) => {
   selectAll("#yreq-stocked").text(commaFormat(yreq_stocked));
 
   update_summary_table(current, props);
+};
+
+export const update_category_legend = (fillScale, items, category_label) => {
+  //  simplified verions of stats panel taht includes just the
+  //  category levels and associated colours - not stattistics. Used
+  //  in the filtered cwt vizualization:
+
+  // items is an array of two element arrays - the value and the label ["LAT", "Lake Trout"]
+
+  const rectSize = 15;
+  const vertical_offset = 7;
+  let html = "";
+  items.forEach((item) => {
+    html += `<tr>
+           <td class="center aligned">
+  <svg  width="${rectSize}" height="${rectSize + vertical_offset}">
+  <rect class="legend-rect" y="${vertical_offset}" width="${rectSize}" height="${rectSize}"
+style="fill:${fillScale(item[0])}; stroke-width:0.5;stroke:#808080" />
+        </svg> </td><td class="category-name"> ${item[1]}</td>
+       </tr>`;
+  });
+
+  selectAll("#category-value-label").text(category_label);
+  select("#legend-table-tbody").html(html);
 };
