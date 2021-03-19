@@ -435,8 +435,8 @@ def test_stocking_event__lat__lon_from_reported_lat_lon():
     assert event.dd_lat == dd_lat
 
     # our internal lat-lon are accurate too:
-    assert event._dd_lon == dd_lon
-    assert event._dd_lat == dd_lat
+    assert event.geom_lon == dd_lon
+    assert event.geom_lat == dd_lat
 
 
 @pytest.mark.django_db
@@ -461,8 +461,8 @@ def test_stocking_event__lat__lon_from_grid10(latlon_flags):
     assert event.dd_lat is None
 
     # the internal lat-lon values should be the same as our grid:
-    assert event._dd_lon == grid10.centroid.x
-    assert event._dd_lat == grid10.centroid.y
+    assert event.geom_lon == grid10.centroid.x
+    assert event.geom_lat == grid10.centroid.y
 
 
 @pytest.mark.django_db

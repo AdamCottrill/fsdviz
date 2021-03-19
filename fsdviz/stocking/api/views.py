@@ -263,6 +263,8 @@ class StockingEventMapListView(generics.ListAPIView):
             "agency_abbrev": F("agency__abbrev"),
             "species_name": F("species__abbrev"),
             "strain": F("strain_raw__strain__strain_label"),
+            "latitude": F("geom_lat"),
+            "longitude": F("geom_lon"),
         }
 
         aggregation_metrics = {
@@ -307,8 +309,8 @@ class StockingEventMapListView(generics.ListAPIView):
         qs = (
             filtered_list.qs.annotate(**metrics)
             .values(
-                "dd_lat",
-                "dd_lon",
+                "latitude",
+                "longitude",
                 "month",
                 "lake",
                 "jurisdiction_slug",
@@ -364,6 +366,8 @@ class StockingEventListAPIView(APIView):
             "jurisdiction_code": F("jurisdiction__slug"),
             "lake": F("jurisdiction__lake__abbrev"),
             "stateProv": F("jurisdiction__stateprov__abbrev"),
+            "latitude": F("geom_lat"),
+            "longitude": F("geom_lon"),
         }
 
         fields = [
@@ -372,8 +376,8 @@ class StockingEventListAPIView(APIView):
             "jurisdiction_code",
             "stateProv",
             "grid10",
-            "dd_lat",
-            "dd_lon",
+            "latitude",
+            "longitude",
             "st_site",
             "year",
             "date",
@@ -475,8 +479,8 @@ class CWTEventListAPIView(APIView):
             "jurisd": F("jurisdiction__slug"),
             "man_unit": F("management_unit__label"),
             "grid10": F("grid_10__grid"),
-            "latitude": F("_dd_lat"),
-            "longitude": F("_dd_lon"),
+            "latitude": F("geom_lat"),
+            "longitude": F("geom_lon"),
             "primary_location": F("site"),
             "secondary_location": F("st_site"),
             "spc": F("species__abbrev"),
@@ -586,8 +590,8 @@ class CWTEventMapAPIView(APIView):
             "state": F("jurisdiction__stateprov__abbrev"),
             "jurisd": F("jurisdiction__slug"),
             "man_unit": F("management_unit__slug"),
-            "latitude": F("_dd_lat"),
-            "longitude": F("_dd_lon"),
+            "latitude": F("geom_lat"),
+            "longitude": F("geom_lon"),
             "spc": F("species__abbrev"),
             "strain": F("strain_raw__strain__slug"),
             "clipcode": F("clip_code__clip_code"),
@@ -707,8 +711,8 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
             "jurisd": F("jurisdiction__slug"),
             "man_unit": F("management_unit__label"),
             "grid10": F("grid_10__grid"),
-            "latitude": F("_dd_lat"),
-            "longitude": F("_dd_lon"),
+            "latitude": F("geom_lat"),
+            "longitude": F("geom_lon"),
             "primary_location": F("site"),
             "secondary_location": F("st_site"),
             "spc": F("species__abbrev"),

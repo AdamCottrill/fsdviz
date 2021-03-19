@@ -63,8 +63,8 @@ class StockingEventFastSerializer(serializers.Serializer):
     yreq = serializers.IntegerField()
     total_stocked = serializers.IntegerField()
 
-    dd_lat = serializers.CharField()
-    dd_lon = serializers.CharField()
+    longitude = serializers.CharField()
+    latitude = serializers.CharField()
 
 
 class StockingEventSerializer(serializers.ModelSerializer):

@@ -55,8 +55,7 @@ def create_event_dict(event):
 
 @pytest.fixture(scope=SCOPE, name="event")
 def stocking_event(db):
-    """return a basic stocking event that will be used by all of our tests.
-    """
+    """return a basic stocking event that will be used by all of our tests."""
     event = StockingEventFactory()
 
     return event
@@ -64,8 +63,7 @@ def stocking_event(db):
 
 @pytest.mark.django_db
 def test_complete_valid_data(event):
-    """If we pass a dictionary with complete data, the form should be valid.
-    """
+    """If we pass a dictionary with complete data, the form should be valid."""
 
     choices = get_event_model_form_choices(event)
     event_dict = create_event_dict(event)
@@ -494,12 +492,12 @@ def test_missing_stat_district_with_grid10(event):
 @pytest.mark.django_db
 def test_missing_grid10_no_latlon(event):
     """If we pass a dictionary that has an empty grid10 id, and null
-   lat-lon, the record should be created without issue, but the latlon
-   flag should be set.
+    lat-lon, the record should be created without issue, but the latlon
+    flag should be set.
 
-    (Grid10 is currently a required field)
+     (Grid10 is currently a required field)
 
-    OK
+     OK
 
     """
     assert 0 == 1
@@ -740,8 +738,7 @@ def test_invalid_physchem_mark(event):
 
 @pytest.mark.django_db
 def test_mark_effectiveness_without_physchem_mark(event):
-    """Mark retention should be null if physchem mark is null
-    """
+    """Mark retention should be null if physchem mark is null"""
     choices = get_event_model_form_choices(event)
     event_dict = create_event_dict(event)
 
@@ -761,8 +758,7 @@ def test_mark_effectiveness_without_physchem_mark(event):
 
 @pytest.mark.django_db
 def test_tag_retention_without_tag(event):
-    """tag retention should be null if tags is null
-    """
+    """tag retention should be null if tags is null"""
 
     choices = get_event_model_form_choices(event)
     event_dict = create_event_dict(event)
@@ -804,8 +800,7 @@ def test_unknown_tag_code(event):
 
 @pytest.mark.django_db
 def test_no_clip_mutally_exclusive_clip(event):
-    """No clipped and unclipped are mutually exclusive of all other clips
-    """
+    """No clipped and unclipped are mutually exclusive of all other clips"""
 
     FinClipFactory.create(abbrev="AD", description="adipose clip")
     FinClipFactory.create(abbrev="NO", description="no clip")
@@ -826,8 +821,7 @@ def test_no_clip_mutally_exclusive_clip(event):
 
 @pytest.mark.django_db
 def test_unknown_clip_mutally_exclusive_clip(event):
-    """Unknonw Clip Status is mutually exclusive of all other clips
-    """
+    """Unknonw Clip Status is mutually exclusive of all other clips"""
 
     FinClipFactory.create(abbrev="AD", description="adipose clip")
     FinClipFactory.create(abbrev="UN", description="unknown clip")

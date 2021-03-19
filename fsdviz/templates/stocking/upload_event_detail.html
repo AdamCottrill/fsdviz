@@ -5,10 +5,10 @@
 
 {% block extra_head %}
 
-    
+
     <style type="text/css" media="screen">
      .small {
-         font-size: 0.8rem;         
+         font-size: 0.8rem;
      }
 
      .active-marker {
@@ -20,14 +20,14 @@
      #stocking-events {
          min-height: 500px;
      }
-     
+
     </style>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
     <script src= "https://unpkg.com/leaflet@1.5.1/dist/leaflet-src.js"></script>
 
 
-    
+
 {% endblock %}
 
 
@@ -38,7 +38,7 @@
         <div  class="ui grid"  >
             <div class="six wide column">
 
-                <h2>Data Upload Event Details</h2>        
+                <h2>Data Upload Event Details</h2>
                 <a href="{% url 'stocking:data-upload-event-list' %}">Back to Upload Event List</a>
 
                 <table class="ui definition table">
@@ -64,11 +64,11 @@
                             <td>Comment:</td>
                             <td>Coming Soon</td>
                         </tr>
-                        
+
                     </tbody>
                 </table>
 
-                
+
             </div>
             <div  class="ten wide column" >
                 <div class="ui segment">
@@ -78,13 +78,13 @@
                 </div>
             </div>
 
-            
+
             <div class="ui row" id="stocking-events">
 
                 <div class="ui  basic segment">
-                    
+
                     <h4>Stocking Events</h4>
-                    
+
                     {% if events %}
                         <table class="ui compact single line celled table tablesorter" style="font-size: 0.9em">
                             <thead>
@@ -103,7 +103,7 @@
                             </thead>
                             <tbody>
                                 {% for event in events %}
-                                    <tr data-coord="{{event.dd_lat}}; {{ event.dd_lon }}" >
+                                    <tr data-coord="{{event.geom_lat}}; {{ event.geom_lon }}" >
                                         <td> <a href="{% url 'stocking:stocking-event-detail' event.stock_id %}">{{ event.stock_id }}</a></td>
                                         <td title="{{ event.site }}"> {{ event.site }}</td>
                                         <td> {{ event.date|date:"M-d-y" }}</td>
@@ -119,7 +119,7 @@
                             </tbody>
                         </table>
 
-                        
+
                     {% else %}
                         <h5>
                             oops - no stocking events appear to be related with this upload event.
@@ -131,7 +131,7 @@
         </div>
 
     </div>
-    
+
 {% endblock %}
 
 
@@ -139,13 +139,13 @@
 
 
 
-    
+
     <!-- tablesorter plugin-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js"></script>
 
     <!-- tablesorter widget file - loaded after the plugin -->
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
-    
+
     <script>
 
      $(".tablesorter").tablesorter({
@@ -171,6 +171,6 @@
     </script>
 
     <script src="{% static "js/upload_event_detail.js" %}"></script>
-   
+
 
 {% endblock %}

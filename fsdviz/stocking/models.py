@@ -300,10 +300,10 @@ class StockingEvent(models.Model):
         "GeoDjango spatial point field", srid=4326, blank=True, null=True
     )
 
-    _dd_lat = models.FloatField(
+    geom_lat = models.FloatField(
         "Latitude in decimal degrees derived from geom", editable=False, default=45.00
     )
-    _dd_lon = models.FloatField(
+    geom_lon = models.FloatField(
         "Longitude in decimal degrees derived from geom", editable=False, default=-81.00
     )
 
@@ -423,8 +423,8 @@ class StockingEvent(models.Model):
             self.geom = self.grid_10.centroid
             self.latlong_flag = flag_cache[4]
 
-        self._dd_lat = self.geom.y
-        self._dd_lon = self.geom.x
+        self.geom_lat = self.geom.y
+        self.geom_lon = self.geom.x
 
         # figure out what juristiction this event occured in depending
         # on state/province and lake.
