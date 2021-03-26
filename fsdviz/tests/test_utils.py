@@ -2,7 +2,7 @@ import pytest
 import re
 
 from ..stocking.utils import xls2dicts, validate_upload
-from fsdviz.tests.pytest_fixtures import invalid_xlsfiles
+from fsdviz.tests.pytest_fixtures import invalid_xlsfiles, glsc
 
 
 class MockFile(str):
@@ -32,7 +32,7 @@ def test_xls2dicts():
 
 
 @pytest.mark.parametrize("xlsfile, message", invalid_xlsfiles)
-def test_validate_upload(xlsfile, message):
+def test_validate_upload(glsc, xlsfile, message):
     """Before the data in the spreadsheet can be validated on a row-by-row
     basis, the basic assumptions and shape of the data must be
     confirmed.  If any of the basic tests fail, we need to return to
@@ -50,7 +50,7 @@ def test_validate_upload(xlsfile, message):
 
     fname = MockFile(xlsfile)
     data = xls2dicts(fname)
-    status, msg = validate_upload(data)
+    status, msg = validate_upload(data, glsc)
 
-    assert status == False
+    assert status is False
     assert msg == message

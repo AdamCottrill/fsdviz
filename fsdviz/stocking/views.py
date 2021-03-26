@@ -975,30 +975,20 @@ def upload_events(request):
             messages.error(request, msg)
             return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
 
-        # validate our data here: if the data passes basic validation,
-        # pass it to a view of with a xls stocking event formset for
-        # final editing, validation and event creation.
-
-        # verify that the xls data matches our schema, convert it to a
-        # list of dictionaries, and add the list of dicts for our session:
-
         xls_events = xls2dicts(data_file)
 
-        valid, msg = validate_upload(xls_events)
+        valid, msg = validate_upload(xls_events, request.user)
         if not valid:
             messages.error(request, msg)
             return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
 
-        # check for errors here:
         # xls_errors = validate_events(xls_events)
-
         request.session["data"] = xls_events
         # request.session["errors"] = xls_errors
 
         return HttpResponseRedirect(reverse("stocking:xls-events-form"))
 
     except Exception as e:
-        # logging.getLogger("error_logger").error("Unable to upload file. "+repr(e))
         messages.error(request, "Unable to upload file. " + repr(e))
         return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
 
@@ -1014,19 +1004,29 @@ def xls_events(request):
     """
 
     EventFormSet = formset_factory(XlsEventForm, extra=0)
-
+    formset_errors = {}
     choices = get_choices()
 
     event_count = 0
 
+    # TODO - this needs to be limited to a single lake ange agency
+    lake = "HU"
+    mu_grids = (
+        ManagementUnit.objects.filter(lake__abbrev=lake, mu_type="stat_dist")
+        .select_related("grid10s")
+        .order_by("label", "grid10s__grid")
+        .values_list("label", "grid10s__grid")
+    )
+
     if request.method == "POST":
+
         formset = EventFormSet(request.POST, form_kwargs={"choices": choices})
         event_count = formset.total_form_count()
         if formset.is_valid():
-            # for form in formset - create our stocking events:
-            # Add them to our 'upload event table
-            # return to list of uploaded events.
-            # create our lookup dicts that relake abbrev to django objects:
+
+            # create our lookup dicts that relate abbrev to django objects -
+            # we will need them for our front end validation and for
+            # processing the submitted form:
 
             lakes = Lake.objects.values_list("id", "abbrev")
             stateProvinces = StateProvince.objects.values_list("id", "abbrev")
@@ -1140,17 +1140,42 @@ def xls_events(request):
 
                 url = data_upload_event.get_absolute_url()
                 return HttpResponseRedirect(url)
+        else:
+            # not valid
+            # formset_errors = get_formset_errors(formset)
+
+            # we need a dictionary of errors keyed by field name
+            prefix = "id_form-{}-{}"
+            for i, form in enumerate(formset):
+                for key, val in form.errors.items():
+                    formset_errors[prefix.format(i, key)] = val
+
     else:
         # get the data from our session
         xls_events = request.session.get("data", {})
         event_count = len(xls_events)
-
         formset = EventFormSet(initial=xls_events, form_kwargs={"choices": choices})
 
     return render(
         request,
         "stocking/xls_events_form.html",
-        {"formset": formset, "event_count": event_count},
+        {
+            "formset": formset,
+            "event_count": event_count,
+            "formset_errors": formset_errors,
+            "mu_grids": list(mu_grids)
+            # "lakes": lake_id_lookup,
+            # "agencies": agency_id_lookup,
+            # "stateprovs": stateProv_id_lookup,
+            # "species": species_id_lookup,
+            # "stocking_method": stocking_method_id_lookup,
+            # "condition": condition_id_lookup,
+            # "lifestage": lifestage_id_lookup,
+            # "grids": grid_id_lookup,
+            # "mus": mu_id_lookup,
+            # "lakeState": lakeState_id_lookup,
+            # "strains": strain_id_lookup,
+        },
     )
 
 

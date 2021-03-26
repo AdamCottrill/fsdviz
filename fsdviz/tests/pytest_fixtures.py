@@ -279,22 +279,22 @@ invalid_xlsfiles = [
     (
         "fsdviz/tests/xls_files/two_agencies.xlsx",
         (
-            "The uploaded file has more than one agency. "
-            + " Data submissions are limited to a single year, species, and agency. "
+            "The uploaded file has more than one agency."
+            + " Data submissions are limited to a single lake and agency. "
         ),
     ),
     (
         "fsdviz/tests/xls_files/two_lakes.xlsx",
         (
-            "The uploaded file has more than one lake. "
-            + " Data submissions are limited to a single year, species, and agency. "
+            "The uploaded file has more than one lake."
+            + " Data submissions are limited to a single lake and agency. "
         ),
     ),
     (
-        "fsdviz/tests/xls_files/two_years.xlsx",
+        "fsdviz/tests/xls_files/too_many_missing_fields.xlsx",
         (
-            "The uploaded file has more than one year. "
-            + " Data submissions are limited to a single year, species, and agency. "
+            "The uploaded file appears to be missing several required fields. "
+            + "Did you use the official template?."
         ),
     ),
     (

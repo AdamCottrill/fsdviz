@@ -36,6 +36,8 @@ from .models import StockingMethod, LifeStage, Condition, Hatchery
 
 from ..common.utils import to_lake_dict, toChoices
 
+from ..myusers.permissions import user_can_create_edit_delete
+
 # the fields from our upload template:
 
 REQUIRED_FIELDS = [
@@ -154,6 +156,108 @@ def xls2dicts(data_file):
             data.append(tmp)
 
     return data
+
+
+def validate_upload(events, user):
+    """A function to check the basic attributes of the uploaded
+    spreadsheet. The function checks to make sure that the uploaded
+    data has between 1 and the max number of rows, that all of the
+    required fields are included, but no more, and that the upload is
+    limited to a single, year, agency and lake.  If any of these
+    criteria fail, the events are considered invalid (valid=False),-wro
+    and a meaningful message is returned.
+
+    """
+    valid = True
+    msg = None
+
+    if len(events) > 0:
+        received_fields = set([str(x) for x in events[0].keys()])
+    else:
+        received_fields = {}
+
+    agencies = set([x.get("agency") for x in events if x.get("agency") is not None])
+
+    lakes = set([x.get("lake") for x in events if x.get("lake") is not None])
+
+    if len(lakes) == 1 and len(agencies) == 1:
+        lake_agency = {"lake": lakes.pop(), "agency": agencies.pop()}
+        if user_can_create_edit_delete(user, lake_agency) is False:
+            valid = False
+            msg = (
+                "The uploaded file appears to have data from a lake or agency"
+                " that you are not currently affiliated with."
+            )
+            return valid, msg
+
+    if len(events) > settings.MAX_UPLOAD_EVENT_COUNT:
+        valid = False
+        msg = (
+            "Uploaded file has too many records. Please split it into"
+            + "smaller packets (e.g by species)."
+        )
+        return valid, msg
+    elif len(events) == 0:
+        valid = False
+        msg = "The uploaded file does not appear to contain any stocking records!"
+        return valid, msg
+
+    elif len(agencies) > 1:
+        valid = False
+        msg = (
+            "The uploaded file has more than one agency."
+            + " Data submissions are limited to a single lake and agency. "
+        )
+        return valid, msg
+    elif len(lakes) > 1:
+        valid = False
+        msg = (
+            "The uploaded file has more than one lake."
+            + " Data submissions are limited to a single lake and agency. "
+        )
+        return valid, msg
+    elif len(set(REQUIRED_FIELDS) - received_fields) >= 1:
+        valid = False
+        missing_flds = list(set(REQUIRED_FIELDS) - received_fields)
+        missing_flds.sort()
+        if len(missing_flds) == 1:
+            msg = (
+                "The uploaded file appears to be missing the field: {}. "
+                + "This field is required in a valid data upload template."
+            ).format(missing_flds[0])
+
+        elif len(missing_flds) > 5:
+            msg = (
+                "The uploaded file appears to be missing several required fields. "
+                + "Did you use the official template?."
+            )
+        else:
+            field_list = ", ".join(missing_flds)
+            msg = (
+                "The uploaded file appears to be missing the fields: {}. "
+                + "These fields are required in a valid data upload template."
+            ).format(field_list)
+        return valid, msg
+    elif len(received_fields - set(REQUIRED_FIELDS)) >= 1:
+        valid = False
+        # note - this should be a non-critical error
+
+        flds = list(received_fields - set(REQUIRED_FIELDS))
+        flds.sort()
+
+        if len(flds) == 1:
+            msg = (
+                "The uploaded file appears to have an additional field: {}. "
+                + "This field was ignored."
+            ).format(flds[0])
+        else:
+            field_list = ", ".join(flds)
+            msg = (
+                "The uploaded file appears to have {} additional field(s): {}. "
+                + "These fields were ignored."
+            ).format(len(flds), field_list)
+
+    return valid, msg
 
 
 def get_xls_form_choices():
@@ -340,86 +444,6 @@ def form2params(formdata):
         return "?" + "&".join(params).replace("SRID=4326;", "")
     else:
         return ""
-
-
-def validate_upload(events):
-    """A function to check the basic attributes of the uploaded
-    spreadsheet. The function checks to make sure that the uploaded
-    data has between 1 and the max number of rows, that all of the
-    required fields are included, but no more, and that the upload is
-    limited to a single, year, agency and lake.  If any of these
-    criteria fail, the events are considered invalid (valid=False),-wro
-    and a meaningful message is returned.
-
-    """
-    valid = True
-    msg = None
-
-    if len(events) > settings.MAX_UPLOAD_EVENT_COUNT:
-        valid = False
-        msg = (
-            "Uploaded file has too many records. Please split it into"
-            + "smaller packets (e.g by species)."
-        )
-    elif len(events) == 0:
-        valid = False
-        msg = "The uploaded file does not appear to contain any stocking records!"
-
-    elif len(set([x["agency"] for x in events])) > 1:
-        valid = False
-        msg = (
-            "The uploaded file has more than one agency. "
-            + " Data submissions are limited to a single year, species, and agency. "
-        )
-    elif len(set([x["lake"] for x in events])) > 1:
-        valid = False
-        msg = (
-            "The uploaded file has more than one lake. "
-            + " Data submissions are limited to a single year, species, and agency. "
-        )
-    elif len(set([x["year"] for x in events])) > 1:
-        valid = False
-        msg = (
-            "The uploaded file has more than one year. "
-            + " Data submissions are limited to a single year, species, and agency. "
-        )
-
-    elif len(set(events[0].keys()) - set(REQUIRED_FIELDS)) >= 1:
-        valid = False
-        # note - this should be a non-critical error
-        flds = list(set(events[0].keys()) - set(REQUIRED_FIELDS))
-        flds.sort()
-
-        if len(flds) == 1:
-            msg = (
-                "The uploaded file appears to have an additional field: {}. "
-                + "This field was ignored."
-            ).format(flds[0])
-        else:
-            field_list = ", ".join(flds)
-            msg = (
-                "The uploaded file appears to have {} additional field(s): {}. "
-                + "These fields were ignored."
-            ).format(len(flds), field_list)
-
-    elif len(set(REQUIRED_FIELDS) - set(events[0].keys())) >= 1:
-        valid = False
-        # note - this should be a non-critical error
-        flds = list(set(REQUIRED_FIELDS) - set(events[0].keys()))
-        flds.sort()
-        if len(flds) == 1:
-            msg = (
-                "The uploaded file appears to be missing the field: {}. "
-                + "This field is required in a valid data upload template."
-            ).format(flds[0])
-        else:
-            field_list = ", ".join(flds)
-            msg = (
-                "The uploaded file appears to be missing the fields: {}. "
-                + "These fields are required in a valid data upload template."
-            ).format(field_list)
-
-    return valid, msg
 
 
 def get_choices():
