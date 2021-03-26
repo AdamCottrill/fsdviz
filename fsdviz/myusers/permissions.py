@@ -29,13 +29,16 @@ def user_can_create_edit_delete(user, obj):
     if not hasattr(user, "role"):
         return False
 
+    if type(obj) is dict:
+        lake = obj.get("lake", "")
+        agency = obj.get("agency", "")
+    else:
+        lake = obj.lake
+        agency = obj.agency
+
     if user.role == "glsc":
         return True
-    elif (
-        user.role == "asc"
-        and obj.agency == user.agency
-        and obj.lake in user.lakes.all()
-    ):
+    elif user.role == "asc" and agency == user.agency and lake in user.lakes.all():
         return True
     else:
         return False

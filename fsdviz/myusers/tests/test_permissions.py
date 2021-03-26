@@ -60,11 +60,6 @@ stocking.DataUploadEventDetailView
 stocking.upload_events
 stocking.xls_events
 
-
-
-
-
-
     TODO
 
     - create a tempalte tag and verify that buttons and links are
@@ -276,3 +271,82 @@ def test_agency_user_can_not_edit_any_uploads(huron_mdnr_user, data_uploads):
 
     for upload in data_uploads:
         assert user_can_create_edit_delete(huron_mdnr_user, upload) is False
+
+
+@pytest.mark.django_db
+def test_glsc_can_edit_dict(glsc, superior, mdnr):
+    """The function user_can_create_edit_delete can accept an object
+    (event) or a dictionary with the keys, 'lake' and 'agency'.  Verfy
+    that they function returns true for great lakes stocking coordinator:
+
+    """
+    args = {"lake": superior, "agency": mdnr}
+    assert user_can_create_edit_delete(glsc, args) is True
+
+
+@pytest.mark.django_db
+def test_huron_sc_user_can_edit_dict(huron_mdnr_sc, huron, mdnr):
+    """The function user_can_create_edit_delete can accept an object
+    (event) or a dictionary with the keys, 'lake' and 'agency'.  Verfy
+    that they function returns true for an agency stocking coordinator
+    if the lake and agency match their attributes.
+
+    """
+    args = {"lake": huron, "agency": mdnr}
+    assert user_can_create_edit_delete(huron_mdnr_sc, args) is True
+
+
+@pytest.mark.django_db
+def test_huron_sc_user_can_edit_dict_wrong_lake(huron_mdnr_sc, superior, mdnr):
+    """The function user_can_create_edit_delete can accept an object
+    (event) or a dictionary with the keys, 'lake' and 'agency'.  Verfy
+    that they function returns FALSE because lake does not match.
+
+    """
+    args = {"lake": superior, "agency": mdnr}
+    assert user_can_create_edit_delete(huron_mdnr_sc, args) is False
+
+
+@pytest.mark.django_db
+def test_huron_sc_user_can_edit_dict_wrong_agency(huron_mdnr_sc, huron, usfws):
+    """The function user_can_create_edit_delete can accept an object
+    (event) or a dictionary with the keys, 'lake' and 'agency'.  Verfy
+    that they function returns FALSE because agency does not match.
+
+    """
+    args = {"lake": huron, "agency": usfws}
+    assert user_can_create_edit_delete(huron_mdnr_sc, args) is False
+
+
+@pytest.mark.django_db
+def test_huron_user_user_can_edit_dict(huron_mdnr_user, huron, mdnr):
+    """The function user_can_create_edit_delete can accept an object
+    (event) or a dictionary with the keys, 'lake' and 'agency'.  Verfy
+    that they function returns false for an agency user even
+    if the lake and agency match their attributes.
+
+    """
+    args = {"lake": huron, "agency": mdnr}
+    assert user_can_create_edit_delete(huron_mdnr_user, args) is False
+
+
+@pytest.mark.django_db
+def test_huron_user_user_can_edit_dict_wrong_lake(huron_mdnr_user, superior, mdnr):
+    """The function user_can_create_edit_delete can accept an object
+    (event) or a dictionary with the keys, 'lake' and 'agency'.  Verfy
+    that they function returns FALSE when the lake is different.
+
+    """
+    args = {"lake": superior, "agency": mdnr}
+    assert user_can_create_edit_delete(huron_mdnr_user, args) is False
+
+
+@pytest.mark.django_db
+def test_huron_user_user_can_edit_dict_wrong_agency(huron_mdnr_user, huron, usfws):
+    """The function user_can_create_edit_delete can accept an object
+    (event) or a dictionary with the keys, 'lake' and 'agency'.  Verfy
+    that they function returns FALSE when the agency.
+
+    """
+    args = {"lake": huron, "agency": usfws}
+    assert user_can_create_edit_delete(huron_mdnr_user, args) is False
