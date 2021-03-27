@@ -1009,15 +1009,6 @@ def xls_events(request):
 
     event_count = 0
 
-    # TODO - this needs to be limited to a single lake ange agency
-    lake = "HU"
-    mu_grids = (
-        ManagementUnit.objects.filter(lake__abbrev=lake, mu_type="stat_dist")
-        .select_related("grid10s")
-        .order_by("label", "grid10s__grid")
-        .values_list("label", "grid10s__grid")
-    )
-
     if request.method == "POST":
 
         formset = EventFormSet(request.POST, form_kwargs={"choices": choices})
@@ -1028,23 +1019,14 @@ def xls_events(request):
             # we will need them for our front end validation and for
             # processing the submitted form:
 
+            # TODO: lakes and agency not needed - already limited to 1 each.
             lakes = Lake.objects.values_list("id", "abbrev")
-            stateProvinces = StateProvince.objects.values_list("id", "abbrev")
-            agencies = Agency.objects.all().values_list("id", "abbrev")
-            species = Species.objects.values_list("id", "abbrev")
-            stocking_methods = StockingMethod.objects.values_list("id", "stk_meth")
-            conditions = Condition.objects.values_list("id", "condition")
-            lifestages = LifeStage.objects.values_list("id", "abbrev")
-            grids = Grid10.objects.values_list("id", "slug")
-
             lake_id_lookup = toLookup(lakes)
+            agencies = Agency.objects.all().values_list("id", "abbrev")
             agency_id_lookup = toLookup(agencies)
+
+            stateProvinces = StateProvince.objects.values_list("id", "abbrev")
             stateProv_id_lookup = toLookup(stateProvinces)
-            species_id_lookup = toLookup(species)
-            stocking_method_id_lookup = toLookup(stocking_methods)
-            condition_id_lookup = toLookup(conditions)
-            lifestage_id_lookup = toLookup(lifestages)
-            grid_id_lookup = toLookup(grids)
 
             mus = ManagementUnit.objects.values_list(
                 "id", "slug", "lake__abbrev", "label"
@@ -1054,10 +1036,25 @@ def xls_events(request):
             lakeStates = [x for x in Jurisdiction.objects.values_list("id", "slug")]
             lakeState_id_lookup = toLookup(lakeStates)
 
+            grids = Grid10.objects.values_list("id", "slug")
+            grid_id_lookup = toLookup(grids)
+
+            species = Species.objects.values_list("id", "abbrev")
+            species_id_lookup = toLookup(species)
+
             strains = StrainRaw.objects.values_list(
                 "id", "species__abbrev", "strain__strain_code"
             )
             strain_id_lookup = make_strain_id_lookup(strains)
+
+            stocking_methods = StockingMethod.objects.values_list("id", "stk_meth")
+            stocking_method_id_lookup = toLookup(stocking_methods)
+
+            conditions = Condition.objects.values_list("id", "condition")
+            condition_id_lookup = toLookup(conditions)
+
+            lifestages = LifeStage.objects.values_list("id", "abbrev")
+            lifestage_id_lookup = toLookup(lifestages)
 
             with transaction.atomic():
 
@@ -1154,6 +1151,20 @@ def xls_events(request):
         # get the data from our session
         xls_events = request.session.get("data", {})
         event_count = len(xls_events)
+
+        # TODO - this needs to be limited to a single lake ange agency
+        lake = Lake.objects.get(abbrev=xls_events[0].get("lake"))
+        agency = Agency.objects.get(abbrev=xls_events[0].get("agency"))
+
+        mu_grids = (
+            ManagementUnit.objects.filter(lake=lake, mu_type="stat_dist")
+            .select_related("grid10s")
+            .order_by("label", "grid10s__grid")
+            .values_list("label", "grid10s__grid")
+        )
+        # get points and valid stocking events in our upload"
+        #
+
         formset = EventFormSet(initial=xls_events, form_kwargs={"choices": choices})
 
     return render(
@@ -1163,7 +1174,9 @@ def xls_events(request):
             "formset": formset,
             "event_count": event_count,
             "formset_errors": formset_errors,
-            "mu_grids": list(mu_grids)
+            "mu_grids": list(mu_grids),
+            "lake": lake,
+            "agency": agency
             # "lakes": lake_id_lookup,
             # "agencies": agency_id_lookup,
             # "stateprovs": stateProv_id_lookup,

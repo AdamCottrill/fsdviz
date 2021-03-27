@@ -1,5 +1,7 @@
 {% extends 'fsdviz_base.html' %} {% block extra_head %}
 
+    {% load static %}
+
     <style>
 
 
@@ -8,7 +10,7 @@
          top: 0;
          z-index: 2;
      }
-     
+
      table {
          width: 100%;
      }
@@ -18,7 +20,7 @@
          white-space: nowrap;
          height: 700px;
      }
-     
+
      td {
          white-space: nowrap;
      }
@@ -30,15 +32,18 @@
 
 {% endblock %} {% block content %}
 
-    <h1>{{  event_count }} Uploaded Stocking Events</h1>
+
+    <h1>{{  event_count }} Uploaded {{ agency.abbrev }} Stocking Event{{ event_count|pluralize }} for {{ lake.lake_name }}</h1>
+
+
 
 
     {{ form.non_field_errors }}
-    
-    
+
+
     <div class="table-container">
         <form class="ui form" method="post"  id="upload-form" action="{% url "stocking:xls-events-form" %}" >
-            
+
             <div class="ui inverted dimmer" id="event-loader">
                 <div class="ui large text loader">Uploading Stocking Events...</div>
             </div>
@@ -55,7 +60,7 @@
                         <th>Month</th>
                         <th>Day</th>
                         <th>Stat. Dist.</th>
-                        <th>Grid</th>          
+                        <th>Grid</th>
                         <th>Site</th>
                         <th>St.Site</th>
                         <th>Latitude</th>
@@ -69,7 +74,7 @@
                         <th>Tag Ret.</th>
                         <th>Length</th>
                         <th>Weight</th>
-                        <th>Condition</th>          
+                        <th>Condition</th>
                         <th>Method</th>
                         <th>No. Stocked</th>
                         <th>Lot Code</th>
@@ -83,9 +88,9 @@
                 </thead>
                 <tbody>
                     {% for form in formset %}
-                        <tr>
+                        <tr id="id_form-{{forloop.counter0}}-row">
                             {%  for field in form %}
-                                
+
                                 <td>
                                     <div class="field {% if field.errors %} error{% endif %}" id="{{field.id_for_label}}-field">
                                         <div class="ui mini input">
@@ -93,8 +98,9 @@
                                         </div>
                                     </div>
 
-                                    {% if field.errors %} 
-                                        
+                                    {% comment %}
+                                    {% if field.errors %}
+
                                         <div class="ui popup" id="{{field.id_for_label}}-popup">
                                             <div class="header">Errors:</div>
                                             <div class="ui bulleted list">
@@ -104,17 +110,17 @@
                                             </div>
                                         </div>
                                     {% endif %}
+                                    {% endcomment %}
 
-                                    
                                 </td>
 
                             {% endfor %}
-                            
-                            
+
+
                         </tr>
                     {% endfor %}
                 </tbody>
-                
+
                 <tfoot class="full-width">
                     <tr>
                         <th></th>
@@ -136,14 +142,21 @@
 
 {% block extra_js %}
 
+
+    {{ formset_errors|json_script:"formset-error-data" }}
+
+    {{ mu_grids|json_script:"mu-grids-data" }}
+
+
+
     <script>
 
      // our form validation will go here.
-     $('.error')
-         .popup( {
-             position : 'bottom center',
-             inline: true
-         });
+     /* $('.error')
+      *     .popup( {
+      *         position : 'bottom center',
+      *         inline: true
+      *     }); */
 
      $('#upload-form').form({
          onSuccess: function(e) {
@@ -151,10 +164,13 @@
          }
      });
 
+     const form_errors = JSON.parse(document.getElementById('formset-error-data').textContent);
+     const mu_grids = JSON.parse(document.getElementById('mu-grids-data').textContent);
 
-     
-     
     </script>
+
+    <script src="{% static "js/xlsx_event_validation.js" %}"></script>
+
 
 
 {% endblock extra_js%}

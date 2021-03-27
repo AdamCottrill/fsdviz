@@ -171,17 +171,47 @@ def validate_upload(events, user):
     valid = True
     msg = None
 
-    if len(events) > 0:
-        received_fields = set([str(x) for x in events[0].keys()])
+    if len(events) == 0:
+        valid = False
+        msg = "The uploaded file does not appear to contain any stocking records!"
+        return valid, msg
     else:
-        received_fields = {}
+        received_fields = set([str(x) for x in events[0].keys()])
 
-    agencies = set([x.get("agency") for x in events if x.get("agency") is not None])
+    agencies_set = set([x.get("agency") for x in events if x.get("agency") is not None])
+    agencies = list(agencies_set)
 
-    lakes = set([x.get("lake") for x in events if x.get("lake") is not None])
+    lakes_set = set([x.get("lake") for x in events if x.get("lake") is not None])
+    lakes = list(lakes_set)
+
+    if len(agencies) > 1:
+        valid = False
+        msg = (
+            "The uploaded file has more than one agency."
+            + " Data submissions are limited to a single lake and agency. "
+        )
+        return valid, msg
+    if len(lakes) > 1:
+        valid = False
+        msg = (
+            "The uploaded file has more than one lake."
+            + " Data submissions are limited to a single lake and agency. "
+        )
+        return valid, msg
+
+    if not Lake.objects.filter(abbrev__in=lakes):
+        valid = False
+        msg = "The uploaded file appears to contain events for an unknown Lake: {}."
+        return valid, msg.format(",".join(lakes))
+
+    if not Agency.objects.filter(abbrev__in=agencies):
+        valid = False
+        msg = "The uploaded file appears to contain events for an unknown Agency: {}."
+
+        return valid, msg.format(",".join(agencies))
 
     if len(lakes) == 1 and len(agencies) == 1:
-        lake_agency = {"lake": lakes.pop(), "agency": agencies.pop()}
+        lake_agency = {"lake": lakes[0], "agency": agencies[0]}
         if user_can_create_edit_delete(user, lake_agency) is False:
             valid = False
             msg = (
@@ -197,26 +227,8 @@ def validate_upload(events, user):
             + "smaller packets (e.g by species)."
         )
         return valid, msg
-    elif len(events) == 0:
-        valid = False
-        msg = "The uploaded file does not appear to contain any stocking records!"
-        return valid, msg
 
-    elif len(agencies) > 1:
-        valid = False
-        msg = (
-            "The uploaded file has more than one agency."
-            + " Data submissions are limited to a single lake and agency. "
-        )
-        return valid, msg
-    elif len(lakes) > 1:
-        valid = False
-        msg = (
-            "The uploaded file has more than one lake."
-            + " Data submissions are limited to a single lake and agency. "
-        )
-        return valid, msg
-    elif len(set(REQUIRED_FIELDS) - received_fields) >= 1:
+    if len(set(REQUIRED_FIELDS) - received_fields) >= 1:
         valid = False
         missing_flds = list(set(REQUIRED_FIELDS) - received_fields)
         missing_flds.sort()
@@ -238,7 +250,7 @@ def validate_upload(events, user):
                 + "These fields are required in a valid data upload template."
             ).format(field_list)
         return valid, msg
-    elif len(received_fields - set(REQUIRED_FIELDS)) >= 1:
+    if len(received_fields - set(REQUIRED_FIELDS)) >= 1:
         valid = False
         # note - this should be a non-critical error
 

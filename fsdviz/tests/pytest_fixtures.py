@@ -91,6 +91,15 @@ def mdnr(db):
 
 
 @pytest.fixture(scope=SCOPE)
+def mnrf(db):
+    """a fixture for (Ontario) Ministry of Natural Resoures and Forestry"""
+    mdnr = AgencyFactory(
+        abbrev="MNRF", agency_name="Ontario Ministry of Natural Resoures and Forestry"
+    )
+    return mdnr
+
+
+@pytest.fixture(scope=SCOPE)
 def usfws(db):
     """a fixture for the US Fish and Wildlife Servce"""
     usfws = AgencyFactory(abbrev="USWFS", agency_name="U.S. Fish and Wildlife Servce")
@@ -289,6 +298,14 @@ invalid_xlsfiles = [
             "The uploaded file has more than one lake."
             + " Data submissions are limited to a single lake and agency. "
         ),
+    ),
+    (
+        "fsdviz/tests/xls_files/unknown_lake.xlsx",
+        ("The uploaded file appears to contain events for an unknown Lake: Simcoe."),
+    ),
+    (
+        "fsdviz/tests/xls_files/unknown_agency.xlsx",
+        ("The uploaded file appears to contain events for an unknown Agency: ZZ."),
     ),
     (
         "fsdviz/tests/xls_files/too_many_missing_fields.xlsx",

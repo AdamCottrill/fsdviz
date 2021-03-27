@@ -30,6 +30,7 @@ from fsdviz.tests.pytest_fixtures import (
     user,
     glsc,
     mdnr,
+    mnrf,
     huron,
     huron_mdnr_sc,
     invalid_xlsfiles,
@@ -56,11 +57,11 @@ from fsdviz.stocking.utils import get_xls_form_choices
 
 
 @pytest.mark.parametrize("xlsfile, message", invalid_xlsfiles)
-def test_file_upload_invalid_spreadsheet(client, glsc, xlsfile, message):
+def test_file_upload_invalid_spreadsheet(client, glsc, huron, mnrf, xlsfile, message):
     """Before the data in the spreadsheet can be validated on a
     row-by-row basis, the basic assimptions and shape of the data must
     be confirmed.  If any of the basic tests fail, we need to return
-    to upload form and provide a meaningful messagek This test is
+    to upload form and provide a meaningful message. This test is
     paramaeterized and takes a list of two element tuples covering the
     cases verifying that the uploaded data has between 1 and the max
     number of rows, that all of the required fields are included, but
@@ -83,10 +84,6 @@ def test_file_upload_invalid_spreadsheet(client, glsc, xlsfile, message):
     url = reverse("stocking:upload-stocking-events")
     with open(xlsfile, "rb") as fp:
         response = client.post(url, {"data_file": fp}, follow=True)
-        fname = "c:/1work/scrapbook/wtf.html"
-        with open(fname, "wb") as f:
-            f.write(response.content)
-
         assert response.status_code == 200
         assertTemplateUsed("stocking/upload_stocking_events.html")
         assertContains(response, message, html=True)
@@ -205,10 +202,13 @@ class TestFileUpload:
     @pytest.mark.django_db
     def setup(self):
 
-        lake = LakeFactory(abbrev="HU", lake_name="Huron")
+        lake = LakeFactory(abbrev="HU", lake_name="Lake Huron")
+        LakeFactory(abbrev="SU", lake_name="Superior")
         ManagementUnitFactory(label="NC2", lake=lake, primary=True)
         StateProvinceFactory(abbrev="ON")
         AgencyFactory.create(abbrev="MNRF")
+        AgencyFactory.create(abbrev="MDNR")
+        AgencyFactory.create(abbrev="USFWS")
 
         Grid10Factory.create(lake=lake, grid="214")
         SpeciesFactory(abbrev="LAT", common_name="Lake Trout")
@@ -237,11 +237,11 @@ class TestFileUpload:
         ]
         assert list(xls_choices.keys()) == expected
 
-        expected = [("HU", "HU")]
-        assert xls_choices["lakes"] == expected
+        expected = [("HU", "HU"), ("SU", "SU")]
+        assert set(xls_choices["lakes"]) == set(expected)
 
-        expected = [("MNRF", "MNRF")]
-        assert xls_choices["agencies"] == expected
+        expected = [("MNRF", "MNRF"), ("USFWS", "USFWS"), ("MDNR", "MDNR")]
+        assert set(xls_choices["agencies"]) == set(expected)
 
         expected = [("ON", "ON")]
         assert xls_choices["state_prov"] == expected
@@ -289,7 +289,14 @@ class TestFileUpload:
         a select widget) it should render in the xls_events_form, but the
         unknown value should be disabled in the dropdown list.
 
+        # an unknown lake or agency needs to be handled by the upload
+        # validation if one of hte other select fields has a selection
+        # that is not known to exist - it should be flagged as a
+        # problem and disabled in the drop down.
+
         """
+
+        assert 0 == 1
 
         login = client.login(email=glsc.email, password="Abcd1234")
         assert login is True
@@ -323,6 +330,25 @@ class TestFileUpload:
             response = client.post(url, {"data_file": fp}, follow=True)
             assert response.status_code == 200
             assertTemplateUsed("stocking/xls_events_form.html")
+
+    def test_agency_and_lake_appear_in_upload_form_heading(self, client, glsc):
+        """When the upload form renders, it should clearly indictate which
+        lake and agency the events will be associated with.
+
+        "MNRF stocking events in Lake Huron"
+
+        """
+        login = client.login(email=glsc.email, password="Abcd1234")
+        assert login is True
+
+        url = reverse("stocking:upload-stocking-events")
+
+        with open("fsdviz/tests/xls_files/mnrf_huron.xlsx", "rb") as fp:
+            response = client.post(url, {"data_file": fp}, follow=True)
+            assert response.status_code == 200
+            assertTemplateUsed("stocking/xls_events_form.html")
+            heading = "<h1>1 Uploaded MNRF Stocking Event for Lake Huron</h1>"
+            assertContains(response, heading, html=True)
 
     def test_gl_coordinator_not_limited_to_their_agency(self, client, glsc):
         """A great Lakes stocking coordinator should be able to upload
