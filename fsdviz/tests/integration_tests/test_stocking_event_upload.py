@@ -196,6 +196,53 @@ def test_authorized_users_can_upload(client, user):
     )
 
 
+def test_upload_form_contains_some_instructions(client, user):
+    """If an authorized user accesses the upload url, they will be
+     presented with a form that should include some basic instructions
+     on the requirements of the uploaded data:
+
+    + "To upload stocking events you must"
+
+    + "Use the offial stocking event upload template"
+
+    + "Ensure that any errors identified by the spreadsheet
+    validation have been addressed before uploading the file"
+
+    + "Limit your submission to a single agency and lake"
+
+    + "Ensure that your upload contains few events than the event
+    limit"
+
+    """
+
+    login = client.login(email=user.email, password="Abcd1234")
+    assert login is True
+
+    url = reverse("stocking:upload-stocking-events")
+    response = client.get(url)
+    assert response.status_code == 200
+    assertTemplateUsed("stocking/upload_stocking_events.html")
+
+    fname = "c:/1work/scrapbook/wtf.html"
+    with open(fname, "wb") as f:
+        f.write(response.content)
+
+    messages = [
+        "To upload stocking events you must:",
+        "Use the offial stocking event upload template",
+        """Ensure that any errors
+                        identified by the spreadsheet validation have
+                        been addressed before uploading the file""",
+        """Limit your submission to a
+                        single agency and lake""",
+        """Ensure that your upload contains few events than
+                            the event limit""",
+    ]
+
+    for msg in messages:
+        assertContains(response, msg)
+
+
 class TestFileUpload:
     """tests in this class use the database values created in the setup."""
 

@@ -957,10 +957,13 @@ def upload_events(request):
 
     """
 
-    data = {}
+    # data = {}
+    maxEvents = settings.MAX_UPLOAD_EVENT_COUNT
 
     if request.method == "GET":
-        return render(request, "stocking/upload_stocking_events.html", data)
+        return render(
+            request, "stocking/upload_stocking_events.html", {"maxEvents": maxEvents}
+        )
 
     try:
         data_file = request.FILES["data_file"]
