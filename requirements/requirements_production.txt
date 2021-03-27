@@ -36,7 +36,7 @@ django-rest-swagger==2.2.0
     # via -r base.in
 django-taggit==1.1.0
     # via -r base.in
-django==2.2.17
+django==2.2.19
     # via
     #   -r base.in
     #   django-cors-headers
@@ -45,7 +45,7 @@ django==2.2.17
     #   django-rest-auth
     #   django-taggit
     #   djangorestframework
-djangorestframework==3.12.2
+djangorestframework==3.12.4
     # via
     #   -r base.in
     #   django-rest-auth
@@ -65,7 +65,7 @@ itypes==1.1.0
     # via coreapi
 jdcal==1.4.1
     # via openpyxl
-jinja2==2.10.1
+jinja2==2.11.3
     # via coreschema
 markdown2==2.3.10
     # via -r base.in
@@ -83,7 +83,7 @@ psycopg2==2.8.6
     # via -r base.in
 pytz==2018.9
     # via django
-pyyaml==5.1
+pyyaml==5.4
     # via -r base.in
 requests==2.22.0
     # via coreapi
