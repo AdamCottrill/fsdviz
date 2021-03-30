@@ -155,4 +155,19 @@ export default [
     },
     plugins: plugins,
   },
+
+  {
+    input: "fsdviz/js_src/xlsx_event_validation.js",
+    onwarn: onwarn,
+    output: {
+      name: "xlsx_upload_validations",
+      file: "fsdviz/static/js/xlsx_event_validation.js",
+      format: "iife",
+      sourcemap: "inline",
+      // globals: {
+      //     jQuery: "$",
+      // },
+    },
+    plugins: plugins,
+  },
 ];

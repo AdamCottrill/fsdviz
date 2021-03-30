@@ -218,14 +218,15 @@ class XlsEventForm(forms.Form):
 
         lake = self.initial.get("lake", "HU")
 
-        self.fields["lake"].choices = self.choices.get("lakes", [])
+        # self.fields["lake"].choices = self.choices.get("lakes", [])
+        # self.fields["agency"].choices = self.choices.get("agencies")
+
         self.fields["state_prov"].choices = self.choices.get("state_prov")
         self.fields["stat_dist"].choices = self.choices.get("stat_dist", []).get(
             lake, []
         )
         self.fields["grid"].choices = self.choices.get("grids", []).get(lake, [])
 
-        self.fields["agency"].choices = self.choices.get("agencies")
         self.fields["species"].choices = self.choices.get("species")
         self.fields["stock_meth"].choices = self.choices.get("stocking_method")
         self.fields["stage"].choices = self.choices.get("lifestage")
@@ -236,11 +237,11 @@ class XlsEventForm(forms.Form):
         # disable it in html when it is rendered).
 
         fields = [
-            "lake",
+            #   "lake",
+            #   "agency",
             "state_prov",
             "stat_dist",
             "grid",
-            "agency",
             "species",
             "stock_meth",
             "stage",
@@ -266,27 +267,34 @@ class XlsEventForm(forms.Form):
         (10, "Oct"),
         (11, "Nov"),
         (12, "Dec"),
-        ("", "Unk"),
+        (None, "Unk"),
     )
 
     # not sure if the the best approach:
-    DAYS = [("", "Ukn")] + list(zip(range(1, 32), range(1, 32)))
+    DAYS = [(None, "Unk")] + list(zip(range(1, 32), range(1, 32)))
 
-    agency = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    lake = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    state_prov = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    # agency = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    # lake = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    agency = forms.CharField(widget=forms.HiddenInput())
+    lake = forms.CharField(widget=forms.HiddenInput())
+
     year = forms.IntegerField(
         min_value=1950, max_value=datetime.now().year, required=True
     )
     month = forms.ChoiceField(choices=MONTHS)
     day = forms.ChoiceField(choices=DAYS)
+
+    state_prov = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     stat_dist = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     grid = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    latitude = forms.CharField()
+    longitude = forms.CharField()
     site = forms.CharField(required=True)
     st_site = forms.CharField(required=False)
     ##{'bbox': (-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947)}
-    latitude = forms.FloatField(min_value=41.3, max_value=49.1)
-    longitude = forms.FloatField(min_value=-92.0, max_value=-76.0)
+    # latitude = forms.FloatField(min_value=41.3, max_value=49.1)
+    # longitude = forms.FloatField(min_value=-92.0, max_value=-76.0)
+
     species = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     strain = forms.CharField(required=True)
     stage = forms.ChoiceField(choices=[], required=True, widget=MySelect)
@@ -311,7 +319,7 @@ class XlsEventForm(forms.Form):
     finclip = forms.CharField(required=False)
     clip_efficiency = forms.FloatField(min_value=0, max_value=100, required=False)
     physchem_mark = forms.CharField(required=False)  # choice field some day
-    # fish_tags = forms.ChoiceField(choices=[], required=False, widget=MySelect)
+    tag_type = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     hatchery = forms.CharField(required=False)  # choice field some day too
     agency_stock_id = forms.CharField(required=False)
 
@@ -348,12 +356,12 @@ class XlsEventForm(forms.Form):
     notes.widget.attrs["data-validate"] = "validate-notes"
 
     # new - spring 2020
-    # finclip.widget.attrs["data-validate"] = "validate-finclips"
-    # clip_efficiency.widget.attrs["data-validate"] = "validate-clip-efficency"
-    # physchem_mark.widget.attrs["data-validate"] = "validate-physchem-marks"
-    # fish_tags.widget.attrs["data-validate"] = "validate-fish_tags"
-    # hatchery.widget.attrs["data-validate"] = "validate-hatchery"
-    # agency_stock_id.widget.attrs["data-validate"] = "validate-agency-stock-id"
+    finclip.widget.attrs["data-validate"] = "validate-finclips"
+    clip_efficiency.widget.attrs["data-validate"] = "validate-clip-efficency"
+    physchem_mark.widget.attrs["data-validate"] = "validate-physchem-marks"
+    tag_type.widget.attrs["data-validate"] = "validate-tag-type"
+    hatchery.widget.attrs["data-validate"] = "validate-hatchery"
+    agency_stock_id.widget.attrs["data-validate"] = "validate-agency-stock-id"
 
     def clean_grid(self):
 

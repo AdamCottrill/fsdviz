@@ -1,5 +1,24 @@
 /* global $ */
 
+// disable button if there are any errors - or submitting is true....
+/** given an array of two element arrays, return an object keyed by
+ * the unique values in the first element.  the entries of the objects
+ * will be an array of the second object.  Used to make dynamic select
+ * widgets - choice can change depending on the value of the key
+ * (e.g. strains depend on species) */
+export const make_choices = (values) => {
+  const choices = values.reduce((acc, x) => {
+    let [key, val] = x;
+    if (!acc.hasOwnProperty(key)) {
+      acc[key] = [];
+    }
+    acc[key] = [...acc[key], val];
+    //acc[key].push(val);
+    return acc;
+  }, {});
+  return choices;
+};
+
 export async function getChoices(url, success, errmsg) {
   await $.ajax({
     url: url,
@@ -11,11 +30,10 @@ export async function getChoices(url, success, errmsg) {
   });
 }
 
+/**  Verify that the selected option has a value, flag the select
+ *   box if it doesn't and add a meaningful message
+ *   eg - 'Seneca' is not a valid choice for Chinook Salmon */
 export const checkMyChoice = (myId, parentId) => {
-  // verify that the selected option has a value, flag the select
-  // box if it doesn't and add a meaning ful message
-  // eg - 'Seneca' is not a valid choice for Chinook Salmon
-
   //const el = $(`#${myId}`);
   const selected_val = $(`#${myId} option:selected`).val();
   const selected_text = $(`#${myId} option:selected`).text();

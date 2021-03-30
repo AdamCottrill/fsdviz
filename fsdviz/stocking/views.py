@@ -1155,9 +1155,9 @@ def xls_events(request):
         xls_events = request.session.get("data", {})
         event_count = len(xls_events)
 
-        # TODO - this needs to be limited to a single lake ange agency
-        lake = Lake.objects.get(abbrev=xls_events[0].get("lake"))
         agency = Agency.objects.get(abbrev=xls_events[0].get("agency"))
+        lake = Lake.objects.get(abbrev=xls_events[0].get("lake"))
+        bbox = lake.geom.envelope.buffer(0.2).extent
 
         mu_grids = (
             ManagementUnit.objects.filter(lake=lake, mu_type="stat_dist")
@@ -1179,7 +1179,8 @@ def xls_events(request):
             "formset_errors": formset_errors,
             "mu_grids": list(mu_grids),
             "lake": lake,
-            "agency": agency
+            "agency": agency,
+            "bbox": bbox
             # "lakes": lake_id_lookup,
             # "agencies": agency_id_lookup,
             # "stateprovs": stateProv_id_lookup,

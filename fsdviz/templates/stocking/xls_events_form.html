@@ -53,12 +53,11 @@
             <table class="ui small very compact single line table">
                 <thead>
                     <tr class="center aligned">
-                        <th>Agency</th>
-                        <th>Lake</th>
-                        <th>State/Prov</th>
+                        <th>Valid</th>
                         <th>Year</th>
                         <th>Month</th>
                         <th>Day</th>
+                        <th>State/Prov</th>
                         <th>Stat. Dist.</th>
                         <th>Grid</th>
                         <th>Site</th>
@@ -88,34 +87,23 @@
                 </thead>
                 <tbody>
                     {% for form in formset %}
-                        <tr id="id_form-{{forloop.counter0}}-row">
-                            {%  for field in form %}
+                        <tr class="" id="id_form-{{forloop.counter0}}-row">
 
-                                <td>
+                            <td class="center aligned">
+                                <i id="id_form-{{forloop.counter0}}-icon" class="green check icon"></i>
+                            </td>
+
+                            {%  for field in form.visible_fields %}
+
+                                <td  >
                                     <div class="field {% if field.errors %} error{% endif %}" id="{{field.id_for_label}}-field">
                                         <div class="ui mini input">
                                             {{ field }}
                                         </div>
                                     </div>
-
-                                    {% comment %}
-                                    {% if field.errors %}
-
-                                        <div class="ui popup" id="{{field.id_for_label}}-popup">
-                                            <div class="header">Errors:</div>
-                                            <div class="ui bulleted list">
-                                                {% for error in field.errors  %}
-                                                    <div class="item">{{ error|escape }}</div>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    {% endif %}
-                                    {% endcomment %}
-
                                 </td>
 
                             {% endfor %}
-
 
                         </tr>
                     {% endfor %}
@@ -147,7 +135,7 @@
 
     {{ mu_grids|json_script:"mu-grids-data" }}
 
-
+    {{ bbox|json_script:"lake-envelope" }}
 
     <script>
 
@@ -166,6 +154,7 @@
 
      const form_errors = JSON.parse(document.getElementById('formset-error-data').textContent);
      const mu_grids = JSON.parse(document.getElementById('mu-grids-data').textContent);
+     let lake_bbox = JSON.parse(document.getElementById('lake-envelope').textContent);
 
     </script>
 

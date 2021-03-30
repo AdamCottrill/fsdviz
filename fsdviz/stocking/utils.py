@@ -211,7 +211,9 @@ def validate_upload(events, user):
         return valid, msg.format(",".join(agencies))
 
     if len(lakes) == 1 and len(agencies) == 1:
-        lake_agency = {"lake": lakes[0], "agency": agencies[0]}
+        agency = Agency.objects.filter(abbrev=agencies[0]).first()
+        lake = Lake.objects.filter(abbrev=lakes[0]).first()
+        lake_agency = {"lake": lake, "agency": agency}
         if user_can_create_edit_delete(user, lake_agency) is False:
             valid = False
             msg = (
