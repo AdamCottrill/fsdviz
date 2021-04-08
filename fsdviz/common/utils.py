@@ -20,6 +20,8 @@ from django.contrib.gis.gdal.error import GDALException
 
 from django_filters import BaseInFilter, CharFilter, NumberFilter
 
+from .models import Lake, Jurisdiction, ManagementUnit, Grid10
+
 
 class ValueInFilter(BaseInFilter, CharFilter):
     pass
@@ -103,6 +105,93 @@ def parse_geom(data):
     else:
         # the data was not a valid Point in either geojson or wkt
         return None
+
+
+def get_polygons(pt):
+    """a GEOSGeometry point object polygonsurns a dictionary containing the
+    lake, jurisdiction, management_unit, and grid10 objects that
+    contain the point.  Used to validate the spatial widgets in the
+    stocking event and stocking upload forms.  Given a lat-lon, polygonsurn
+    a dictionary with the following elements:
+
+    + lake - with id, lake name, lake abbrev
+    + juristiction - with id, stateprov name, stateprov abbrev
+    + manUnit - id, label
+    + grid10 - id, label, lake abbrev.
+
+    post data should contain a json string of the form:
+
+    Arguments:
+    - `pt`: a  GEOSGeometry Point object
+
+    """
+
+    polygons = dict()
+
+    lake = Lake.objects.filter(geom__contains=pt).first()
+    if lake:
+        polygons["lake"] = dict(
+            id=lake.id,
+            abbrev=lake.abbrev,
+            lake_name=lake.lake_name,
+            centroid=lake.geom.centroid.wkt,
+        )
+    else:
+        polygons["lake"] = ""
+
+    jurisdiction = (
+        Jurisdiction.objects.select_related("lake", "stateprov")
+        .filter(geom__contains=pt)
+        .first()
+    )
+
+    if jurisdiction:
+        polygons["jurisdiction"] = dict(
+            id=jurisdiction.id,
+            # lake attributes:
+            lake_id=jurisdiction.lake.id,
+            lake_abbrev=jurisdiction.lake.abbrev,
+            lake_name=jurisdiction.lake.lake_name,
+            # state prov. attributes:
+            stateprov_id=jurisdiction.stateprov.id,
+            stateprov_abbrev=jurisdiction.stateprov.abbrev,
+            stateprov_name=jurisdiction.stateprov.name,
+            # jurisdiction attributes
+            jurisdiction_name=jurisdiction.name,
+            centroid=jurisdiction.geom.centroid.wkt,
+        )
+    else:
+        polygons["jurisdiction"] = ""
+
+    manUnit = (
+        ManagementUnit.objects.filter(geom__contains=pt)
+        .filter(mu_type="stat_dist")
+        .first()
+    )
+    if manUnit:
+        polygons["manUnit"] = dict(
+            id=manUnit.id,
+            slug=manUnit.slug,
+            label=manUnit.label,
+            centroid=manUnit.geom.centroid.wkt,
+        )
+    else:
+        polygons["manUnit"] = ""
+
+    grid10 = Grid10.objects.select_related("lake").filter(geom__contains=pt).first()
+
+    if grid10:
+        polygons["grid10"] = dict(
+            id=grid10.id,
+            grid=grid10.grid,
+            slug=grid10.slug,
+            centroid=grid10.geom.centroid.wkt,
+            lake_abbrev=grid10.lake.abbrev,
+        )
+    else:
+        polygons["grid10"] = ""
+
+    return polygons
 
 
 def to_lake_dict(object_list, has_id=False):

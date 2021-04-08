@@ -435,14 +435,14 @@ class StockingEventForm(forms.Form):
         # reflects currently submitted form.
         self.cwt_formset = kwargs.pop("cwt_formset", None)
         self.has_cwts = kwargs.pop("has_cwts", False)
+        self.user = kwargs.pop("user", None)
 
         super(StockingEventForm, self).__init__(*args, **kwargs)
 
-        self.fields["lake_id"].choices = self.choices.get("lakes", [])
         self.fields["state_prov_id"].choices = self.choices.get("state_provs")
         self.fields["management_unit_id"].choices = self.choices.get("managementUnits")
         self.fields["grid_10_id"].choices = self.choices.get("grids")
-        self.fields["agency_id"].choices = self.choices.get("agencies")
+
         self.fields["species_id"].choices = self.choices.get("species")
         self.fields["strain_raw_id"].choices = self.choices.get("strains")
         self.fields["stocking_method_id"].choices = self.choices.get("stocking_methods")
@@ -464,6 +464,26 @@ class StockingEventForm(forms.Form):
         self.fields["fish_tags"].choices = [
             ("", "Select Tag Type(s)")
         ] + self.choices.get("fish_tags")
+
+        # the choices for lake(s) and agency depend on the role of our user:
+
+        if self.user.role == "glsc":
+            self.fields["agency_id"].choices = self.choices.get("agencies")
+            self.fields["lake_id"].choices = self.choices.get("lakes", [])
+        else:
+
+            self.fields["agency_id"].choices = [
+                x
+                for x in self.choices.get("agencies", [])
+                if x[0] == self.user.agency.id
+            ]
+            self.fields["agency_id"].widget.attrs["readonly"] = True
+
+            user_lakes = [x.id for x in self.user.lakes.all()]
+            lake_choices = [
+                x for x in self.choices.get("lakes", []) if x[0] in user_lakes
+            ]
+            self.fields["lake_id"].choices = lake_choices
 
         # if our intitial data contains values that are not in our list of choices
         # add it to front of each list with a "" as its id (that will automaticlly
@@ -747,18 +767,17 @@ class StockingEventForm(forms.Form):
         cwt_numbers = data.get("cwt_numbers")
         validate_cwt(cwt_numbers)
 
-        has_cwts = self.has_cwts
-        cwt_formset = self.cwt_formset
+        cwts = False
+        # cwt_formset = self.cwt_formset if self.cwt_formset else False
 
-        if cwt_formset:
-            # filter out any cwts we are going to delete and see if there are any left:
-            cwts = (
-                all([True for x in cwt_formset if x.get("delete") is False])
-                if cwt_formset
-                else False
-            )
-        else:
-            cwts = False
+        if self.cwt_formset:
+            if len(self.cwt_formset):
+                # filter out any cwts we are going to delete and see if there are any left:
+                cwts = (
+                    all([True for x in self.cwt_formset if x.get("delete") is False])
+                    if self.cwt_formset
+                    else False
+                )
 
         # there are some cwts listed, but cwt is not selected
         if cwts and "CWT" not in fish_tags:
@@ -769,36 +788,6 @@ class StockingEventForm(forms.Form):
         if cwts is False and "CWT" in fish_tags:
             msg = "At least one CWT needs to be associated with this event if tag type 'CWT' is selected."
             raise forms.ValidationError(msg, code="invalid_missing_cwt")
-
-        # # cwt data must be unique
-
-        # # if cwt tagtype is sequential, both start and end must be
-        # # provided and start must be less than end.
-
-        # if cwts:
-        #     for cwt in cwt_formset:
-        #         if cwt.get("delete", False):
-        #             continue
-        #         # cwt_number = cwt.get("cwt_number")
-        #         tag_type = cwt.get("tag_type")
-        #         # manufacturer=cwt.get("manufacturer")
-        #         seq_start = cwt.get("sequence_start")
-        #         seq_end = cwt.get("sequence_end")
-
-        #         print(tag_type, seq_start, seq_end)
-
-        #         if tag_type == "sequential" and seq_start is None and seq_end is None:
-        #             msg = "Sequence start and end must be provided for sequential tags."
-        #             raise forms.ValidationError(msg, code="invalid_cwt_sequence")
-        #         if tag_type == "sequential" and seq_start is None:
-        #             msg = "Sequence start must be provided for sequential tags."
-        #             raise forms.ValidationError(msg, code="invalid_cwt_sequence")
-        #         if tag_type == "sequential" and seq_end is None:
-        #             msg = "Sequence end must be provided for sequential tags."
-        #             raise forms.ValidationError(msg, code="invalid_cwt_sequence")
-
-        #         if tag_type == "sequential":
-        #             validate_cwt_sequence_range([seq_start, seq_end])
 
         # FINCLIPS, MARKS and MARK EFFICIENCY
 

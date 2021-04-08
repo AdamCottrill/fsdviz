@@ -11,15 +11,15 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
     <script src= "https://unpkg.com/leaflet@1.5.1/dist/leaflet-src.js"></script>
 
-    
+
     <style>
 
      .cwt-warning {
          color: red;
      }
-     
+
     </style>
-    
+
 {% endblock %}
 
 
@@ -47,7 +47,7 @@
             <div class="four wide column">
 
                 {% for cwt in cwts %}
-                    
+
                 <div class="ui card">
                     <div class="content">
                         <div class="header">CWT Number:  {{cwt.cwt_number | format_cwt}}</div>
@@ -70,8 +70,8 @@
                                 <p {% if cwt.multiple_yearclasses %} class="cwt-warning" {% endif %}>
                                     <strong>Multiple Year Classes:</strong> {{cwt.multiple_yearclasses}}</p>
                                 <p {% if cwt.multiple_agencies %} class="cwt-warning" {% endif %}>
-                                    <strong>Multiple Agencies:</strong> {{cwt.multiple_agencies}}</p>                               
-                            </div>                                
+                                    <strong>Multiple Agencies:</strong> {{cwt.multiple_agencies}}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
             <h4>Stocking Events {% if cwtseq.sequence.upper > 1 %} ({{cwtseq.sequence.lower}}-{{cwtseq.sequence.upper}}) {% endif %} </h4>
 
             {% if cwts.count > 1 %} <p> <strong> Manufacturer:</strong> {{ cwtseq.cwt.get_manufacturer_display }} </p>  {% endif %}
-            
+
             <table class="ui very compact celled table tablesorter" style="font-size: 0.9em">
                 <thead>
                     <tr>
@@ -149,10 +149,10 @@
 
     {{ bbox|json_script:"map-bounds" }}
     {{ event_points|json_script:"event-points" }}
-    
+
     <script>
-     let pts = JSON.parse(document.getElementById('event-points').textContent);     
-     let bbox = JSON.parse(document.getElementById('map-bounds').textContent);     
+     let pts = JSON.parse(document.getElementById('event-points').textContent);
+     let bbox = JSON.parse(document.getElementById('map-bounds').textContent);
      let mapBounds = [bbox.slice(0,2), bbox.slice(2)];
 
      // setup the map with rough bounds (need to get pies to plot first,
@@ -167,8 +167,8 @@
      '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
          maxZoom: 18
      }).addTo(mymap);
-     
-     
+
+
      pts.forEach(function(pt){
          L.circleMarker([  pt[2] , pt[1] ], {
              color: 'red',
@@ -180,9 +180,7 @@
 
 
 
-     
+
     </script>
-    
+
 {% endblock %}
-
-

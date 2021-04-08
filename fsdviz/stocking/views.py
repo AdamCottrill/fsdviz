@@ -1165,7 +1165,7 @@ def xls_events(request):
             .order_by("label", "grid10s__grid")
             .values_list("label", "grid10s__grid")
         )
-        # get points and valid stocking events in our upload"
+        # get points and valid stocking events in our upload here
         #
 
         formset = EventFormSet(initial=xls_events, form_kwargs={"choices": choices})
@@ -1233,13 +1233,15 @@ def edit_stocking_event(request, stock_id):
                 choices=choices,
                 cwt_formset=formset_data,
                 has_cwts=has_cwts,
+                user=request.user,
             )
         else:
             form = StockingEventForm(
                 request.POST,
                 choices=choices,
-                has_cwts=has_cwts
+                has_cwts=has_cwts,
                 # cwt_formset=cwt_formset.cleaned_data,
+                user=request.user,
             )
 
         if form.is_valid() and cwt_formset.is_valid():
@@ -1264,7 +1266,11 @@ def edit_stocking_event(request, stock_id):
         cwt_formset = CWTSequenceFormSet(initial=cwt_dict, prefix="cwtseries")
 
         form = StockingEventForm(
-            event_dict, choices=choices, has_cwts=has_cwts, cwt_formset=cwt_formset
+            event_dict,
+            choices=choices,
+            has_cwts=has_cwts,
+            cwt_formset=cwt_formset,
+            user=request.user,
         )
 
     return render(

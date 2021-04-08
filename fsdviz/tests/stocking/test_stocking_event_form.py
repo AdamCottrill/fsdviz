@@ -25,6 +25,9 @@ from ...stocking.forms import StockingEventForm
 from ..stocking_factories import StockingEventFactory
 from ..common_factories import FishTagFactory, FinClipFactory
 
+from ..pytest_fixtures import glsc, huron, mdnr
+from ..pytest_fixtures import huron_mdnr_sc as agency_sc
+
 SCOPE = "function"
 
 
@@ -62,12 +65,12 @@ def stocking_event(db):
 
 
 @pytest.mark.django_db
-def test_complete_valid_data(event):
+def test_complete_valid_data(event, glsc):
     """If we pass a dictionary with complete data, the form should be valid."""
 
     choices = get_event_model_form_choices(event)
     event_dict = create_event_dict(event)
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is True
@@ -90,7 +93,7 @@ choice_fields = [
 
 @pytest.mark.parametrize("field", choice_fields)
 @pytest.mark.django_db
-def test_invalid_choices(event, field):
+def test_invalid_choices(event, field, glsc):
     """This test verifies that the form returns a meaningful message if
     one of the choice fields contains an invalid choice. It takes a
     parameter that consists of a two element tuple containing the
@@ -110,7 +113,7 @@ def test_invalid_choices(event, field):
     new_choice = choices[choice_key][0][0] + 10
     event_dict[field_name] = new_choice
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is False
@@ -139,7 +142,7 @@ required_fields = [
 
 @pytest.mark.parametrize("field_name", required_fields)
 @pytest.mark.django_db
-def test_missing_required_field(event, field_name):
+def test_missing_required_field(event, field_name, glsc):
     """This test verifies that the form returns a meaningful message if
     one of the required fields is not populated. It is parameterized
     to take a list of requried field names, then submit the form with
@@ -156,7 +159,7 @@ def test_missing_required_field(event, field_name):
 
     event_dict[field_name] = None
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is False
@@ -183,7 +186,7 @@ optional_fields = [
 
 @pytest.mark.parametrize("field_name", optional_fields)
 @pytest.mark.django_db
-def test_missing_optional_field(event, field_name):
+def test_missing_optional_field(event, field_name, glsc):
     """This test verifies that the form is still valid if the optional
     fields are not provided. It is parameterized to take a list of
     requried field names, then submit the form with each field
@@ -198,7 +201,7 @@ def test_missing_optional_field(event, field_name):
 
     event_dict[field_name] = None
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is True
@@ -324,7 +327,7 @@ numeric_fields = [
 
 @pytest.mark.parametrize("field", numeric_fields)
 @pytest.mark.django_db
-def test_invalid_field_values(event, field):
+def test_invalid_field_values(event, field, glsc):
     """If we pass a dictionary with a value that is outside of the valid
     range or of the incorrect type for that field, we should get a
     meaningful error message.
@@ -344,7 +347,7 @@ def test_invalid_field_values(event, field):
     for val, msg in zip(values, messages):
         event_dict[field_name] = val
 
-        form = StockingEventForm(event_dict, choices=choices)
+        form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
         status = form.is_valid()
         assert status is False
@@ -354,7 +357,72 @@ def test_invalid_field_values(event, field):
 
 
 @pytest.mark.django_db
-def test_missing_month_no_day(event):
+def test_agency_select_disabled_for_agency_coordinator(event, agency_sc):
+    """Agency stocking coordinators should only be able to edit stocking
+    events associated with their agency - they shouldn't be able to change
+    the agency associated with an event (ie. - give it to anohter
+    agency). If they did, they would not be able to edit it again.
+
+    The agency select widget should be reaonly, and limited to the
+    agency associated with the agency coordinator.
+
+    Arguments:
+    - `event`:
+    - `agency_sc`:
+
+    """
+
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
+
+    form = StockingEventForm(event_dict, choices=choices, user=agency_sc)
+
+    agency_field = form.fields.get("agency_id")
+    assert len(agency_field.choices) == 1
+    choices_id = agency_field.choices[0][0]
+    assert choices_id == agency_sc.agency.id
+
+    assert agency_field.widget.attrs["readonly"] is True
+
+
+@pytest.mark.django_db
+def test_lake_select_limited_for_agency_coordinator(event, agency_sc):
+    """Agency stocking coordinators should only be able to edit stocking
+    events associated with the lakes that they are associated with -
+    they shouldn't be able to change the lake associated with an event
+    (ie. - move it to another lake). If they did, they would not be
+    able to edit it again.
+
+    The lake select widget should be limited to the lakes associated
+    with the agency coordinator who is using the form, but should not
+    be disabled or readonly.
+
+    Arguments:
+    - `event`:
+    - `agency_sc`:
+
+    """
+    # get a list of lake ids associated with our agency stocking coordinator:
+    user_lake_ids = [x.id for x in agency_sc.lakes.all()]
+
+    choices = get_event_model_form_choices(event)
+    event_dict = create_event_dict(event)
+
+    form = StockingEventForm(event_dict, choices=choices, user=agency_sc)
+
+    lake_field = form.fields.get("lake_id")
+
+    assert len(lake_field.choices) == len(user_lake_ids)
+
+    choices_id = lake_field.choices[0][0]
+    assert choices_id in user_lake_ids
+
+    assert lake_field.disabled is False
+    assert lake_field.widget.attrs.get("readonly") is None
+
+
+@pytest.mark.django_db
+def test_missing_month_no_day(event, glsc):
     """If we pass a dictionary that has an empty month id, an missing day value,
     the record should be created without issue.
 
@@ -368,14 +436,14 @@ def test_missing_month_no_day(event):
     event_dict["month"] = None
     event_dict["day"] = None
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is True
 
 
 @pytest.mark.django_db
-def test_missing_month_with_day(event):
+def test_missing_month_with_day(event, glsc):
     """If we pass a dictionary that has an empty month id, but a day value
     has been provided should get a meaningful error message.
 
@@ -388,7 +456,7 @@ def test_missing_month_with_day(event):
 
     event_dict["month"] = None
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is False
@@ -399,7 +467,7 @@ def test_missing_month_with_day(event):
 
 
 @pytest.mark.django_db
-def test_missing_day(event):
+def test_missing_day(event, glsc):
     """If we pass a dictionary that has an empty day value, the form
     should still be valid.
 
@@ -410,7 +478,7 @@ def test_missing_day(event):
 
     event_dict["day"] = None
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is True
@@ -437,7 +505,7 @@ invalid_dates = [
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("year, month, day, valid", invalid_dates)
-def test_invalid_date(event, year, month, day, valid):
+def test_invalid_date(event, glsc, year, month, day, valid):
     """If we pass a dictionary with day, month and year values that form
     an invalid date,  should get a meaningful error message.
 
@@ -455,7 +523,7 @@ def test_invalid_date(event, year, month, day, valid):
     # ensures that year_class doesn throw an error.
     event_dict["year_class"] = year
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is valid
@@ -476,7 +544,7 @@ def test_invalid_date(event, year, month, day, valid):
 
 @pytest.mark.xfail
 @pytest.mark.django_db
-def test_missing_stat_district_with_grid10(event):
+def test_missing_stat_district_with_grid10(event, glsc):
     """If we pass a dictionary that has an empty stat_district id,
     but a grid10 value as provided, we should get a meaningful error message.
 
@@ -490,7 +558,7 @@ def test_missing_stat_district_with_grid10(event):
 
 @pytest.mark.xfail
 @pytest.mark.django_db
-def test_missing_grid10_no_latlon(event):
+def test_missing_grid10_no_latlon(event, glsc):
     """If we pass a dictionary that has an empty grid10 id, and null
     lat-lon, the record should be created without issue, but the latlon
     flag should be set.
@@ -505,7 +573,7 @@ def test_missing_grid10_no_latlon(event):
 
 @pytest.mark.xfail
 @pytest.mark.django_db
-def test_missing_grid10_with_latlon(event):
+def test_missing_grid10_with_latlon(event, glsc):
     """If we pass a dictionary that has an empty grid10 id, and latlong
     was also provided, grid is a required field and should be
     consistent with the supplied coordinates.
@@ -519,7 +587,7 @@ def test_missing_grid10_with_latlon(event):
 
 
 @pytest.mark.django_db
-def test_missing_lat_but_no_lon(event):
+def test_missing_lat_but_no_lon(event, glsc):
     """If we pass a dictionary that has a latitude, but no longitude, we
     should be presented with a meaningful error message.
 
@@ -532,7 +600,7 @@ def test_missing_lat_but_no_lon(event):
 
     event_dict["dd_lon"] = None
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is False
@@ -542,7 +610,7 @@ def test_missing_lat_but_no_lon(event):
 
 
 @pytest.mark.django_db
-def test_missing_lon_but_no_lat(event):
+def test_missing_lon_but_no_lat(event, glsc):
     """If we pass a dictionary that has a longitude, but no latitude, we
     should be presented with a meaningful error message.
 
@@ -554,7 +622,7 @@ def test_missing_lon_but_no_lat(event):
 
     event_dict["dd_lat"] = None
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is False
@@ -564,7 +632,7 @@ def test_missing_lon_but_no_lat(event):
 
 
 @pytest.mark.django_db
-def test_missing_latlon(event):
+def test_missing_latlon(event, glsc):
     """If we pass a dictionary that has no longitude or latitude, the form
     should still be valid.
 
@@ -577,7 +645,7 @@ def test_missing_latlon(event):
     event_dict["dd_lat"] = None
     event_dict["dd_lon"] = None
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is True
@@ -640,7 +708,7 @@ coordinates = [
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("dd_lat, dd_lon, messages", coordinates)
-def test_coordinates_out_of_bounds(event, dd_lat, dd_lon, messages):
+def test_coordinates_out_of_bounds(event, glsc, dd_lat, dd_lon, messages):
     """If we pass in coordinates that exceed the bounds for lat and or
     lon, we should recieve appropriate error messages.  This test is
     parameterized to recieve and array of corrdinates and the expected
@@ -655,7 +723,7 @@ def test_coordinates_out_of_bounds(event, dd_lat, dd_lon, messages):
     event_dict["dd_lat"] = dd_lat
     event_dict["dd_lon"] = dd_lon
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is False
@@ -665,7 +733,7 @@ def test_coordinates_out_of_bounds(event, dd_lat, dd_lon, messages):
 
 
 @pytest.mark.django_db
-def test_future_year_class(event):
+def test_future_year_class(event, glsc):
     """If we pass a dictionary with an year_class that occurs ahead of the
     stocking year we should get a meaningful error message.
 
@@ -675,7 +743,7 @@ def test_future_year_class(event):
 
     event_dict["year_class"] = event_dict["year"] + 1
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is False
@@ -686,7 +754,7 @@ def test_future_year_class(event):
 
 # # clip - optional (required if clip efficency is populated). Must be valid string
 # @pytest.mark.django_db
-# def test_invalid_clip(event):
+# def test_invalid_clip(event, glsc):
 #     """If we pass a dictionary with an clip that does not exist, we
 #     should get a meaningful error message.
 
@@ -699,7 +767,7 @@ def test_future_year_class(event):
 
 
 # @pytest.mark.django_db
-# def test_missing_clip(event):
+# def test_missing_clip(event, glsc):
 #     """If we pass a dictionary that has an empty clip, the record
 #     should still be created.
 
@@ -712,7 +780,7 @@ def test_future_year_class(event):
 
 
 @pytest.mark.django_db
-def test_invalid_physchem_mark(event):
+def test_invalid_physchem_mark(event, glsc):
     """If we pass a dictionary with an mark that does not exist, we
     should get a meaningful error message.
 
@@ -726,7 +794,7 @@ def test_invalid_physchem_mark(event):
     event_dict = create_event_dict(event)
     event_dict["physchem_marks"] = ["XX"]
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
     status = form.is_valid()
     assert status is False
 
@@ -737,14 +805,14 @@ def test_invalid_physchem_mark(event):
 
 
 @pytest.mark.django_db
-def test_mark_effectiveness_without_physchem_mark(event):
+def test_mark_effectiveness_without_physchem_mark(event, glsc):
     """Mark retention should be null if physchem mark is null"""
     choices = get_event_model_form_choices(event)
     event_dict = create_event_dict(event)
 
     event_dict["mark_eff"] = 50
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is False
@@ -757,7 +825,7 @@ def test_mark_effectiveness_without_physchem_mark(event):
 
 
 @pytest.mark.django_db
-def test_tag_retention_without_tag(event):
+def test_tag_retention_without_tag(event, glsc):
     """tag retention should be null if tags is null"""
 
     choices = get_event_model_form_choices(event)
@@ -766,7 +834,7 @@ def test_tag_retention_without_tag(event):
     event_dict["fish_tags"] = None
     event_dict["tag_ret"] = 50
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
 
     status = form.is_valid()
     assert status is False
@@ -776,7 +844,7 @@ def test_tag_retention_without_tag(event):
 
 
 @pytest.mark.django_db
-def test_unknown_tag_code(event):
+def test_unknown_tag_code(event, glsc):
     """if unknown tag code is somehow selected, a meaningful error
     message should be returned.
 
@@ -788,7 +856,7 @@ def test_unknown_tag_code(event):
     event_dict = create_event_dict(event)
     event_dict["fish_tags"] = ["XX"]
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
     status = form.is_valid()
     assert status is False
 
@@ -799,7 +867,7 @@ def test_unknown_tag_code(event):
 
 
 @pytest.mark.django_db
-def test_no_clip_mutally_exclusive_clip(event):
+def test_no_clip_mutally_exclusive_clip(event, glsc):
     """No clipped and unclipped are mutually exclusive of all other clips"""
 
     FinClipFactory.create(abbrev="AD", description="adipose clip")
@@ -811,7 +879,7 @@ def test_no_clip_mutally_exclusive_clip(event):
     event_dict = create_event_dict(event)
     event_dict["fin_clips"] = ["AD", "NO"]
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
     status = form.is_valid()
     assert status is False
 
@@ -820,7 +888,7 @@ def test_no_clip_mutally_exclusive_clip(event):
 
 
 @pytest.mark.django_db
-def test_unknown_clip_mutally_exclusive_clip(event):
+def test_unknown_clip_mutally_exclusive_clip(event, glsc):
     """Unknonw Clip Status is mutually exclusive of all other clips"""
 
     FinClipFactory.create(abbrev="AD", description="adipose clip")
@@ -832,7 +900,7 @@ def test_unknown_clip_mutally_exclusive_clip(event):
     event_dict = create_event_dict(event)
     event_dict["fin_clips"] = ["AD", "UN"]
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
     status = form.is_valid()
     assert status is False
 
@@ -841,7 +909,7 @@ def test_unknown_clip_mutally_exclusive_clip(event):
 
 
 @pytest.mark.django_db
-def test_unknown_clip_code(event):
+def test_unknown_clip_code(event, glsc):
     """if unknown clip code is somehow selected, a meaningful error
     message should be returned.
 
@@ -856,7 +924,7 @@ def test_unknown_clip_code(event):
     event_dict = create_event_dict(event)
     event_dict["fin_clips"] = ["XX"]
 
-    form = StockingEventForm(event_dict, choices=choices)
+    form = StockingEventForm(event_dict, choices=choices, user=glsc)
     status = form.is_valid()
     assert status is False
 
