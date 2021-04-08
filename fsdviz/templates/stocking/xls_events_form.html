@@ -135,6 +135,8 @@
 
     {{ mu_grids|json_script:"mu-grids-data" }}
 
+    {{ point_polygons|json_script:"point-polygons" }}
+
     {{ bbox|json_script:"lake-envelope" }}
 
     <script>
@@ -155,6 +157,8 @@
      const form_errors = JSON.parse(document.getElementById('formset-error-data').textContent);
      const mu_grids = JSON.parse(document.getElementById('mu-grids-data').textContent);
      let lake_bbox = JSON.parse(document.getElementById('lake-envelope').textContent);
+
+     const point_polygons = JSON.parse(document.getElementById('point-polygons').textContent);
 
     </script>
 

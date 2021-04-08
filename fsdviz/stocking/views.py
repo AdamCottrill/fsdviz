@@ -33,7 +33,13 @@ from .utils import (
     get_choices,
     get_cwt_sequence_dict,
 )
-from ..common.utils import toLookup, make_mu_id_lookup, make_strain_id_lookup
+from ..common.utils import (
+    toLookup,
+    make_mu_id_lookup,
+    make_strain_id_lookup,
+    get_polygons,
+    get_point_polygon_dictionary,
+)
 from ..common.forms import CWTSequenceForm, BaseCWTSequenceFormSet
 from ..common.filters import CWTSequenceFilter
 
@@ -1166,7 +1172,7 @@ def xls_events(request):
             .values_list("label", "grid10s__grid")
         )
         # get points and valid stocking events in our upload here
-        #
+        point_polygons = get_point_polygon_dictionary(xls_events)
 
         formset = EventFormSet(initial=xls_events, form_kwargs={"choices": choices})
 
@@ -1180,7 +1186,8 @@ def xls_events(request):
             "mu_grids": list(mu_grids),
             "lake": lake,
             "agency": agency,
-            "bbox": bbox
+            "bbox": bbox,
+            "point_polygons": point_polygons
             # "lakes": lake_id_lookup,
             # "agencies": agency_id_lookup,
             # "stateprovs": stateProv_id_lookup,

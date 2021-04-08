@@ -1,36 +1,16 @@
-/* global $ spatialAttrURL spatialAttrs topojson */
+/* global axios spatialAttrURL spatialAttrs topojson */
 import L from "leaflet";
 import { wktToGeoJSON } from "@terraformer/wkt";
 
 import bbox from "@turf/bbox";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 
-// export async function getSpatialAttrs(coords, url, token, success, error) {
-//   // given a lat, lon, a url, csrf_token, a success function, and an
-//   // error function, call our spatial lookup api to get that
-//   // attributes that match lat-lon of the point to check against the
-//   // html widgets.
-
-//   const { dd_lat, dd_lon } = coords;
-
-//   await $.ajax({
-//     type: "POST",
-//     url: url,
-//     dataType: "json",
-//     data: {
-//       point: `POINT(${dd_lon} ${dd_lat})`,
-//       csrfmiddlewaretoken: token,
-//     },
-//     success: success,
-//     error: error,
-//   });
-// }
-
-export const getSpatialAttrs = async (coords, url, token, success, error) => {
-  // given a lat, lon, a url, csrf_token, a success function, and an
-  // error function, call our spatial lookup api to get that
-  // attributes that match lat-lon of the point to check against the
-  // html widgets.
+export const getSpatialAttrs = async (coords, url, token) => {
+  // given a lat, lon, a url, csrf_token, call our spatial lookup api
+  // to get that attributes that match lat-lon of the point to check
+  // against the html widgets.  IF there an error, print it to the
+  // console and return an object with empty elements for lake,
+  // jurisdiction, management unit, and grid.
 
   const { dd_lat, dd_lon } = coords;
 

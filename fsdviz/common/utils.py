@@ -194,6 +194,26 @@ def get_polygons(pt):
     return polygons
 
 
+def get_point_polygon_dictionary(events):
+    """Given a list of stocking events - return a dictionary contain the
+    attrubutes of the containing polygons for lake, jurisdtion,
+    management unit (stat district), and grid.  Duplicte coordinates
+    are removed.  The dictionary is keyed by a string of the form lat-lon.
+
+    The dictionary is used in the xls_upload validation to ensure that
+    associated spatial widgets on each row are consistent with their
+    coordinates.
+
+    """
+    coords = {(x["longitude"], x["latitude"]) for x in events}
+    point_polygons = {}
+    for xy in coords:
+        pt = Point(xy[0], xy[1], srid=4326)
+        key = "{}-{}".format(xy[1], xy[0])
+        point_polygons[key] = get_polygons(pt)
+    return point_polygons
+
+
 def to_lake_dict(object_list, has_id=False):
     """A little helper function that takes a list of objects and returns a
     dictionary of lists. The first element of each list is used to
