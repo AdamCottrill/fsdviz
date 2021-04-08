@@ -12,7 +12,7 @@
      .field.error small.helper {
          color: #9F3A38 !important;
      }
-     
+
 
     </style>
 
@@ -35,24 +35,24 @@
                         Please fix the identified errors.
                     </div>
                     <ul class="list">
-                        {% for field in form %}                        
+                        {% for field in form %}
                             {% if field.errors %}
                                 {% for error in field.errors %}
                                     <li>{{field.label}}: {{ error|escape }}</li>
                                 {% endfor %}
                             {% endif %}
-                        {% endfor %}                            
+                        {% endfor %}
                         {% if form.non_field_errors  %}
                             {% for error in form.non_field_errors %}
                                 <li> {{ error|escape }}</li>
                             {% endfor %}
                         {% endif %}
-                        
+
                         {% if cwt_formset.errors %}
                             {% for dict in cwt_formset.errors %}
                                 {% for error in dict.values  %}
                                     <li> {{ error|escape }}</li>
-                                 {% endfor %}                                   
+                                 {% endfor %}
                             {% endfor %}
                         {% endif %}
                         {% if cwt_formset.non_form_errors %}
@@ -60,14 +60,14 @@
                                 <li> {{ error|escape }}</li>
                             {% endfor %}
                         {% endif %}
-                        
+
                     </ul>
                 </div>
             {% endif %}
-            
+
             {{form.id}}
 
-            
+
             <div class="ui fluid card">
                 <div class="content">
                     <div class="header">Agency, Hatchery, Species, and Strain</div>
@@ -134,7 +134,7 @@
 
                             {% include "stocking/_form_field.html" with field_obj=form.site %}
                             {% include "stocking/_form_field.html" with field_obj=form.st_site %}
-                            {% include "stocking/_form_field.html" with field_obj=form.site_type %}
+
 
                         </div>
                         <div class="twelve wide column">
@@ -192,12 +192,12 @@
                             <div class="right floated meta"><i class="chevron down icon"></i></div>
                             <hr/>
                         </h3>
-                    </div>                    
+                    </div>
                     <div class="content {% if has_cwts %}active{% endif %}">
 
                         {{ cwt_formset.management_form }}
                         <div id="cwt-form-set">
-                            
+
                             {% for form in cwt_formset %}
                                 <div class="ui segment">
 
@@ -220,7 +220,7 @@
                                         {% include "stocking/_form_field.html" with field_obj=form.cwt_number %}
                                         {% include "stocking/_form_field.html" with field_obj=form.manufacturer %}
                                         {% include "stocking/_form_field.html" with field_obj=form.tag_type %}
-                                        {% include "stocking/_form_field.html" with field_obj=form.sequence_start %}                                        
+                                        {% include "stocking/_form_field.html" with field_obj=form.sequence_start %}
                                         {% include "stocking/_form_field.html" with field_obj=form.sequence_end %}
                                         {% include "stocking/_form_field.html" with field_obj=form.delete %}
 
@@ -230,11 +230,11 @@
                         </div>
 
                         <div class="ui basic segment">
-                            <input class="ui mini grey button" type="button" value=                                         
-                                          {% if has_cwts %} "Add Another CWT" {% else %} "Add a CWT" {% endif %} 
-                                   id="add_more">                            
+                            <input class="ui mini grey button" type="button" value=
+                                          {% if has_cwts %} "Add Another CWT" {% else %} "Add a CWT" {% endif %}
+                                   id="add_more">
                         </div>
-                        
+
                         <div id="empty_form" style="display:none">
                             <div class="ui segment">
                                 <div class="six fluid fields">
@@ -244,11 +244,11 @@
                                     {% include "stocking/_form_field.html" with field_obj=cwt_formset.empty_form.sequence_start %}
                                     {% include "stocking/_form_field.html" with field_obj=cwt_formset.empty_form.sequence_end %}
                                     {% include "stocking/_form_field.html" with field_obj=cwt_formset.empty_form.delete %}
-                                </div>                                
+                                </div>
                             </div>
-                        </div> 
+                        </div>
 
-                        
+
                     </div>
                 </div>
             </div>
@@ -277,9 +277,11 @@
 
 {% block extra_js %}
 
-    
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+
     <script>
-     
+
      $('.ui.form').form();
      $('.ui.checkbox').checkbox();
      $(".select.dropdown").dropdown();
@@ -293,7 +295,7 @@
          });
      });
 
-     
+
      const jurisdictionURL = "{% url 'common_api:jurisdiction-list' %}";
      const manUnitURL = "{% url 'common_api:managementunit-list' %}";
      const grid10URL = "{% url 'common_api:grid10-list' %}";
@@ -438,7 +440,7 @@
      }
 
 
-     
+
 
     </script>
 

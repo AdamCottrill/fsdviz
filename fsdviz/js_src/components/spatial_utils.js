@@ -5,7 +5,28 @@ import { wktToGeoJSON } from "@terraformer/wkt";
 import bbox from "@turf/bbox";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 
-export async function getSpatialAttrs(coords, url, token, success, error) {
+// export async function getSpatialAttrs(coords, url, token, success, error) {
+//   // given a lat, lon, a url, csrf_token, a success function, and an
+//   // error function, call our spatial lookup api to get that
+//   // attributes that match lat-lon of the point to check against the
+//   // html widgets.
+
+//   const { dd_lat, dd_lon } = coords;
+
+//   await $.ajax({
+//     type: "POST",
+//     url: url,
+//     dataType: "json",
+//     data: {
+//       point: `POINT(${dd_lon} ${dd_lat})`,
+//       csrfmiddlewaretoken: token,
+//     },
+//     success: success,
+//     error: error,
+//   });
+// }
+
+export const getSpatialAttrs = async (coords, url, token, success, error) => {
   // given a lat, lon, a url, csrf_token, a success function, and an
   // error function, call our spatial lookup api to get that
   // attributes that match lat-lon of the point to check against the
@@ -13,18 +34,27 @@ export async function getSpatialAttrs(coords, url, token, success, error) {
 
   const { dd_lat, dd_lon } = coords;
 
-  await $.ajax({
-    type: "POST",
-    url: url,
-    dataType: "json",
-    data: {
-      point: `POINT(${dd_lon} ${dd_lat})`,
-      csrfmiddlewaretoken: token,
-    },
-    success: success,
-    error: error,
-  });
-}
+  const data = {
+    point: `POINT(${dd_lon} ${dd_lat})`,
+  };
+
+  try {
+    const response = await axios.post(spatialAttrURL, data, {
+      headers: {
+        "X-CSRFTOKEN": token,
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.log("axios error:", err);
+    return {
+      lake: "",
+      jurisdiction: "",
+      manUnit: "",
+      grid10: "",
+    };
+  }
+};
 
 // given our topojson file, the feature type, and the slug, return the
 // bounding box of that feature - used to set intial zoom of our

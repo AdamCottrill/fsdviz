@@ -574,11 +574,6 @@ class StockingEventForm(forms.Form):
 
     site = forms.CharField(label="Site Name (General)", required=True)
     st_site = forms.CharField(label="Site Name (Specific)", required=False)
-    site_type = forms.ChoiceField(
-        label="Site Type",
-        choices=[("lake", "Lake"), ("trib", "Tributary")],
-        required=False,
-    )
 
     no_stocked = forms.IntegerField(required=True, min_value=1)
     stocking_method_id = forms.ChoiceField(

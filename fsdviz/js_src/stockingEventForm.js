@@ -34,9 +34,9 @@ let lon = $("#id_dd_lon").val();
 
 // an object to hold the spatial attrubutes predicted by lat-long.
 let spatialAttrs = {
-  grid10: "",
-  jurisdiction: "",
   lake: "",
+  jurisdiction: "",
+  grid10: "",
   manUnit: "",
 };
 
@@ -112,17 +112,27 @@ $("#id_lake_id").on("change", () => {
   updateStateProvChoices();
   validateLake();
   //  checkMyChoice("id_state_prov_id", "id_lake_id");
+  validateStateProv();
+  validateManUnit();
+  validateGrid10();
+  checkSpatialWidgets();
 });
 
 $("#id_state_prov_id").on("change", () => {
   updateManUnitChoices();
   validateStateProv();
+  validateManUnit();
+  validateGrid10();
+  checkSpatialWidgets();
+
   //  checkMyChoice("id_management_unit_id", "id_state_prov_id");
 });
 
 $("#id_management_unit_id").on("change", () => {
   updateGrid10Choices();
   validateManUnit();
+  validateGrid10();
+  checkSpatialWidgets();
 });
 
 $("#id_grid_10_id").on("change", () => {
@@ -130,22 +140,34 @@ $("#id_grid_10_id").on("change", () => {
   //  checkMyChoice("id_grid_10_id", "id_management_unit_id");
   //    checkGrid10ChoiceLatLon();
   validateGrid10();
+  checkSpatialWidgets();
 });
 
 $("#id_lake_id").on("blur", () => {
   validateLake();
+  validateStateProv();
+  validateManUnit();
+  validateGrid10();
+  checkSpatialWidgets();
 });
 
 $("#id_state_prov_id").on("blur", () => {
   validateStateProv();
+  validateManUnit();
+  validateGrid10();
+  checkSpatialWidgets();
 });
 
 $("#id_management_unit_id").on("blur", () => {
   validateManUnit();
+  validateGrid10();
+  validateManUnit();
+  checkSpatialWidgets();
 });
 
 $("#id_grid_10_id").on("blur", () => {
   validateGrid10();
+  checkSpatialWidgets();
 });
 
 //=====================================================
@@ -182,9 +204,10 @@ const updateStateProvChoices = () => {
   let lake_id = $("#id_lake_id option:selected").val();
 
   //let url = "/api/v1/common/jurisdiction/?lake_id=" + e.target.value;
+  //let url = `${jurisdictionURL}?lake_id=${lake_id}`;
   let url = `${jurisdictionURL}?lake_id=${lake_id}`;
   const reducer = (accumulator, d) => {
-    accumulator[d.id] = `${d.stateprov.name} (${d.stateprov.abbrev})`;
+    accumulator[d.stateprov.id] = `${d.stateprov.name} (${d.stateprov.abbrev})`;
     return accumulator;
   };
 
@@ -204,14 +227,9 @@ const updateManUnitChoices = () => {
   let options;
 
   let lake_id = $("#id_lake_id option:selected").val();
+  let stateprov_id = $("#id_state_prov_id option:selected").val();
 
-  // Management Units -
-
-  // NOTE - this uses lake to filter management units - it should use jurisdiction!
-
-  // TODO - update this api endpoint to accept stat/prov - this
-  // could be a many-to-many and/or a spatial join.
-  let url = `${manUnitURL}?mu_type=stat_dist&lake_id=${lake_id}`;
+  let url = `${manUnitURL}?mu_type=stat_dist&stateprov_id=${stateprov_id}&lake_id=${lake_id}`;
   const reducer = (accumulator, d) => {
     accumulator[d.id] = d.label;
     return accumulator;
@@ -255,23 +273,6 @@ const updateGrid10Choices = () => {
     .then(checkMyChoice("id_grid_10_id", "id_management_unit_id"));
 };
 
-// a function to update the lake, province, manUnit and grid based on lat lon.
-const updateSpatialAttrs = (lat, lon) => {
-  let success = (data) => (spatialAttrs = data);
-  let error = () => {
-    spatialAttrs = {
-      grid10: "",
-      jurisdiction: "",
-      lake: "",
-      manUnit: "",
-    };
-  };
-  let pt = { dd_lat: lat, dd_lon: lon };
-  getSpatialAttrs(pt, spatialAttrURL, csrf_token, success, error).then(() => {
-    checkSpatialWidgets();
-  });
-};
-
 const checkLakeChoiceLatLon = () => {
   let lakeShouldbe;
   if (spatialAttrs["lake"] !== "") {
@@ -311,10 +312,10 @@ const checkGrid10ChoiceLatLon = () => {
 };
 
 const checkSpatialWidgets = () => {
-  checkGrid10ChoiceLatLon();
+  checkLakeChoiceLatLon();
   checkManUnitChoiceLatLon();
   checkStateProvChoiceLatLon();
-  checkLakeChoiceLatLon();
+  checkGrid10ChoiceLatLon();
 };
 
 const validateSpatialField = (shouldbe, fieldid) => {
@@ -328,6 +329,15 @@ const validateSpatialField = (shouldbe, fieldid) => {
     let msg = `Lat-long suggests "${shouldbe}"`;
     addError(fieldid, "lat-lon", msg);
   }
+};
+
+/** a function to get the predicted lake, province, manUnit and grid
+ * based on lat lon and compare against current values. */
+
+const updateSpatialAttrs = async (lat, lon) => {
+  let pt = { dd_lat: lat, dd_lon: lon };
+  spatialAttrs = await getSpatialAttrs(pt, spatialAttrURL, csrf_token);
+  checkSpatialWidgets();
 };
 
 //=====================================================
@@ -501,6 +511,12 @@ const checkDate = function () {
 
 updateCalendar();
 
+updateStateProvChoices();
+updateManUnitChoices();
 updateGrid10Choices();
 // draw our initail point:
 updateMapPt();
+
+if (lat && lon) {
+  updateSpatialAttrs(lat, lon);
+}
