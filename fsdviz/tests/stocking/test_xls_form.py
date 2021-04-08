@@ -8,8 +8,7 @@ from ..pytest_fixtures import stocking_event_dict
 
 @pytest.fixture(scope="module")
 def xls_choices():
-    """
-    """
+    """"""
     choices = {
         "lakes": [("HU", "HU")],
         "agencies": [("MNRF", "MNRF")],
@@ -39,8 +38,6 @@ def test_xlseventform_good_data(stocking_event_dict, xls_choices):
 
 
 choice_fields = [
-    "lake",
-    "agency",
     "state_prov",
     "stat_dist",
     "species",
@@ -78,8 +75,6 @@ def test_xlseventform_invalid_select(stocking_event_dict, xls_choices, field_nam
 
 
 required_fields = [
-    "agency",
-    "lake",
     "state_prov",
     "year",
     "stat_dist",
@@ -253,26 +248,6 @@ def test_xlseventform_wrong_grid(stocking_event_dict, xls_choices):
     assert expected in error_messages
 
 
-@pytest.mark.django_db
-def test_xlseventform_no_grid_invalid_lake(stocking_event_dict, xls_choices):
-    """If the provided grid cannot be found in the lake because the lake
-    does not exist, the form should be invalid, and a meaningful error
-    message should be produced.
-
-    """
-
-    data = stocking_event_dict
-    data["lake"] = "fake"
-    form = XlsEventForm(data=data, choices=xls_choices)
-    status = form.is_valid()
-    assert status is False
-
-    error_messages = [x[1][0] for x in form.errors.items()]
-    # expected = "Unable to find any grids for lake '{}'"
-    expected = "Select a valid choice. {} is not one of the available choices."
-    assert expected.format("fake") in error_messages
-
-
 @pytest.mark.xfail
 @pytest.mark.django_db
 def test_xlseventform_wrong_stat_dist(stocking_event_dict, xls_choices):
@@ -292,25 +267,4 @@ def test_xlseventform_wrong_stat_dist(stocking_event_dict, xls_choices):
 
     error_messages = [x[1][0] for x in form.errors.items()]
     expected = "Stat_Dist {} is not valid for lake {}".format("FAKE", lake)
-    assert expected in error_messages
-
-
-@pytest.mark.django_db
-def test_xlseventform_no_stat_dist_invalid_lake(stocking_event_dict, xls_choices):
-    """If the provided stat_dist cannot be found in the lake because the
-    lake does noe exist, the form should be invalid, and a meaningful
-    error message should be produced.
-
-    """
-
-    data = stocking_event_dict
-    data["lake"] = "fake"
-    form = XlsEventForm(data=data, choices=xls_choices)
-    status = form.is_valid()
-    assert status is False
-
-    error_messages = [x[1][0] for x in form.errors.items()]
-    # expected = "Unable to find any Statistical Districts for lake '{}'"
-    expected = "Select a valid choice. {} is not one of the available choices."
-    expected = expected.format("fake")
     assert expected in error_messages
