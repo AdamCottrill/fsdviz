@@ -162,7 +162,8 @@ class TestStateProvAPI(APITestCase):
         ]
 
         for obj in objects:
-            StateProvinceFactory(**obj)
+            state_prov = StateProvinceFactory(**obj)
+            obj["id"] = state_prov.id
 
         url = reverse("common_api:stateprovince-list")
 
@@ -185,12 +186,15 @@ class TestStateProvAPI(APITestCase):
             "description": "The Province of Ontario",
         }
 
-        StateProvinceFactory(**obj)
+        state_prov = StateProvinceFactory(**obj)
 
         url = reverse("common_api:stateprovince-detail", kwargs={"abbrev": abbrev})
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
+
+        # add our id to inital values dictionary:
+        obj["id"] = state_prov.id
 
         assert obj == response.data
 
@@ -218,6 +222,7 @@ class TestJurisdictionAPI(APITestCase):
             description="The Province of Ontario",
         )
         ontario_obj = StateProvinceFactory(**ontario)
+        ontario["id"] = ontario_obj.id
 
         huron_jurisdiction = JurisdictionFactory(lake=huron_obj, stateprov=ontario_obj)
         erie_jurisdiction = JurisdictionFactory(lake=erie_obj, stateprov=ontario_obj)
@@ -282,6 +287,7 @@ class TestJurisdictionAPI(APITestCase):
             description="The Province of Ontario",
         )
         ontario_obj = StateProvinceFactory(**ontario)
+        ontario["id"] = ontario_obj.id
 
         jurisdiction = JurisdictionFactory(lake=huron_obj, stateprov=ontario_obj)
 

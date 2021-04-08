@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from fsdviz.common.utils import parse_geom
+from fsdviz.common.utils import parse_geom, get_polygons
 
 from fsdviz.common.models import (
     Agency,
@@ -176,72 +176,9 @@ def pt_spatial_attrs(request):
     if pt is None:
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-    ret = dict()
+    polygons = get_polygons(pt)
 
-    lake = Lake.objects.filter(geom__contains=pt).first()
-    if lake:
-        ret["lake"] = dict(
-            id=lake.id,
-            abbrev=lake.abbrev,
-            lake_name=lake.lake_name,
-            centroid=lake.geom.centroid.wkt,
-        )
-    else:
-        ret["lake"] = ""
-
-    jurisdiction = (
-        Jurisdiction.objects.select_related("lake", "stateprov")
-        .filter(geom__contains=pt)
-        .first()
-    )
-
-    if jurisdiction:
-        ret["jurisdiction"] = dict(
-            id=jurisdiction.id,
-            # lake attributes:
-            lake_id=jurisdiction.lake.id,
-            lake_abbrev=jurisdiction.lake.abbrev,
-            lake_name=jurisdiction.lake.lake_name,
-            # state prov. attributes:
-            stateprov_id=jurisdiction.stateprov.id,
-            stateprov_abbrev=jurisdiction.stateprov.abbrev,
-            stateprov_name=jurisdiction.stateprov.name,
-            # jurisdiction attributes
-            jurisdiction_name=jurisdiction.name,
-            centroid=jurisdiction.geom.centroid.wkt,
-        )
-    else:
-        ret["jurisdiction"] = ""
-
-    manUnit = (
-        ManagementUnit.objects.filter(geom__contains=pt)
-        .filter(mu_type="stat_dist")
-        .first()
-    )
-    if manUnit:
-        ret["manUnit"] = dict(
-            id=manUnit.id,
-            slug=manUnit.slug,
-            label=manUnit.label,
-            centroid=manUnit.geom.centroid.wkt,
-        )
-    else:
-        ret["manUnit"] = ""
-
-    grid10 = Grid10.objects.select_related("lake").filter(geom__contains=pt).first()
-
-    if grid10:
-        ret["grid10"] = dict(
-            id=grid10.id,
-            grid=grid10.grid,
-            slug=grid10.slug,
-            centroid=grid10.geom.centroid.wkt,
-            lake_abbrev=grid10.lake.abbrev,
-        )
-    else:
-        ret["grid10"] = ""
-
-    return Response(ret, status=status.HTTP_200_OK)
+    return Response(polygons, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])

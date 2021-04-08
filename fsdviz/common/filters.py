@@ -32,11 +32,16 @@ class ManagementUnitFilter(django_filters.FilterSet):
     lake_id = django_filters.NumberFilter(field_name="lake_id")
     lake = django_filters.CharFilter(field_name="lake__abbrev", lookup_expr="iexact")
 
+    stateprov_id = django_filters.NumberFilter(field_name="jurisdiction__stateprov_id")
+    stateprov = django_filters.CharFilter(
+        field_name="jurisdiction__stateprov__abbrev", lookup_expr="iexact"
+    )
+
     primary = django_filters.BooleanFilter(field_name="primary")
 
     class Meta:
         model = ManagementUnit
-        fields = ["mu_type", "lake", "primary"]
+        fields = ["mu_type", "lake", "jurisdiction", "primary"]
 
 
 class Grid10Filter(django_filters.FilterSet):
@@ -68,6 +73,8 @@ class JurisdictionFilter(django_filters.FilterSet):
     stateprov = django_filters.CharFilter(
         field_name="stateprov__abbrev", lookup_expr="iexact"
     )
+
+    stateprov_id = django_filters.NumberFilter(field_name="stateprov__id")
 
     lake = django_filters.CharFilter(field_name="lake__abbrev", lookup_expr="iexact")
     lake_id = django_filters.CharFilter(field_name="lake__id", lookup_expr="iexact")

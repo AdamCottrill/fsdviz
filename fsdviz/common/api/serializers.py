@@ -38,7 +38,7 @@ class LakeSerializer(serializers.ModelSerializer):
 class StateProvinceSerializer(serializers.ModelSerializer):
     class Meta:
         model = StateProvince
-        fields = ("abbrev", "name", "country", "description")
+        fields = ("id", "abbrev", "name", "country", "description")
 
 
 class JurisdictionSerializer(serializers.ModelSerializer):
