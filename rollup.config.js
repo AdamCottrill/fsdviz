@@ -39,6 +39,7 @@ const plugins = [
   babel({
     exclude: "node_modules/**",
     babelHelpers: "runtime",
+    skipPreflightCheck: true,
   }),
 ];
 

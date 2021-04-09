@@ -60,10 +60,10 @@
                         <th>State/Prov</th>
                         <th>Stat. Dist.</th>
                         <th>Grid</th>
-                        <th>Site</th>
-                        <th>St.Site</th>
                         <th>Latitude</th>
                         <th>Longitude</th>
+                        <th>Site</th>
+                        <th>St.Site</th>
                         <th>Species</th>
                         <th>Strain</th>
                         <th>Stage</th>
@@ -159,6 +159,8 @@
      let lake_bbox = JSON.parse(document.getElementById('lake-envelope').textContent);
 
      const point_polygons = JSON.parse(document.getElementById('point-polygons').textContent);
+
+     const lake = '{{lake.abbrev}}';
 
     </script>
 

@@ -296,7 +296,8 @@ class XlsEventForm(forms.Form):
     # longitude = forms.FloatField(min_value=-92.0, max_value=-76.0)
 
     species = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    strain = forms.CharField(required=True)
+    strain = forms.ChoiceField(choices=[], required=True, widget=MySelect)
+    # strain = forms.CharField(required=True)
     stage = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     agemonth = forms.IntegerField(min_value=0, required=False)
     year_class = forms.IntegerField(

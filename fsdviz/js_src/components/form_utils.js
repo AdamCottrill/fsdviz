@@ -79,6 +79,47 @@ export const update_selector = (selectorID, parentID, newOptions) => {
   }
 };
 
+/** update the choices in a dropdrown control to reflect the select
+value in a parent widget (species and strains).  new options is list
+of objects with the keys 'value' and 'text'.  This version is used in
+the xls_validation form and does flag the field as an error and
+accepts a list of objects as new Options.
+*/
+export const update_choices = (selectorID, parentID, newOptions) => {
+  const el = $(`#${selectorID}`);
+
+  //const previous_val = $(`#${selectorID} option:selected`).val();
+  const previous_selection = $(`#${selectorID} option:selected`);
+  const previous_text = previous_selection.text();
+  const previous_value = previous_selection.val();
+
+  const parent_text = $(`#${parentID} option:selected`).text();
+
+  el.empty(); // remove old options
+
+  // if the previous value is not in the current list, add it now:
+  if (
+    previous_value &&
+    newOptions.filter((x) => x.value === previous_value).length === 0
+  ) {
+    el.append($("<option>", { value: previous_value, text: previous_text }));
+  }
+
+  $.each(newOptions, function (i, item) {
+    el.append(
+      $("<option>", {
+        value: item.value,
+        text: item.text,
+      })
+    );
+  });
+
+  // make sure the old value is selected.
+  el.val(previous_value)
+    .find(`option[value="${previous_value}"]`)
+    .attr("selected", true);
+};
+
 export const setInvalid = (field, errMsg) => {
   let id = field.id ? field.id : field[0].id;
   let wrapper = $("#" + id + "-field");

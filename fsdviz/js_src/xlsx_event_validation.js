@@ -1,4 +1,4 @@
-/* global mu_grids, form_errors, lake_bbox */
+/* global lake mu_grids, form_errors, lake_bbox */
 
 import { json } from "d3";
 
@@ -10,7 +10,11 @@ import { json } from "d3";
 
 import { object, number, string } from "yup";
 
-import { make_choices, isValidDate } from "./components/form_utils";
+import {
+  make_choices,
+  isValidDate,
+  update_choices,
+} from "./components/form_utils";
 
 // // day month and year must form valid data if populated
 
@@ -67,23 +71,12 @@ const get_row_values = (row_selector) => {
     $(`#${row_selector}-row`).removeClass("error");
   };
 
-  //return schema.cast(values);
-
-  // values.stock_id = +values.stock_id;
-  // values.year = +values.year;
   values.month = values.month === "" ? undefined : +values.month;
   values.day = values.day === "" ? undefined : +values.day;
 
   values.latitude = values.latitude === "" ? undefined : +values.latitude;
   values.longitude = values.longitude === "" ? undefined : +values.longitude;
-  // values.grid = +values.grid;
-  // values.no_stocked = +values.no_stocked;
-  // values.year_class = +values.year_class;
-  // values.agemonth = +values.agemonth;
-  // //values.tag_ret = +values.tag_ret;
-  // //values.length = +values.length;
   values.weight = values.weight ? +values.weight : undefined;
-  // values.condition = +values.condition;
 
   return values;
 };
@@ -91,7 +84,7 @@ const get_row_values = (row_selector) => {
 let agency_choices = [];
 let lake_choices = [];
 let stateprov_choices = [];
-let manUnit_choices = [];
+let statDist_choices = [];
 let grid10_choices = [];
 let species_choices = [];
 let strain_choices = [];
@@ -105,31 +98,47 @@ Promise.all([
   json("/api/v1/stocking/lookups"),
   json("/api/v1/common/lookups"),
 ]).then(([stocking, common]) => {
-  // stocking methods,
-  agency_choices = common["agencies"].map((x) => x.abbrev);
-  lake_choices = common["lakes"].map((x) => x.abbrev);
+  // statDist, grid and strain are all objected keyed by their respective parents
 
-  stateprov_choices = common["stateprov"].map((x) => x.abbrev);
+  // state/prov choices keyed by lake
+  // management unit choices keyed by lake/stat prov or jurisdiction
+  // grid choices keyed by mu.
+  // strain choices are keyed by species
+
+  stateprov_choices = common.jurisdictions
+    .filter((x) => x.lake.abbrev === lake)
+    .map((d) => ({ value: d.stateprov.abbrev, text: d.stateprov.name }));
+
+  statDist_choices = make_choices(
+    common.manUnits
+      .filter((x) => x.jurisdiction.lake.abbrev === lake)
+      .map((d) => [
+        d.jurisdiction.stateprov.abbrev,
+        { value: d.label, text: d.label },
+      ])
+  );
+  grid10_choices = make_choices(
+    mu_grids.map((d) => [d[0], { value: d[1], text: d[1] }])
+  );
+
+  console.log("stateprov_choices = ", stateprov_choices);
+  console.log("statDist_choices = ", statDist_choices);
+  console.log("grid10_choices = ", grid10_choices);
+
   species_choices = common["species"].map((x) => x.abbrev);
   clipcode_choices = common["clipcodes"].map((x) => x.clip_code);
-  // strain, grid, manUnit - need to be nested objects.
+
   stocking_method_choices = stocking["stockingmethods"].map((x) => x.stk_meth);
   lifestage_choices = stocking["lifestages"].map((x) => x.abbrev);
 
   strain_choices = make_choices(
-    common.strains.map((x) => [x.strain_species.abbrev, x.strain_code])
+    // object keyed by species with array of 2 element arrays
+    // strain code (strain label)
+    common.strains.map((x) => {
+      const label = `${x.strain_code} (${x.strain_label})`;
+      return [x.strain_species.abbrev, { value: x.strain_code, text: label }];
+    })
   );
-  manUnit_choices = make_choices(
-    common.manUnits
-      .filter((x) => x.jurisdiction.lake.abbrev === "HU")
-      .map((d) => [d.jurisdiction.stateprov.name, d.label])
-  );
-
-  grid10_choices = make_choices(mu_grids);
-
-  console.log(grid10_choices);
-  console.log(manUnit_choices);
-  console.log(lake_bbox);
 
   const [minLon, minLat, maxLon, maxLat] = lake_bbox;
   const cwt_regex = /^[0-9]{6}((,|;)[0-9]{6})*(,|;)?$/;
@@ -141,12 +150,10 @@ Promise.all([
       //   .number()
       //   .nullable(true)
       //   .transform((_, val) => (val === val ? val : null)),
-      // lake: string().required().oneOf(lake_choices),
-      // agency: string().required(),
-      state_prov: string().required().oneOf(stateprov_choices),
-      // year: number().required().positive().integer().min(1950).max(2022), // min and max
-      // month: string().required(), // min and max, required if day is populated
-      //day: number().required().positive().integer().min(1).max(31), // min and max,
+
+      state_prov: string()
+        .required()
+        .oneOf(stateprov_choices.map((x) => x.value)),
 
       year: number()
         .required("Year is required")
@@ -237,34 +244,39 @@ Promise.all([
           ),
       }),
 
-      stat_dist: string().required(),
-      // .when("state_prov", (state_prov, schema) => {
-      //   if (string().oneOf(stateprov_choices).required().isValid(state_prov)) {
-      //     return schema.oneOf(
-      //       manUnit_choices[state_prov],
-      //       `not a valid stat_dist for ${state_prov}`
-      //     );
-      //   }
+      stat_dist: string()
+        .required()
+        .when("state_prov", (state_prov, schema) => {
+          if (
+            string()
+              .oneOf(stateprov_choices.map((x) => x.value))
+              .required()
+              .isValid(state_prov)
+          ) {
+            return schema.oneOf(
+              statDist_choices[state_prov].map((x) => x.value),
+              `not a valid stat_dist for ${state_prov}`
+            );
+          }
+          return schema;
+        }),
 
-      //   return schema;
-      // }),
-
-      grid: number().required(),
-      // .when(["stat_dist", "state_prov"], (stat_dist, schema) => {
-      //   if (
-      //     string()
-      //       .oneOf(manUnit_choices[state_prov])
-      //       .required()
-      //       .isValid(stat_dist)
-      //   ) {
-      //     return schema.oneOf(
-      //       grid10_choices[stat_dist],
-      //       `not a valid grid for ${stat_dist}`
-      //     );
-      //   }
-
-      //   return schema;
-      // }),
+      grid: string()
+        .required()
+        .when(["stat_dist", "state_prov"], (stat_dist, state_prov, schema) => {
+          if (
+            string()
+              .oneOf(statDist_choices[state_prov].map((x) => x.value))
+              .required()
+              .isValid(stat_dist)
+          ) {
+            return schema.oneOf(
+              grid10_choices[stat_dist].map((x) => x.value),
+              `not a valid grid for ${stat_dist}`
+            );
+          }
+          return schema;
+        }),
 
       species: string().required(), //
       strain: string()
@@ -272,7 +284,7 @@ Promise.all([
         .when("species", (species, schema) => {
           if (string().oneOf(species_choices).required().isValid(species)) {
             return schema.oneOf(
-              strain_choices[species],
+              strain_choices[species].map((x) => x.value),
               `not a valid strain for ${species}`
             );
           }
@@ -381,10 +393,59 @@ Promise.all([
     });
   };
 
+  //==================
+  //    ON LOAD
+
+  // attach our row validate to the blur event of every input field
   $("#upload-form :input").blur(function (e) {
     const form_id_regex = /id_form-[0-9]+/;
     const row_prefix = e.target.id.match(form_id_regex)[0];
     validate_row(row_prefix);
+  });
+
+  //update the mangement unit, grid, and strain choices for each row
+  //based on the value of their parent widgets in the same row
+  $('select[id$="-state_prov"]').each(function (x) {
+    let parent_id = this.id;
+    let child_id = parent_id.replace("state_prov", "stat_dist");
+    update_choices(child_id, parent_id, statDist_choices[this.value]);
+  });
+
+  $('select[id$="-stat_dist"]').each(function (x) {
+    let parent_id = this.id;
+    let child_id = parent_id.replace("stat_dist", "grid");
+    update_choices(child_id, parent_id, grid10_choices[this.value]);
+  });
+
+  //update the strain choices for each row based on the value in each species
+  // loop over each one, get each id, build the strain id, and select the options from
+  // the strain lookup:
+  $('select[id$="-species"]').each(function (x) {
+    let parent_id = this.id;
+    let child_id = parent_id.replace("species", "strain");
+    update_choices(child_id, parent_id, strain_choices[this.value]);
+  });
+
+  //==================
+  // ON CHANGE
+
+  $('select[id$="-state_prov"]').change(function (x) {
+    let parent_id = this.id;
+    let child_id = parent_id.replace("state_prov", "stat_dist");
+    update_choices(child_id, parent_id, statDist_choices[this.value]);
+  });
+
+  $('select[id$="-stat_dist"]').change(function (x) {
+    let parent_id = this.id;
+    let child_id = parent_id.replace("stat_dist", "grid");
+    update_choices(child_id, parent_id, grid10_choices[this.value]);
+  });
+
+  // if a species changes - update the available choice in the strain control:
+  $('select[id$="-species"]').change(function () {
+    let parent_id = this.id;
+    let child_id = parent_id.replace("species", "strain");
+    update_choices(child_id, parent_id, strain_choices[this.value]);
   });
 
   // on load, loop over all of the rows, validate the data and update the form errors dictionary
