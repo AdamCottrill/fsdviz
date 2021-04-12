@@ -130,8 +130,6 @@ export const getUrlSearchValue = (param) => {
 // a helper function that will update the url based on the contents of filters
 // called when the check boxes are clicked.
 export const updateUrlCheckBoxParams = (filters_obj) => {
-  //console.log("filters_obj = ", filters_obj);
-
   // update the url with the current state of the filters - delete
   // entries as necessary:
   for (let [key, value] of Object.entries(filters_obj)) {

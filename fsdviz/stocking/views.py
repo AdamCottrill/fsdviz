@@ -1016,7 +1016,29 @@ def xls_events(request):
     formset_errors = {}
     choices = get_choices()
 
-    event_count = 0
+    # get the data from our session
+    xls_events = request.session.get("data", {})
+    event_count = len(xls_events)
+
+    agency = Agency.objects.get(abbrev=xls_events[0].get("agency"))
+    lake = Lake.objects.get(abbrev=xls_events[0].get("lake"))
+
+    # filter the choices for the spatial attributes to those assoicated with this lake:
+    choices["grids"] = choices["grids"]["HU"]
+    choices["stat_dist"] = choices["stat_dist"]["HU"]
+
+    stateprov = StateProvince.objects.filter(jurisdiction__lake=lake).values_list(
+        "abbrev", "name"
+    )
+
+    choices["stateprov"] = list(stateprov)
+
+    choices["strain"] = [
+        [x.raw_strain, x.raw_strain]
+        for x in StrainRaw.objects.filter(raw_strain__isnull=False).exclude(
+            raw_strain=""
+        )
+    ]
 
     if request.method == "POST":
 
@@ -1027,12 +1049,6 @@ def xls_events(request):
             # create our lookup dicts that relate abbrev to django objects -
             # we will need them for our front end validation and for
             # processing the submitted form:
-
-            # TODO: lakes and agency not needed - already limited to 1 each.
-            lakes = Lake.objects.values_list("id", "abbrev")
-            lake_id_lookup = toLookup(lakes)
-            agencies = Agency.objects.all().values_list("id", "abbrev")
-            agency_id_lookup = toLookup(agencies)
 
             stateProvinces = StateProvince.objects.values_list("id", "abbrev")
             stateProv_id_lookup = toLookup(stateProvinces)
@@ -1081,9 +1097,7 @@ def xls_events(request):
                 events = []
                 for form in formset:
                     data = form.cleaned_data
-                    lake_abbrev = data.pop("lake")
                     agency_abbrev = data.pop("agency")
-                    agency = agency_id_lookup[agency_abbrev]
                     spc_abbrev = data.pop("species")
                     species = species_id_lookup[spc_abbrev]
                     lifestage = lifestage_id_lookup[data.pop("stage")]
@@ -1157,14 +1171,8 @@ def xls_events(request):
                     formset_errors[prefix.format(i, key)] = val
 
     else:
-        # get the data from our session
-        xls_events = request.session.get("data", {})
-        event_count = len(xls_events)
 
-        agency = Agency.objects.get(abbrev=xls_events[0].get("agency"))
-        lake = Lake.objects.get(abbrev=xls_events[0].get("lake"))
         bbox = lake.geom.envelope.buffer(0.2).extent
-
         mu_grids = (
             ManagementUnit.objects.filter(lake=lake, mu_type="stat_dist")
             .select_related("grid10s")
@@ -1175,6 +1183,8 @@ def xls_events(request):
         point_polygons = get_point_polygon_dictionary(xls_events)
 
         formset = EventFormSet(initial=xls_events, form_kwargs={"choices": choices})
+
+        # strain choices = dictionary of strain slugs and labels keyed by species abbrev.
 
     return render(
         request,

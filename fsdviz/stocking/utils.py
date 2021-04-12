@@ -464,16 +464,35 @@ def get_choices():
     """a helper function used to create a dictionary of dictionaries
     containing the choices for each field in a stocking event form."""
 
+    # spatail fields need to be filtered by lake if one has been provided.
     lakes = [x for x in Lake.objects.values_list("id", "abbrev")]
     lake_choices = toChoices(lakes)
-
-    agencies = [x for x in Agency.objects.values_list("id", "abbrev")]
-    agency_choices = toChoices(agencies)
 
     stateProvinces = [
         x for x in StateProvince.objects.values_list("id", "abbrev", "name")
     ]
     stateProv_choices = toChoices(stateProvinces)
+
+    mus = (
+        ManagementUnit.objects.filter(primary=True)
+        .select_related("lake")
+        .values_list("id", "slug", "lake__abbrev", "label")
+    )
+    tmp = [[x[2], x[3]] for x in mus]
+    mu_choices = to_lake_dict(tmp)
+
+    # grid_id_lookup will be a dictionary keyed by slug:
+    grids = Grid10.objects.select_related("lake").values_list(
+        "id", "slug", "lake__abbrev", "grid"
+    )
+
+    # grid choices must match the values coming in from the spreadsheet.
+    # no slugs!
+    tmp = [[x[2], x[3]] for x in grids]
+    grid_choices = to_lake_dict(tmp)
+
+    agencies = [x for x in Agency.objects.values_list("id", "abbrev")]
+    agency_choices = toChoices(agencies)
 
     species = [x for x in Species.objects.values_list("id", "abbrev", "common_name")]
     species_choices = toChoices(species)
@@ -496,25 +515,6 @@ def get_choices():
     ]
 
     stocking_method_choices = toChoices(stocking_methods)
-
-    # grid_id_lookup will be a dictionary keyed by slug:
-
-    grids = Grid10.objects.select_related("lake").values_list(
-        "id", "slug", "lake__abbrev", "grid"
-    )
-
-    # grid choices must match the values coming in from the spreadsheet.
-    # no slugs!
-    tmp = [[x[2], x[3]] for x in grids]
-    grid_choices = to_lake_dict(tmp)
-
-    mus = (
-        ManagementUnit.objects.filter(primary=True)
-        .select_related("lake")
-        .values_list("id", "slug", "lake__abbrev", "label")
-    )
-    tmp = [[x[2], x[3]] for x in mus]
-    mu_choices = to_lake_dict(tmp)
 
     choices = {
         "grids": grid_choices,

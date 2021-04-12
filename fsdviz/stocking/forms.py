@@ -222,12 +222,12 @@ class XlsEventForm(forms.Form):
         # self.fields["agency"].choices = self.choices.get("agencies")
 
         self.fields["state_prov"].choices = self.choices.get("state_prov")
-        self.fields["stat_dist"].choices = self.choices.get("stat_dist", []).get(
-            lake, []
-        )
-        self.fields["grid"].choices = self.choices.get("grids", []).get(lake, [])
+        self.fields["stat_dist"].choices = self.choices.get("stat_dist")
+        self.fields["grid"].choices = self.choices.get("grids")
 
         self.fields["species"].choices = self.choices.get("species")
+        self.fields["strain"].choices = self.choices.get("strain")
+
         self.fields["stock_meth"].choices = self.choices.get("stocking_method")
         self.fields["stage"].choices = self.choices.get("lifestage")
         self.fields["condition"].choices = self.choices.get("condition")
@@ -243,6 +243,7 @@ class XlsEventForm(forms.Form):
             "stat_dist",
             "grid",
             "species",
+            "strain",
             "stock_meth",
             "stage",
             "condition",
@@ -364,11 +365,43 @@ class XlsEventForm(forms.Form):
     hatchery.widget.attrs["data-validate"] = "validate-hatchery"
     agency_stock_id.widget.attrs["data-validate"] = "validate-agency-stock-id"
 
-    def clean_grid(self):
+    def clean_stateprov(self):
+        """The jurisdiction must be limited to those that exist in the
+        lake for this event. If lat-lon are provided and return a
+        jurisdiction, it must be consistent with the reported
+        jurisdiction.
 
+        """
+        pass
+
+    def clean_stat_dist(self):
+        """The statistiscal districut must be limited to one of the
+        stat_districts found in the jurisdiction. If lat-lon are
+        provided and return a stat_dist, it must be consistent with the
+        reported stat_dist."""
+        lake = self.cleaned_data.get("lake", "")
+        stat_dist = self.cleaned_data.get("stat_dist", "")
+        stat_dists = self.choices.get("stat_dist")
+
+        if stat_dists is None:
+            msg = "Unable to find any Statistical Districts for lake '%(lake)s'"
+            raise forms.ValidationError(msg, params={"lake": lake}, code="stat_dist")
+
+        if stat_dist not in [x[0] for x in stat_dists]:
+            msg = "Stat_Dist %(stat_dist)s is not valid for lake %(lake)s"
+            raise forms.ValidationError(
+                msg, params={"stat_dist": stat_dist, "lake": lake}, code="stat_dist"
+            )
+        return stat_dist
+
+    def clean_grid(self):
+        """grid must be one of the grids in the provided lake that are
+        associated with the seelcted management unit.  If lat-lon are
+        provided and return a grid, it must be consistent with the
+        reported grid."""
         lake = self.cleaned_data.get("lake", "")
         grid = self.cleaned_data.get("grid", "")
-        grids = self.choices.get("grids").get(lake)
+        grids = self.choices.get("grids")
 
         if grids is None:
             msg = "Unable to find any grids for lake '%(lake)s'"
@@ -382,22 +415,47 @@ class XlsEventForm(forms.Form):
 
         return grid
 
-    def clean_stat_dist(self):
+    def clean_strain(self):
+        """The strain values passed in the xls form will be 'raw' strain
+        values. They must be one of the raw strains associated with the
+        species, and must be mapped to an existing strain object.
 
-        lake = self.cleaned_data.get("lake", "")
-        stat_dist = self.cleaned_data.get("stat_dist", "")
-        stat_dists = self.choices.get("stat_dist").get(lake)
+        Arguments:
+        - `self`:
 
-        if stat_dists is None:
-            msg = "Unable to find any Statistical Districts for lake '%(lake)s'"
-            raise forms.ValidationError(msg, params={"lake": lake}, code="stat_dist")
+        """
+        pass
 
-        if stat_dist not in [x[0] for x in stat_dists]:
-            msg = "Stat_Dist %(stat_dist)s is not valid for lake %(lake)s"
-            raise forms.ValidationError(
-                msg, params={"stat_dist": stat_dist, "lake": lake}, code="stat_dist"
-            )
-        return stat_dist
+    def clean_latitude(self):
+        """If latitude is populated, it must be
+        within the bounds of the associated lake (plus a small
+        buffer).
+        """
+
+        pass
+
+    def clean_longitude(self):
+        """If longitude is populated, it must be
+        within the bounds of the associated lake (plus a small
+        buffer).
+        """
+
+        pass
+
+    def clean_tags(self):
+        """The tags string must be six digits, or a series of 6-digit strins
+        separated by a comma or semicolon
+
+        """
+        pass
+
+    def clean_clips(self):
+        """The value submitted for clips must be one of precompliled compoiste
+        clip codes.  Specifically, BV and BP are not allow.  VLRV and
+        LPRP must be used instead.
+
+        """
+        pass
 
     def clean(self):
 
@@ -418,6 +476,8 @@ class XlsEventForm(forms.Form):
             except ValueError:
                 msg = "Day, month, and year do not form a valid date."
                 raise forms.ValidationError(msg, code="invalid_date")
+
+        # if either lat or lon in populated, the other needs to be populated too.
 
         # check for:
         # valid dates

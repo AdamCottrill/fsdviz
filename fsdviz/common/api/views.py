@@ -568,6 +568,15 @@ class CommonLookUpsAPIView(APIView):
             .distinct()
         )
 
+        raw_strains = (
+            StrainRaw.objects.filter(raw_strain__isnull=False)
+            .exclude(raw_strain="")
+            .select_related("species", "strain")
+            .values(
+                "id", "raw_strain", "description", "species__abbrev", "strain__slug"
+            )
+        )
+
         clipcodes = CompositeFinClip.objects.order_by("clip_code").values(
             "clip_code", "description"
         )
@@ -586,6 +595,7 @@ class CommonLookUpsAPIView(APIView):
             "stateprov": list(stateprov),
             "species": list(species),
             "strains": strains,
+            "raw_strains": list(raw_strains),
             "clipcodes": list(clipcodes),
         }
 

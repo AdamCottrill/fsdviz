@@ -13,12 +13,13 @@ def xls_choices():
         "lakes": [("HU", "HU")],
         "agencies": [("MNRF", "MNRF")],
         "state_prov": [("ON", "ON")],
-        "stat_dist": {"HU": [("NC2", "NC2")]},
+        "stat_dist": [("NC2", "NC2")],
         "species": [("LAT", "Lake Trout")],
+        "strain": [("SLW", "Slate Wild")],
         "lifestage": [("y", "yearling")],
         "condition": [(1, 1)],
         "stocking_method": [("b", "boat")],
-        "grids": {"HU": [("214", "214")]},
+        "grids": [("214", "214")],
     }
 
     return choices
@@ -41,6 +42,7 @@ choice_fields = [
     "state_prov",
     "stat_dist",
     "species",
+    "strain",
     "stage",
     "condition",
     "stock_meth",
@@ -145,7 +147,6 @@ def test_xlseventform_valid_invalid_dates(
     year, or is our of range for days or months, the form should be
     invalid and return a meaningful error message.
 
-
     This test is parameterized to accept a list of day, month, year
     combinations and the expected status of the form. If the form is
     invalid, it should contain a meaningful error message.
@@ -158,6 +159,7 @@ def test_xlseventform_valid_invalid_dates(
     data["day"] = day
     form = XlsEventForm(data=data, choices=xls_choices)
     status = form.is_valid()
+    print(form.errors)
     assert status is valid
 
     if status is False:

@@ -121,10 +121,6 @@ Promise.all([
     mu_grids.map((d) => [d[0], { value: d[1], text: d[1] }])
   );
 
-  console.log("stateprov_choices = ", stateprov_choices);
-  console.log("statDist_choices = ", statDist_choices);
-  console.log("grid10_choices = ", grid10_choices);
-
   species_choices = common["species"].map((x) => x.abbrev);
   clipcode_choices = common["clipcodes"].map((x) => x.clip_code);
 
@@ -134,9 +130,9 @@ Promise.all([
   strain_choices = make_choices(
     // object keyed by species with array of 2 element arrays
     // strain code (strain label)
-    common.strains.map((x) => {
-      const label = `${x.strain_code} (${x.strain_label})`;
-      return [x.strain_species.abbrev, { value: x.strain_code, text: label }];
+    common.raw_strains.map((x) => {
+      //const label = `${x.raw_strain} (${x.description})`;
+      return [x.species__abbrev, { value: x.raw_strain, text: x.raw_strain }];
     })
   );
 
@@ -196,22 +192,6 @@ Promise.all([
       st_site: string()
         .nullable(true)
         .transform((_, val) => (val === val ? val : null)),
-      // latitude: number()
-      //   .nullable(true)
-      //   .transform((_, val) => (val === val ? val : null))
-      //   .when("longitude", {
-      //     is: (longitude) =>
-      //       number().negative().min(-85).max(-75).isValid(longitude),
-      //     then: number.required().positive().min(40).max(50),
-      //   }), // min and max (depending on lake?)
-      // longitude: number()
-      //   .nullable(true)
-      //   .transform((_, val) => (val === val ? val : null))
-      //   .when("latitude", {
-      //     is: (latitude) => number().min(40).max(45).isValid(latitude),
-      //     then: number.required().negative().min(-85).max(-75),
-      //   }), // min and max (depending on lake?)
-
       latitude: number().when("longitude", {
         is: (longitude) =>
           (typeof longitude !== "undefined") & (longitude !== 0),
@@ -278,7 +258,7 @@ Promise.all([
           return schema;
         }),
 
-      species: string().required(), //
+      species: string().required().oneOf(species_choices),
       strain: string()
         .required()
         .when("species", (species, schema) => {
@@ -423,6 +403,7 @@ Promise.all([
   $('select[id$="-species"]').each(function (x) {
     let parent_id = this.id;
     let child_id = parent_id.replace("species", "strain");
+
     update_choices(child_id, parent_id, strain_choices[this.value]);
   });
 

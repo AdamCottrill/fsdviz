@@ -82,7 +82,7 @@ export const update_selector = (selectorID, parentID, newOptions) => {
 /** update the choices in a dropdrown control to reflect the select
 value in a parent widget (species and strains).  new options is list
 of objects with the keys 'value' and 'text'.  This version is used in
-the xls_validation form and does flag the field as an error and
+the xls_validation form, does not flag the field as an error, and
 accepts a list of objects as new Options.
 */
 export const update_choices = (selectorID, parentID, newOptions) => {

@@ -18,6 +18,7 @@ from ..common_factories import (
     AgencyFactory,
     SpeciesFactory,
     StrainFactory,
+    StrainRawFactory,
     StateProvinceFactory,
     JurisdictionFactory,
     ManagementUnitFactory,
@@ -35,6 +36,7 @@ class TestCommonLookupAPI(APITestCase):
     "manUnits":[(slug", "label", "jurisdiction", "description")],
     "species": [("abbrev", "common_name", "scientific_name", "species_code", "speciescommon"), ...],
     "strains":[("id", "strain_code", "strain_label", "strain_species__abbrev"), ...],
+    "raw_strains":[("id", "raw_strain", "description", "species__abbrev"), ...],
     "clipcodes": [(clip_code, description), ....],
 
     """
@@ -97,6 +99,22 @@ class TestCommonLookupAPI(APITestCase):
 
         self.strain = StrainFactory(**self.strain_dict)
 
+        # a Strain:
+        self.strain_raw_dict = {
+            "raw_strain": "SN-1",
+            "description": "Seneca One",
+            "species": self.species,
+            "strain": self.strain,
+        }
+
+        self.raw_strain = StrainRawFactory(**self.strain_raw_dict)
+        # the raw strain object has speceies abbrev and the strain slug:
+        self.strain_raw_dict["id"] = self.raw_strain.id
+        self.strain_raw_dict.pop("species")
+        self.strain_raw_dict.pop("strain")
+        self.strain_raw_dict["species__abbrev"] = self.species.abbrev
+        self.strain_raw_dict["strain__slug"] = self.strain.slug
+
         self.clipcode_dict = dict(
             clip_code="ADLP",
             description="Adipose, Left Pectoral",
@@ -128,6 +146,7 @@ class TestCommonLookupAPI(APITestCase):
                 "manUnits",
                 "species",
                 "strains",
+                "raw_strains",
                 "clipcodes",
             ]
         )
@@ -142,6 +161,7 @@ class TestCommonLookupAPI(APITestCase):
         # assert response.data.get("manUnits") == [self.management_unit_dict]
 
         assert response.data.get("species") == [self.species_dict]
+        assert response.data.get("raw_strains") == [self.strain_raw_dict]
 
         assert response.data.get("clipcodes") == [self.clipcode_dict]
         # juristiction, mangement_unit, and strains are a little more complicated as
