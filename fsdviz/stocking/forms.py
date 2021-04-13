@@ -232,6 +232,7 @@ class XlsEventForm(forms.Form):
         self.fields["stock_meth"].choices = self.choices.get("stocking_method")
         self.fields["stage"].choices = self.choices.get("lifestage")
         self.fields["condition"].choices = self.choices.get("condition")
+        self.fields["finclip"].choices = self.choices.get("finclips")
 
         # if our intitial data contains values that are not in our list of choices
         # add it to front of each list with a "" as its id (that will automaticlly
@@ -246,6 +247,7 @@ class XlsEventForm(forms.Form):
             "stock_meth",
             "stage",
             "condition",
+            "finclip",
         ]
 
         if self.initial:
@@ -300,7 +302,7 @@ class XlsEventForm(forms.Form):
     notes = forms.CharField(required=False)
 
     # new Spring 2020
-    finclip = forms.CharField(required=False)
+    finclip = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     clip_efficiency = forms.FloatField(min_value=0, max_value=100, required=False)
     physchem_mark = forms.CharField(required=False)  # choice field some day
     tag_type = forms.ChoiceField(choices=[], required=False, widget=MySelect)

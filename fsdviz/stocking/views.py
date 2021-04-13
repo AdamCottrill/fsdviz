@@ -56,6 +56,7 @@ from ..common.models import (
     CWT,
     CWTsequence,
     FinClip,
+    CompositeFinClip,
     FishTag,
     PhysChemMark,
 )
@@ -1040,6 +1041,9 @@ def xls_events(request):
             raw_strain=""
         )
     ]
+
+    clips = [x for x in CompositeFinClip.objects.values_list("clip_code", "clip_code")]
+    choices["finclips"] = clips
 
     if request.method == "POST":
 

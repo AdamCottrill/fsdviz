@@ -320,7 +320,19 @@ Promise.all([
       agency_stock_id: string()
         .nullable(true)
         .transform((_, val) => (val === val ? val : null)),
-      finclip: string(),
+      finclip: string()
+        .oneOf(clipcode_choices, "Unknown Composite Clip Code")
+        .test(
+          "Clip contains BP",
+          'BP is not a valid Composite Clip. Did you mean "LPRP"',
+          (value) => !/BP/.test(value)
+        )
+        .test(
+          "Clip contains BV",
+          'BV is not a valid Composite Clip. Did you mean "LVRV"',
+          (value) => !/BV/.test(value)
+        ),
+
       clip_efficiency: number()
         .positive()
         .nullable(true)
