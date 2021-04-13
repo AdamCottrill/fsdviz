@@ -287,7 +287,7 @@ class XlsEventForm(forms.Form):
         min_value=1950, max_value=(datetime.now().year + 1), required=False
     )
 
-    tag_no = forms.CharField(required=False)
+    tag_no = forms.CharField(required=False, validators=[validate_cwt])
     tag_ret = forms.FloatField(min_value=0, max_value=100, required=False)
     length = forms.FloatField(min_value=1, required=False, widget=forms.TextInput)
     weight = forms.FloatField(min_value=1, required=False, widget=forms.TextInput)
@@ -418,6 +418,8 @@ class XlsEventForm(forms.Form):
         separated by a comma or semicolon
 
         """
+        # # if cwt_number is populated - cwt must be one of the tag types.
+
         pass
 
     def clean_clips(self):

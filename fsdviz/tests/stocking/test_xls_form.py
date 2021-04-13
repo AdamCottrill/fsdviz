@@ -891,9 +891,62 @@ def test_missing_lat_or_lon(
     assert expected_message in error_messages
 
 
-def test_invalid_cwt():
-    """"""
-    assert 0 == 1
+valid_cwts = [
+    "631234",
+    "631512,635978",
+    "631512,635978,639845",
+    "631512;635978",
+    "631512;635978;639845",
+    "631512;635978,639845",
+]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("value", valid_cwts)
+def test_valid_cwts(stocking_event_dict, xls_choices, value):
+    """These are all valid cwt patterns that should be considered valid and pass."""
+    data = stocking_event_dict
+    data["tag_no"] = value
+    form = XlsEventForm(data=data, choices=xls_choices)
+    status = form.is_valid()
+    assert status is True
+
+
+invalid_cwts = [
+    "31234",
+    "51234",
+    "6312AB",
+    "6051234",
+    "63-12-34",
+    "63-12-",
+    "6631234",
+    "631512,35978",
+    "631512,6635978,639845",
+    "631512;63978",
+    "631512;6359978;639845",
+    "631512;6359798,639845",
+    "631512;63597,639845",
+    "631512;63597,639",
+]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("value", invalid_cwts)
+def test_invalid_cwts(stocking_event_dict, xls_choices, value):
+    """These are all invalid cwt patterns that should be considered invalid and pass."""
+    data = stocking_event_dict
+    data["tag_no"] = value
+    form = XlsEventForm(data=data, choices=xls_choices)
+    status = form.is_valid()
+    assert status is False
+
+    errmsg = (
+        "Each CWT must be 6 digits (including leading 0's)."
+        + " Multiple cwts must be separated by a comma"
+    )
+    observed_messages = [x[1][0] for x in form.errors.items()]
+
+    assert errmsg in observed_messages
 
 
 def test_unknown_clip_code():
