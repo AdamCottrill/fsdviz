@@ -1022,6 +1022,7 @@ def xls_events(request):
 
     agency = Agency.objects.get(abbrev=xls_events[0].get("agency"))
     lake = Lake.objects.get(abbrev=xls_events[0].get("lake"))
+    bbox = lake.geom.envelope.buffer(0.2).extent
 
     # filter the choices for the spatial attributes to those assoicated with this lake:
     choices["grids"] = choices["grids"]["HU"]
@@ -1042,7 +1043,9 @@ def xls_events(request):
 
     if request.method == "POST":
 
-        formset = EventFormSet(request.POST, form_kwargs={"choices": choices})
+        formset = EventFormSet(
+            request.POST, form_kwargs={"choices": choices, "bbox": bbox}
+        )
         event_count = formset.total_form_count()
         if formset.is_valid():
 
@@ -1172,7 +1175,6 @@ def xls_events(request):
 
     else:
 
-        bbox = lake.geom.envelope.buffer(0.2).extent
         mu_grids = (
             ManagementUnit.objects.filter(lake=lake, mu_type="stat_dist")
             .select_related("grid10s")
@@ -1182,7 +1184,9 @@ def xls_events(request):
         # get points and valid stocking events in our upload here
         point_polygons = get_point_polygon_dictionary(xls_events)
 
-        formset = EventFormSet(initial=xls_events, form_kwargs={"choices": choices})
+        formset = EventFormSet(
+            initial=xls_events, form_kwargs={"choices": choices, "bbox": bbox}
+        )
 
         # strain choices = dictionary of strain slugs and labels keyed by species abbrev.
 

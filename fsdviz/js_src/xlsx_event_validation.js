@@ -271,7 +271,10 @@ Promise.all([
           return schema;
         }),
 
-      no_stocked: number().required().positive().integer(), // min and max
+      no_stocked: number()
+        .required()
+        .positive("Ensure this value is greater than or equal to 1")
+        .integer(), // min and max
       year_class: number()
         .required("Year Class is required")
         .positive("Year Class must be positive")
@@ -293,16 +296,16 @@ Promise.all([
           isNaN(value) | (value === "") ? undefined : value
         )
         .positive(),
-      length: number()
+      length: number("Enter a number.")
         .nullable(true)
         .transform((value) =>
           isNaN(value) | (value === "") ? undefined : value
         )
-        .positive(),
-      weight: number()
+        .positive("Ensure this value is greater than or equal to 1"),
+      weight: number("Enter a number.")
         .nullable(true)
         .transform((_, val) => (val === val ? val : null))
-        .positive(),
+        .positive("Ensure this value is greater than or equal to 1"),
       condition: number().positive().integer().min(0).max(10),
       lot_code: string()
         .nullable(true)

@@ -29,6 +29,22 @@ from ..common.widgets import SemanticDatePicker
 from ..common.validators import validate_cwt, cwt_list_validator
 
 from .utils import get_or_create_cwt_sequence
+from ..common.utils import int_or_none
+
+MONTHS = [
+    (1, "Jan"),
+    (2, "Feb"),
+    (3, "Mar"),
+    (4, "Apr"),
+    (5, "May"),
+    (6, "Jun"),
+    (7, "Jul"),
+    (8, "Aug"),
+    (9, "Sep"),
+    (10, "Oct"),
+    (11, "Nov"),
+    (12, "Dec"),
+]
 
 
 class FindEventsForm(forms.Form):
@@ -48,22 +64,6 @@ class FindEventsForm(forms.Form):
     # this is the right way, but causes pytest to complain....
     # year_range = StockingEvent.objects.aggregate(Min("year"), Max("year"))
     year_range = {"year__min": 1950, "year__max": datetime.now().year}
-
-    MONTHS = (
-        (1, "Jan"),
-        (2, "Feb"),
-        (3, "Mar"),
-        (4, "Apr"),
-        (5, "May"),
-        (6, "Jun"),
-        (7, "Jul"),
-        (8, "Aug"),
-        (9, "Sep"),
-        (10, "Oct"),
-        (11, "Nov"),
-        (12, "Dec"),
-        (0, "Unk"),
-    )
 
     first_year = forms.IntegerField(
         label="Earliest Year",
@@ -211,6 +211,7 @@ class XlsEventForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.choices = kwargs.pop("choices", None)
+        self.bbox = kwargs.pop("bbox", None)
         super(XlsEventForm, self).__init__(*args, **kwargs)
 
         # we can actally use use self.initial.get('lake') to modify our
@@ -237,8 +238,6 @@ class XlsEventForm(forms.Form):
         # disable it in html when it is rendered).
 
         fields = [
-            #   "lake",
-            #   "agency",
             "state_prov",
             "stat_dist",
             "grid",
@@ -255,22 +254,6 @@ class XlsEventForm(forms.Form):
                 if val not in [x[0] for x in self.fields[fld].choices]:
                     self.fields[fld].choices.insert(0, ("", val))
 
-    MONTHS = (
-        (1, "Jan"),
-        (2, "Feb"),
-        (3, "Mar"),
-        (4, "Apr"),
-        (5, "May"),
-        (6, "Jun"),
-        (7, "Jul"),
-        (8, "Aug"),
-        (9, "Sep"),
-        (10, "Oct"),
-        (11, "Nov"),
-        (12, "Dec"),
-        (None, "Unk"),
-    )
-
     # not sure if the the best approach:
     DAYS = [(None, "Unk")] + list(zip(range(1, 32), range(1, 32)))
 
@@ -282,19 +265,18 @@ class XlsEventForm(forms.Form):
     year = forms.IntegerField(
         min_value=1950, max_value=datetime.now().year, required=True
     )
-    month = forms.ChoiceField(choices=MONTHS)
-    day = forms.ChoiceField(choices=DAYS)
+    month = forms.ChoiceField(choices=MONTHS, required=False)
+    day = forms.ChoiceField(choices=DAYS, required=False)
 
     state_prov = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     stat_dist = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     grid = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    latitude = forms.CharField()
-    longitude = forms.CharField()
+
+    ##{'bbox': (-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947)}
+    latitude = forms.FloatField(required=False, min_value=41.3, max_value=49.1)
+    longitude = forms.FloatField(required=False, min_value=-92.0, max_value=-76.0)
     site = forms.CharField(required=True)
     st_site = forms.CharField(required=False)
-    ##{'bbox': (-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947)}
-    # latitude = forms.FloatField(min_value=41.3, max_value=49.1)
-    # longitude = forms.FloatField(min_value=-92.0, max_value=-76.0)
 
     species = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     strain = forms.ChoiceField(choices=[], required=True, widget=MySelect)
@@ -307,12 +289,12 @@ class XlsEventForm(forms.Form):
 
     tag_no = forms.CharField(required=False)
     tag_ret = forms.FloatField(min_value=0, max_value=100, required=False)
-    length = forms.FloatField(min_value=0, required=False)
-    weight = forms.FloatField(min_value=0, required=False)
+    length = forms.FloatField(min_value=1, required=False, widget=forms.TextInput)
+    weight = forms.FloatField(min_value=1, required=False, widget=forms.TextInput)
 
     condition = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     stock_meth = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    no_stocked = forms.IntegerField(required=True)
+    no_stocked = forms.IntegerField(required=True, min_value=1)
     lot_code = forms.CharField(required=False)
     # validation = forms.IntegerField(min_value=0, max_value=10, required=False)
     notes = forms.CharField(required=False)
@@ -324,46 +306,6 @@ class XlsEventForm(forms.Form):
     tag_type = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     hatchery = forms.CharField(required=False)  # choice field some day too
     agency_stock_id = forms.CharField(required=False)
-
-    # flags for front end javascript validation for fields that are
-    # related to one another
-    year.widget.attrs["data-validate"] = "validate-year"
-    month.widget.attrs["data-validate"] = "validate-month"
-    day.widget.attrs["data-validate"] = "validate-day"
-    grid.widget.attrs["data-validate"] = "validate-grid"
-    stat_dist.widget.attrs["data-validate"] = "validate-stat_dist"
-
-    agency.widget.attrs["data-validate"] = "validate-agency"
-    lake.widget.attrs["data-validate"] = "validate-lake"
-    state_prov.widget.attrs["data-validate"] = "validate-state_prov"
-    site.widget.attrs["data-validate"] = "validate-site"
-    latitude.widget.attrs["data-validate"] = "validate-latitude"
-    longitude.widget.attrs["data-validate"] = "validate-longitude"
-    species.widget.attrs["data-validate"] = "validate-species"
-    strain.widget.attrs["data-validate"] = "validate-strain"
-    stock_meth.widget.attrs["data-validate"] = "validate-stock_meth"
-    stage.widget.attrs["data-validate"] = "validate-stage"
-    agemonth.widget.attrs["data-validate"] = "validate-agemonth"
-    year_class.widget.attrs["data-validate"] = "validate-year_class"
-    # mark.widget.attrs["data-validate"] = "validate-mark"
-    # mark_eff.widget.attrs["data-validate"] = "validate-mark_eff"
-    tag_no.widget.attrs["data-validate"] = "validate-tag_no"
-    tag_ret.widget.attrs["data-validate"] = "validate-tag_ret"
-    length.widget.attrs["data-validate"] = "validate-length"
-    weight.widget.attrs["data-validate"] = "validate-weight"
-    no_stocked.widget.attrs["data-validate"] = "validate-no_stocked"
-    condition.widget.attrs["data-validate"] = "validate-condition"
-    lot_code.widget.attrs["data-validate"] = "validate-lot_code"
-    # validation.widget.attrs["data-validate"] = "validate-validation"
-    notes.widget.attrs["data-validate"] = "validate-notes"
-
-    # new - spring 2020
-    finclip.widget.attrs["data-validate"] = "validate-finclips"
-    clip_efficiency.widget.attrs["data-validate"] = "validate-clip-efficency"
-    physchem_mark.widget.attrs["data-validate"] = "validate-physchem-marks"
-    tag_type.widget.attrs["data-validate"] = "validate-tag-type"
-    hatchery.widget.attrs["data-validate"] = "validate-hatchery"
-    agency_stock_id.widget.attrs["data-validate"] = "validate-agency-stock-id"
 
     def clean_stateprov(self):
         """The jurisdiction must be limited to those that exist in the
@@ -429,18 +371,47 @@ class XlsEventForm(forms.Form):
     def clean_latitude(self):
         """If latitude is populated, it must be
         within the bounds of the associated lake (plus a small
-        buffer).
+        buffer set in the form and passed to the form).
         """
+        ddlat = self.cleaned_data.get("latitude")
+        bbox = self.bbox
 
-        pass
+        if ddlat == "" or ddlat is None:
+            return None
+        else:
+            if bbox:
+                if ddlat < bbox[1]:
+                    msg = "Latitude must be greater than {:.3f} degrees".format(bbox[1])
+                    raise forms.ValidationError(msg, code="latitude_too_small")
+                if ddlat > bbox[3]:
+                    msg = "Latitude must be less than {:.3f} degrees".format(bbox[3])
+                    raise forms.ValidationError(msg, code="latitude_too_large")
+            return ddlat
 
     def clean_longitude(self):
         """If longitude is populated, it must be
         within the bounds of the associated lake (plus a small
-        buffer).
+        buffer set in the view and passed to the form).
         """
 
-        pass
+        ddlon = self.cleaned_data.get("longitude")
+        bbox = self.bbox
+
+        if ddlon == "" or ddlon is None:
+            return None
+        else:
+            if bbox:
+                if ddlon < bbox[0]:
+                    msg = "Longitude must be negative and greater than {:.3f} degrees".format(
+                        bbox[0]
+                    )
+                    raise forms.ValidationError(msg, code="longitude_too_small")
+                if ddlon > bbox[2]:
+                    msg = "Longitude must be negative and less than {:.3f} degrees".format(
+                        bbox[2]
+                    )
+                    raise forms.ValidationError(msg, code="longitude_too_large")
+            return ddlon
 
     def clean_tags(self):
         """The tags string must be six digits, or a series of 6-digit strins
@@ -456,6 +427,16 @@ class XlsEventForm(forms.Form):
 
         """
         pass
+
+    def clean_day(self):
+        """make sure that the day value is an integer or None"""
+        val = self.cleaned_data["day"]
+        return int_or_none(val)
+
+    def clean_month(self):
+        """make sure that the month value is an integer or None"""
+        val = self.cleaned_data["month"]
+        return int_or_none(val)
 
     def clean(self):
 
@@ -477,6 +458,25 @@ class XlsEventForm(forms.Form):
                 msg = "Day, month, and year do not form a valid date."
                 raise forms.ValidationError(msg, code="invalid_date")
 
+        ddlat = self.cleaned_data.get("latitude")
+        ddlon = self.cleaned_data.get("longitude")
+
+        if ddlon is not None and ddlat is None:
+            msg = "Latitude is required if Longitude is populated"
+            raise forms.ValidationError(
+                msg,
+                params={"latituded": ddlat, "longitude": ddlon},
+                code="missing_lat",
+            )
+
+        if ddlat is not None and ddlon is None:
+            msg = "Longitude is required if Latitude is populated"
+            raise forms.ValidationError(
+                msg,
+                params={"latituded": ddlat, "longitude": ddlon},
+                code="missing_lon",
+            )
+
         # if either lat or lon in populated, the other needs to be populated too.
 
         # check for:
@@ -491,6 +491,7 @@ class StockingEventForm(forms.Form):
     to populate related fields, a model form seemed too restrictive."""
 
     def __init__(self, *args, **kwargs):
+
         self.choices = kwargs.pop("choices", None)
         # has cwts reflects the current state in the database, formset
         # reflects currently submitted form.
@@ -550,7 +551,10 @@ class StockingEventForm(forms.Form):
         # add it to front of each list with a "" as its id (that will automaticlly
         # disable it in html when it is rendered).
 
-    MONTHS = (
+    # not sure if the the best approach:
+    DAYS = [("", "Ukn")] + list(zip(range(1, 32), range(1, 32)))
+
+    MONTH_CHOICES = [
         (1, "Jan"),
         (2, "Feb"),
         (3, "Mar"),
@@ -563,11 +567,8 @@ class StockingEventForm(forms.Form):
         (10, "Oct"),
         (11, "Nov"),
         (12, "Dec"),
-        ("", "Unk"),
-    )
-
-    # not sure if the the best approach:
-    DAYS = [("", "Ukn")] + list(zip(range(1, 32), range(1, 32)))
+        (0, "Unk"),
+    ]
 
     id = forms.CharField(widget=forms.HiddenInput(), required=False)
 
@@ -593,7 +594,7 @@ class StockingEventForm(forms.Form):
     year = forms.IntegerField(
         min_value=1950, max_value=datetime.now().year, required=True
     )
-    month = forms.ChoiceField(choices=MONTHS, required=False)
+    month = forms.ChoiceField(choices=MONTH_CHOICES, required=False)
     day = forms.ChoiceField(choices=DAYS, required=False)
     date = forms.DateField(
         required=False,
@@ -714,34 +715,15 @@ class StockingEventForm(forms.Form):
     # that it renders with None seelcted if those eleemnts are empty,
     # and returned as empty when the elements are cleaned.
 
-    def int_or_none(self, val, default=None):
-        """Return the val as an integer or None if it cannot be converted.
-
-        Arguments:
-        - `x`:
-        """
-        if val is None:
-            if default is not None:
-                return default
-            else:
-                return None
-        elif val == "":
-            if default is not None:
-                return default
-            else:
-                return None
-        else:
-            return int(val)
-
     def clean_day(self):
         """make sure that the day value is an integer or None"""
         val = self.cleaned_data["day"]
-        return self.int_or_none(val)
+        return int_or_none(val)
 
     def clean_month(self):
         """make sure that the month value is an integer or None"""
         val = self.cleaned_data["month"]
-        return self.int_or_none(val)
+        return int_or_none(val)
 
     def clean(self):
         """Clean is our last chance to verify fields that depend on each other

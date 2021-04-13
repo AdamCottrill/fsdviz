@@ -49,6 +49,26 @@ class NumberInOrNullFilter(NumberInFilter):
         return qs.filter(q1 | q2)
 
 
+def int_or_none(val, default=None):
+    """Return the val as an integer or None if it cannot be converted.
+
+    Arguments:
+    - `x`:
+    """
+    if val is None:
+        if default is not None:
+            return default
+        else:
+            return None
+    elif val == "":
+        if default is not None:
+            return default
+        else:
+            return None
+    else:
+        return int(val)
+
+
 def is_uuid4(x):
     """A little helper function - does the passed in string match a uuid4
     pattern?  Return true if it does match, false otherwise.  Used to
