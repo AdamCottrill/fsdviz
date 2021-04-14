@@ -11,8 +11,7 @@ class SemanticDatePicker(DateTimeInput):
 
     https://simpleisbetterthancomplex.com/tutorial/2019/01/03/
     how-to-use-date-picker-with-django.html
-
-"""
+    """
 
     template_name = "widgets/semantic_calendar.html"
 
@@ -31,3 +30,15 @@ class SemanticDatePicker(DateTimeInput):
         context = self.get_context(name, value, attrs)
         template = loader.get_template(self.template_name).render(context)
         return mark_safe(template)
+
+
+class MySelect(forms.Select):
+    """A custom widget that will add 'disalbed' attribute to any select
+    options that don't have an id - mistakes passed in from Excel."""
+
+    def create_option(self, *args, **kwargs):
+        option = super().create_option(*args, **kwargs)
+        if option.get("value") == "":
+            option["attrs"]["selected"] = "selected"
+            option["attrs"]["disabled"] = "disabled"
+        return option

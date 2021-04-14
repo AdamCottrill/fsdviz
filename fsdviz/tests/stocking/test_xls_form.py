@@ -466,7 +466,6 @@ numeric_fields = [
         [-10, 13, "foo"],
         [
             "Select a valid choice. -10 is not one of the available choices.",
-            # "Select a valid choice. 0 is not one of the available choices.",
             "Select a valid choice. 13 is not one of the available choices.",
             "Select a valid choice. foo is not one of the available choices.",
         ],

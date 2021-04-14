@@ -608,3 +608,28 @@ def get_cwt_sequence_dict(event):
         x["cwt_number"] = "-".join([cwt[:2], cwt[2:4], cwt[4:6]])
 
     return ret
+
+
+def add_is_checked(values_list, urlfilter, to_str=False, replace_none=False):
+    """A helper function that accepts a values list of items, and a url
+    filter( query parameters) and applies a boolean to each item in
+    the item list indicating whether or not that element is selected
+    in the current request.  Used by list views to add checkbox boxes
+    to refine selections.
+
+    Arguments:
+    - `items`: - queryset values_list of items for checkboxes
+    - `url_filter`: - url query parameters associated with this category
+
+    """
+
+    if urlfilter:
+        my_filter = urlfilter.split(",")
+        if replace_none:
+            # these values will be replaced if they appear in our url filter:
+            replacements = {"99": "None"}
+            my_filter = [replacements.get(x, x) for x in my_filter]
+        values_list = [list(x) for x in values_list]
+        for item in values_list:
+            item.append(str(item[0]) in my_filter)
+    return values_list
