@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -11,43 +13,19 @@ from django.urls import reverse
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
-from datetime import datetime
-
-from fsdviz.common.utils import (
-    toLookup,
-    make_mu_id_lookup,
-    make_strain_id_lookup,
-    get_point_polygon_dictionary,
-)
-
-from fsdviz.common.models import (
-    Lake,
-    Jurisdiction,
-    Species,
-    StrainRaw,
-    StateProvince,
-    ManagementUnit,
-    Agency,
-    Grid10,
-    CompositeFinClip,
-)
-
+from fsdviz.common.models import (Agency, CompositeFinClip, FishTag, Grid10,
+                                  Jurisdiction, Lake, ManagementUnit,
+                                  PhysChemMark, Species, StateProvince,
+                                  StrainRaw)
+from fsdviz.common.utils import (get_point_polygon_dictionary,
+                                 make_mu_id_lookup, make_strain_id_lookup,
+                                 toLookup)
 from fsdviz.myusers.permissions import user_can_create_edit_delete
 
 from ..forms import XlsEventForm
-from ..models import (
-    StockingEvent,
-    StockingMethod,
-    LifeStage,
-    Condition,
-    DataUploadEvent,
-)
-
-from ..utils import (
-    xls2dicts,
-    validate_upload,
-    get_choices,
-)
+from ..models import (Condition, DataUploadEvent, LifeStage, StockingEvent,
+                      StockingMethod)
+from ..utils import get_choices, validate_upload, xls2dicts
 
 
 @login_required
@@ -147,10 +125,29 @@ def xls_events(request):
     clips = [x for x in CompositeFinClip.objects.values_list("clip_code", "clip_code")]
     choices["finclips"] = clips
 
+    physchem_marks = [
+        x for x in PhysChemMark.objects.values_list("mark_code", "mark_code")
+    ]
+    choices["physchem_marks"] = physchem_marks
+
+    tag_types = [x for x in FishTag.objects.values_list("tag_code", "tag_code")]
+    choices["tag_types"] = tag_types
+
+    # the choices dictionary is used for simple lookups and the display
+    # of more complicated fields, the cache dictionary is used for
+    # validation of nested objects to limit the number of database
+    # queries.
+
+    cache = {"bbox": bbox}
+    strain_list = StrainRaw.objects.values_list(
+        "id", "species__abbrev", "strain__strain_code"
+    )
+    cache["strains"] = make_strain_id_lookup(strain_list)
+
     if request.method == "POST":
 
         formset = EventFormSet(
-            request.POST, form_kwargs={"choices": choices, "bbox": bbox}
+            request.POST, form_kwargs={"choices": choices, "cache": cache}
         )
         event_count = formset.total_form_count()
         if formset.is_valid():
@@ -290,7 +287,7 @@ def xls_events(request):
         point_polygons = get_point_polygon_dictionary(xls_events)
 
         formset = EventFormSet(
-            initial=xls_events, form_kwargs={"choices": choices, "bbox": bbox}
+            initial=xls_events, form_kwargs={"choices": choices, "cache": cache}
         )
 
         # strain choices = dictionary of strain slugs and labels keyed by species abbrev.

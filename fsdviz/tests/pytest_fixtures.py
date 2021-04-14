@@ -17,37 +17,21 @@ here because they are used in several other places.
 
 
 import pytest
-
-# from .user_factory import UserFactory
-from fsdviz.myusers.tests.factories import UserFactory
 from django.contrib.gis.geos import GEOSGeometry
 
-from .common_factories import (
-    AgencyFactory,
-    CWTFactory,
-    CWTsequenceFactory,
-    FinClipFactory,
-    FishTagFactory,
-    JurisdictionFactory,
-    LakeFactory,
-    LatLonFlagFactory,
-    PhysChemMarkFactory,
-    SpeciesFactory,
-    StateProvinceFactory,
-    StrainFactory,
-    StrainRawFactory,
-)
-
-
-from .stocking_factories import (
-    DataUploadEventFactory,
-    LifeStageFactory,
-    HatcheryFactory,
-    StockingMethodFactory,
-    StockingEventFactory,
-)
-
 from fsdviz.common.choices import LATLON_FLAGS
+# from .user_factory import UserFactory
+from fsdviz.myusers.tests.factories import UserFactory
+
+from .common_factories import (AgencyFactory, CWTFactory, CWTsequenceFactory,
+                               FinClipFactory, FishTagFactory,
+                               JurisdictionFactory, LakeFactory,
+                               LatLonFlagFactory, PhysChemMarkFactory,
+                               SpeciesFactory, StateProvinceFactory,
+                               StrainFactory, StrainRawFactory)
+from .stocking_factories import (DataUploadEventFactory, HatcheryFactory,
+                                 LifeStageFactory, StockingEventFactory,
+                                 StockingMethodFactory)
 
 SCOPE = "function"
 
@@ -254,8 +238,8 @@ def stocking_event_dict(db):
         "day": 20,
         "site": "Barcelona",
         "st_site": None,
-        "latitude": 42.3422418,
-        "longitude": -79.5962906,
+        "latitude": 44.5,
+        "longitude": -81.5,
         "grid": "214",
         "stat_dist": "NC2",
         "species": "LAT",

@@ -1,20 +1,22 @@
-from django import forms
-
 from datetime import datetime
 
-from fsdviz.common.widgets import MySelect
-from fsdviz.common.validators import validate_cwt
-from fsdviz.common.utils import int_or_none
+from django import forms
+
 from fsdviz.common.constants import MONTHS
+from fsdviz.common.models import StrainRaw
+from fsdviz.common.utils import int_or_none
+from fsdviz.common.validators import validate_cwt
+from fsdviz.common.widgets import MySelect
 
 
 class XlsEventForm(forms.Form):
     """A form to capture stocking events in spreadsheet form, validate
-    them, and convert them to stocking event model instances."""
+    them, and convert them to stocking event model instances.  The"""
 
     def __init__(self, *args, **kwargs):
         self.choices = kwargs.pop("choices", None)
-        self.bbox = kwargs.pop("bbox", None)
+        # self.bbox = kwargs.pop("bbox", None)
+        self.cache = kwargs.pop("cache", dict())
         super(XlsEventForm, self).__init__(*args, **kwargs)
 
         self.fields["state_prov"].choices = self.choices.get("state_prov")
@@ -28,6 +30,9 @@ class XlsEventForm(forms.Form):
         self.fields["stage"].choices = self.choices.get("lifestage")
         self.fields["condition"].choices = self.choices.get("condition")
         self.fields["finclip"].choices = self.choices.get("finclips")
+
+        self.fields["physchem_mark"].choices = self.choices.get("physchem_marks")
+        self.fields["tag_type"].choices = self.choices.get("tag_types")
 
         # if our intitial data contains values that are not in our list of choices
         # add it to front of each list with a "" as its id (that will automaticlly
@@ -99,7 +104,7 @@ class XlsEventForm(forms.Form):
     # new Spring 2020
     finclip = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     clip_efficiency = forms.FloatField(min_value=0, max_value=100, required=False)
-    physchem_mark = forms.CharField(required=False)  # choice field some day
+    physchem_mark = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     tag_type = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     hatchery = forms.CharField(required=False)  # choice field some day too
     agency_stock_id = forms.CharField(required=False)
@@ -163,7 +168,30 @@ class XlsEventForm(forms.Form):
         - `self`:
 
         """
-        pass
+        strain_cache = self.cache.get("strains")
+
+        species = self.cleaned_data.get("species", "")
+        strain_code = self.cleaned_data.get("strain", "")
+
+        strain = strain_cache.get(species, dict()).get(strain_code)
+
+        if strain is None:
+            msg = "Unknown strain code '{}' for species '{}'"
+            raise forms.ValidationError(
+                msg.format(strain, species), code="unknown_strain"
+            )
+        return strain
+
+        # strain = StrainRaw.objects.filter(
+        #     species__abbrev=species, raw_strain=strain_code
+        # ).first()
+        # if strain:
+        #     return strain
+        # else:
+        #     msg = "Unknown strain code '{}' for species '{}'"
+        #     raise forms.ValidationError(
+        #         msg.format(strain, species), code="unknown_strain"
+        #     )
 
     def clean_latitude(self):
         """If latitude is populated, it must be
@@ -171,7 +199,7 @@ class XlsEventForm(forms.Form):
         buffer set in the form and passed to the form).
         """
         ddlat = self.cleaned_data.get("latitude")
-        bbox = self.bbox
+        bbox = self.cache.get("bbox")
 
         if ddlat == "" or ddlat is None:
             return None
@@ -192,7 +220,7 @@ class XlsEventForm(forms.Form):
         """
 
         ddlon = self.cleaned_data.get("longitude")
-        bbox = self.bbox
+        bbox = self.cache.get("bbox")
 
         if ddlon == "" or ddlon is None:
             return None
@@ -219,13 +247,20 @@ class XlsEventForm(forms.Form):
 
         pass
 
-    def clean_clips(self):
+    def clean_finclip(self):
         """The value submitted for clips must be one of precompliled compoiste
         clip codes.  Specifically, BV and BP are not allow.  VLRV and
         LPRP must be used instead.
 
         """
-        pass
+        finclip = self.cleaned_data["finclip"]
+        if finclip.find("BV") >= 0:
+            msg = "'BV' is not a valid composite clip.  Did you mean 'LVRV'?"
+            raise forms.ValidationError(msg, code="invalid_clip_BV")
+        if finclip.find("BP") >= 0:
+            msg = "'BP' is not a valid composite clip.  Did you mean 'LPRP'?"
+            raise forms.ValidationError(msg, code="invalid_clip_BP")
+        return finclip
 
     def clean_day(self):
         """make sure that the day value is an integer or None"""
@@ -256,6 +291,12 @@ class XlsEventForm(forms.Form):
             except ValueError:
                 msg = "Day, month, and year do not form a valid date."
                 raise forms.ValidationError(msg, code="invalid_date")
+
+        year_class = self.cleaned_data.get("year_class", 0)
+
+        if year_class > year:
+            msg = "Year class cannot be greater than stocking year."
+            raise forms.ValidationError(msg, code="future_year_class")
 
         ddlat = self.cleaned_data.get("latitude")
         ddlon = self.cleaned_data.get("longitude")

@@ -13,15 +13,13 @@
 import re
 import uuid
 
-
-from django.db.models import Q
-from django.contrib.gis.geos import Point, Polygon, GEOSGeometry
 from django.contrib.gis.gdal.error import GDALException
+from django.contrib.gis.geos import GEOSGeometry, Point, Polygon
 from django.contrib.gis.geos.error import GEOSException
-
+from django.db.models import Q
 from django_filters import BaseInFilter, CharFilter, NumberFilter
 
-from .models import Lake, Jurisdiction, ManagementUnit, Grid10
+from .models import Grid10, Jurisdiction, Lake, ManagementUnit
 
 
 class ValueInFilter(BaseInFilter, CharFilter):

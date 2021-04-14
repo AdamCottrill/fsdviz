@@ -1,11 +1,9 @@
-# from django import forms
-import pytest
 from datetime import datetime
 
+import pytest
 from django.contrib.gis.geos import GEOSGeometry
 
 from ...stocking.forms import XlsEventForm
-
 from ..pytest_fixtures import stocking_event_dict
 
 
@@ -24,20 +22,30 @@ def xls_choices():
         "stocking_method": [("b", "boat")],
         "finclips": [("AD", "AD")],
         "grids": [("214", "214")],
+        "tag_types": [("FT", "FT")],
+        "physchem_marks": [("OX", "OX")],
     }
 
     return choices
 
 
+@pytest.fixture(scope="module")
+def cache():
+    """"""
+    cache = {"strains": {"LAT": {"SLW": 45, "Slate Wilde": 278}}}
+
+    return cache
+
+
 @pytest.mark.django_db
-def test_xlseventform_good_data(stocking_event_dict, xls_choices):
+def test_xlseventform_good_data(stocking_event_dict, xls_choices, cache):
     """If we pass in a complete, valid dataset that matches all of our
     choices, our form will be valid.
 
     """
 
     data = stocking_event_dict
-    form = XlsEventForm(data=data, choices=xls_choices)
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
     assert status is True
 
@@ -45,18 +53,23 @@ def test_xlseventform_good_data(stocking_event_dict, xls_choices):
 choice_fields = [
     "state_prov",
     "stat_dist",
+    "grid",
     "species",
     "strain",
     "stage",
+    "finclip",
     "condition",
     "stock_meth",
-    "grid",
+    "physchem_mark",
+    "tag_type",
 ]
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("field_name", choice_fields)
-def test_xlseventform_invalid_select(stocking_event_dict, xls_choices, field_name):
+def test_xlseventform_invalid_select(
+    stocking_event_dict, xls_choices, cache, field_name
+):
     """If we pass in a data set that has a choice field that is not in the
     list fo valid choices, the form will not be valid, and an appropriate
     error should be created.
@@ -70,7 +83,7 @@ def test_xlseventform_invalid_select(stocking_event_dict, xls_choices, field_nam
 
     data = stocking_event_dict
     data[field_name] = "fake"
-    form = XlsEventForm(data=data, choices=xls_choices)
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
 
     status = form.is_valid()
     assert status is False
@@ -97,7 +110,7 @@ required_fields = [
 @pytest.mark.django_db
 @pytest.mark.parametrize("field_name", required_fields)
 def test_xlseventform_missing_required_field(
-    stocking_event_dict, xls_choices, field_name
+    stocking_event_dict, xls_choices, cache, field_name
 ):
     """If we pass in a data set that is missing a required filed, the form
     will not be valid, and an appropriate error should be created.
@@ -111,7 +124,7 @@ def test_xlseventform_missing_required_field(
 
     data = stocking_event_dict
     data[field_name] = None
-    form = XlsEventForm(data=data, choices=xls_choices)
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
     assert status is False
 
@@ -142,7 +155,7 @@ invalid_dates = [
 @pytest.mark.django_db
 @pytest.mark.parametrize("year, month, day, valid", invalid_dates)
 def test_xlseventform_valid_invalid_dates(
-    stocking_event_dict, xls_choices, year, month, day, valid
+    stocking_event_dict, xls_choices, cache, year, month, day, valid
 ):
     """If the stocking event data contains day, month and year, and forms
     a valid date (including leap years), the form should be valid, if
@@ -161,9 +174,10 @@ def test_xlseventform_valid_invalid_dates(
     data["year"] = year
     data["month"] = month
     data["day"] = day
-    form = XlsEventForm(data=data, choices=xls_choices)
+    # make sure to keep year class valid:
+    data["year_class"] = year - 1
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
-    print(form.errors)
     assert status is valid
 
     if status is False:
@@ -180,7 +194,7 @@ invalid_dates = [(2013, 6, 50), (2011, 11, -30), (2011, 11, 0)]
 @pytest.mark.django_db
 @pytest.mark.parametrize("year, month, day", invalid_dates)
 def test_xlseventform_day_out_of_range(
-    stocking_event_dict, xls_choices, year, month, day
+    stocking_event_dict, xls_choices, cache, year, month, day
 ):
     """If the stocking event data contains day that is >31 or less than 1,
     the form will not be valid and an error will be thrown.
@@ -195,7 +209,9 @@ def test_xlseventform_day_out_of_range(
     data["year"] = year
     data["month"] = month
     data["day"] = day
-    form = XlsEventForm(data=data, choices=xls_choices)
+    # make sure to keep year class valid:
+    data["year_class"] = year - 1
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
     assert status is False
 
@@ -210,7 +226,7 @@ invalid_dates = [(2013, 16, 15), (2011, -11, 30), (2011, 0, 15)]
 @pytest.mark.django_db
 @pytest.mark.parametrize("year, month, day", invalid_dates)
 def test_xlseventform_month_out_of_range(
-    stocking_event_dict, xls_choices, year, month, day
+    stocking_event_dict, xls_choices, cache, year, month, day
 ):
     """If the stocking event data contains month that is >12 or less than 1,
     the form will not be valid and an error will be thrown.
@@ -225,7 +241,7 @@ def test_xlseventform_month_out_of_range(
     data["year"] = year
     data["month"] = month
     data["day"] = day
-    form = XlsEventForm(data=data, choices=xls_choices)
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
     assert status is False
 
@@ -235,7 +251,7 @@ def test_xlseventform_month_out_of_range(
 
 
 @pytest.mark.django_db
-def test_xlseventform_wrong_grid(stocking_event_dict, xls_choices):
+def test_xlseventform_wrong_grid(stocking_event_dict, cache, xls_choices):
     """If the provided grid cannot be found in the lake, the form
     should be invalid, and a meaningful error message should be
     produced.
@@ -244,7 +260,7 @@ def test_xlseventform_wrong_grid(stocking_event_dict, xls_choices):
     data = stocking_event_dict
     data["grid"] = 999
     lake = data.get("lake")
-    form = XlsEventForm(data=data, choices=xls_choices)
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
     assert status is False
 
@@ -254,7 +270,7 @@ def test_xlseventform_wrong_grid(stocking_event_dict, xls_choices):
 
 
 @pytest.mark.django_db
-def test_xlseventform_wrong_stat_dist(stocking_event_dict, xls_choices):
+def test_xlseventform_wrong_stat_dist(stocking_event_dict, xls_choices, cache):
     """If the provided stat_dist cannot be found in the lake, the form
     should be invalid, and a meaningful error message should be
     produced.
@@ -265,7 +281,7 @@ def test_xlseventform_wrong_stat_dist(stocking_event_dict, xls_choices):
     data = stocking_event_dict
     data["stat_dist"] = "FAKE"
     lake = data.get("lake")
-    form = XlsEventForm(data=data, choices=xls_choices)
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
     assert status is False
 
@@ -288,7 +304,7 @@ outOfBounds_latlongs = [
     "ddlat, ddlon, expected_message, bbox_idx", outOfBounds_latlongs
 )
 def test_latlon_out_of_bounds_lake(
-    stocking_event_dict, xls_choices, ddlat, ddlon, expected_message, bbox_idx
+    stocking_event_dict, xls_choices, cache, ddlat, ddlon, expected_message, bbox_idx
 ):
     """we need to make sure taht every submitted event falls within a
     buffered bounding box.  if the lat or the long are outside those
@@ -312,7 +328,8 @@ def test_latlon_out_of_bounds_lake(
     data["latitude"] = ddlat
     data["longitude"] = ddlon
 
-    form = XlsEventForm(data=data, choices=xls_choices, bbox=bbox)
+    cache["bbox"] = bbox
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
 
     if expected_message == "":
@@ -341,15 +358,15 @@ def test_latlong_wrong_grid():
 
 
 missing_latlongs = [
-    (None, -79.6, "Latitude is required if Longitude is populated"),
-    (42.3, None, "Longitude is required if Latitude is populated"),
+    (None, -81.5, "Latitude is required if Longitude is populated"),
+    (44.5, None, "Longitude is required if Latitude is populated"),
 ]
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("ddlat, ddlon, expected_message", missing_latlongs)
 def test_missing_lat_or_lon(
-    stocking_event_dict, xls_choices, ddlat, ddlon, expected_message
+    stocking_event_dict, xls_choices, cache, ddlat, ddlon, expected_message
 ):
     """Lat and lon either need to both be provided, or neither can be
     provided, if just one is included, throw an error
@@ -360,7 +377,7 @@ def test_missing_lat_or_lon(
     data["latitude"] = ddlat
     data["longitude"] = ddlon
 
-    form = XlsEventForm(data=data, choices=xls_choices)
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
     assert status is False
 
@@ -381,12 +398,16 @@ valid_cwts = [
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("value", valid_cwts)
-def test_valid_cwts(stocking_event_dict, xls_choices, value):
+def test_valid_cwts(stocking_event_dict, xls_choices, cache, value):
     """These are all valid cwt patterns that should be considered valid and pass."""
     data = stocking_event_dict
     data["tag_no"] = value
-    form = XlsEventForm(data=data, choices=xls_choices)
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
+
+    error_messages = [x[1][0] for x in form.errors.items()]
+    print(error_messages)
+
     assert status is True
 
 
@@ -410,11 +431,11 @@ invalid_cwts = [
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("value", invalid_cwts)
-def test_invalid_cwts(stocking_event_dict, xls_choices, value):
+def test_invalid_cwts(stocking_event_dict, xls_choices, cache, value):
     """These are all invalid cwt patterns that should be considered invalid and pass."""
     data = stocking_event_dict
     data["tag_no"] = value
-    form = XlsEventForm(data=data, choices=xls_choices)
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
     assert status is False
 
@@ -427,26 +448,41 @@ def test_invalid_cwts(stocking_event_dict, xls_choices, value):
     assert errmsg in observed_messages
 
 
-@pytest.mark.django_db
-def test_unknown_fin_clip(stocking_event_dict, xls_choices):
-    """If we provide a record with an unknown fin clip, the form will be
-    invalid and will include a meaningful message"""
+invalid_clips = [
+    ("BP", "'BP' is not a valid composite clip.  Did you mean 'LPRP'?"),
+    ("BV", "'BV' is not a valid composite clip.  Did you mean 'LVRV'?"),
+    ("ADBV", "'BV' is not a valid composite clip.  Did you mean 'LVRV'?"),
+]
 
-    clip = "BP"
+
+@pytest.mark.parametrize("clip, errmsg", invalid_clips)
+def test_illegal_finclip(stocking_event_dict, xls_choices, cache, clip, errmsg):
+    """BV and BP are shorthand clips codes that have been used in the past
+    but are inconcistent with the convention of concatenating fin
+    clips together.  This test verifies that they will be flagged even
+    if they are included in the choices dictionary."""
+
+    choices = xls_choices
+
+    choices["finclips"] = [
+        ("AD", "AD"),
+        ("BV", "BV"),
+        ("BP", "BP"),
+        ("ADBV", "ADBV"),
+    ]
+
     data = stocking_event_dict
     data["finclip"] = clip
-    form = XlsEventForm(data=data, choices=xls_choices)
+    form = XlsEventForm(data=data, choices=choices, cache=cache)
     status = form.is_valid()
     assert status is False
 
-    error_messages = [x[1][0] for x in form.errors.items()]
-    expected = "Select a valid choice. {} is not one of the available choices."
-    assert expected.format(clip) in error_messages
+    print("clip={}".format(clip))
+    print("errmsg={}".format(errmsg))
 
-
-def test_unknown_strain():
-    """"""
-    assert 0 == 1
+    observed_messages = [x[1][0] for x in form.errors.items()]
+    print("observed_messages={}".format(observed_messages))
+    assert errmsg in observed_messages
 
 
 thisyear = datetime.now().year
@@ -492,12 +528,13 @@ numeric_fields = [
     ),
     (
         "year_class",
-        [-10, 10, 1900, "foo"],
+        [-10, 10, 1900, "foo", 2050],
         [
             "Ensure this value is greater than or equal to 1950.",
             "Ensure this value is greater than or equal to 1950.",
             "Ensure this value is greater than or equal to 1950.",
             "Enter a whole number.",
+            "Ensure this value is less than or equal to {}.".format(thisyear + 1),
         ],
     ),
     (
@@ -549,21 +586,20 @@ numeric_fields = [
             "Enter a number.",
         ],
     ),
-    # (
-    #     "validation",
-    #     [-10, 32, "foo"],
-    #     [
-    #         "Select a valid choice. -10 is not one of the available choices.",
-    #         "Select a valid choice. 32 is not one of the available choices.",
-    #         "Select a valid choice. foo is not one of the available choices.",
-    #     ],
-    #    ),
 ]
+
+
+def test_strain_within_species():
+    """The selected strain must exist for the selectd species - if it does
+    not, raise and error and return a meaninful message.
+
+    """
+    assert 0 == 1
 
 
 @pytest.mark.parametrize("field", numeric_fields)
 @pytest.mark.django_db
-def test_invalid_field_values(stocking_event_dict, xls_choices, field):
+def test_invalid_field_values(stocking_event_dict, xls_choices, cache, field):
     """If we pass a dictionary with a value that is outside of the valid
     range or of the incorrect type for that field, we should get a
     meaningful error message.
@@ -578,7 +614,7 @@ def test_invalid_field_values(stocking_event_dict, xls_choices, field):
     data = stocking_event_dict
     for val, msg in zip(values, messages):
         data[field_name] = val
-        form = XlsEventForm(data=data, choices=xls_choices)
+        form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
         status = form.is_valid()
         assert status is False
         error_message = form.errors[field_name]
