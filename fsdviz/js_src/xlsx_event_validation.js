@@ -28,6 +28,32 @@ const render_field_errors = (form_errors) => {
       .attr("data-tooltip", err)
       .attr("data-variation", "tiny basic");
   }
+
+  // if form_errors has any elements update the error message and disable the submit button
+  // if form_errors is empty - enable the submit button and remove the errors-count.
+  const error_count = Object.keys(form_errors).length;
+  if (error_count) {
+    // select the submit button:
+    $("#upload-events-button").prop("disabled", true);
+    $("#form-errors-message")
+      .removeClass("form-valid-message")
+      .addClass("form-error-message")
+      .html(`${error_count} Error${error_count > 1 ? "s" : ""} Found.`);
+  } else {
+    $("#upload-events-button").prop("disabled", false);
+    $("#form-errors-message")
+      .removeClass("form-error-message")
+      .addClass("form-valid-message")
+      .html("No Errors Found");
+  }
+};
+
+const get_choices = (field_name) => {
+  const select = $(`#id_form-0-${field_name} option`);
+  const choices = $.map(select, function (x) {
+    return x.value;
+  });
+  return choices;
 };
 
 const clear_row_field_errors = (row_prefix) => {
@@ -135,6 +161,21 @@ Promise.all([
       return [x.species__abbrev, { value: x.raw_strain, text: x.raw_strain }];
     })
   );
+
+  // choices for hatcheries, finclips, physchem_marks and tag_types can come from the first row
+  // of our form - there is currently no api, and the values in those select widgets are complete
+  // and consistent for all other rows:
+
+  // const hatchery_select = $("#id_form-0-hatchery option");
+  // const hatchery_choices = $.map(hatchery_select, function (x) {
+  //   return x.value;
+  // });
+
+  //const finclip_choices = get_choices("finclip");
+  const condition_choices = get_choices("condition");
+  const physchem_mark_choices = get_choices("physchem_mark");
+  const tag_type_choices = get_choices("tag_type");
+  const hatchery_choices = get_choices("hatchery");
 
   const [minLon, minLat, maxLon, maxLat] = lake_bbox;
   const cwt_regex = /^[0-9]{6}((,|;)[0-9]{6})*(,|;)?$/;
@@ -282,9 +323,7 @@ Promise.all([
         .max(thisYear, `Year Class must be less than today (${thisYear})`),
       stage: string().required(), // one of
       agemonth: number().positive().integer(),
-      // tag_no: string()
-      //   .nullable(true)
-      //   .transform((_, val) => (val === val ? val : null)), // regex
+
       tag_no: string().matches(cwt_regex, {
         excludeEmptyString: true,
         message:
@@ -292,21 +331,29 @@ Promise.all([
       }),
       tag_ret: number()
         .nullable(true)
-        .transform((value) =>
-          isNaN(value) | (value === "") ? undefined : value
+        .typeError("Must be a valid number.")
+        .transform((value, originalValue) =>
+          String(originalValue).trim() === "" ? null : value
         )
         .positive(),
       length: number("Enter a number.")
         .nullable(true)
-        .transform((value) =>
-          isNaN(value) | (value === "") ? undefined : value
+        .typeError("Must be a valid number.")
+        .transform((value, originalValue) =>
+          String(originalValue).trim() === "" ? null : value
         )
         .positive("Ensure this value is greater than or equal to 1"),
       weight: number("Enter a number.")
         .nullable(true)
-        .transform((_, val) => (val === val ? val : null))
+        .typeError("Must be a valid number.")
+        .transform((value, originalValue) =>
+          String(originalValue).trim() === "" ? null : value
+        )
         .positive("Ensure this value is greater than or equal to 1"),
-      condition: number().positive().integer().min(0).max(10),
+      condition: string()
+        .nullable(true)
+        .oneOf(["", ...condition_choices], "Unknown Condition Code.")
+        .transform((_, val) => (val === val ? val : null)),
       lot_code: string()
         .nullable(true)
         .transform((_, val) => (val === val ? val : null)),
@@ -315,13 +362,15 @@ Promise.all([
         .nullable(true)
         .transform((_, val) => (val === val ? val : null)),
       hatchery: string()
-        .nullable(true)
-        .transform((_, val) => (val === val ? val : null)),
+        .transform((_, val) => {
+          return val === val ? val : null;
+        })
+        .oneOf(["", ...hatchery_choices], "Unknown Hatchery Abbrev."),
       agency_stock_id: string()
         .nullable(true)
         .transform((_, val) => (val === val ? val : null)),
       finclip: string()
-        .oneOf(clipcode_choices, "Unknown Composite Clip Code")
+        .oneOf(["", ...clipcode_choices], "Unknown Composite Clip Code")
         .test(
           "Clip contains BP",
           'BP is not a valid Composite Clip. Did you mean "LPRP"',
@@ -336,14 +385,17 @@ Promise.all([
       clip_efficiency: number()
         .positive()
         .nullable(true)
-        .transform((value) =>
-          isNaN(value) | (value === "") ? undefined : value
+        .transform((value, originalValue) =>
+          String(originalValue).trim() === "" ? null : value
         ),
       physchem_mark: string()
         .nullable(true)
+        .oneOf(["", ...physchem_mark_choices], "Unknown PhysChem Mark.")
         .transform((_, val) => (val === val ? val : null)),
+
       tag_type: string()
         .nullable(true)
+        .oneOf(["", ...tag_type_choices], "Unknown Tag Type.")
         .transform((_, val) => (val === val ? val : null)),
     },
     [["latitude", "longitude"], ["day"]]

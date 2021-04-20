@@ -13,18 +13,37 @@ from django.urls import reverse
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
-from fsdviz.common.models import (Agency, CompositeFinClip, FishTag, Grid10,
-                                  Jurisdiction, Lake, ManagementUnit,
-                                  PhysChemMark, Species, StateProvince,
-                                  StrainRaw)
-from fsdviz.common.utils import (get_point_polygon_dictionary,
-                                 make_mu_id_lookup, make_strain_id_lookup,
-                                 toLookup)
+from fsdviz.common.models import (
+    Agency,
+    CompositeFinClip,
+    FishTag,
+    Grid10,
+    Jurisdiction,
+    Lake,
+    ManagementUnit,
+    PhysChemMark,
+    Species,
+    StateProvince,
+    StrainRaw,
+)
+from fsdviz.common.utils import (
+    PointPolygonsCollection,
+    list2dict,
+    make_mu_id_lookup,
+    make_strain_id_lookup,
+    toLookup,
+)
 from fsdviz.myusers.permissions import user_can_create_edit_delete
 
 from ..forms import XlsEventForm
-from ..models import (Condition, DataUploadEvent, LifeStage, StockingEvent,
-                      StockingMethod)
+from ..models import (
+    Condition,
+    DataUploadEvent,
+    Hatchery,
+    LifeStage,
+    StockingEvent,
+    StockingMethod,
+)
 from ..utils import get_choices, validate_upload, xls2dicts
 
 
@@ -105,15 +124,15 @@ def xls_events(request):
     lake = Lake.objects.get(abbrev=xls_events[0].get("lake"))
     bbox = lake.geom.envelope.buffer(0.2).extent
 
-    # filter the choices for the spatial attributes to those assoicated with this lake:
-    choices["grids"] = choices["grids"]["HU"]
-    choices["stat_dist"] = choices["stat_dist"]["HU"]
-
+    # TODO : choices = formset_choices(choices, lake)
+    # TODO : cache = formset_cache(lake, points)
     stateprov = StateProvince.objects.filter(jurisdiction__lake=lake).values_list(
         "abbrev", "name"
     )
-
     choices["stateprov"] = list(stateprov)
+    # filter the choices for the spatial attributes to those assoicated with this lake:
+    choices["stat_dist"] = choices.get("stat_dist", {}).get(lake.abbrev, "")
+    choices["grids"] = choices.get("grids", {}).get(lake.abbrev, "")
 
     choices["strain"] = [
         [x.raw_strain, x.raw_strain]
@@ -133,6 +152,9 @@ def xls_events(request):
     tag_types = [x for x in FishTag.objects.values_list("tag_code", "tag_code")]
     choices["tag_types"] = tag_types
 
+    hatcheries = [x for x in Hatchery.objects.values_list("abbrev", "abbrev")]
+    choices["hatcheries"] = hatcheries
+
     # the choices dictionary is used for simple lookups and the display
     # of more complicated fields, the cache dictionary is used for
     # validation of nested objects to limit the number of database
@@ -143,6 +165,28 @@ def xls_events(request):
         "id", "species__abbrev", "strain__strain_code"
     )
     cache["strains"] = make_strain_id_lookup(strain_list)
+
+    mus = (
+        ManagementUnit.objects.filter(lake=lake, mu_type="stat_dist")
+        .select_related("jurisdiciton", "jurisdiction__stateprov")
+        .values_list("jurisdiction__stateprov__abbrev", "label")
+    )
+
+    mu_grids = (
+        ManagementUnit.objects.filter(lake=lake, mu_type="stat_dist")
+        .select_related("grid10s")
+        .order_by("label", "grid10s__grid")
+        .values_list("label", "grid10s__grid")
+    )
+
+    point_polygons = PointPolygonsCollection()
+    pts = {(x["longitude"], x["latitude"]) for x in xls_events}
+    point_polygons.add_points(pts)
+
+    cache["lake"] = lake.abbrev
+    cache["mus"] = list2dict(mus)
+    cache["mu_grids"] = list2dict(mu_grids)
+    cache["point_polygons"] = point_polygons
 
     if request.method == "POST":
 
@@ -159,15 +203,20 @@ def xls_events(request):
             stateProvinces = StateProvince.objects.values_list("id", "abbrev")
             stateProv_id_lookup = toLookup(stateProvinces)
 
-            mus = ManagementUnit.objects.values_list(
-                "id", "slug", "lake__abbrev", "label"
-            )
+            mus = ManagementUnit.objects.filter(
+                lake=lake, mu_type="stat_dist"
+            ).values_list("id", "slug", "lake__abbrev", "label")
             mu_id_lookup = make_mu_id_lookup(mus)
 
-            lakeStates = [x for x in Jurisdiction.objects.values_list("id", "slug")]
+            lakeStates = [
+                x
+                for x in Jurisdiction.objects.filter(lake=lake).values_list(
+                    "id", "slug"
+                )
+            ]
             lakeState_id_lookup = toLookup(lakeStates)
 
-            grids = Grid10.objects.values_list("id", "slug")
+            grids = Grid10.objects.filter(lake=lake).values_list("id", "slug")
             grid_id_lookup = toLookup(grids)
 
             species = Species.objects.values_list("id", "abbrev")
@@ -187,35 +236,34 @@ def xls_events(request):
             lifestages = LifeStage.objects.values_list("id", "abbrev")
             lifestage_id_lookup = toLookup(lifestages)
 
-            with transaction.atomic():
+            hatcheries = Hatchery.objects.values_list("id", "abbrev")
+            hatchery_id_lookup = toLookup(hatcheries)
 
-                # get values for for lake and agency from first row:
-                lake_abbrev = formset.data.get("form-0-lake", "HU")
-                agency_abbrev = formset.data.get("form-0-agency", "USFWS")
+            with transaction.atomic():
 
                 data_upload_event = DataUploadEvent(
                     uploaded_by=request.user,
-                    lake_id=lake_abbrev,
-                    agency_id=agency_abbrev,
+                    lake_id=lake.abbrev,
+                    agency_id=agency.abbrev,
                 )
                 data_upload_event.save()
 
                 for form in formset:
                     data = form.cleaned_data
-                    agency_abbrev = data.pop("agency")
+                    # agency_abbrev = data.pop("agency")
                     spc_abbrev = data.pop("species")
                     species = species_id_lookup[spc_abbrev]
                     lifestage = lifestage_id_lookup[data.pop("stage")]
                     stocking_method = stocking_method_id_lookup[data.pop("stock_meth")]
                     condition = condition_id_lookup[int(data.pop("condition"))]
-                    grid_slug = "{}_{}".format(lake_abbrev.lower(), data.pop("grid"))
+                    hatchery = hatchery_id_lookup.get(data.pop("hatchery"))
+                    grid_slug = "{}_{}".format(lake.abbrev.lower(), data.pop("grid"))
                     grid = grid_id_lookup[grid_slug]
-
                     stat_dist = data.pop("stat_dist")
-                    mu = mu_id_lookup.get(lake_abbrev).get(stat_dist)
+                    mu = mu_id_lookup.get(lake.abbrev).get(stat_dist)
 
                     lakeState_slug = "{}_{}".format(
-                        lake_abbrev.lower(), data.pop("state_prov").lower()
+                        lake.abbrev.lower(), data.pop("state_prov").lower()
                     )
                     lakeState = lakeState_id_lookup[lakeState_slug]
 
@@ -236,7 +284,7 @@ def xls_events(request):
                             data["date"] = event_date
 
                     # ForeigmKeyFields
-                    data["agency_id"] = agency
+                    # data["agency_id"] = agency
                     data["lifestage_id"] = lifestage
                     data["stocking_method_id"] = stocking_method
                     data["grid_10_id"] = grid
@@ -245,7 +293,7 @@ def xls_events(request):
                     data["strain_raw_id"] = strain_id
                     data["jurisdiction_id"] = lakeState
                     data["condition_id"] = condition
-
+                    data["hatchery_id_id"] = hatchery
                     data["upload_event"] = data_upload_event
 
                     # rename some of our fields (this is not very elegant,
@@ -274,23 +322,13 @@ def xls_events(request):
             for i, form in enumerate(formset):
                 for key, val in form.errors.items():
                     formset_errors[prefix.format(i, key)] = val
+            print(formset_errors)
 
     else:
-
-        mu_grids = (
-            ManagementUnit.objects.filter(lake=lake, mu_type="stat_dist")
-            .select_related("grid10s")
-            .order_by("label", "grid10s__grid")
-            .values_list("label", "grid10s__grid")
-        )
-        # get points and valid stocking events in our upload here
-        point_polygons = get_point_polygon_dictionary(xls_events)
 
         formset = EventFormSet(
             initial=xls_events, form_kwargs={"choices": choices, "cache": cache}
         )
-
-        # strain choices = dictionary of strain slugs and labels keyed by species abbrev.
 
     return render(
         request,
@@ -303,18 +341,7 @@ def xls_events(request):
             "lake": lake,
             "agency": agency,
             "bbox": bbox,
-            "point_polygons": point_polygons
-            # "lakes": lake_id_lookup,
-            # "agencies": agency_id_lookup,
-            # "stateprovs": stateProv_id_lookup,
-            # "species": species_id_lookup,
-            # "stocking_method": stocking_method_id_lookup,
-            # "condition": condition_id_lookup,
-            # "lifestage": lifestage_id_lookup,
-            # "grids": grid_id_lookup,
-            # "mus": mu_id_lookup,
-            # "lakeState": lakeState_id_lookup,
-            # "strains": strain_id_lookup,
+            "point_polygons": point_polygons.get_polygons(),
         },
     )
 

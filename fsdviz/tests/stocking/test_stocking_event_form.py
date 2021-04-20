@@ -313,15 +313,6 @@ numeric_fields = [
             "Enter a whole number.",
         ],
     ),
-    # (
-    #     "validation",
-    #     [-10, 32, "foo"],
-    #     [
-    #         "Select a valid choice. -10 is not one of the available choices.",
-    #         "Select a valid choice. 32 is not one of the available choices.",
-    #         "Select a valid choice. foo is not one of the available choices.",
-    #     ],
-    #    ),
 ]
 
 
@@ -342,17 +333,12 @@ def test_invalid_field_values(event, field, glsc):
     choices = get_event_model_form_choices(event)
     event_dict = create_event_dict(event)
 
-    # get the first element of the first list in agencies
-
     for val, msg in zip(values, messages):
         event_dict[field_name] = val
-
         form = StockingEventForm(event_dict, choices=choices, user=glsc)
-
         status = form.is_valid()
         assert status is False
         error_message = form.errors[field_name]
-
         assert msg in error_message
 
 

@@ -1,5 +1,5 @@
-from django.forms import DateTimeInput
 from django import forms
+from django.forms import DateTimeInput
 from django.template import loader
 from django.utils.safestring import mark_safe
 
@@ -38,7 +38,8 @@ class MySelect(forms.Select):
 
     def create_option(self, *args, **kwargs):
         option = super().create_option(*args, **kwargs)
-        if option.get("value") == "":
+        # if option.get("value") == "":
+        if option.get("value") == "-999":
             option["attrs"]["selected"] = "selected"
             option["attrs"]["disabled"] = "disabled"
         return option

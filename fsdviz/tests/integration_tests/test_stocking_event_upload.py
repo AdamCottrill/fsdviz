@@ -32,6 +32,7 @@ from fsdviz.tests.pytest_fixtures import (
     mdnr,
     mnrf,
     huron,
+    superior,
     huron_mdnr_sc,
     invalid_xlsfiles,
 )
@@ -223,20 +224,17 @@ def test_upload_form_contains_some_instructions(client, user):
     assert response.status_code == 200
     assertTemplateUsed("stocking/upload_stocking_events.html")
 
-    fname = "c:/1work/scrapbook/wtf.html"
-    with open(fname, "wb") as f:
-        f.write(response.content)
-
     messages = [
         "To upload stocking events you must:",
         "Use the offial stocking event upload template",
         """Ensure that any errors
-                        identified by the spreadsheet validation have
-                        been addressed before uploading the file""",
+                    identified by the spreadsheet validation have
+                    been addressed before uploading the file""",
         """Limit your submission to a
-                        single agency and lake""",
-        """Ensure that your upload contains few events than
-                            the event limit""",
+                    single agency and lake and ensure that you are
+                    affiliated with that lake and agency""",
+        """Ensure that your upload contains fewer events than
+                    the event limit""",
     ]
 
     for msg in messages:
@@ -363,7 +361,7 @@ class TestFileUpload:
             msg = '<option value="" selected="selected" disabled="disabled">ZU</option>'
             assert msg in content
 
-    def test_gl_coordinator_not_limited_to_their_lake(self, client, glsc):
+    def test_gl_coordinator_not_limited_to_their_lake(self, client, superior, glsc):
         """A great Lakes stocking coordinator should be able to upload
         stocking events for any lake and for any agency.
 

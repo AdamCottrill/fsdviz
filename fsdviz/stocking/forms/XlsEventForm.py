@@ -1,3 +1,4 @@
+import pdb
 from datetime import datetime
 
 from django import forms
@@ -14,6 +15,10 @@ class XlsEventForm(forms.Form):
     them, and convert them to stocking event model instances.  The"""
 
     def __init__(self, *args, **kwargs):
+
+        OPTIONAL_CHOICE = [
+            ("", "---"),
+        ]
         self.choices = kwargs.pop("choices", None)
         # self.bbox = kwargs.pop("bbox", None)
         self.cache = kwargs.pop("cache", dict())
@@ -28,17 +33,23 @@ class XlsEventForm(forms.Form):
 
         self.fields["stock_meth"].choices = self.choices.get("stocking_method")
         self.fields["stage"].choices = self.choices.get("lifestage")
-        self.fields["condition"].choices = self.choices.get("condition")
-        self.fields["finclip"].choices = self.choices.get("finclips")
 
-        self.fields["physchem_mark"].choices = self.choices.get("physchem_marks")
-        self.fields["tag_type"].choices = self.choices.get("tag_types")
+        condition_choices = OPTIONAL_CHOICE + self.choices.get("condition", [])
+        self.fields["condition"].choices = condition_choices
 
-        # if our intitial data contains values that are not in our list of choices
-        # add it to front of each list with a "" as its id (that will automaticlly
-        # disable it in html when it is rendered).
+        finclips_choices = OPTIONAL_CHOICE + self.choices.get("finclips", [])
+        self.fields["finclip"].choices = finclips_choices
 
-        fields = [
+        physchem_mark_choices = OPTIONAL_CHOICE + self.choices.get("physchem_marks", [])
+        self.fields["physchem_mark"].choices = physchem_mark_choices
+
+        tag_type_choices = OPTIONAL_CHOICE + self.choices.get("tag_types", [])
+        self.fields["tag_type"].choices = tag_type_choices
+
+        hatchery_choices = OPTIONAL_CHOICE + self.choices.get("hatcheries", [])
+        self.fields["hatchery"].choices = hatchery_choices
+
+        choice_fields = [
             "state_prov",
             "stat_dist",
             "grid",
@@ -48,21 +59,24 @@ class XlsEventForm(forms.Form):
             "stage",
             "condition",
             "finclip",
+            "physchem_mark",
+            "tag_type",
+            "hatchery",
         ]
 
+        # - if there are values passed in from excel - add them to the
+        # choices with an invalid value. For optional fields, don't
+        # forget to add an empty placeholder:
         if self.initial:
-            for fld in fields:
+            for fld in choice_fields:
                 val = self.initial[fld]
                 if val not in [x[0] for x in self.fields[fld].choices]:
-                    self.fields[fld].choices.insert(0, ("", val))
+                    self.fields[fld].choices.insert(0, ("-999", val))
 
-    # not sure if the the best approach:
     DAYS = [(None, "Unk")] + list(zip(range(1, 32), range(1, 32)))
 
-    # agency = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    # lake = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    agency = forms.CharField(widget=forms.HiddenInput())
-    lake = forms.CharField(widget=forms.HiddenInput())
+    # agency = forms.CharField(widget=forms.HiddenInput())
+    # lake = forms.CharField(widget=forms.HiddenInput())
 
     year = forms.IntegerField(
         min_value=1950, max_value=datetime.now().year, required=True
@@ -82,7 +96,7 @@ class XlsEventForm(forms.Form):
 
     species = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     strain = forms.ChoiceField(choices=[], required=True, widget=MySelect)
-    # strain = forms.CharField(required=True)
+
     stage = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     agemonth = forms.IntegerField(min_value=0, required=False)
     year_class = forms.IntegerField(
@@ -106,92 +120,9 @@ class XlsEventForm(forms.Form):
     clip_efficiency = forms.FloatField(min_value=0, max_value=100, required=False)
     physchem_mark = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     tag_type = forms.ChoiceField(choices=[], required=False, widget=MySelect)
-    hatchery = forms.CharField(required=False)  # choice field some day too
+    hatchery = forms.ChoiceField(choices=[], required=False, widget=MySelect)
+    # hatchery = forms.CharField(required=False)  # choice field some day too
     agency_stock_id = forms.CharField(required=False)
-
-    def clean_stateprov(self):
-        """The jurisdiction must be limited to those that exist in the
-        lake for this event. If lat-lon are provided and return a
-        jurisdiction, it must be consistent with the reported
-        jurisdiction.
-
-        """
-        pass
-
-    def clean_stat_dist(self):
-        """The statistiscal districut must be limited to one of the
-        stat_districts found in the jurisdiction. If lat-lon are
-        provided and return a stat_dist, it must be consistent with the
-        reported stat_dist."""
-        lake = self.cleaned_data.get("lake", "")
-        stat_dist = self.cleaned_data.get("stat_dist", "")
-        stat_dists = self.choices.get("stat_dist")
-
-        if stat_dists is None:
-            msg = "Unable to find any Statistical Districts for lake '%(lake)s'"
-            raise forms.ValidationError(msg, params={"lake": lake}, code="stat_dist")
-
-        if stat_dist not in [x[0] for x in stat_dists]:
-            msg = "Stat_Dist %(stat_dist)s is not valid for lake %(lake)s"
-            raise forms.ValidationError(
-                msg, params={"stat_dist": stat_dist, "lake": lake}, code="stat_dist"
-            )
-        return stat_dist
-
-    def clean_grid(self):
-        """grid must be one of the grids in the provided lake that are
-        associated with the seelcted management unit.  If lat-lon are
-        provided and return a grid, it must be consistent with the
-        reported grid."""
-        lake = self.cleaned_data.get("lake", "")
-        grid = self.cleaned_data.get("grid", "")
-        grids = self.choices.get("grids")
-
-        if grids is None:
-            msg = "Unable to find any grids for lake '%(lake)s'"
-            raise forms.ValidationError(msg, params={"lake": lake}, code="grid")
-
-        if grid not in [x[0] for x in grids]:
-            msg = "Grid {grid} is not valid for lake '{lake}'".format(grid, lake)
-            raise forms.ValidationError(
-                msg, params={"grid": grid, "lake": lake}, code="grid"
-            )
-
-        return grid
-
-    def clean_strain(self):
-        """The strain values passed in the xls form will be 'raw' strain
-        values. They must be one of the raw strains associated with the
-        species, and must be mapped to an existing strain object.
-
-        Arguments:
-        - `self`:
-
-        """
-        strain_cache = self.cache.get("strains")
-
-        species = self.cleaned_data.get("species", "")
-        strain_code = self.cleaned_data.get("strain", "")
-
-        strain = strain_cache.get(species, dict()).get(strain_code)
-
-        if strain is None:
-            msg = "Unknown strain code '{}' for species '{}'"
-            raise forms.ValidationError(
-                msg.format(strain, species), code="unknown_strain"
-            )
-        return strain
-
-        # strain = StrainRaw.objects.filter(
-        #     species__abbrev=species, raw_strain=strain_code
-        # ).first()
-        # if strain:
-        #     return strain
-        # else:
-        #     msg = "Unknown strain code '{}' for species '{}'"
-        #     raise forms.ValidationError(
-        #         msg.format(strain, species), code="unknown_strain"
-        #     )
 
     def clean_latitude(self):
         """If latitude is populated, it must be
@@ -237,6 +168,111 @@ class XlsEventForm(forms.Form):
                     )
                     raise forms.ValidationError(msg, code="longitude_too_large")
             return ddlon
+
+    def clean_stateprov(self):
+        """The jurisdiction must be limited to those that exist in the
+        lake for this event. If lat-lon are provided and return a
+        jurisdiction, it must be consistent with the reported
+        jurisdiction.
+
+        """
+        lake = self.cache.get("lake", "")
+        stateprov = self.cleaned_data.get("state_prov", "")
+        stateprov_choices = self.choices.get("stateprov")
+
+        if stateprov not in stateprov_choices:
+            msg = "%(stateprov)s is not a valid State or Province for  for lake '%(lake)s'"
+            raise forms.ValidationError(msg, params={"lake": lake}, code="stateprov")
+
+        ddlat = self.cleaned_data.get("latitude")
+        ddlon = self.cleaned_data.get("longitude")
+        if ddlat and ddlon:
+            point_polygons = self.cache.get("point_polygons")
+            jurisdiction = point_polygons.get_jurisdiction([ddlat, ddlon])
+            if jurisdiction != "":
+                pred_stateprov = jurisdiction.get("stateprov_abbrev")
+                if pred_stateprov != stateprov:
+                    msg = "Lat-long suggests {}".format(pred_stateprov)
+                    raise forms.ValidationError(msg, code="pred-stateprov")
+        return stateprov
+
+    def clean_stat_dist(self):
+        """The statistiscal districut must be limited to one of the
+        stat_districts found in the jurisdiction. If lat-lon are
+        provided and return a stat_dist, it must be consistent with the
+        reported stat_dist."""
+
+        lake = self.cache.get("lake", "")
+        stateprov = self.cleaned_data.get("state_prov", "")
+        stat_dist = self.cleaned_data.get("stat_dist", "")
+        stat_dist_choices = self.cache.get("mus", {}).get(stateprov, [])
+
+        if stat_dist not in stat_dist_choices:
+            msg = "Stat_Dist {} is not valid for {} waters of Lake {}"
+            raise forms.ValidationError(
+                msg.format(stat_dist, stateprov, lake), code="invalid_stat_dist"
+            )
+
+        ddlat = self.cleaned_data.get("latitude")
+        ddlon = self.cleaned_data.get("longitude")
+        if ddlat and ddlon:
+            point_polygons = self.cache.get("point_polygons")
+            manUnit = point_polygons.get_manUnit([ddlat, ddlon])
+            if manUnit != "":
+                if manUnit["label"] != stat_dist:
+                    msg = "Lat-long suggests {}".format(manUnit["label"])
+                    raise forms.ValidationError(msg, code="pred-statdist")
+        return stat_dist
+
+    def clean_grid(self):
+        """grid must be one of the grids in the provided lake that are
+        associated with the seelcted management unit.  If lat-lon are
+        provided and return a grid, it must be consistent with the
+        reported grid."""
+
+        grid = self.cleaned_data.get("grid", "")
+        stat_dist = self.cleaned_data.get("stat_dist", "")
+        grid_choices = self.cache.get("mu_grids", {}).get(stat_dist, [])
+
+        if grid not in grid_choices:
+            msg = "Grid {} is not valid for Statistical District '{}'"
+            raise forms.ValidationError(
+                msg.format(grid, stat_dist), code="grid_stat_dist"
+            )
+
+        ddlat = self.cleaned_data.get("latitude")
+        ddlon = self.cleaned_data.get("longitude")
+        if ddlat and ddlon:
+            point_polygons = self.cache.get("point_polygons")
+            grid10 = point_polygons.get_grid10([ddlat, ddlon])
+            if grid10 != "":
+                if grid10["grid"] != stat_dist:
+                    msg = "Lat-long suggests {}".format(grid10["grid"])
+                    raise forms.ValidationError(msg, code="pred-grid10")
+        return grid
+
+    def clean_strain(self):
+        """The strain values passed in the xls form will be 'raw' strain
+        values. They must be one of the raw strains associated with the
+        species, and must be mapped to an existing strain object.
+
+        Arguments:
+        - `self`:
+
+        """
+        strain_cache = self.cache.get("strains")
+
+        species = self.cleaned_data.get("species", "")
+        strain_code = self.cleaned_data.get("strain", "")
+
+        strain = strain_cache.get(species, dict()).get(strain_code)
+
+        if strain is None:
+            msg = "Unknown strain code '{}' for species '{}'"
+            raise forms.ValidationError(
+                msg.format(strain_code, species), code="unknown_strain"
+            )
+        return strain
 
     def clean_tags(self):
         """The tags string must be six digits, or a series of 6-digit strins

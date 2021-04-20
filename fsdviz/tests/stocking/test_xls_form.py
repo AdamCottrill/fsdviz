@@ -14,16 +14,17 @@ def xls_choices():
         "lakes": [("HU", "HU")],
         "agencies": [("MNRF", "MNRF")],
         "state_prov": [("ON", "ON")],
-        "stat_dist": [("NC2", "NC2")],
+        "stat_dist": [("NC2", "NC2"), ("MM4", "MM4")],
         "species": [("LAT", "Lake Trout")],
-        "strain": [("SLW", "Slate Wild")],
+        "strain": [("SLW", "Slate Wild"), ("WI", "Wild")],
         "lifestage": [("y", "yearling")],
         "condition": [(1, 1)],
         "stocking_method": [("b", "boat")],
         "finclips": [("AD", "AD")],
-        "grids": [("214", "214")],
+        "grids": [("214", "214"), ("999", "999")],
         "tag_types": [("FT", "FT")],
         "physchem_marks": [("OX", "OX")],
+        "hatcheries": [("CFCS", "CFCS")],
     }
 
     return choices
@@ -32,8 +33,13 @@ def xls_choices():
 @pytest.fixture(scope="module")
 def cache():
     """"""
-    cache = {"strains": {"LAT": {"SLW": 45, "Slate Wilde": 278}}}
-
+    cache = {
+        "mus": {"ON": ["NC2", "NC2"]},
+        "lake": "HU",
+        "strains": {"LAT": {"SLW": 45, "Slate Wilde": 278}},
+        "mu_grids": {"NC2": ["214"]},
+        # "point_polygons":
+    }
     return cache
 
 
@@ -62,6 +68,7 @@ choice_fields = [
     "stock_meth",
     "physchem_mark",
     "tag_type",
+    "hatchery",
 ]
 
 
@@ -258,14 +265,16 @@ def test_xlseventform_wrong_grid(stocking_event_dict, cache, xls_choices):
     """
 
     data = stocking_event_dict
-    data["grid"] = 999
-    lake = data.get("lake")
+    data["grid"] = "999"
+    stat_dist = data.get("stat_dist")
     form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
     assert status is False
 
     error_messages = [x[1][0] for x in form.errors.items()]
-    expected = "Grid {} is not valid for lake {}".format(999, lake)
+    expected = "Grid {} is not valid for Statistical District '{}'".format(
+        999, stat_dist
+    )
     assert expected in error_messages
 
 
@@ -275,18 +284,20 @@ def test_xlseventform_wrong_stat_dist(stocking_event_dict, xls_choices, cache):
     should be invalid, and a meaningful error message should be
     produced.
 
+    This test requires a stat district that actually exists, but it
+    not in the same lake as our stocking event.
 
     """
 
     data = stocking_event_dict
-    data["stat_dist"] = "FAKE"
+    data["stat_dist"] = "MM4"
     lake = data.get("lake")
     form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
     status = form.is_valid()
     assert status is False
 
     error_messages = [x[1][0] for x in form.errors.items()]
-    expected = "Stat_Dist {} is not valid for lake {}".format("FAKE", lake)
+    expected = "Stat_Dist {} is not valid for ON waters of Lake {}".format("MM4", lake)
     assert expected in error_messages
 
 
@@ -476,12 +487,33 @@ def test_illegal_finclip(stocking_event_dict, xls_choices, cache, clip, errmsg):
     form = XlsEventForm(data=data, choices=choices, cache=cache)
     status = form.is_valid()
     assert status is False
-
-    print("clip={}".format(clip))
-    print("errmsg={}".format(errmsg))
-
     observed_messages = [x[1][0] for x in form.errors.items()]
-    print("observed_messages={}".format(observed_messages))
+    assert errmsg in observed_messages
+
+
+@pytest.mark.django_db
+def test_strain_within_species(
+    stocking_event_dict,
+    xls_choices,
+    cache,
+):
+    """The selected strain must exist for the selectd species - if it does
+    not, raise and error and return a meaninful message.
+
+    In this case, WI is a strain code that is in the dropdown list,
+    but is not associated with our species in the cache - we should get an error.
+
+    """
+    data = stocking_event_dict
+    strain = "WI"
+    data["strain"] = strain
+    form = XlsEventForm(data=data, choices=xls_choices, cache=cache)
+    status = form.is_valid()
+    assert status is False
+
+    species = data["species"]
+    errmsg = "Unknown strain code '{}' for species '{}'".format(strain, species)
+    observed_messages = [x[1][0] for x in form.errors.items()]
     assert errmsg in observed_messages
 
 
@@ -587,14 +619,6 @@ numeric_fields = [
         ],
     ),
 ]
-
-
-def test_strain_within_species():
-    """The selected strain must exist for the selectd species - if it does
-    not, raise and error and return a meaninful message.
-
-    """
-    assert 0 == 1
 
 
 @pytest.mark.parametrize("field", numeric_fields)

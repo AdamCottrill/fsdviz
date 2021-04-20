@@ -127,10 +127,10 @@ def parse_geom(data):
 
 
 def get_polygons(pt):
-    """a GEOSGeometry point object polygonsurns a dictionary containing the
+    """accepts an GEOSGeometry point object and return a dictionary containing the
     lake, jurisdiction, management_unit, and grid10 objects that
     contain the point.  Used to validate the spatial widgets in the
-    stocking event and stocking upload forms.  Given a lat-lon, polygonsurn
+    stocking event and stocking upload forms.  Given a lat-lon, return
     a dictionary with the following elements:
 
     + lake - with id, lake name, lake abbrev
@@ -213,24 +213,111 @@ def get_polygons(pt):
     return polygons
 
 
-def get_point_polygon_dictionary(events):
-    """Given a list of stocking events - return a dictionary contain the
-    attrubutes of the containing polygons for lake, jurisdtion,
-    management unit (stat district), and grid.  Duplicte coordinates
-    are removed.  The dictionary is keyed by a string of the form lat-lon.
+class PointPolygonsCollection(object):
+    """A data container for polygons associated with each point in a list
+    of points. Used in the xls_formset validation and provide as
+    cleaner api for accessing associated attributes:
 
-    The dictionary is used in the xls_upload validation to ensure that
-    associated spatial widgets on each row are consistent with their
-    coordinates.
+        pts = {(x["longitude"], x["latitude"]) for x in xls_events}
+        point_polygons = PointPolygonsCollection()
+
+        point_polygons.add_points(pts)
+        point_polygons.get_lake(pt)
+        point_polygons.get_stateprov(pt)
+        point_polygons.statdist(pt)
+        point_polygons.get_grid10(pt)
 
     """
-    coords = {(x["longitude"], x["latitude"]) for x in events}
-    point_polygons = {}
-    for xy in coords:
-        pt = Point(xy[0], xy[1], srid=4326)
-        key = "{}-{}".format(xy[1], xy[0])
-        point_polygons[key] = get_polygons(pt)
-    return point_polygons
+
+    def __init__(
+        self,
+    ):
+        """"""
+        self.point_polygons = {}
+
+    def add_points(self, points):
+        """
+
+        Arguments:
+        - `points`: iterable of ddlat-ddlon pairs
+        """
+
+        for xy in points:
+            pt = Point(xy[0], xy[1], srid=4326)
+            key = "{}-{}".format(xy[1], xy[0])
+            self.point_polygons[key] = get_polygons(pt)
+
+    def get_polygons(self):
+        """Return all of the polygons associated with all of the points in the
+        current collection.  Returns a dictionary keyed by the lat-lon of each
+        point.
+
+        Arguments:
+        - `pt`:
+
+        """
+        return self.point_polygons
+
+    def get_lake(self, pt):
+        """Return the attributes of the lake assocated with the provided point.
+
+        Arguments:
+        - `pt`:
+        """
+        key = "{}-{}".format(pt[0], pt[1])
+        return self.point_polygons.get(key, {}).get("lake", "")
+
+    def get_jurisdiction(self, pt):
+        """Return the attributes of the jurisdiction assocated with the provided point.
+
+        Arguments:
+        - `pt`:
+        """
+        key = "{}-{}".format(pt[0], pt[1])
+        return self.point_polygons.get(key, {}).get("jurisdiction")
+
+    def get_manUnit(self, pt):
+        """Return the attributes of the management unit assocated with the provided point.
+
+        Arguments:
+        - `pt`:
+        """
+        key = "{}-{}".format(pt[0], pt[1])
+        return self.point_polygons.get(key, {}).get("manUnit", "")
+
+    def get_grid10(self, pt):
+        """Return the attributes of the 10-minute grid assocated with the provided point.
+
+        Arguments:
+        - `pt`:
+        """
+        key = "{}-{}".format(pt[0], pt[1])
+        return self.point_polygons.get(key, {}).get("grid10", "")
+
+    # point_polygons.get_lake(pt)
+    # point_polygons.get_stateprov(pt)
+    # point_polygons.statdist(pt)
+    # point_polygons.get_grid10(pt)
+
+
+# def get_point_polygon_dictionary(events):
+#     """Given a list of stocking events - return a dictionary contain the
+#     attrubutes of the containing polygons for lake, jurisdtion,
+#     management unit (stat district), and grid.  Duplicte coordinates
+#     are removed.  The dictionary is keyed by a string of the form lat-lon.
+
+#     The dictionary is used in the xls_upload validation to ensure that
+#     associated spatial widgets on each row are consistent with their
+#     coordinates.
+
+#     """
+#     coords = {(x["longitude"], x["latitude"]) for x in events}
+#     point_polygons = {}
+#     for xy in coords:
+#         pt = Point(xy[0], xy[1], srid=4326)
+#         key = "{}-{}".format(xy[1], xy[0])
+#         point_polygons[key] = get_polygons(pt)
+#     return point_polygons
 
 
 def to_lake_dict(object_list, has_id=False):
@@ -332,6 +419,31 @@ def toChoices(object_list):
         return [(x[1], x[1]) for x in object_list]
     else:
         return [(x[1], x[2]) for x in object_list]
+
+
+def list2dict(values_list):
+    """A super simple function that takes a list of two element iterables
+    and returns a dictionary of lists keyed by the first element.
+
+        This: [("A","1"), ("A","2"), ("B","1"), ("C","1")]
+
+        Becomes: {"A": ["1", "2"], "B": ["1"], "C": ["1"] }
+
+        Arguments:
+        - `values_list`: list of two element lists or tuples.
+
+    """
+    dictionary = dict()
+    for x in values_list:
+        elements = dictionary.get(x[0])
+        if elements:
+            elements.append(x[1])
+            dictionary[x[0]] = elements
+        else:
+            dictionary[x[0]] = [
+                x[1],
+            ]
+    return dictionary
 
 
 def make_strain_id_lookup(object_list):

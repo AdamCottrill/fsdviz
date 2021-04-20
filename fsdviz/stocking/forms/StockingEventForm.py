@@ -97,7 +97,6 @@ class StockingEventForm(forms.Form):
         (10, "Oct"),
         (11, "Nov"),
         (12, "Dec"),
-        (0, "Unk"),
     ]
 
     id = forms.CharField(widget=forms.HiddenInput(), required=False)

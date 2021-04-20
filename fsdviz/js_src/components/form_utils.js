@@ -91,15 +91,17 @@ export const update_choices = (selectorID, parentID, newOptions) => {
   //const previous_val = $(`#${selectorID} option:selected`).val();
   const previous_selection = $(`#${selectorID} option:selected`);
   const previous_text = previous_selection.text();
-  const previous_value = previous_selection.val();
+  let previous_value = previous_selection.val();
 
   const parent_text = $(`#${parentID} option:selected`).text();
 
   el.empty(); // remove old options
 
   // if the previous value is not in the current list, add it now:
+  const was_previous =
+    previous_value === "" || previous_value === "-999" ? true : previous_value;
   if (
-    previous_value &&
+    was_previous &&
     newOptions.filter((x) => x.value === previous_value).length === 0
   ) {
     el.append($("<option>", { value: previous_value, text: previous_text }));
