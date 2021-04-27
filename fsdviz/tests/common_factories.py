@@ -129,7 +129,6 @@ class Grid10Factory(factory.django.DjangoModelFactory):
         django_get_or_create = ("grid", "lake")
 
     grid = factory.Sequence(lambda n: "%04d" % n)
-
     geom = GEOSGeometry(polygon_wkt)
     centroid = GEOSGeometry("POINT(-82.5 44.25)", srid=4326)
     lake = factory.SubFactory(LakeFactory)
