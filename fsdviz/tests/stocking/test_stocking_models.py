@@ -12,6 +12,8 @@ from django.contrib.gis.geos import GEOSGeometry
 from ...common.utils import is_uuid4
 from ...common.models import LatLonFlag
 
+from ...stocking.models import StockingEvent
+
 from ..pytest_fixtures import latlon_flags, finclips
 
 from ..common_factories import (
@@ -35,6 +37,7 @@ from ..stocking_factories import (
     HatcheryFactory,
     StockingEventFactory,
     DataUploadEventFactory,
+    YearlingEquivalentFactory,
 )
 
 
@@ -55,6 +58,42 @@ def test_lifestage_str():
 
     shouldbe = "{} ({})".format(description, abbrev)
     assert str(lifestage) == shouldbe
+
+
+@pytest.mark.django_db
+def test_yearing_equivalent_str():
+    """
+    Verify that the string representation of a yearling equivalent object is the
+    speciesd folloed the life stage followed by the conversion factor:.
+
+    Lake Trout (LAT) [Fall Fingerlings (ff)]: 0.010
+
+    """
+
+    species_name = "Lake Trout"
+    species_abbrev = "LAT"
+    species = SpeciesFactory(abbrev=species_abbrev, common_name=species_name)
+
+    lifestage_abbrev = "ff"
+    lifestage_description = "Fall Fingerling"
+    lifestage = LifeStageFactory(
+        abbrev=lifestage_abbrev, description=lifestage_description
+    )
+
+    yreq_factor = 0.01
+
+    yreq = YearlingEquivalentFactory(
+        species=species, lifestage=lifestage, yreq_factor=yreq_factor
+    )
+
+    shouldbe = "{} ({}) [{} ({})]: {:.3f}".format(
+        species_name,
+        species_abbrev,
+        lifestage_description,
+        lifestage_abbrev,
+        yreq_factor,
+    )
+    assert str(yreq) == shouldbe
 
 
 @pytest.mark.django_db
@@ -513,7 +552,85 @@ def test_stocking_event_yearling_equivalents():
 
     """
 
-    assert 0 == 1
+    species = SpeciesFactory()
+    lifestage = LifeStageFactory()
+    yreq_factor = 0.01
+
+    yreq = YearlingEquivalentFactory(
+        species=species, lifestage=lifestage, yreq_factor=yreq_factor
+    )
+
+    event = StockingEventFactory(species=species, lifestage=lifestage, no_stocked=1000)
+    event.save()
+
+    assert event.yreq_stocked == event.no_stocked * yreq_factor
+
+
+@pytest.mark.django_db
+def test_stocking_event_yearling_equivalents_unknown():
+    """If the stocking event is assocaited with a species or lifestage
+    that does exist (which should never happen), a yearling equivalent
+    value of 1 should b eused by default to ensure that things don't
+    blow-up.
+
+
+    """
+
+    species = SpeciesFactory()
+    lifestage1 = LifeStageFactory(abbrev="fry", description="fry")
+    lifestage2 = LifeStageFactory(abbrev="y", description="yearling")
+    yreq_factor = 0.01
+
+    yreq = YearlingEquivalentFactory(
+        species=species, lifestage=lifestage1, yreq_factor=yreq_factor
+    )
+
+    event = StockingEventFactory(species=species, lifestage=lifestage2, no_stocked=1000)
+    event.save()
+
+    # no matching yearling equivalent defaults to 1
+    assert event.yreq_stocked == event.no_stocked
+
+
+@pytest.mark.django_db
+def test_yearing_equivalent_poot_save_signal():
+    """The yearling equivalent model has post save signal that update the
+    corresponding stocking events with the new value when it is saved.
+
+    """
+
+    lake_trout = SpeciesFactory(abbrev="LAT", common_name="Lake Trout")
+    walleye = SpeciesFactory(abbrev="WAL", common_name="Walleye")
+
+    lifestage = LifeStageFactory(abbrev="y", description="yearling")
+
+    YearlingEquivalentFactory(species=lake_trout, lifestage=lifestage, yreq_factor=1.0)
+
+    yreq_wal = YearlingEquivalentFactory(
+        species=walleye, lifestage=lifestage, yreq_factor=1.0
+    )
+
+    event_lat = StockingEventFactory(
+        species=lake_trout, lifestage=lifestage, no_stocked=1000
+    )
+    event_lat.save()
+
+    event_wal = StockingEventFactory(
+        species=walleye, lifestage=lifestage, no_stocked=1000
+    )
+    event_wal.save()
+
+    assert event_lat.yreq_stocked == 1000
+    assert event_wal.yreq_stocked == 1000
+
+    yreq_wal.yreq_factor = 0.5
+    yreq_wal.save()
+
+    event_lat = StockingEvent.objects.get(species=lake_trout)
+    assert event_lat.yreq_stocked == 1000
+    event_wal = StockingEvent.objects.get(species=walleye)
+    # should be half what it was:
+    assert event_wal.yreq_stocked == 500
 
 
 args = [

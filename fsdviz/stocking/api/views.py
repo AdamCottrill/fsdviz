@@ -5,33 +5,37 @@ The veiws in this file should all be publicly available as readonly.
 """
 
 from django.conf import settings
-from django.db.models import Count, F, Q, Sum
-
 from django.contrib.postgres.aggregates import StringAgg
-from rest_framework import generics, viewsets
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.renderers import JSONRenderer
-
-
-from fsdviz.stocking.models import LifeStage, Condition, StockingMethod, StockingEvent
-from fsdviz.stocking.filters import StockingEventFilter
-
-from .serializers import (
-    LifeStageSerializer,
-    ConditionSerializer,
-    StockingMethodSerializer,
-    StockingEventSerializer,
-    StockingEventFastSerializer,
-    StockingEventXlsxSerializer,
-    CWTEventXlsxSerializer,
-)
-
-
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from django.db.models import Count, F, Q, Sum
 from drf_renderer_xlsx.mixins import XLSXFileMixin
 from drf_renderer_xlsx.renderers import XLSXRenderer
+
+from rest_framework import generics, viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import ReadOnlyModelViewSet
+
+from ..filters import StockingEventFilter, YearlingEquivalentFilter
+from ..models import (
+    Condition,
+    LifeStage,
+    StockingEvent,
+    StockingMethod,
+    YearlingEquivalent,
+)
+
+from .serializers import (
+    ConditionSerializer,
+    CWTEventXlsxSerializer,
+    LifeStageSerializer,
+    StockingEventFastSerializer,
+    StockingEventSerializer,
+    StockingEventXlsxSerializer,
+    StockingMethodSerializer,
+    YearlingEquivalentSerializer,
+)
 
 
 class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
@@ -178,10 +182,19 @@ class LifeStageViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
+class YearlingEquivalentViewSet(viewsets.ReadOnlyModelViewSet):
+
+    queryset = YearlingEquivalent.objects.all()
+    serializer_class = YearlingEquivalentSerializer
+    filterset_class = YearlingEquivalentFilter
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
 class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Condition.objects.all()
     serializer_class = ConditionSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):

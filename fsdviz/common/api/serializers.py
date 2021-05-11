@@ -75,6 +75,21 @@ class ManagementUnitSerializer(serializers.ModelSerializer):
         return queryset
 
 
+class SimpleSpeciesSerializer(serializers.ModelSerializer):
+    """A simple serializer for species objects that contains just the
+    abbreviation and common name. This serializer is intended to be used
+    as a nested-serializer.
+    """
+
+    class Meta:
+        model = Species
+        fields = (
+            "abbrev",
+            "common_name",
+        )
+        lookup_field = "abbrev"
+
+
 class SpeciesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Species

@@ -1,30 +1,32 @@
 from datetime import datetime
+
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import Point
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models import F
+from django.db.models.signals import post_save
+
 from django.template.defaultfilters import slugify
 from django.urls import reverse
-
-from django.contrib.gis.geos import Point
-
-from fsdviz.common.utils import unique_string, is_uuid4
-
-from fsdviz.myusers.models import CustomUser
 from fsdviz.common.models import (
-    Species,
-    Strain,
-    StrainRaw,
     Agency,
-    Lake,
-    StateProvince,
-    Jurisdiction,
-    ManagementUnit,
-    Grid10,
-    LatLonFlag,
-    Mark,
     CompositeFinClip,
     FinClip,
     FishTag,
+    Grid10,
+    Jurisdiction,
+    Lake,
+    LatLonFlag,
+    ManagementUnit,
+    Mark,
     PhysChemMark,
+    Species,
+    StateProvince,
+    Strain,
+    StrainRaw,
 )
+from fsdviz.common.utils import is_uuid4, unique_string
+from fsdviz.myusers.models import CustomUser
 
 
 class DataUploadEvent(models.Model):
@@ -110,6 +112,33 @@ class LifeStage(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.description, self.abbrev)
+
+
+class YearlingEquivalent(models.Model):
+    """A model to capture the species and lifestage specific factors used
+    to convert the number of fish stocked to yearling equivalents
+
+    """
+
+    species = models.ForeignKey(
+        Species, on_delete=models.CASCADE, related_name="yealing_equivalents"
+    )
+
+    lifestage = models.ForeignKey(
+        LifeStage, on_delete=models.CASCADE, related_name="yealing_equivalents"
+    )
+
+    yreq_factor = models.FloatField(
+        validators=[MinValueValidator(0), MaxValueValidator(1)],
+    )
+
+    comment = models.CharField(max_length=1000, blank=True, null=True)
+
+    class Meta:
+        unique_together = [["species", "lifestage"]]
+
+    def __str__(self):
+        return "{} [{}]: {:.3f}".format(self.species, self.lifestage, self.yreq_factor)
 
 
 class Condition(models.Model):
@@ -426,9 +455,6 @@ class StockingEvent(models.Model):
         self.geom_lat = self.geom.y
         self.geom_lon = self.geom.x
 
-        # figure out what juristiction this event occured in depending
-        # on state/province and lake.
-
         try:
             self.date = datetime(self.year, self.month, self.day)
         except (ValueError, TypeError):
@@ -449,6 +475,15 @@ class StockingEvent(models.Model):
                 current_year = datetime.now().year
                 counter = str(self.id).zfill(5)[-5:]
                 self.stock_id = "{}{}".format(current_year, counter)
+
+        yreq = YearlingEquivalent.objects.filter(
+            species=self.species, lifestage=self.lifestage
+        ).first()
+
+        if yreq:
+            self.yreq_stocked = self.no_stocked * yreq.yreq_factor
+        else:
+            self.yreq_stocked = self.no_stocked
 
         super(StockingEvent, self).save(*args, **kwargs)
 
@@ -653,3 +688,22 @@ class StockingEvent(models.Model):
 #         else:
 #             return None
 #
+
+
+def update_events_yreq(sender, **kwargs):
+    """a post save event for yearling equivalent factors. When yearling
+    equivalent factors are updated, the number of yearling equivalents
+    for stocking events of the same species and life stage need to be
+    updated to reflect the new values.
+
+    """
+    instance = kwargs["instance"]
+
+    # update the yearling equivalent value for all of the events with
+    # the same lifestage and species
+    StockingEvent.objects.filter(
+        species=instance.species, lifestage=instance.lifestage
+    ).update(yreq_stocked=F("no_stocked") * instance.yreq_factor)
+
+
+post_save.connect(update_events_yreq, sender=YearlingEquivalent)

@@ -5,6 +5,7 @@ from rest_framework.routers import SimpleRouter
 
 from .views import (
     LifeStageViewSet,
+    YearlingEquivalentViewSet,
     ConditionViewSet,
     StockingMethodViewSet,
     StockingEventViewSet,
@@ -23,6 +24,7 @@ app_name = "api"
 router = SimpleRouter()
 
 router.register("lifestage", LifeStageViewSet)
+router.register("yearling_equivalent", YearlingEquivalentViewSet)
 router.register("condition", ConditionViewSet)
 router.register("stocking_method", StockingMethodViewSet)
 

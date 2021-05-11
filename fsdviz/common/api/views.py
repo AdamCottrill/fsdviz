@@ -395,7 +395,7 @@ def get_grid10_from_pt(request):
 class LakeViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = Lake.objects.all()
+    queryset = Lake.objects.defer("geom").all()
     serializer_class = LakeSerializer
     lookup_field = "abbrev"
 
@@ -429,7 +429,7 @@ class StateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
 class ManagementUnitViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = ManagementUnit.objects.all()
+    queryset = ManagementUnit.objects.defer("geom", "lake__geom").all()
     serializer_class = ManagementUnitSerializer
     filterset_class = ManagementUnitFilter
     lookup_field = "slug"
@@ -472,6 +472,7 @@ class CwtViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = CWT.objects.all()
     serializer_class = CWTSerializer
+    # filterset_class = CWTSequenceFilter
     lookup_field = "slug"
 
 

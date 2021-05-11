@@ -5,13 +5,28 @@ The will be used in both views and api serializers.
 
 import django_filters
 from django.contrib.gis.geos import GEOSGeometry
-from .models import StockingEvent
+from .models import StockingEvent, YearlingEquivalent
 
 from ..common.utils import ValueInFilter, NumberInFilter, NumberInOrNullFilter
 
 
 class GeomFilter(django_filters.CharFilter):
     pass
+
+
+class YearlingEquivalentFilter(django_filters.FilterSet):
+    """A filter for yearling equivalents - allows us to filter them by
+    either species or lifestage."""
+
+    species = ValueInFilter(field_name="species__abbrev", lookup_expr="in")
+    lifestage = ValueInFilter(field_name="lifestage__abbrev", lookup_expr="in")
+
+    class Meta:
+        model = YearlingEquivalent
+        fields = [
+            "species__abbrev",
+            "lifestage__abbrev",
+        ]
 
 
 class StockingEventFilter(django_filters.FilterSet):

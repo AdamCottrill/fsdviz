@@ -6,24 +6,40 @@ needed).
   """
 
 from django.contrib.gis.geos import GEOSGeometry
-from rest_framework import serializers
-
-from fsdviz.stocking.models import LifeStage, Condition, StockingMethod, StockingEvent
-
 from fsdviz.common.api.serializers import (
     AgencySerializer,
+    Grid10Serializer,
     JurisdictionSerializer,
     LakeSerializer,
-    SpeciesSerializer,
-    Grid10Serializer,
     LatLonFlagSerializer,
+    SpeciesSerializer,
+    SimpleSpeciesSerializer,
 )
+from ..models import (
+    Condition,
+    LifeStage,
+    StockingEvent,
+    StockingMethod,
+    YearlingEquivalent,
+)
+from rest_framework import serializers
 
 
 class LifeStageSerializer(serializers.ModelSerializer):
     class Meta:
         model = LifeStage
         fields = ("abbrev", "description")
+
+
+class YearlingEquivalentSerializer(serializers.ModelSerializer):
+
+    lifestage = LifeStageSerializer()
+    species = SimpleSpeciesSerializer()
+
+    class Meta:
+        model = YearlingEquivalent
+
+        fields = ("species", "lifestage", "yreq_factor")
 
 
 class ConditionSerializer(serializers.ModelSerializer):

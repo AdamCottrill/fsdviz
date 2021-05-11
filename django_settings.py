@@ -40,7 +40,6 @@ os.chdir(os.path.split(os.getcwd())[0])
 import sys
 import os
 
-SETTINGS_FILE = "config.settings.local"
 
 # add the current directory to path so that we can find our settings files:
 sys.path.append(os.path.dirname(__file__))
@@ -48,8 +47,32 @@ sys.path.append(os.path.dirname(__file__))
 # SECRET should be set when virtualenv as activated.  Just incase its not
 os.environ["SECRET_KEY"] = "\xb1>\xf3\x10\xd3p\x07\x8fS\x94'\xe3g\xc6cZ4\xb0R"
 
+
+# install gdal in virtualenv:
+VIRTUAL_ENV = os.environ["VIRTUAL_ENV"]
+OSGEO_VENV = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo")
+GEOS_LIBRARY_PATH = os.path.join(OSGEO_VENV, "geos_c.dll")
+GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal302.dll")
+os.environ["GDAL_DATA"] = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo/data/gdal")
+os.environ["PROJ_LIB"] = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo/data/proj")
+
+os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
+
+print("using c:/1work/fsdviz/config/settings/local.py")
+
+if not os.path.exists(OSGEO_VENV):
+    print("Unable to find OSGEO_VENV at {}".format(OSGEO_VENV))
+
+if not os.path.exists(GEOS_LIBRARY_PATH):
+    print("Unable to find GEOS_LIBRARY_PATH at {}".format(GEOS_LIBRARY_PATH))
+
+if not os.path.exists(GDAL_LIBRARY_PATH):
+    print("Unable to find GDAL_LIBRARY_PATH at {}".format(GDAL_LIBRARY_PATH))
+
+
 # taken from manage.py
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", SETTINGS_FILE)
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
 
 # from: http://sontek.net/blog/detail/tips-and-tricks-for-the-python-interpreter
 if "DJANGO_SETTINGS_MODULE" in os.environ:

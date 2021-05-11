@@ -17,6 +17,8 @@ from ..stocking.models import (
     StockingMethod,
     StockingEvent,
     DataUploadEvent,
+    LifeStage,
+    YearlingEquivalent,
 )
 
 from .common_factories import (
@@ -36,7 +38,7 @@ from .user_factory import UserFactory
 
 class LifeStageFactory(factory.django.DjangoModelFactory):
     """
-    A factory for LatLonFlag objects.
+    A factory for Lifestate objects.
     """
 
     class Meta:
@@ -45,6 +47,20 @@ class LifeStageFactory(factory.django.DjangoModelFactory):
 
     abbrev = "y"
     description = "Yearling"
+
+
+class YearlingEquivalentFactory(factory.django.DjangoModelFactory):
+    """
+    A factory for YearlingEquivalent objects.
+    """
+
+    class Meta:
+        model = YearlingEquivalent
+        django_get_or_create = ("species", "lifestage")
+
+    species = factory.SubFactory(SpeciesFactory)
+    lifestage = factory.SubFactory(LifeStageFactory)
+    yreq_factor = 1.0
 
 
 class ConditionFactory(factory.django.DjangoModelFactory):
