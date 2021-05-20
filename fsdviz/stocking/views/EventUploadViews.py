@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
 from django.db.models import Count, Sum
-from django.forms import formset_factory
+from django.forms import formset_factory, ValidationError
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -15,6 +15,7 @@ from django.views.generic.list import ListView
 
 from fsdviz.common.models import (
     Agency,
+    FinClip,
     CompositeFinClip,
     FishTag,
     Grid10,
@@ -32,6 +33,7 @@ from fsdviz.common.utils import (
     make_mu_id_lookup,
     make_strain_id_lookup,
     toLookup,
+    parseFinClip,
 )
 from fsdviz.myusers.permissions import user_can_create_edit_delete
 
@@ -44,7 +46,7 @@ from ..models import (
     StockingEvent,
     StockingMethod,
 )
-from ..utils import get_choices, validate_upload, xls2dicts
+from ..utils import get_choices, validate_upload, xls2dicts, get_or_create_cwt_sequence
 
 
 @login_required
@@ -239,6 +241,11 @@ def xls_events(request):
             hatcheries = Hatchery.objects.values_list("id", "abbrev")
             hatchery_id_lookup = toLookup(hatcheries)
 
+            finclip_lookup = {x.abbrev: x for x in FinClip.objects.all()}
+
+            fishtag_lookup = {x.tag_code: x for x in FishTag.objects.all()}
+            mark_lookup = {x.mark_code: x for x in PhysChemMark.objects.all()}
+
             with transaction.atomic():
 
                 data_upload_event = DataUploadEvent(
@@ -267,8 +274,26 @@ def xls_events(request):
                     )
                     lakeState = lakeState_id_lookup[lakeState_slug]
 
-                    strain_label = data.pop("strain")
-                    strain_id = strain_id_lookup.get(spc_abbrev).get(strain_label)
+                    strain_id = data.pop("strain")
+                    # strain_label = data.pop("strain")
+                    # strain_id = strain_id_lookup.get(spc_abbrev).get(strain_label)
+
+                    finclip_list = parseFinClip(data.pop("finclip", ""))
+                    finclips = [finclip_lookup.get(x) for x in finclip_list]
+
+                    cwts = data.pop("tag_no", "")
+                    if cwts != "":
+                        cwts = cwts.replace(";", ",").split(",")
+
+                    tag_list = data.pop("tag_type")
+                    if tag_list:
+                        tag_list = tag_list.replace(";", ",").split(",")
+                    tags = [fishtag_lookup.get(x) for x in tag_list]
+
+                    mark_list = data.pop("physchem_mark")
+                    if mark_list:
+                        mark_list = mark_list.replace(";", ",").split(",")
+                    marks = [mark_lookup.get(x) for x in mark_list]
 
                     if data.get("day") and data.get("month"):
                         event_date = None
@@ -293,7 +318,7 @@ def xls_events(request):
                     data["strain_raw_id"] = strain_id
                     data["jurisdiction_id"] = lakeState
                     data["condition_id"] = condition
-                    data["hatchery_id_id"] = hatchery
+                    data["hatchery_id"] = hatchery
                     data["upload_event"] = data_upload_event
 
                     # rename some of our fields (this is not very elegant,
@@ -302,13 +327,37 @@ def xls_events(request):
                     data["dd_lon"] = data.pop("longitude")
                     data["lotcode"] = data.pop("lot_code")
 
-                    # this needs to be calcualted based on species, lifestage, and ...
-                    data["yreq_stocked"] = data.get("no_stocked")
-
-                    # this is also not right - just getting it to work ...
-                    data["latlong_flag_id"] = 1
+                    data["agency"] = agency
 
                     event = StockingEvent(**data)
+                    event.save()
+
+                    # add any finclips, marks, and tags here:
+                    if finclips:
+                        event.fin_clips.add(*finclips)
+                    if marks:
+                        event.physchem_marks.add(*marks)
+                    if tags:
+                        event.fish_tags.add(*tags)
+
+                    if cwts:
+                        cwt_list = []
+                        for cwt in cwts:
+                            try:
+                                cwt_series = get_or_create_cwt_sequence(
+                                    cwt_number=cwt,
+                                    tag_type="cwt",
+                                    manufacturer="nmt",
+                                    sequence=(0, 1),
+                                )
+                            except ValidationError as err:
+                                cwt_series = None
+                                raise err
+                            if cwt_series is not None:
+                                cwt_list.append(cwt_series)
+
+                        event.cwt_series.set(cwt_list)
+
                     event.save()
 
                 url = data_upload_event.get_absolute_url()

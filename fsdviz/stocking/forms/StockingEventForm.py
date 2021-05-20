@@ -398,13 +398,6 @@ class StockingEventForm(forms.Form):
         #     msg = "Those fish were more than 20 year old!"
         #    raise forms.ValidationError(msg, code="past_year_class")
 
-        # this needs to be calcualted based on species, lifestage, and ...
-        data["yreq_stocked"] = data.get("no_stocked", 0)
-
-        # this is also not right - just getting it to work ...
-        # calculate lat-long flag from the most precise spatial tribute we have.
-        data["latlong_flag_id"] = 1
-
         return data
 
     def save(self, *args, **kwargs):

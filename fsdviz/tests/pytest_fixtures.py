@@ -20,18 +20,32 @@ import pytest
 from django.contrib.gis.geos import GEOSGeometry
 
 from fsdviz.common.choices import LATLON_FLAGS
+
 # from .user_factory import UserFactory
 from fsdviz.myusers.tests.factories import UserFactory
 
-from .common_factories import (AgencyFactory, CWTFactory, CWTsequenceFactory,
-                               FinClipFactory, FishTagFactory,
-                               JurisdictionFactory, LakeFactory,
-                               LatLonFlagFactory, PhysChemMarkFactory,
-                               SpeciesFactory, StateProvinceFactory,
-                               StrainFactory, StrainRawFactory)
-from .stocking_factories import (DataUploadEventFactory, HatcheryFactory,
-                                 LifeStageFactory, StockingEventFactory,
-                                 StockingMethodFactory)
+from .common_factories import (
+    AgencyFactory,
+    CWTFactory,
+    CWTsequenceFactory,
+    FinClipFactory,
+    FishTagFactory,
+    JurisdictionFactory,
+    LakeFactory,
+    LatLonFlagFactory,
+    PhysChemMarkFactory,
+    SpeciesFactory,
+    StateProvinceFactory,
+    StrainFactory,
+    StrainRawFactory,
+)
+from .stocking_factories import (
+    DataUploadEventFactory,
+    HatcheryFactory,
+    LifeStageFactory,
+    StockingEventFactory,
+    StockingMethodFactory,
+)
 
 SCOPE = "function"
 

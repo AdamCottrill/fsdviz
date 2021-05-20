@@ -44,6 +44,8 @@ from fsdviz.tests.common_factories import (
     Grid10Factory,
     SpeciesFactory,
     StrainFactory,
+    FinClipFactory,
+    CompositeFinClipFactory,
 )
 
 
@@ -52,6 +54,7 @@ from fsdviz.tests.stocking_factories import (
     ConditionFactory,
     StockingMethodFactory,
 )
+
 
 # testing here for now - should be somewhere else:
 from fsdviz.stocking.utils import get_xls_form_choices
@@ -262,6 +265,15 @@ class TestFileUpload:
         ConditionFactory(condition="4")
         StockingMethodFactory(stk_meth="b", description="boat")
 
+        FinClipFactory(abbrev="LV", description="Left Ventral")
+        FinClipFactory(abbrev="RP", description="Right Pectoral")
+        FinClipFactory(abbrev="AD", description="Adipose")
+
+        CompositeFinClipFactory(clip_code="AD", description="Adipose")
+        CompositeFinClipFactory(
+            clip_code="LVRP", description="Left Ventral, Right Pectoral"
+        )
+
     @pytest.mark.django_db
     def test_get_xls_choices(self):
         """verify that the get_xls_form_choices returns a dictionary the
@@ -311,14 +323,14 @@ class TestFileUpload:
         assert xls_choices["grids"] == expected
 
     @pytest.mark.django_db
-    def test_file_upload_good_data(self, client, user):
+    def test_file_upload_good_data(self, client, glsc):
         """If the uploaded form is a valid stocking event template with all of
         the correct fields, a suitable number of rows, a single year
         and lake, then we it should be passed to the data xls_events_form
 
         """
 
-        login = client.login(email=user.email, password="Abcd1234")
+        login = client.login(email=glsc.email, password="Abcd1234")
         assert login is True
 
         url = reverse("stocking:upload-stocking-events")
@@ -327,21 +339,13 @@ class TestFileUpload:
             assert response.status_code == 200
             assertTemplateUsed("stocking/xls_events_form.html")
 
-    @pytest.mark.skip
     @pytest.mark.django_db
     def test_file_upload_unknown_lake(self, client, glsc):
-        """If the uploaded file has an unknown_lake, (or any other field with
-        a select widget) it should render in the xls_events_form, but the
-        unknown value should be disabled in the dropdown list.
-
-        # an unknown lake or agency needs to be handled by the upload
-        # validation if one of hte other select fields has a selection
-        # that is not known to exist - it should be flagged as a
-        # problem and disabled in the drop down.
+        """If the uploaded file has an unknown_lake, the user is returned to
+        the upload file form with a message that the uploaded file has an
+        agency or lake that they are not currently affiliated with.
 
         """
-
-        assert 0 == 1
 
         login = client.login(email=glsc.email, password="Abcd1234")
         assert login is True
@@ -353,12 +357,13 @@ class TestFileUpload:
 
             assert response.status_code == 200
             templates = [x.name for x in response.templates]
-            assert "stocking/xls_events_form.html" in templates
+            assert "stocking/upload_stocking_events.html" in templates
 
             # the unknown value of Lake should be presented, but it
             # will be disabled.
             content = str(response.content)
-            msg = '<option value="" selected="selected" disabled="disabled">ZU</option>'
+            msg = "The uploaded file appears to contain events for an unknown Lake: Simcoe."
+
             assert msg in content
 
     def test_gl_coordinator_not_limited_to_their_lake(self, client, superior, glsc):

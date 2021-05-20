@@ -554,9 +554,8 @@ class FishTag(models.Model):
 
 class LatLonFlag(models.Model):
     """
-    Inicates the level of spatial precision associated with a stocking
+    Indicates the level of spatial precision associated with a stocking
     event or recovery effort.  Lower numbers indicate higher precision.
-
     """
 
     value = models.IntegerField(unique=True)

@@ -2,7 +2,7 @@ import pytest
 import uuid
 from django.contrib.gis.geos import Point, GEOSGeometry
 
-from ...common.utils import is_uuid4, parse_geom, getOverlap, check_ranges
+from ...common.utils import is_uuid4, parse_geom, getOverlap, check_ranges, parseFinClip
 
 
 @pytest.mark.parametrize(
@@ -128,3 +128,24 @@ def test_is_uuid4():
     assert is_uuid4(str(val)) is False
 
     assert is_uuid4("FoobarBaz") is False
+
+
+args = (
+    ("", []),
+    ("AD", ["AD"]),
+    ("ADAN", ["AD", "AN"]),
+    ("ADDOLP", ["AD", "DO", "LP"]),
+)
+
+
+@pytest.mark.parametrize("finclip,expected", args)
+def test_parseFinClip(finclip, expected):
+    """Given a (composite) fin clip string, parse it into is 2-character
+    substrings.
+
+    Arguments:
+    - `args`:
+
+    """
+
+    assert parseFinClip(finclip) == expected

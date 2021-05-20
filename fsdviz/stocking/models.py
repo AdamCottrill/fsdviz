@@ -463,11 +463,6 @@ class StockingEvent(models.Model):
         if self.id:
             self.mark = self.get_mark_code()
             self.clip_code = self.get_composite_clip_code()
-            # if self.marks.count():
-            #    self.mark = self.get_mark_code()
-            #    # self.clipa = self.get_clipa()
-            # if self.fin_clips.count():
-            #    self.clip_code = self.get_composite_clip_code()
 
             # if the stock ID is null or looks like the default uuid4 value,
             # replace it with the year & self.id

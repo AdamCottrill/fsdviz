@@ -505,3 +505,15 @@ def check_ranges(range_dict, key, range):
             ranges.append(range)
             range_dict[key] = ranges
     return (bool(overlap), range_dict)
+
+
+def parseFinClip(clip):
+    """give a finclip string, split it into their constituent clip codes
+    and return the indiviual clips as a list - used to assign
+    many-to-many relationship between stocking event and finclips.
+
+    NOTE: this assume that clips codes are ALWAYS going to be exactly
+    two characters!
+
+    """
+    return [clip[i : i + 2] for i in range(0, len(clip), 2)]
