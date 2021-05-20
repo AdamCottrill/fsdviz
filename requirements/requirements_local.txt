@@ -8,7 +8,7 @@ alabaster==0.7.12
     # via sphinx
 apipkg==1.5
     # via execnet
-astroid==2.5.0
+astroid==2.5.6
     # via pylint
 attrs==20.3.0
     # via pytest
@@ -64,7 +64,7 @@ pip-tools==5.3.1
     # via -r local.in
 pluggy==0.13.1
     # via pytest
-py==1.9.0
+py==1.10.0
     # via
     #   pytest
     #   pytest-forked
@@ -72,11 +72,11 @@ pygments==2.8.0
     # via
     #   httpie
     #   sphinx
-pylint-django==2.4.2
+pylint-django==2.4.3
     # via -r local.in
 pylint-plugin-utils==0.5
     # via pylint-django
-pylint==2.7.1
+pylint==2.7.4
     # via
     #   -r local.in
     #   pylint-django
