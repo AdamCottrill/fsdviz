@@ -3,6 +3,12 @@
 }
 
 
+.leaflet-pane > svg path.leaflet-interactive,
+svg.leaflet-image-layer.leaflet-interactive path {
+    pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+    pointer-events: auto;
+}
+
 #content{
     padding-left: 10px;
     padding-right: 10px;

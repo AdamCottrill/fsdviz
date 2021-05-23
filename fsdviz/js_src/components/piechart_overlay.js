@@ -3,9 +3,10 @@
 //import { event } from "d3";
 import { format } from "d3-format";
 import { arc, pie } from "d3-shape";
-import { select, selectAll } from "d3-selection";
+import { select, selectAll, pointer } from "d3-selection";
 import { scaleSqrt, scaleOrdinal } from "d3-scale";
 import { descending, max, sum } from "d3-array";
+import { transition } from "d3-transition";
 
 export const piechart_overlay = () => {
   // default values:
@@ -28,7 +29,6 @@ export const piechart_overlay = () => {
   const commaFormat = format(",d");
 
   //let roi;
-
   // the name of the field that uniquely identifies each point:
   let keyfield = "geom";
 
@@ -151,9 +151,8 @@ export const piechart_overlay = () => {
         const highlight_row = (d, bool) => {
           let selector =
             "#tr-" + d.data.slice.replace(/ /g, "-").replace(/[()]/g, "");
-
           let tmp = selectAll(selector);
-          tmp.classed("error", bool);
+          tmp.classed("blue", bool);
         };
 
         let r = radiusScale(d.total);
@@ -171,7 +170,8 @@ export const piechart_overlay = () => {
           .enter()
           .append("path")
           .attr("class", "arc")
-          .on("mouseover", function (d) {
+          .attr("style", "pointer-events: auto;")
+          .on("mouseover", function (event, d) {
             let slug = this.parentElement.id;
             let label = labelLookup[slug];
 
@@ -187,7 +187,7 @@ export const piechart_overlay = () => {
 
             if (selectedPie && selectedPie === slug) {
               highlight_row(d, true);
-              //select('#point-info').html(get_sliceInfo(d));
+              //select("#point-info").html(get_sliceInfo(d));
             }
             tooltip.style("visibility", "visible").html(html);
           })
@@ -196,7 +196,7 @@ export const piechart_overlay = () => {
               .style("top", event.layerY - 5 + "px")
               .style("left", event.layerX + 15 + "px");
           })
-          .on("mouseout", function (d) {
+          .on("mouseout", function (event, d) {
             select(this).classed("hover", false);
             highlight_row(d, false);
             tooltip.style("visibility", "hidden").html("");

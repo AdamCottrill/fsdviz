@@ -34,7 +34,7 @@ INTERNAL_IPS = ("127.0.0.1",)
 MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE
 
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.1.167"]
 
 # ALLOWED_HOSTS = ['*']
 
