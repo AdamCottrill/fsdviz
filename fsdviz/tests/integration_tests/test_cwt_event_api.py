@@ -33,9 +33,11 @@ def test_cwt_list_elements(client, cwt_stocking_events):
     response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
 
-    assert len(response.data) == 6
+    payload = response.data["results"]
 
-    first = response.data[0]
+    assert len(payload) == 6
+
+    first = payload[0]
 
     observed_fields = list(first.keys())
     expected_fields = [
@@ -94,7 +96,8 @@ def test_cwt_list_filters(
     response = client.get(url, filter)
     assert response.status_code == status.HTTP_200_OK
 
-    observed_cwts = {x["cwt_number"] for x in response.data}
+    payload = response.data["results"]
+    observed_cwts = {x["cwt_number"] for x in payload}
 
     assert set(expected) == observed_cwts
     for item in excluded:
@@ -123,7 +126,9 @@ def test_reused_cwt_list_filters(
     response = client.get(url, filter)
     assert response.status_code == status.HTTP_200_OK
 
-    observed = [x["stock_id"] for x in response.data]
+    payload = response.data["results"]
+
+    observed = [x["stock_id"] for x in payload]
     observed.sort()
     expected.sort()
 

@@ -45,7 +45,9 @@ class StockingEventFilter(django_filters.FilterSet):
 
     # CWT tag attributes
     cwt_number = ValueInFilter(
-        field_name="cwt_series__cwt__cwt_number", lookup_expr="in"
+        label="comma separated list of 6-digit cwt numbers",
+        field_name="cwt_series__cwt__cwt_number",
+        lookup_expr="in",
     )
 
     cwt_number_like = django_filters.CharFilter(
@@ -109,7 +111,9 @@ class StockingEventFilter(django_filters.FilterSet):
     finclips = ValueInFilter(field_name="fin_clips__abbrev", lookup_expr="in")
 
     physchem_marks = ValueInFilter(
-        field_name="physchem_marks__mark_code", lookup_expr="in"
+        field_name="physchem_marks__mark_code",
+        lookup_expr="in",
+        label="abbreviation for physical, chemical, or dye.",
     )
 
     fishtags = ValueInFilter(field_name="fish_tags__tag_code", lookup_expr="in")

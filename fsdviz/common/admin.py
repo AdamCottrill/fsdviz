@@ -71,6 +71,10 @@ class StrainModelAdmin(admin.ModelAdmin):
     list_filter = ("strain_species", "strain_code")
     search_fields = ("strain_label",)
 
+    def get_queryset(self, request):
+        qs = super(StrainModelAdmin, self).get_queryset(request)
+        return qs.distinct()
+
 
 @admin.register(StrainRaw)
 class StrainRawModelAdmin(admin.ModelAdmin):

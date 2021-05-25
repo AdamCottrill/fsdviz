@@ -11,6 +11,7 @@ from drf_renderer_xlsx.mixins import XLSXFileMixin
 from drf_renderer_xlsx.renderers import XLSXRenderer
 
 from rest_framework import generics, viewsets
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -36,6 +37,22 @@ from .serializers import (
     StockingMethodSerializer,
     YearlingEquivalentSerializer,
 )
+
+
+class SmallResultsSetPagination(PageNumberPagination):
+    """return a 100 ojects per page for cwt events"""
+
+    page_size = 100
+    page_size_query_param = "page_size"
+    max_page_size = 1000
+
+
+class LargeResultsSetPagination(PageNumberPagination):
+    """return a 500 ojects per page for  stocking events"""
+
+    page_size = 500
+    page_size_query_param = "page_size"
+    max_page_size = 5000
 
 
 class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
@@ -163,6 +180,12 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
                 "jurisdiction__lake",
                 "jurisdiction__stateprov",
             )
+            .defer(
+                "jurisdiction__geom",
+                "jurisdiction__lake__geom",
+                "grid_10__geom",
+                "grid_10__lake__geom",
+            )
             .order_by("-year", "stock_id")
             .annotate(**field_aliases)
             .values(*fields)
@@ -176,6 +199,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
 
 
 class LifeStageViewSet(viewsets.ReadOnlyModelViewSet):
+    """List of Lifestages and abbreviations."""
 
     queryset = LifeStage.objects.all()
     serializer_class = LifeStageSerializer
@@ -183,6 +207,14 @@ class LifeStageViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class YearlingEquivalentViewSet(viewsets.ReadOnlyModelViewSet):
+    """List of yearing equivalent factors by species and lifestage.
+    Yearling equivalent factors are used to
+    adjust the number of fish stocked based on species and lifestage
+    to account for younger life stages that are often stocked in high
+    numbers but also suffer higher mortiality.  The yearling
+    equivalent factor is intented to standardize the number of fished
+    stocked to the yearling lifestage.
+    """
 
     queryset = YearlingEquivalent.objects.all()
     serializer_class = YearlingEquivalentSerializer
@@ -191,6 +223,11 @@ class YearlingEquivalentViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
+    """List of condition values and their descriptions reported by
+    contributing agencies for each stocking event to indicicate how
+    healthy the fish were at time of stocking.
+
+    """
 
     queryset = Condition.objects.all()
     serializer_class = ConditionSerializer
@@ -198,6 +235,7 @@ class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
+    """List of available stocking methods and abbreviations."""
 
     queryset = StockingMethod.objects.all()
     serializer_class = StockingMethodSerializer
@@ -205,10 +243,15 @@ class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
+    """Returns a list of stocking events.  The view can be filtered by a
+    large number of attributes including lake, species, strain, agency,
+    first and last year, stocking method, lifestage, and clipcode.
+    """
 
     serializer_class = StockingEventSerializer
     filterset_class = StockingEventFilter
     lookup_field = "stock_id"
+    pagination_class = LargeResultsSetPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
@@ -226,13 +269,18 @@ class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
             "latlong_flag",
             "strain_raw__strain",
             "stocking_method",
+        ).defer(
+            "jurisdiction__geom",
+            "jurisdiction__lake__geom",
+            "grid_10__geom",
+            "grid_10__lake__geom",
         )
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         # finally django-filter
         filtered_list = StockingEventFilter(self.request.GET, queryset=queryset)
 
-        return filtered_list.qs[:100]
+        return filtered_list.qs
 
 
 class StockingEventMapListView(generics.ListAPIView):
@@ -286,28 +334,38 @@ class StockingEventMapListView(generics.ListAPIView):
             "total_stocked": Sum("no_stocked"),
         }
 
-        queryset = StockingEvent.objects.select_related(
-            "species",
-            "lifestage",
-            "jurisdiction",
-            "jurisdiction__lake",
-            "jurisdiction__stateprov",
-            "grid_10",
-            "management_unit",
-            "agency",
-            "strain_raw__strain",
-            "stocking_method",
-        ).prefetch_related(
-            "species",
-            "lifestage",
-            "jurisdiction",
-            "jurisdiction__lake",
-            "jurisdiction__stateprov",
-            "grid_10",
-            "management_unit",
-            "agency",
-            "strain_raw__strain",
-            "stocking_method",
+        queryset = (
+            StockingEvent.objects.defer(
+                "jurisdiction__geom",
+                "jurisdiction__lake__geom",
+                "management_unit__geom",
+                "grid_10__geom",
+                "grid_10__lake__geom",
+            )
+            .select_related(
+                "species",
+                "lifestage",
+                "jurisdiction",
+                "jurisdiction__lake",
+                "jurisdiction__stateprov",
+                "grid_10",
+                "management_unit",
+                "agency",
+                "strain_raw__strain",
+                "stocking_method",
+            )
+            .prefetch_related(
+                "species",
+                "lifestage",
+                "jurisdiction",
+                "jurisdiction__lake",
+                "jurisdiction__stateprov",
+                "grid_10",
+                "management_unit",
+                "agency",
+                "strain_raw__strain",
+                "stocking_method",
+            )
         )
 
         if year:
@@ -406,17 +464,26 @@ class StockingEventListAPIView(APIView):
             "yreq_stocked",
         ]
 
-        queryset = StockingEvent.objects.select_related(
-            "jurisdiction",
-            "agency",
-            "species",
-            "strain",
-            "lifestage",
-            "grid_10",
-            "stocking_method",
-            "jurisdiction__lake",
-            "jurisdiction__stateprov",
-        ).annotate(**field_aliases)
+        queryset = (
+            StockingEvent.objects.defer(
+                "jurisdiction__geom",
+                "jurisdiction__lake__geom",
+                "grid_10__geom",
+                "grid_10__lake__geom",
+            )
+            .select_related(
+                "agency",
+                "species",
+                "strain",
+                "lifestage",
+                "grid_10",
+                "stocking_method",
+                "jurisdiction",
+                "jurisdiction__lake",
+                "jurisdiction__stateprov",
+            )
+            .annotate(**field_aliases)
+        )
 
         filtered = StockingEventFilter(request.GET, queryset=queryset).qs.values(
             *fields
@@ -455,7 +522,7 @@ class StockingEventLookUpsAPIView(APIView):
         return Response(lookups)
 
 
-class CWTEventListAPIView(APIView):
+class CWTEventListAPIView(generics.ListAPIView):
     """A list view of individual cwt stocking events, inlcuding
     attributes of the associated cwt.
 
@@ -463,16 +530,15 @@ class CWTEventListAPIView(APIView):
     returned queryset.  See the swagger documentation enpoint for the
     complete list of available filters.
 
-    To maximize performance, this view does not use a serializer and
-    instead returns just the values from the queryset as recommended here:
-
-    https://www.dabapps.com/blog/api-performance-profiling-django-rest-framework/
-
     """
 
+    serializer_class = CWTEventXlsxSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = SmallResultsSetPagination
+    filterset_class = StockingEventFilter
 
-    def get(self, request):
+    # def get(self, request):
+    def get_queryset(self):
 
         field_aliases = {
             "cwt_number": F("cwt_series__cwt__cwt_number"),
@@ -541,6 +607,14 @@ class CWTEventListAPIView(APIView):
             "no_stocked",
         ]
 
+        defered_fields = [
+            "jurisdiction__geom",
+            "jurisdiction__lake__geom",
+            "management_unit__geom",
+            "grid_10__geom",
+            "grid_10__lake__geom",
+        ]
+
         related_tables = [
             "cwt",
             "cwt_series",
@@ -556,21 +630,22 @@ class CWTEventListAPIView(APIView):
             "grid_10",
         ]
 
-        queryset = StockingEvent.objects.filter(
-            cwt_series__cwt__cwt_number__isnull=False
-        ).select_related(*related_tables)
+        queryset = (
+            StockingEvent.objects.filter(cwt_series__cwt__cwt_number__isnull=False)
+            .defer(*defered_fields)
+            .select_related(*related_tables)
+        )
 
         filtered_qs = StockingEventFilter(self.request.GET, queryset=queryset).qs
 
         values = filtered_qs.annotate(**field_aliases).values(*fields)
-        maxEvents = settings.MAX_FILTERED_EVENT_COUNT
-        return Response(values[:maxEvents])
+        return values
 
 
 class CWTEventMapAPIView(APIView):
-    """THis is an api endpoint that returns just the data required to
-    populate the found CWT event view - populate the cross filter, widgets
-    and map. In most cases, the serialzed date includes the slugs rather
+    """An api endpoint that returns just the data required to populate the
+    found CWT event view - populate the cross filter, widgets and
+    map. In most cases, the serialzed date includes the slugs rather
     than human readable labels.
 
     Only fields that are used in the filters or required for display
@@ -795,7 +870,5 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
         filtered_qs = StockingEventFilter(self.request.GET, queryset=queryset).qs
 
         values = filtered_qs.annotate(**field_aliases).values(*fields)
-
-        print(values[:2])
 
         return Response(list(values))

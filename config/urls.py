@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 from rest_framework.documentation import include_docs_urls
-from rest_framework.schemas import get_schema_view
+from rest_framework.permissions import AllowAny
 from rest_framework_swagger.views import get_swagger_view
 
 # our homepage:  TEMP!!
@@ -27,10 +27,63 @@ from fsdviz.stocking.views import PieChartMapViewLatestYear
 from fsdviz.myusers.views import account_redirect
 
 
-API_TITLE = "Fish Stocking DataViz API"
-API_DESCRIPTION = "A web API for Great Lakes Fish Stocking and Recovery Data"
+from fsdviz.common.api.views import (
+    AgencyViewSet,
+    SpeciesViewSet,
+    JurisdictionViewSet,
+    StateProvinceViewSet,
+    LakeViewSet,
+    ManagementUnitViewSet,
+    StrainSpeciesViewSet,
+    StrainRawViewSet,
+    Grid10ViewSet,
+    LatLonFlagViewSet,
+    MarkViewSet,
+)
+
+from fsdviz.stocking.api.views import (
+    LifeStageViewSet,
+    YearlingEquivalentViewSet,
+    ConditionViewSet,
+    StockingMethodViewSet,
+    StockingEventViewSet,
+    CWTEventListAPIView,
+)
+
+
+API_TITLE = "Great Lakes Fish Stocking API"
+API_DESCRIPTION = "A web API for Great Lakes Fish Stocking Database"
 
 schema_view = get_swagger_view(title=API_TITLE)
+
+public_urls = [
+    path("api/v1/common/lake", LakeViewSet.as_view({"get": "list"})),
+    path("api/v1/common/agency", AgencyViewSet.as_view({"get": "list"})),
+    path("api/v1/common/jurisdiction", JurisdictionViewSet.as_view({"get": "list"})),
+    path(
+        "api/v1/common/management_unit", ManagementUnitViewSet.as_view({"get": "list"})
+    ),
+    path("api/v1/common/state_province", StateProvinceViewSet.as_view({"get": "list"})),
+    path("api/v1/common/grid10", Grid10ViewSet.as_view({"get": "list"})),
+    path("api/v1/common/latlonflag", LatLonFlagViewSet.as_view({"get": "list"})),
+    path("api/v1/common/mark", MarkViewSet.as_view({"get": "list"})),
+    path("api/v1/common/species", SpeciesViewSet.as_view({"get": "list"})),
+    path("api/v1/common/strain", StrainSpeciesViewSet.as_view({"get": "list"})),
+    path("api/v1/common/strainraw", StrainRawViewSet.as_view({"get": "list"})),
+    path("api/v1/stocking/lifestage", LifeStageViewSet.as_view({"get": "list"})),
+    path(
+        "api/v1/stocking/yearling_equivalent",
+        YearlingEquivalentViewSet.as_view({"get": "list"}),
+    ),
+    path("api/v1/stocking/condition", ConditionViewSet.as_view({"get": "list"})),
+    path(
+        "api/v1/stocking/stocking_method",
+        StockingMethodViewSet.as_view({"get": "list"}),
+    ),
+    path("api/v1/stocking/events", StockingEventViewSet.as_view({"get": "list"})),
+    path("api/v1/stocking/get_cwt_events", CWTEventListAPIView.as_view()),
+]
+
 
 urlpatterns = [
     path("coregonusclupeaformis/doc/", include("django.contrib.admindocs.urls")),
@@ -50,11 +103,18 @@ urlpatterns = [
         "api/v1/stocking/",
         include("fsdviz.stocking.api.urls", namespace="stocking_api"),
     ),
-    # path("api/1.0/cwt/", include("cwt.api.urls")),
-    path("api/docs/", include_docs_urls(title=API_TITLE, description=API_DESCRIPTION)),
-    path("api/schema/", schema_view),
+    path(
+        "api/public_urls/",
+        include_docs_urls(
+            title=API_TITLE,
+            description=API_DESCRIPTION,
+            permission_classes=[
+                AllowAny,
+            ],
+            patterns=public_urls,
+        ),
+    ),
     path("bookmarks/", include("bookmark_it.urls")),
-    # temp!!
     path("", PieChartMapViewLatestYear, name="home"),
 ]
 
@@ -63,6 +123,4 @@ if settings.DEBUG:
 
     urlpatterns = [
         path("__debug__/", include(debug_toolbar.urls)),
-        # For django versions before 2.0:
-        # url(r'^__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
