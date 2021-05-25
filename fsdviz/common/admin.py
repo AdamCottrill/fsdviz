@@ -29,30 +29,30 @@ class AgencyModelAdmin(admin.ModelAdmin):
 
 
 @admin.register(Lake)
-class LakeModelAdmin(admin.OSMGeoAdmin):
+class LakeModelAdmin(admin.GeoModelAdmin):
     list_display = ("lake_name", "abbrev")
 
 
 @admin.register(StateProvince)
-class StateProvinceModelAdmin(admin.OSMGeoAdmin):
+class StateProvinceModelAdmin(admin.GeoModelAdmin):
     list_display = ("name", "abbrev", "country")
 
 
 @admin.register(Jurisdiction)
-class JurisdictionModelAdmin(admin.OSMGeoAdmin):
+class JurisdictionModelAdmin(admin.GeoModelAdmin):
     list_display = ("name", "lake", "stateprov", "description")
     list_filter = ("lake", "stateprov")
 
 
 @admin.register(ManagementUnit)
-class ManagementUnitModelAdmin(admin.OSMGeoAdmin):
+class ManagementUnitModelAdmin(admin.GeoModelAdmin):
     list_display = ("label", "lake", "mu_type", "description")
     list_filter = ("lake", "mu_type")
     search_fields = ("label",)
 
 
 @admin.register(Grid10)
-class Grid10Admin(admin.OSMGeoAdmin):
+class Grid10Admin(admin.GeoModelAdmin):
     list_display = ("grid", "lake", "slug")
     list_filter = ("lake",)
     search_fields = ("grid",)
@@ -78,7 +78,7 @@ class StrainModelAdmin(admin.ModelAdmin):
 
 @admin.register(StrainRaw)
 class StrainRawModelAdmin(admin.ModelAdmin):
-    list_display = ("raw_strain", "species", "strain")
+    list_display = ("raw_strain", "description", "species", "strain")
     # list_select_related = ('strain', 'species',)
     list_filter = ("species",)
     search_fields = ("description", "raw_strain")
