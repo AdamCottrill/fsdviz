@@ -32,7 +32,7 @@ from fsdviz.common.models import Lake, Jurisdiction, ManagementUnit, Grid10
 # management_unit (slug)
 # grid_10 (slug)
 
-lakes = Lake.objects.exclude(geom__isnull=True).all()
+lakes = Lake.objects.all()
 lake_centroids = {x.abbrev: [x.geom.centroid.x, x.geom.centroid.y] for x in lakes}
 
 
@@ -43,7 +43,7 @@ lake_centroids = {x.abbrev: [x.geom.centroid.x, x.geom.centroid.y] for x in lake
 # group by stateProv.abbrev;
 
 stateProv_centroids = {
-    "ON": [-82.960, 45.551],
+    "ON": [-82.223, 45.351],
     "PA": [-80.167, 42.250],
     "MN": [-90.606, 47.411],
     "WI": [-88.079, 44.664],
@@ -61,12 +61,11 @@ jurisdiction_centroids = {
 }
 
 #
-mus = ManagementUnit.objects.filter(primary=True).exclude(geom__isnull=True)
+mus = ManagementUnit.objects.filter(primary=True)
 mus_centroids = {x.slug: [x.geom.centroid.x, x.geom.centroid.y] for x in mus}
 
-grids = Grid10.objects.exclude(geom__isnull=True)
+grids = Grid10.objects.all()
 grid_centroids = {x.slug: [x.centroid.x, x.centroid.y] for x in grids}
-
 
 # bundle them all up into a single dictionary:
 centroids = {
@@ -80,3 +79,4 @@ centroids = {
 fname = "./fsdviz/static/data/centroids.json"
 with open(fname, "w") as fp:
     json.dump(centroids, fp)
+print("Done!")

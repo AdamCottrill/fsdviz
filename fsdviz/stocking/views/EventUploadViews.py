@@ -1,4 +1,5 @@
 from datetime import datetime
+import pdb
 
 from django.conf import settings
 from django.contrib import messages
@@ -34,6 +35,7 @@ from fsdviz.common.utils import (
     make_strain_id_lookup,
     toLookup,
     parseFinClip,
+    int_or_none,
 )
 from fsdviz.myusers.permissions import user_can_create_edit_delete
 
@@ -124,7 +126,7 @@ def xls_events(request):
 
     agency = Agency.objects.get(abbrev=xls_events[0].get("agency"))
     lake = Lake.objects.get(abbrev=xls_events[0].get("lake"))
-    bbox = lake.geom.envelope.buffer(0.2).extent
+    bbox = lake.geom.envelope.buffer(0.5).extent
 
     # TODO : choices = formset_choices(choices, lake)
     # TODO : cache = formset_cache(lake, points)
@@ -262,7 +264,13 @@ def xls_events(request):
                     species = species_id_lookup[spc_abbrev]
                     lifestage = lifestage_id_lookup[data.pop("stage")]
                     stocking_method = stocking_method_id_lookup[data.pop("stock_meth")]
-                    condition = condition_id_lookup[int(data.pop("condition"))]
+
+                    condition = condition_id_lookup.get(
+                        int_or_none(data.pop("condition"))
+                    )
+                    if condition is None:
+                        condition = condition_id_lookup[99]
+
                     hatchery = hatchery_id_lookup.get(data.pop("hatchery"))
                     grid_slug = "{}_{}".format(lake.abbrev.lower(), data.pop("grid"))
                     grid = grid_id_lookup[grid_slug]
@@ -279,7 +287,11 @@ def xls_events(request):
                     # strain_id = strain_id_lookup.get(spc_abbrev).get(strain_label)
 
                     finclip_list = parseFinClip(data.pop("finclip", ""))
-                    finclips = [finclip_lookup.get(x) for x in finclip_list]
+                    finclips = [
+                        finclip_lookup.get(x)
+                        for x in finclip_list
+                        if finclip_lookup.get(x) is not None
+                    ]
 
                     cwts = data.pop("tag_no", "")
                     if cwts != "":

@@ -321,7 +321,9 @@ Promise.all([
         .positive("Year Class must be positive")
         .min(1950, "Year must be after 1945")
         .max(thisYear, `Year Class must be less than today (${thisYear})`),
-      stage: string().required(), // one of
+      stage: string()
+        .oneOf(["", ...lifestage_choices], "Unknown Lifestage.")
+        .required(),
       agemonth: number().positive().integer(),
 
       tag_no: string().matches(cwt_regex, {
@@ -342,6 +344,7 @@ Promise.all([
         .transform((value, originalValue) =>
           String(originalValue).trim() === "" ? null : value
         )
+        .min(1, "Length must be greater than or equal to 1")
         .positive("Ensure this value is greater than or equal to 1"),
       weight: number("Enter a number.")
         .nullable(true)
@@ -349,7 +352,8 @@ Promise.all([
         .transform((value, originalValue) =>
           String(originalValue).trim() === "" ? null : value
         )
-        .positive("Ensure this value is greater than or equal to 1"),
+        .min(0.1, "Weight must be greater than or equal to 1")
+        .positive("Ensure this value is greater than or equal to 0.1"),
       condition: string()
         .nullable(true)
         .oneOf(["", ...condition_choices], "Unknown Condition Code.")
@@ -357,7 +361,10 @@ Promise.all([
       lot_code: string()
         .nullable(true)
         .transform((_, val) => (val === val ? val : null)),
-      stock_meth: string(), // one of
+      stock_meth: string().oneOf(
+        ["", ...stocking_method_choices],
+        "Unknown Stocking Method."
+      ),
       notes: string()
         .nullable(true)
         .transform((_, val) => (val === val ? val : null)),
@@ -445,6 +452,12 @@ Promise.all([
 
   // attach our row validate to the blur event of every input field
   $("#upload-form :input").blur(function (e) {
+    const form_id_regex = /id_form-[0-9]+/;
+    const row_prefix = e.target.id.match(form_id_regex)[0];
+    validate_row(row_prefix);
+  });
+
+  $("#upload-form :input").change(function (e) {
     const form_id_regex = /id_form-[0-9]+/;
     const row_prefix = e.target.id.match(form_id_regex)[0];
     validate_row(row_prefix);

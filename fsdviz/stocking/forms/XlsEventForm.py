@@ -106,7 +106,7 @@ class XlsEventForm(forms.Form):
     tag_no = forms.CharField(required=False, validators=[validate_cwt])
     tag_ret = forms.FloatField(min_value=0, max_value=100, required=False)
     length = forms.FloatField(min_value=1, required=False, widget=forms.TextInput)
-    weight = forms.FloatField(min_value=1, required=False, widget=forms.TextInput)
+    weight = forms.FloatField(min_value=0.1, required=False, widget=forms.TextInput)
 
     condition = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     stock_meth = forms.ChoiceField(choices=[], required=True, widget=MySelect)

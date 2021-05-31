@@ -312,7 +312,9 @@ class TestFileUpload:
         expected = [("b", "boat")]
         assert xls_choices["stocking_method"] == expected
 
-        expected = [(4, 4)]
+        # condition has a default value (99 - not reported) that is
+        # created if it does not exist.
+        expected = [(4, 4), (99, 99)]
         assert xls_choices["condition"] == expected
 
         # statdist and grids are dictionaries keyed by lake:

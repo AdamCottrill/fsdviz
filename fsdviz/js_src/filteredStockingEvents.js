@@ -152,7 +152,7 @@ let strata = [
   { name: "lake", label: "Lake" },
   { name: "stateProv", label: "State/Province" },
   { name: "jurisdiction", label: "Jurisdiction" },
-  //  { name: "manUnit", label: "Managment Unit" },
+  { name: "manUnit", label: "Statistical District" },
   { name: "grid10", label: "10-minute Grid" },
   { name: "geom", label: "Reported Point" },
 ];
@@ -356,7 +356,7 @@ Promise.all([
   let agencyDim = ndx.dimension((d) => d.agency_code);
   let stateProvDim = ndx.dimension((d) => d.stateProv);
   let jurisdictionDim = ndx.dimension((d) => d.jurisdiction_code);
-  //let manUnitDim = ndx.dimension(d => d.man_unit);
+  let manUnitDim = ndx.dimension((d) => d.man_unit);
   let grid10Dim = ndx.dimension((d) => d.grid_10);
   let geomDim = ndx.dimension((d) => d.geom);
 
@@ -403,7 +403,7 @@ Promise.all([
     jurisdictionGroup = jurisdictionDim
       .group()
       .reduceSum((d) => d[responseVar]);
-    //let manUnitGroup = manUnitDim.group().reduceSum(d => d[responseVar]);
+    let manUnitGroup = manUnitDim.group().reduceSum((d) => d[responseVar]);
     grid10Group = grid10Dim.group().reduceSum((d) => d[responseVar]);
     speciesGroup = speciesDim.group().reduceSum((d) => d[responseVar]);
     strainGroup = strainDim.group().reduceSum((d) => d[responseVar]);
@@ -440,7 +440,7 @@ Promise.all([
   let lakeMapGroup = {};
   let jurisdictionMapGroup = {};
   let stateProvMapGroup = {};
-  //let manUnitMapGroup = {};
+  let manUnitMapGroup = {};
   let grid10MapGroup = {};
   let geomMapGroup = {};
 
@@ -461,13 +461,9 @@ Promise.all([
       .group()
       .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
-    //      manUnitMapGroup = manUnitDim
-    //        .group()
-    //        .reduce(
-    //          stockingAdd(sliceVar),
-    //          stockingRemove(sliceVar),
-    //            stockingInitial
-    //        );
+    manUnitMapGroup = manUnitDim
+      .group()
+      .reduce(stockingAdd(sliceVar), stockingRemove(sliceVar), stockingInitial);
 
     grid10MapGroup = grid10Dim
       .group()
@@ -1134,9 +1130,9 @@ Promise.all([
       case "jurisdiction":
         pts = Object.values(jurisdictionMapGroup.all());
         break;
-      //        case "manUnit":
-      //               pts = Object.values(manUnitMapGroup.all());
-      //                break;
+      case "manUnit":
+        pts = Object.values(manUnitMapGroup.all());
+        break;
       case "grid10":
         pts = Object.values(grid10MapGroup.all());
 

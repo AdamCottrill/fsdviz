@@ -28,7 +28,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from fsdviz.common.models import Jurisdiction, FinClip, FishTag, PhysChemMark, CWT
-from fsdviz.stocking.models import StockingEvent
+from fsdviz.stocking.models import StockingEvent, Condition
 
 from fsdviz.myusers.tests.factories import UserFactory
 
@@ -122,7 +122,8 @@ class XLS_Submission(TestCase):
             species=lat, lifestage=fall_fingerling, yreq_factor=0.9
         )
 
-        ConditionFactory(condition="0")
+        ConditionFactory(condition=0, description="Reported as something")
+
         StockingMethodFactory(stk_meth="b", description="boat")
 
         FinClipFactory(abbrev="LV", description="Left Ventral")
@@ -352,7 +353,7 @@ class XLS_Submission(TestCase):
         assert event.year_class == 2018
         assert event.tag_ret == None
         assert event.length == None
-        assert event.weight == 840
+        assert event.weight == 840.0081
         assert event.no_stocked == 30747
         assert event.lotcode == "380"
         assert event.notes == ""
@@ -368,8 +369,8 @@ class XLS_Submission(TestCase):
     def test_xls_submit_event_upload_object(self):
         """When events are uploaded by spreadsheet a stocking event
         upload record is created. Verify that event_upload object is created,
-        taht it contains the information about the upload events, and is
-        assocaited with the correct stocking events."""
+        that it contains the information about the upload events, and is
+        associated with the correct stocking events."""
 
         user = self.user
         payload = self.payload
@@ -396,7 +397,8 @@ class XLS_Submission(TestCase):
 
     @pytest.mark.django_db
     def test_xls_submit_unknown_values(self):
-        """parameterized for all fields that are choice fields"""
+        """Verify that all of the fields that are choice fields raise an error
+        if the data is not one of the available choices."""
 
         user = self.user
         payload = self.payload
@@ -696,3 +698,36 @@ class XLS_Submission(TestCase):
         # the second event was ff and yreq should be adjusted lower:
         event = StockingEvent.objects.get(agency_stock_id="42703")
         assert event.yreq_stocked == int(event.no_stocked * 0.90)
+
+    @pytest.mark.django_db
+    def test_xls_submit_missing_condition(self):
+        """Condition is not a required field in our xls form but has default
+        value '99' if it is not repored.  Verify that condition is
+        populated as expected if the submitted data is null or an
+        empty string
+
+        """
+
+        not_reported, created = Condition.objects.get_or_create(condition=99)
+
+        user = self.user
+        payload = self.payload
+
+        payload = self.payload
+        payload["form-0-condition"] = ""
+        payload["form-1-condition"] = ""
+
+        login = self.client.login(email=user.email, password="Abcd1234")
+        assert login is True
+        url = reverse("stocking:xls-events-form")
+
+        session = self.client.session
+        session["data"] = self.session_data
+        session.save()
+
+        response = self.client.post(url, data=payload, follow=True)
+        assert response.status_code == 200
+
+        events = StockingEvent.objects.all()
+        for event in events:
+            assert event.condition == not_reported

@@ -244,8 +244,11 @@ class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
 
 class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
     """Returns a list of stocking events.  The view can be filtered by a
-    large number of attributes including lake, species, strain, agency,
-    first and last year, stocking method, lifestage, and clipcode.
+    large number of attributes including lake, species, strain,
+    agency, first and last year, stocking method, lifestage, and
+    clipcode.  This view is used to access records from the database
+    using external clients (e.g. R and the GLFishStockR packages.)
+
     """
 
     serializer_class = StockingEventSerializer
@@ -435,6 +438,7 @@ class StockingEventListAPIView(APIView):
             "lifestage_code": F("lifestage__abbrev"),
             "stockingMethod": F("stocking_method__stk_meth"),
             "jurisdiction_code": F("jurisdiction__slug"),
+            "man_unit": F("management_unit__slug"),
             "lake": F("jurisdiction__lake__abbrev"),
             "stateProv": F("jurisdiction__stateprov__abbrev"),
             "latitude": F("geom_lat"),
@@ -445,6 +449,7 @@ class StockingEventListAPIView(APIView):
             "stock_id",
             "lake",
             "jurisdiction_code",
+            "man_unit",
             "stateProv",
             "grid10",
             "latitude",
@@ -468,6 +473,9 @@ class StockingEventListAPIView(APIView):
             StockingEvent.objects.defer(
                 "jurisdiction__geom",
                 "jurisdiction__lake__geom",
+                "mangement_unit__geom",
+                "mangement_unit__lake__geom",
+                "mangement_unit__jurisdiction__lake__geom",
                 "grid_10__geom",
                 "grid_10__lake__geom",
             )
@@ -478,6 +486,7 @@ class StockingEventListAPIView(APIView):
                 "lifestage",
                 "grid_10",
                 "stocking_method",
+                "management_unit",
                 "jurisdiction",
                 "jurisdiction__lake",
                 "jurisdiction__stateprov",

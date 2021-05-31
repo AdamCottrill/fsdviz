@@ -516,4 +516,5 @@ def parseFinClip(clip):
     two characters!
 
     """
+
     return [clip[i : i + 2] for i in range(0, len(clip), 2)]

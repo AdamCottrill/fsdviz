@@ -157,6 +157,14 @@ class Condition(models.Model):
         return "{} - {}".format(self.condition, self.description)
 
 
+def get_default_condition():
+    """a helper function to ensure that condition value is always
+    populated, even if a value is not reported. 99 corresponds to 'Not
+    Reported'."""
+    condition, created = Condition.objects.get_or_create(condition=99)
+    return condition.id
+
+
 class StockingMethod(models.Model):
     """
     A model to capture the method used to the stock the fish.
@@ -286,7 +294,10 @@ class StockingEvent(models.Model):
     )
 
     condition = models.ForeignKey(
-        Condition, on_delete=models.CASCADE, related_name="stocking_events"
+        Condition,
+        on_delete=models.CASCADE,
+        related_name="stocking_events",
+        default=lambda: Condition.objects.filter(condition=99).first(),
     )
 
     # unique fish stocking event identifier
@@ -349,9 +360,7 @@ class StockingEvent(models.Model):
         "age of stocked fish in months", blank=True, null=True
     )
     length = models.IntegerField("length of stocked fish in mm", blank=True, null=True)
-    weight = models.IntegerField(
-        "weight of stocked fish in grams", blank=True, null=True
-    )
+    weight = models.FloatField("weight of stocked fish in grams", blank=True, null=True)
 
     lotcode = models.CharField(
         "Hatchery Lot code indicating source of stocked fish",
@@ -360,7 +369,9 @@ class StockingEvent(models.Model):
         null=True,
     )
 
-    fish_tags = models.ManyToManyField(FishTag, related_name="stocking_events")
+    fish_tags = models.ManyToManyField(
+        FishTag, related_name="stocking_events", blank=True
+    )
 
     tag_no = models.CharField(
         "CWT numbers", max_length=100, blank=True, null=True, db_index=True
@@ -385,12 +396,16 @@ class StockingEvent(models.Model):
     )
 
     physchem_marks = models.ManyToManyField(
-        PhysChemMark, related_name="stocking_events"
+        PhysChemMark, related_name="stocking_events", blank=True
     )
 
     # mark, mark_eff and validation are going away shortly....
     # marks is going away shortly:
-    marks = models.ManyToManyField(Mark, related_name="stocking_events")
+    marks = models.ManyToManyField(
+        Mark,
+        related_name="stocking_events",
+        blank=True,
+    )
     mark = models.CharField(
         "Chemical, tag, or finclip mark applied to fish",
         max_length=50,
