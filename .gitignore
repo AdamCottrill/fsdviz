@@ -9,6 +9,7 @@ docs/build/*
 __pycache__
 fsdviz/favicon.ico
 fsdviz/static/*
+static/*
 utils/data/*
 utils/stocking_database_report.txt
 fsdviz/static/js/accessToken.js

@@ -36,7 +36,7 @@ django-rest-swagger==2.2.0
     # via -r base.in
 django-taggit==1.1.0
     # via -r base.in
-django==2.2.19
+django==2.2.23
     # via
     #   -r base.in
     #   django-cors-headers
@@ -97,7 +97,7 @@ typing-extensions==3.7.4.3
     # via importlib-metadata
 uritemplate==3.0.0
     # via coreapi
-urllib3==1.25.2
+urllib3==1.26.5
     # via requests
 whitenoise==5.2.0
     # via -r base.in
