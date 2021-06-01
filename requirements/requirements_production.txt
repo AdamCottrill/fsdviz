@@ -55,7 +55,7 @@ drf-renderer-xlsx==0.3.8
     # via -r base.in
 et-xmlfile==1.0.1
     # via openpyxl
-gdal==3.2.1
+#gdal==3.2.1
     # via -r base.in
 idna==2.8
     # via requests
@@ -79,7 +79,7 @@ openpyxl==3.0.5
     # via
     #   -r base.in
     #   drf-renderer-xlsx
-psycopg2==2.8.6
+psycopg2-binary==2.8.6
     # via -r base.in
 pytz==2018.9
     # via django
@@ -97,7 +97,7 @@ typing-extensions==3.7.4.3
     # via importlib-metadata
 uritemplate==3.0.0
     # via coreapi
-urllib3==1.26.5
+urllib3==1.25.3
     # via requests
 whitenoise==5.2.0
     # via -r base.in
