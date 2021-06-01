@@ -8,7 +8,6 @@ docs/build/*
 *.pyc
 __pycache__
 fsdviz/favicon.ico
-fsdviz/static/*
 static/*
 utils/data/*
 utils/stocking_database_report.txt
