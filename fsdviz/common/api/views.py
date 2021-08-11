@@ -7,53 +7,55 @@ The veiws in this file should all be publicly available as readonly.
 
 from django.contrib.gis.db.models.functions import Distance
 from django.db.models import F
+from fsdviz.common.filters import (
+    Grid10Filter,
+    JurisdictionFilter,
+    ManagementUnitFilter,
+    MarkFilter,
+    StateProvinceFilter,
+    StrainFilter,
+    StrainRawFilter,
+)
+from fsdviz.common.models import (
+    CWT,
+    Agency,
+    CompositeFinClip,
+    FishTag,
+    Grid10,
+    Jurisdiction,
+    Lake,
+    LatLonFlag,
+    ManagementUnit,
+    Mark,
+    PhysChemMark,
+    Species,
+    StateProvince,
+    Strain,
+    StrainRaw,
+)
+from fsdviz.common.utils import get_polygons, parse_geom
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from fsdviz.common.utils import parse_geom, get_polygons
-
-from fsdviz.common.models import (
-    Agency,
-    Species,
-    Lake,
-    CWT,
-    Jurisdiction,
-    StateProvince,
-    ManagementUnit,
-    Strain,
-    StrainRaw,
-    Grid10,
-    LatLonFlag,
-    Mark,
-    CompositeFinClip,
-)
-
-from fsdviz.common.filters import (
-    ManagementUnitFilter,
-    StateProvinceFilter,
-    JurisdictionFilter,
-    StrainFilter,
-    StrainRawFilter,
-    MarkFilter,
-    Grid10Filter,
-)
-
 from .serializers import (
     AgencySerializer,
-    SpeciesSerializer,
-    LakeSerializer,
-    StateProvinceSerializer,
-    JurisdictionSerializer,
+    CompositeFinClipSerializer,
     CWTSerializer,
-    ManagementUnitSerializer,
-    StrainSpeciesSerializer,
-    StrainRawSerializer,
+    FishTagSerializer,
     Grid10Serializer,
+    JurisdictionSerializer,
+    LakeSerializer,
     LatLonFlagSerializer,
+    ManagementUnitSerializer,
     MarkSerializer,
+    PhysChemMarkSerializer,
+    SpeciesSerializer,
+    StateProvinceSerializer,
+    StrainRawSerializer,
+    StrainSpeciesSerializer,
 )
 
 
@@ -63,6 +65,30 @@ class AgencyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Agency.objects.all()
     serializer_class = AgencySerializer
     lookup_field = "abbrev"
+
+
+class CompositeFinClipViewSet(viewsets.ReadOnlyModelViewSet):
+
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = CompositeFinClip.objects.all()
+    serializer_class = CompositeFinClipSerializer
+    lookup_field = "clip_code"
+
+
+class FishTagViewSet(viewsets.ReadOnlyModelViewSet):
+
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = FishTag.objects.all()
+    serializer_class = FishTagSerializer
+    lookup_field = "tag_code"
+
+
+class PhysChemMarkViewSet(viewsets.ReadOnlyModelViewSet):
+
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = PhysChemMark.objects.all()
+    serializer_class = PhysChemMarkSerializer
+    lookup_field = "mark_code"
 
 
 @api_view(["POST"])

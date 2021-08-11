@@ -9,23 +9,23 @@ from django.contrib.gis.geos import GEOSGeometry
 
 # import common.models as common
 from ..common.models import (
-    Lake,
-    Agency,
-    StateProvince,
-    Jurisdiction,
-    ManagementUnit,
-    Grid10,
-    Species,
-    Strain,
-    StrainRaw,
-    Mark,
-    LatLonFlag,
     CWT,
-    CWTsequence,
+    Agency,
     CompositeFinClip,
+    CWTsequence,
     FinClip,
     FishTag,
+    Grid10,
+    Jurisdiction,
+    Lake,
+    LatLonFlag,
+    ManagementUnit,
+    Mark,
     PhysChemMark,
+    Species,
+    StateProvince,
+    Strain,
+    StrainRaw,
 )
 
 # centroid_WKT = POINT(-82.25, 44.25)
@@ -246,6 +246,7 @@ class FishTagFactory(factory.django.DjangoModelFactory):
 
     tag_code = "CWT"
     tag_type = "CWT"
+    tag_colour = "Silver"
     description = "coded wire tag"
 
 

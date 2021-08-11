@@ -5,22 +5,25 @@ from rest_framework.routers import SimpleRouter
 
 from .views import (
     AgencyViewSet,
-    SpeciesViewSet,
-    JurisdictionViewSet,
-    CwtViewSet,
-    StateProvinceViewSet,
-    LakeViewSet,
-    ManagementUnitViewSet,
-    StrainSpeciesViewSet,
-    StrainRawViewSet,
-    Grid10ViewSet,
-    LatLonFlagViewSet,
-    MarkViewSet,
     CommonLookUpsAPIView,
-    get_lake_from_pt,
-    get_jurisdiction_from_pt,
-    get_management_unit_from_pt,
+    CompositeFinClipViewSet,
+    CwtViewSet,
+    FishTagViewSet,
+    Grid10ViewSet,
+    JurisdictionViewSet,
+    LakeViewSet,
+    LatLonFlagViewSet,
+    ManagementUnitViewSet,
+    MarkViewSet,
+    PhysChemMarkViewSet,
+    SpeciesViewSet,
+    StateProvinceViewSet,
+    StrainRawViewSet,
+    StrainSpeciesViewSet,
     get_grid10_from_pt,
+    get_jurisdiction_from_pt,
+    get_lake_from_pt,
+    get_management_unit_from_pt,
     pt_spatial_attrs,
     roi_spatial_attrs,
 )
@@ -36,7 +39,10 @@ router.register("management_unit", ManagementUnitViewSet)
 router.register("state_province", StateProvinceViewSet)
 router.register("grid10", Grid10ViewSet)
 router.register("latlonflag", LatLonFlagViewSet)
+router.register("composite_finclip", CompositeFinClipViewSet)
+router.register("physchemmark", PhysChemMarkViewSet)
 router.register("mark", MarkViewSet)
+router.register("fishtag", FishTagViewSet)
 router.register("species", SpeciesViewSet)
 router.register("strain", StrainSpeciesViewSet)
 router.register("strainraw", StrainRawViewSet)

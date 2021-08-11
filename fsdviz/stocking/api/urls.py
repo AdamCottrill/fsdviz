@@ -4,25 +4,26 @@ from django.urls import path
 from rest_framework.routers import SimpleRouter
 
 from .views import (
-    LifeStageViewSet,
-    YearlingEquivalentViewSet,
     ConditionViewSet,
-    StockingMethodViewSet,
-    StockingEventViewSet,
-    StockingEventMapListView,
+    CWTEvent2xlsxViewSet,
+    CWTEventListAPIView,
+    CWTEventMapAPIView,
+    HatcheryViewSet,
+    LifeStageViewSet,
+    StockingEvent2xlsxViewSet,
     StockingEventListAPIView,
     StockingEventLookUpsAPIView,
-    StockingEvent2xlsxViewSet,
-    CWTEventListAPIView,
-    CWTEvent2xlsxViewSet,
-    CWTEventMapAPIView,
+    StockingEventMapListView,
+    StockingEventViewSet,
+    StockingMethodViewSet,
+    YearlingEquivalentViewSet,
 )
-
 
 app_name = "api"
 
 router = SimpleRouter()
 
+router.register("hatchery", HatcheryViewSet)
 router.register("lifestage", LifeStageViewSet)
 router.register("yearling_equivalent", YearlingEquivalentViewSet)
 router.register("condition", ConditionViewSet)

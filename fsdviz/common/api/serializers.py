@@ -5,21 +5,24 @@ needed).
 
   """
 
-from rest_framework import serializers
 from fsdviz.common.models import (
+    CWT,
     Agency,
-    Species,
-    Lake,
-    StateProvince,
+    CompositeFinClip,
+    FishTag,
+    Grid10,
     Jurisdiction,
+    Lake,
+    LatLonFlag,
     ManagementUnit,
+    Mark,
+    PhysChemMark,
+    Species,
+    StateProvince,
     Strain,
     StrainRaw,
-    CWT,
-    Grid10,
-    LatLonFlag,
-    Mark,
 )
+from rest_framework import serializers
 
 
 class AgencySerializer(serializers.ModelSerializer):
@@ -203,3 +206,21 @@ class MarkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mark
         fields = ("clip_code", "mark_code", "mark_type", "description")
+
+
+class CompositeFinClipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompositeFinClip
+        fields = ("clip_code", "description")
+
+
+class FishTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FishTag
+        fields = ("tag_code", "tag_type", "tag_colour", "description")
+
+
+class PhysChemMarkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhysChemMark
+        fields = ("mark_code", "mark_type", "description")

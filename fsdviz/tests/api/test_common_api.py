@@ -11,28 +11,31 @@ any views that test authenticated users.
 """
 
 
-import pytest
-
 from collections import OrderedDict
+
+import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-# from fsdviz.common.models import Lake
-
 from ..common_factories import (
-    LakeFactory,
-    Grid10Factory,
     AgencyFactory,
+    CompositeFinClipFactory,
     CWTFactory,
+    FishTagFactory,
+    Grid10Factory,
+    JurisdictionFactory,
+    LakeFactory,
+    ManagementUnitFactory,
+    MarkFactory,
+    PhysChemMarkFactory,
     SpeciesFactory,
+    StateProvinceFactory,
     StrainFactory,
     StrainRawFactory,
-    StateProvinceFactory,
-    JurisdictionFactory,
-    MarkFactory,
-    ManagementUnitFactory,
 )
+
+# from fsdviz.common.models import Lake
 
 
 # @pytest.fixture
@@ -128,6 +131,159 @@ class TestAgencyAPI(APITestCase):
         AgencyFactory(**obj)
 
         url = reverse("common_api:agency-detail", kwargs={"abbrev": abbrev})
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        assert obj == response.data
+
+
+class TestFishTagAPI(APITestCase):
+    def test_fishtag_api_get_list(self):
+
+        # create a list of dicts that will be used create our objects
+        # and tested against the json in the response.
+
+        objects = [
+            {
+                "tag_code": "CT",
+                "tag_type": "carlin",
+                "tag_colour": "NA",
+                "description": "Carlin tag, general",
+            },
+            {
+                "tag_code": "CWT",
+                "tag_type": "cwt",
+                "tag_colour": "NA",
+                "description": "coded wire tag",
+            },
+            {
+                "tag_code": "FTB",
+                "tag_type": "floy",
+                "tag_colour": "blue",
+                "description": "floy tag, blue",
+            },
+        ]
+
+        for obj in objects:
+            FishTagFactory(**obj)
+
+        url = reverse("common_api:fishtag-list")
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 3
+
+        for obj in objects:
+            assert obj in response.data
+
+    def test_fishtag_api_get_detail(self):
+        """We should be able to get the details of a single fishtag
+        object by passing it's abbrev to the url."""
+
+        tag_code = "FTB"
+        obj = {
+            "tag_code": tag_code,
+            "tag_type": "floy",
+            "tag_colour": "blue",
+            "description": "floy tag, blue",
+        }
+
+        FishTagFactory(**obj)
+
+        url = reverse("common_api:fishtag-detail", kwargs={"tag_code": tag_code})
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        assert obj == response.data
+
+
+class TestCompositeFinClipAPI(APITestCase):
+    def test_composite_finclip_api_get_list(self):
+
+        # create a list of dicts that will be used create our objects
+        # and tested against the json in the response.
+
+        objects = [
+            {"clip_code": "RV", "description": "Right Ventral (Pelvic)"},
+            {"clip_code": "RVDO", "description": "Dorasal, Right Ventral (Pelvic)"},
+            {"clip_code": "SC", "description": "Scute"},
+        ]
+
+        for obj in objects:
+            CompositeFinClipFactory(**obj)
+
+        url = reverse("common_api:compositefinclip-list")
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 3
+
+        for obj in objects:
+            assert obj in response.data
+
+    def test_composite_finclip_api_get_detail(self):
+        """We should be able to get the details of a single finclip
+        object by passing it's clip code to the url."""
+
+        clip_code = "sc"
+        obj = {"clip_code": clip_code, "description": "Scute"}
+
+        CompositeFinClipFactory(**obj)
+
+        url = reverse(
+            "common_api:compositefinclip-detail", kwargs={"clip_code": clip_code}
+        )
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        assert obj == response.data
+
+
+class TestPhysChemMarkAPI(APITestCase):
+    def test_physchemmarl_api_get_list(self):
+
+        # create a list of dicts that will be used create our objects
+        # and tested against the json in the response.
+
+        objects = [
+            {
+                "mark_code": "BRH",
+                "mark_type": "physical",
+                "description": "branding, hot",
+            },
+            {"mark_code": "CA", "mark_type": "chemcial", "description": "Calcein"},
+            {"mark_code": "DY", "mark_type": "dye", "description": "dye, general"},
+        ]
+
+        for obj in objects:
+            PhysChemMarkFactory(**obj)
+
+        url = reverse("common_api:physchemmark-list")
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 3
+
+        for obj in objects:
+            assert obj in response.data
+
+    def test_physchemmark_api_get_detail(self):
+        """We should be able to get the details of a single physical-chemical mark
+        object by passing it's abbrev to the url."""
+
+        mark_code = "DY"
+        obj = {
+            "mark_code": mark_code,
+            "mark_type": "dye",
+            "description": "dye, general",
+        }
+
+        PhysChemMarkFactory(**obj)
+
+        url = reverse("common_api:physchemmark-detail", kwargs={"mark_code": mark_code})
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK

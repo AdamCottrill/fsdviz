@@ -5,14 +5,12 @@ be shared across both the stocking and cwt recovery applications.
 """
 
 from django.contrib.gis.db import models
-from django.core.exceptions import ValidationError
-from django.template.defaultfilters import slugify
-
 
 # consider add range field and constraint to CWTSequence when we upgrade to Django 3.0+
 # from django.contrib.postgres.constraints import ExclusionConstraint
 from django.contrib.postgres.fields import IntegerRangeField
-
+from django.core.exceptions import ValidationError
+from django.template.defaultfilters import slugify
 
 from .validators import validate_cwt_sequence_range
 
@@ -436,7 +434,7 @@ class Mark(models.Model):
 class FinClip(models.Model):
     """Stores a type of Fin clip - These are associated to Stocking Events
     through a many-to-many relationship. The reported clip codes are
-    composites of these values. With the excption of NO (no clips) and
+    composites of these values. With the exception of NO (no clips) and
     UN (unknown clip status) - these are mutually exclusive of each
     other and all other fin clips.
 

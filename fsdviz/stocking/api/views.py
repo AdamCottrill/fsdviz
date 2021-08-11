@@ -6,10 +6,9 @@ The veiws in this file should all be publicly available as readonly.
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
-from django.db.models import Count, F, Q, Sum
+from django.db.models import Count, F, Sum
 from drf_renderer_xlsx.mixins import XLSXFileMixin
 from drf_renderer_xlsx.renderers import XLSXRenderer
-
 from rest_framework import generics, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -21,15 +20,16 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from ..filters import StockingEventFilter, YearlingEquivalentFilter
 from ..models import (
     Condition,
+    Hatchery,
     LifeStage,
     StockingEvent,
     StockingMethod,
     YearlingEquivalent,
 )
-
 from .serializers import (
     ConditionSerializer,
     CWTEventXlsxSerializer,
+    HatcherySerializer,
     LifeStageSerializer,
     StockingEventFastSerializer,
     StockingEventSerializer,
@@ -48,11 +48,67 @@ class SmallResultsSetPagination(PageNumberPagination):
 
 
 class LargeResultsSetPagination(PageNumberPagination):
-    """return a 500 ojects per page for  stocking events"""
+    """return a 5000 ojects per page for  stocking events"""
 
     page_size = 500
     page_size_query_param = "page_size"
     max_page_size = 5000
+
+
+class LifeStageViewSet(viewsets.ReadOnlyModelViewSet):
+    """List of Lifestages and abbreviations."""
+
+    queryset = LifeStage.objects.all()
+    serializer_class = LifeStageSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_field = "abbrev"
+
+
+class YearlingEquivalentViewSet(viewsets.ReadOnlyModelViewSet):
+    """List of yearing equivalent factors by species and lifestage.
+    Yearling equivalent factors are used to
+    adjust the number of fish stocked based on species and lifestage
+    to account for younger life stages that are often stocked in high
+    numbers but also suffer higher mortality.  The yearling
+    equivalent factor is intended to standardize the number of fished
+    stocked to the yearling lifestage.
+    """
+
+    queryset = YearlingEquivalent.objects.all()
+    serializer_class = YearlingEquivalentSerializer
+    filterset_class = YearlingEquivalentFilter
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class HatcheryViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only api endpoint for hatcheries."""
+
+    queryset = Hatchery.objects.all()
+    serializer_class = HatcherySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_field = "abbrev"
+
+
+class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
+    """List of condition values and their descriptions reported by
+    contributing agencies for each stocking event to indicicate how
+    healthy the fish were at time of stocking.
+
+    """
+
+    queryset = Condition.objects.all()
+    serializer_class = ConditionSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_field = "condition"
+
+
+class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
+    """List of available stocking methods and abbreviations."""
+
+    queryset = StockingMethod.objects.all()
+    serializer_class = StockingMethodSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_field = "stk_meth"
 
 
 class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
@@ -196,50 +252,6 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
         )
 
         return filtered
-
-
-class LifeStageViewSet(viewsets.ReadOnlyModelViewSet):
-    """List of Lifestages and abbreviations."""
-
-    queryset = LifeStage.objects.all()
-    serializer_class = LifeStageSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-
-class YearlingEquivalentViewSet(viewsets.ReadOnlyModelViewSet):
-    """List of yearing equivalent factors by species and lifestage.
-    Yearling equivalent factors are used to
-    adjust the number of fish stocked based on species and lifestage
-    to account for younger life stages that are often stocked in high
-    numbers but also suffer higher mortiality.  The yearling
-    equivalent factor is intented to standardize the number of fished
-    stocked to the yearling lifestage.
-    """
-
-    queryset = YearlingEquivalent.objects.all()
-    serializer_class = YearlingEquivalentSerializer
-    filterset_class = YearlingEquivalentFilter
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-
-class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
-    """List of condition values and their descriptions reported by
-    contributing agencies for each stocking event to indicicate how
-    healthy the fish were at time of stocking.
-
-    """
-
-    queryset = Condition.objects.all()
-    serializer_class = ConditionSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-
-class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
-    """List of available stocking methods and abbreviations."""
-
-    queryset = StockingMethod.objects.all()
-    serializer_class = StockingMethodSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):

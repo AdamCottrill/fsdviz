@@ -12,23 +12,31 @@ from fsdviz.common.api.serializers import (
     JurisdictionSerializer,
     LakeSerializer,
     LatLonFlagSerializer,
-    SpeciesSerializer,
     SimpleSpeciesSerializer,
+    SpeciesSerializer,
 )
+from rest_framework import serializers
+
 from ..models import (
     Condition,
+    Hatchery,
     LifeStage,
     StockingEvent,
     StockingMethod,
     YearlingEquivalent,
 )
-from rest_framework import serializers
 
 
 class LifeStageSerializer(serializers.ModelSerializer):
     class Meta:
         model = LifeStage
         fields = ("abbrev", "description")
+
+
+class HatcherySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hatchery
+        fields = ("hatchery_name", "abbrev", "description", "hatchery_type")
 
 
 class YearlingEquivalentSerializer(serializers.ModelSerializer):
