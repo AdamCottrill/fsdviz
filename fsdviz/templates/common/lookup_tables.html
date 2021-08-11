@@ -1,0 +1,514 @@
+{% extends 'fsdviz_base.html' %}
+
+{% load static %}
+
+{% block extra_head %}
+
+    <style type="text/css" media="screen">
+
+     .title {
+         text-transform: capitalize;
+     }
+
+    </style>
+
+{% endblock %}
+
+{% block title %}Lookup Tables{% endblock %}
+
+{% block content %}
+
+    <div class="ui container">
+        <h1>Great Lakes Fish Stocking Database Look-up Tables</h1>
+        <div class="ui grid">
+            <div class="four wide column">
+                <div class="ui sticky">
+
+                    <h3>Contents</h3>
+                    <ul>
+                        <li><a href="#agencies">Agencies</a></li>
+                        <li><a href="#lakes">Lakes</a></li>
+                        <li><a href="#jurisdictions">Jurisdictions</a></li>
+                        <li><a href="#species">Species</a></li>
+                        <li><a href="#strains">Strains</a></li>
+                        <li><a href="#fin-clips">Fin Clips</a></li>
+                        <li><a href="#fish-tags">Fish Tags</a></li>
+                        <li><a href="#phys-chem-marks">Physical or Chemical Marks</a></li>
+                        <li><a href="#hatcheries">Hatcheries</a></li>
+                        <li><a href="#lifestages">Life Stages </a></li>
+                        <li><a href="#yreq">Yearling Equivalents</a></li>
+                        <li><a href="#stocking-method">Stocking Method</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="twelve wide column" id='lookup-tables'>
+
+                <h3 id="agencies">Agencies</h3>
+
+                <p>A sentence or two about agencies...</p>
+
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="agency-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <table id="agency-table" class="ui celled table tablesorter">
+                    <thead>
+                        <tr><th>Agency Name</th>
+                            <th>Abbreviation</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for agency in agencies %}
+                            <tr>
+                                <td class="title">{{ agency.agency_name}}</td>
+                                <td >{{ agency.abbrev}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id='lakes'>Lakes</h3>
+
+                <p>A sentence or two about Lakes...</p>
+
+                <table id="lake-table" class="ui celled table tablesorter">
+                    <thead>
+                        <tr><th>Lake Name</th>
+                            <th>Abbreviation</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for lake in lakes %}
+                            <tr>
+                                <td >{{ lake.lake_name}}</td>
+                                <td >{{ lake.abbrev}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id="jurisdictions">Jurisdictions</h3>
+
+                <p>A sentence or two about jurisdictions...</p>
+
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="jurisdiction-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table id="jurisdiction-table" class="ui celled table tablesorter">
+                    <thead>
+                        <tr><th>Name</th>
+                            <th>Description</th>
+                            <th>Abbreviation</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for item in jurisdictions %}
+                            <tr>
+                                <td >{{ item.name}}</td>
+                                <td >{{ item.description}}</td>
+                                <td >{{ item.slug}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id="species">Species</h3>
+
+                <p>A sentence or two about species...</p>
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="species-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table id="species-table" class="ui celled table tablesorter">
+                    <thead>
+
+                        <tr>
+                            <th>Abbreviation</th>
+                            <th>Common Name</th>
+                            <th>Scientific Name</th>
+
+                        </tr></thead>
+                    <tbody>
+                        {% for item in species %}
+                            <tr>
+                                <td >{{ item.abbrev}}</td>
+                                <td >{{ item.common_name}}</td>
+                                <td ><em>{{ item.scientific_name}}</em></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id="strains">Strains</h3>
+
+                <p>A sentence or two about Strains and they are related to 'raw strains'...</p>
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="strain-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table id="strain-table" class="ui celled table tablesorter">
+                    <thead>
+
+                        <tr>
+                            <th>Raw Strain</th>
+                            <th>Raw Strain Description</th>
+                            <th>Species</th>
+                            <th>Strain Group</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for item in strains %}
+                            <tr>
+                                <td >{{ item.raw_strain}}</td>
+                                <td >{{ item.description}}</td>
+                                <td >{{ item.species.common_name}}({{ item.species.abbrev}})</td>
+                                <td >{{ item.strain.strain_label}}({{ item.strain.strain_code}})</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id="fin-clips">Fin Clips</h3>
+
+                <p>A sentence or two about composite fin clips and how they relate to individual fin clips...</p>
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="clip-code-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table id="clip-code-table" class="ui celled table tablesorter">
+                    <thead>
+                        <tr>
+                            <th>Clip Code</th>
+                            <th>Description</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for item in clips %}
+                            <tr>
+                                <td >{{ item.clip_code}}</td>
+                                <td >{{ item.description}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id="fish-tags">Fish Tags</h3>
+
+                <p>A sentence or two about fish tags. Not designed to track tags, but
+                    they are occationally associated with stocking events..</p>
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="fish-tags-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table id="fish-tags-table" class="ui celled table tablesorter">
+                    <thead>
+                        <tr>
+                            <th>Tag Code</th>
+                            <th>Tag Type</th>
+                            <th>Tag Colour</th>
+                            <th>Description</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for item in fishtags %}
+                            <tr>
+                                <td >{{ item.tag_code}}</td>
+                                <td class="title">{{ item.tag_type}}</td>
+                                <td class="title">{{ item.tag_colour}}</td>
+                                <td class="title">{{ item.description}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id="phys-chem-marks">Physical or Chemical Marks</h3>
+
+                <p>A sentence or two about physical and/or chemical marks.</p>
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="physchemmarks-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table id="physchemmarks-table" class="ui celled table tablesorter">
+                    <thead>
+
+                        <tr>
+                            <th>Mark Code</th>
+                            <th>Mark Type</th>
+                            <th>Description</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for item in physchemmarks %}
+                            <tr>
+                                <td >{{ item.mark_code}}</td>
+                                <td class="title">{{ item.mark_type}}</td>
+                                <td class="title">{{ item.description}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id='hatcheries'>Hatcheries</h3>
+
+                <p>A sentence or two about fish hatcheries - not every community or school hatchery, but the big ones.</p>
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="hatcheries-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table id="hatcheries-table" class="ui celled table tablesorter">
+                    <thead>
+                        <tr>
+                            <th>Hatchery Name</th>
+                            <th>Abbreviation</th>
+                            <th>Description</th>
+                            <th>Hatchery Type</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for item in hatcheries %}
+                            <tr>
+                                <td >{{ item.hatchery_name}}</td>
+                                <td >{{ item.abbrev}}</td>
+                                <td class="title">{{ item.description|default_if_none:"---" }}</td>
+                                <td class="title">{{ item.hatchery_type|default_if_none:"---" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id="lifestages">Life Stages</h3>
+
+                <p>A sentence or two about lifestages.</p>
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="lifestages-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table id="lifestages-table" class="ui celled table tablesorter">
+                    <thead>
+                        <tr>
+                            <th>Abbreviation</th>
+                            <th>Description</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for item in lifestages %}
+                            <tr>
+                                <td >{{ item.abbrev}}</td>
+                                <td class="title">{{ item.description}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id="yreq">Yearling Equivalents</h3>
+
+                <p>A sentence or two about yearling equivalents.</p>
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="yreq-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table id="yreq-table" class="ui celled table tablesorter">
+                    <thead>
+                        <tr>
+                            <th>Species</th>
+                            <th>LifeStage</th>
+                            <th>Yearing Equivalent Factor</th>
+                            <th>Comment</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for item in yreq %}
+                            <tr>
+                                <td >{{ item.species.common_name}} ({{ item.species.abbrev}})</td>
+                                <td class="title">{{ item.lifestage.description}} ({{ item.lifestage.abbrev}})</td>
+                                <td >{{ item.yreq_factor}}</td>
+                                <td >{{ item.comment|default_if_none:""}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h3 id="stocking-method">Stocking Method</h3>
+
+                <p>A sentence or two about Stocking Methods.</p>
+
+                <div class="ui grid">
+                    <div class="four column row">
+                        <div class="right floated column">
+                            <div class="ui search">
+                                <div class="ui icon input">
+                                    <input id="stocking-methods-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
+                                    <i class="search icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table id="stocking-methods-table" class="ui celled table tablesorter">
+                    <thead>
+                        <tr>
+                            <th>Abbreviation</th>
+                            <th >Description</th>
+                        </tr></thead>
+                    <tbody>
+                        {% for item in stocking_methods %}
+                            <tr>
+                                <td >{{ item.stk_meth}}</td>
+                                <td class="title">{{ item.description}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block extra_js %}
+
+    <!-- tablesorter plugin-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js"></script>
+
+    <!-- tablesorter widget file - loaded after the plugin -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
+
+
+    <script>
+
+     $('.ui.sticky')
+         .sticky({
+             context: '#lookup-tables'
+         })
+     ;
+
+     $(".table-filter-input").on("keyup", function() {
+         let target = this.id.replace('filter', 'table');
+         let value = $(this).val().toLowerCase();
+         $("#" + target +" tbody tr").filter(function() {
+             $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+         });
+     });
+
+
+     $(".tablesorter").tablesorter({
+         theme: "bootstrap",
+         widthFixed: true,
+         showProcessing: true,
+         headerTemplate: "{content} {icon}",
+         widgets: ["zebra", "uitheme", "scroller"],
+         widgetOptions: {
+             scroller_height: 300,
+             scroller_barWidth: 17,
+             scroller_jumpToHeader: true,
+             scroller_idPrefix: "s_",
+         },
+     });
+
+
+    </script>
+
+{% endblock extra_js %}

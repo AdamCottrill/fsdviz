@@ -71,6 +71,7 @@
                         <div class="ui divider"></div>
                         {% endif %}
                         <div class="item"><a href="{% url 'common:spatial-lookup' %}" >Spatial Lookup</a></div>
+                        <div class="item"><a href="{% url 'common:lookup-tables' %}" >Lookup Tables</a></div>
                         {% if user.is_authenticated %}
                             <div class="ui divider"></div>
                             {% block create_bookmark %}
