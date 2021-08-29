@@ -141,14 +141,18 @@
 
                 {% block navbar_search %}
 
+
                     <div class="right menu">
-                        <div class="ui right aligned category search item">
-                            <div class="ui transparent icon input">
-                                <input class="prompt" type="text" placeholder="Search By Event id..." name="q">
-                                <i class="search link icon"></i>
+                        <form class="item" action="{% url 'stocking:stocking-event-list' %}" method="get">
+                            <div class="ui right aligned category search item">
+                                <div class="ui transparent icon input">
+                                    <input class="prompt" type="text" required placeholder="Search By Event id..." name="q">
+                                    <i class="search link icon"></i>
+                                </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
+
 
                 {% endblock navbar_search %}
 

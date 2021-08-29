@@ -47,13 +47,6 @@
             {% endfor %}
             {% endif %}
 
-
-
-
-
-
-
-
             <form class="ui form" action="{% url "stocking:upload-stocking-events" %}" method="POST"
                 enctype="multipart/form-data" class="form-horizontal" id="upload-form">
                 {% csrf_token %}
@@ -65,7 +58,6 @@
                 </div>
                 <button class="ui right floated primary button" type="submit">Upload</button>
             </form>
-
         </div>
     </div>
 

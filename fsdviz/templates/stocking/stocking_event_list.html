@@ -26,7 +26,7 @@
          margin-top:10px;
 
      }
-     
+
     </style>
 
 {% endblock %}
@@ -37,7 +37,7 @@
         <form class="item">
             <div class="ui right aligned category search item">
                 <div class="ui transparent icon input">
-                    <input class="prompt" type="text" placeholder="Search By Event id..." name="q">
+                    <input class="prompt" type="text" required placeholder="Search By Event id..." name="q">
                     <i class="search link icon"></i>
                 </div>
             </div>
@@ -53,7 +53,7 @@
 
         <div class="ui grid">
             <div class="two wide column">
-                
+
                 {% include 'stocking/_refine_events_sidebar.html' %}
 
             </div>
@@ -66,12 +66,12 @@
 
                             {% if filters %}
                                 {% for filter, values in  filters.items %}
-                                    
+
                                     <a href="{% strip_parameter param=filter %}" class="mini ui icon {{ filter | filter_colour }} button">
                                         {{ filter }} = {{values}}
                                         <i class="times icon"></i>
                                     </a>
-                                    
+
                                 {% endfor %}
 
                                 <a href="#" id="visualize-events-btn" class="mini ui icon right floated green button">
@@ -79,17 +79,17 @@
                                     <i class="map marked alternate icon"></i>
                                 </a>
 
-                                
+
                                 <a href="#" id="download-events-btn" class="mini ui icon right floated primary button">
                                     Download Events
                                     <i class="arrow alternate circle down icon"></i>
                                 </a>
 
 
-                                
+
                             {% endif %}
-                            
-                            
+
+
                             {% include '_paginator.html' %}
 
 
@@ -160,14 +160,14 @@
 
     <script type="text/javascript">
 
-     
+
      function getUrlVars() {
          var vars = {};
          var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
              vars[key] = value;
          });
          return vars;
-     }; 
+     };
      function getUrlParam(parameter, defaultvalue){
          var urlparameter = defaultvalue;
          if(window.location.href.indexOf(parameter) > -1){
@@ -193,7 +193,7 @@
          }
 
      })
-     
+
 
      const resetYears = function() {
          let url = window.location.href;
@@ -206,7 +206,7 @@
          window.location.replace(url);
      }
 
-     
+
      const updateYearsClick = function() {
          // get the value of the first year and last inputs
 
@@ -215,7 +215,7 @@
          let firstYear = document.getElementById("first-year").value;
          let lastYear = document.getElementById("last-year").value;
 
-         
+
          // if first_year exists and can be parsed to an integer between 1950 and 2050, update the query string
          // if last_year exists and can be parsed to an integer between 1950 and 2050, update the query string
 
@@ -224,39 +224,39 @@
          let urlLastYear = getUrlParam('last_year', "");
 
          let url = window.location.search;
-         
+
          if (firstYear && urlFirstYear){
              // replace an existing firstYear filter
              url = url.replace("first_year="+ urlFirstYear, "first_year=" + firstYear)
-             
+
          } else if (urlFirstYear) {
              // delete the existing filter
              url = url.replace("first_year="+ urlFirstYear, "");
          } else if (firstYear) {
              // add a new firstYear filter
              tmp = url.indexOf("?") >=0 ? "&first_year="+ firstYear :
-                   "?first_year="+ firstYear;               
+                   "?first_year="+ firstYear;
              url = url + tmp ;
          }
-         
+
          if (lastYear && urlLastYear){
              // replace existing
-             url = url.replace("last_year="+ urlLastYear, "last_year=" + lastYear)         
+             url = url.replace("last_year="+ urlLastYear, "last_year=" + lastYear)
          } else if (urlLastYear) {
              // delete the existing filter
              url = url.replace("last_year="+ urlLastYear, "");
          } else if (lastYear) {
              // ad new
              tmp = url.indexOf("?") >=0 ? "&last_year="+ lastYear :
-                   "?last_year="+ lastYear;              
+                   "?last_year="+ lastYear;
              url = url + tmp ;
          }
 
 
          url = url.replace('&&', '&').replace('?&', '?')
          window.location.search = url;
-         
-         
+
+
      };
 
      const updateLakeClick = () => {
@@ -285,11 +285,11 @@
 
      const updateClipcodeClick = () => {
          updateUrl('clip_code')
-     };     
-     
+     };
+
      const updateFinClipClick = () => {
          updateUrl('finclips')
-     };    
+     };
 
      const updateFishTagsClick = () => {
          updateUrl('fishtags')
@@ -303,7 +303,7 @@
          updateUrl('year_class');
      };
 
-     
+
      const updateLifestageClick = () => {
          updateUrl('lifestage');
      };
@@ -312,7 +312,7 @@
          updateUrl('stocking_month');
      };
 
-     
+
      const updateStockingMethodClick = () => {
          updateUrl('stocking_method');
      };
@@ -321,12 +321,12 @@
          updateUrl('hatchery');
      };
 
-     
+
      const updateUrl = function(name, filter_tag="") {
          // given the name of the checkbox group, find the checked
          // checkboxes and update the url based on the filter_tag
-         filter_tag = filter_tag==="" ? name : filter_tag 
-         
+         filter_tag = filter_tag==="" ? name : filter_tag
+
          let url = window.location.search;
          let checked = [];
 
@@ -342,7 +342,7 @@
          url = url.replace(regex, "").replace(/&$/, '')
 
          // build our query string....
-         if (checked.length){         
+         if (checked.length){
              let query_string = filter_tag + '=' + checked.join(',')
              tmp = url.indexOf("?") >=0 ? "&"+ query_string :
                    "?"+ query_string;
@@ -350,16 +350,16 @@
          }
 
          window.location.search = url.replace('?&', "?").replace(/\\?$/, '');
-         
-         
+
+
      }
 
 
-     
 
 
 
-     
+
+
      // add the url parameters to our download button so the same filters can be
      // sent to our download button:
      let search = window.location.search;
@@ -368,17 +368,17 @@
      if (download_button){
          download_button.href = download_url + search;
      }
-     
+
      let visualize_url = "{% url 'stocking:filtered-stocking-events' %}";
      let visualize_button = document.getElementById("visualize-events-btn");
      if (visualize_button){
          visualize_button.href = visualize_url + search;
      }
-     
-     
+
+
      //document.getElementById("download-events-button").href();
 
-     
+
      $(".tablesorter").tablesorter({
          theme: 'bootstrap',
          widthFixed: true,
