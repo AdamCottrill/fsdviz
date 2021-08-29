@@ -57,10 +57,6 @@ let sliceVar = getUrlParamValue("category_var") || "species_code";
 
 let responseVar = getUrlParamValue("response_var") || "yreq";
 
-//let column = "yreq_stocked";
-// TODO:make ylabel a function of the response variable radio buttons array:
-let ylabel = "Yearly Equivalents";
-
 // a global object that will hold slug:label pairs for the labels of
 // the currently selected spatial unit.
 const labelLookup = {};
@@ -591,6 +587,9 @@ Promise.all([
     select("#stackedbar-chart-heading").text(label);
   };
 
+  const get_ylabel = (respVar) =>
+    pieSizeVars.filter((x) => x.name == respVar)[0].label;
+
   // each time the category changes we need to redefine byYear and
   // byYearLookup so that our tooltips work.
   let byYear = yearDim
@@ -646,7 +645,7 @@ Promise.all([
     .colorAccessor(function (d) {
       return this.layer;
     })
-    .yAxisLabel(ylabel); // make this a function of 'column'
+    .yAxisLabel(get_ylabel(responseVar));
 
   for (let i = 1; i < items.length; ++i) {
     stackedByYearBarChart.stack(byYearWith0s, items[i], sel_stack(items[i]));
@@ -1211,6 +1210,7 @@ Promise.all([
   pie_size_selector.on("change", function () {
     updateUrlParams("response_var", this.value);
     responseVar = this.value;
+    stackedByYearBarChart.yAxisLabel(get_ylabel(responseVar));
     updateGroups(responseVar);
     updateChartGroups();
     piecharts.responseVar(responseVar);
