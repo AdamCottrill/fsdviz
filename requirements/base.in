@@ -1,4 +1,4 @@
-Django==2.2.23
+Django==2.2.24
 django-filter==2.4.0
 djangorestframework==3.12.4
 django-cors-headers==3.5.0
@@ -11,7 +11,7 @@ drf-renderer-xlsx==0.3.8
 whitenoise==5.2.0
 Brotli==1.0.9
 gdal==3.2.1
-markdown2==2.3.10
+markdown2==2.4.0
 markdown==3.3.3
 psycopg2==2.8.6
 pyyaml==5.4
