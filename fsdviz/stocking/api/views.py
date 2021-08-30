@@ -455,6 +455,15 @@ class StockingEventListAPIView(APIView):
             "stateProv": F("jurisdiction__stateprov__abbrev"),
             "latitude": F("geom_lat"),
             "longitude": F("geom_lon"),
+            "clip": F("clip_code__clip_code"),
+            "_tags": StringAgg(
+                "fish_tags__tag_code", delimiter=";", ordering="fish_tags__tag_code"
+            ),
+            "_marks": StringAgg(
+                "physchem_marks__mark_code",
+                delimiter=";",
+                ordering="physchem_marks__mark_code",
+            ),
         }
 
         fields = [
@@ -470,7 +479,9 @@ class StockingEventListAPIView(APIView):
             "year",
             "date",
             "month",
-            "mark",
+            "clip",
+            "_tags",
+            "_marks",
             "year_class",
             "agency_code",
             "species_code",

@@ -48,10 +48,6 @@ let roi = getUrlSearchValue("roi") || false;
 // intial values of global variabls that control the state of our page:
 let spatialUnit = getUrlParamValue("spatial_unit") || "geom";
 
-// let spatialUnit = roi
-//   ? "geom"
-//   : getUrlParamValue("spatial_unit") || "jurisdiction";
-
 // this should probably be 'category'
 let sliceVar = getUrlParamValue("category_var") || "species_code";
 
@@ -60,28 +56,6 @@ let responseVar = getUrlParamValue("response_var") || "yreq";
 // a global object that will hold slug:label pairs for the labels of
 // the currently selected spatial unit.
 const labelLookup = {};
-
-// these assume the clip-lookup script has already been loaded.  these
-// will need to moved below promise() when we update the database and
-// serializers to include mark, clips, tags:
-// const clipMap = clipLookup.reduce((accumulator, d) => {
-//   accumulator[d[0]] = d[1];
-//   return accumulator;
-// }, {});
-
-// const tagMap = tagLookup.reduce((accumulator, d) => {
-//   accumulator[d[0]] = d[1];
-//   return accumulator;
-// }, {});
-
-// const markMap = markLookup.reduce((accumulator, d) => {
-//   accumulator[d[0]] = d[1];
-//   return accumulator;
-// }, {});
-
-const markMap = makeLookup(markLookup);
-const clipMap = makeLookup(clipLookup);
-const tagMap = makeLookup(tagLookup);
 
 // these assume that all_species and speciesColours have already been
 // loaded from the ~/js/speciesColors.js file.
@@ -301,6 +275,11 @@ Promise.all([
     {}
   );
 
+  const clipMap = common.clipcodes.reduce((accumulator, d) => {
+    accumulator[d.clip_code] = d.description;
+    return accumulator;
+  }, {});
+
   const lifestageMap = stocking.lifestages.reduce((accumulator, d) => {
     accumulator[d.abbrev] = d.description;
     return accumulator;
@@ -330,15 +309,26 @@ Promise.all([
     d.yreq = parseInt(d.yreq_stocked);
     d.events = 1;
     d.total = parseInt(d.no_stocked);
-    d.clip = clipMap[d.mark] ? clipMap[d.mark] : "Unknown";
-    d.tag = tagMap[d.mark] ? tagMap[d.mark] : "Unknown";
-    d.mark = markMap[d.mark] ? markMap[d.mark] : "Unknown";
+
+    d.clip = d.clip ? d.clip : "UNKN";
+    d.tag = d._tags == "" ? "None" : d._tags;
+    d.mark = d._marks == "" ? "None" : d._marks;
 
     d.point = [+d.longitude, +d.latitude];
     d.geom = `Point(${d.longitude} ${d.latitude})`;
 
     return d;
   });
+
+  //a bit of short cut for now:
+  const tagMap = data.reduce((accumulator, d) => {
+    accumulator[d.tag] = d.tag;
+    return accumulator;
+  }, {});
+  const markMap = data.reduce((accumulator, d) => {
+    accumulator[d.mark] = d.mark;
+    return accumulator;
+  }, {});
 
   //=======================================================================
   //                         CROSSFILTER
@@ -359,9 +349,9 @@ Promise.all([
   let speciesDim = ndx.dimension((d) => d.species_code);
   let strainDim = ndx.dimension((d) => d.strain);
   let lifeStageDim = ndx.dimension((d) => d.lifestage_code);
-  let markDim = ndx.dimension((d) => d.mark);
   let clipDim = ndx.dimension((d) => d.clip);
   let tagDim = ndx.dimension((d) => d.tag);
+  let markDim = ndx.dimension((d) => d.mark);
   let stkMethDim = ndx.dimension((d) => d.stockingMethod);
 
   // Create our groups here so the variables are in scope. They are
@@ -404,10 +394,10 @@ Promise.all([
     speciesGroup = speciesDim.group().reduceSum((d) => d[responseVar]);
     strainGroup = strainDim.group().reduceSum((d) => d[responseVar]);
     lifeStageGroup = lifeStageDim.group().reduceSum((d) => d[responseVar]);
+    stkMethGroup = stkMethDim.group().reduceSum((d) => d[responseVar]);
     markGroup = markDim.group().reduceSum((d) => d[responseVar]);
     tagGroup = tagDim.group().reduceSum((d) => d[responseVar]);
     clipGroup = clipDim.group().reduceSum((d) => d[responseVar]);
-    stkMethGroup = stkMethDim.group().reduceSum((d) => d[responseVar]);
   };
 
   updateGroups(responseVar);
@@ -512,7 +502,7 @@ Promise.all([
     };
   };
 
-  select("#btn_reset_filters").on("click", () => {
+  select("#btn_reset_filters").on("click", (event) => {
     dc.filterAll();
     dc.renderAll();
   });
@@ -577,9 +567,87 @@ Promise.all([
   //==========================================================
   //                 DYANAMIC STACKED BAR
 
-  let items = uniqueSpecies;
-  let lookupMap = speciesMap;
-  let plotLabel = "Species Stocked Through Time";
+  let items;
+  let lookupMap;
+  let plotLabel;
+
+  // a function to set our global values for item, the lookup map an plot label
+  const updateStackedBarItems = (category) => {
+    switch (category) {
+      case "species_code":
+        items = uniqueSpecies;
+        lookupMap = speciesMap;
+        plotLabel = "Species Stocked Through Time";
+
+        break;
+      case "lake":
+        items = uniqueLakes;
+        lookupMap = lakeMap;
+        plotLabel = "Stocking By Lake Through Time";
+
+        break;
+      case "stateProv":
+        items = uniqueStateProvs;
+        lookupMap = stateProvMap;
+        plotLabel = "Stocking By State/Province Through Time";
+
+        break;
+      case "jurisdiction_code":
+        items = uniqueJurisdictions;
+        lookupMap = jurisdictionMap;
+        plotLabel = "Stocking By Jurisdiction Through Time";
+
+        break;
+      case "agency_code":
+        items = uniqueAgencies;
+        lookupMap = agencyMap;
+        plotLabel = "Stocking By Agency Through Time";
+
+        break;
+      case "strain":
+        items = uniqueStrains;
+        lookupMap = strainShortMap;
+        plotLabel = "Stocking By Strain Through Time";
+
+        break;
+      case "clip":
+        items = uniqueClips;
+        lookupMap = clipMap;
+        plotLabel = "Stocking By Clip Through Time";
+
+        break;
+      case "mark":
+        items = uniqueMarks;
+        lookupMap = markMap;
+        plotLabel = "Stocking By Mark Through Time";
+
+        break;
+      case "tag":
+        items = uniqueTags;
+        lookupMap = tagMap;
+        plotLabel = "Stocking By Tag Type Through Time";
+
+        break;
+      case "lifestage_code":
+        items = uniqueLifestages;
+        lookupMap = lifestageMap;
+        plotLabel = "Stocking By LifeStage Through Time";
+
+        break;
+      case "stockingMethod":
+        items = uniqueStockingMethods;
+        lookupMap = stockingMethodMap;
+        plotLabel = "Stocking By Stocking Method Through Time";
+
+        break;
+      default:
+        items = uniqueSpecies;
+        lookupMap = speciesMap;
+        plotLabel = "Species Stocked Through Time";
+    }
+  };
+
+  updateStackedBarItems(sliceVar);
 
   //updateStackeBarLabel(plotLabel);
 
@@ -644,14 +712,13 @@ Promise.all([
     .colors(sharedColourScale)
     .colorAccessor(function (d) {
       return this.layer;
-    })
-    .yAxisLabel(get_ylabel(responseVar));
+    });
 
   for (let i = 1; i < items.length; ++i) {
     stackedByYearBarChart.stack(byYearWith0s, items[i], sel_stack(items[i]));
   }
 
-  stackedByYearBarChart.render();
+  stackedByYearBarChart.yAxisLabel(get_ylabel(responseVar)).render();
 
   updateStackeBarLabel(plotLabel);
 
@@ -722,7 +789,7 @@ Promise.all([
 
   //   javascript:lakeChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#stackedbar-chart-reset").on("click", () => {
+  select("#stackedbar-chart-reset").on("click", (event) => {
     event.preventDefault();
     stackedByYearBarChart.filterAll();
     dc.redrawAll();
@@ -751,7 +818,7 @@ Promise.all([
 
   //   javascript:lakeChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#lake-plot-reset").on("click", () => {
+  select("#lake-plot-reset").on("click", (event) => {
     event.preventDefault();
     lakeChart.filterAll();
     dc.redrawAll();
@@ -780,7 +847,7 @@ Promise.all([
 
   //   javascript:agencyChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#agency-plot-reset").on("click", () => {
+  select("#agency-plot-reset").on("click", (event) => {
     event.preventDefault();
     agencyChart.filterAll();
     dc.redrawAll();
@@ -820,7 +887,7 @@ Promise.all([
 
   //   javascript:jurisdictionChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#jurisdiction-plot-reset").on("click", () => {
+  select("#jurisdiction-plot-reset").on("click", (event) => {
     event.preventDefault();
     jurisdictionChart.filterAll();
     dc.redrawAll();
@@ -849,7 +916,7 @@ Promise.all([
 
   //   javascript:stateProvChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#state-province-plot-reset").on("click", () => {
+  select("#state-province-plot-reset").on("click", (event) => {
     event.preventDefault();
     stateProvChart.filterAll();
     dc.redrawAll();
@@ -877,7 +944,7 @@ Promise.all([
 
   //   javascript:speciesChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#species-plot-reset").on("click", () => {
+  select("#species-plot-reset").on("click", (event) => {
     event.preventDefault();
     speciesChart.filterAll();
     dc.redrawAll();
@@ -906,7 +973,7 @@ Promise.all([
     });
   });
 
-  select("#strain-plot-reset").on("click", () => {
+  select("#strain-plot-reset").on("click", (event) => {
     event.preventDefault();
     strainChart.filterAll();
     dc.redrawAll();
@@ -940,7 +1007,7 @@ Promise.all([
     });
   });
 
-  select("#lifestage-plot-reset").on("click", () => {
+  select("#lifestage-plot-reset").on("click", (event) => {
     event.preventDefault();
     lifestageChart.filterAll();
     dc.redrawAll();
@@ -978,7 +1045,7 @@ Promise.all([
     });
   });
 
-  select("#stocking-method-plot-reset").on("click", () => {
+  select("#stocking-method-plot-reset").on("click", (event) => {
     event.preventDefault();
     stockingMethodChart.filterAll();
     dc.redrawAll();
@@ -1013,7 +1080,7 @@ Promise.all([
     });
   });
 
-  select("#stocking-month-plot-reset").on("click", () => {
+  select("#stocking-month-plot-reset").on("click", (event) => {
     event.preventDefault();
     stockingMonthChart.filterAll();
     dc.redrawAll();
@@ -1040,7 +1107,7 @@ Promise.all([
     });
   });
 
-  select("#mark-plot-reset").on("click", () => {
+  select("#mark-plot-reset").on("click", (event) => {
     event.preventDefault();
     markChart.filterAll();
     dc.redrawAll();
@@ -1067,7 +1134,7 @@ Promise.all([
     });
   });
 
-  select("#clip-plot-reset").on("click", () => {
+  select("#clip-plot-reset").on("click", (event) => {
     event.preventDefault();
     clipChart.filterAll();
     dc.redrawAll();
@@ -1094,7 +1161,7 @@ Promise.all([
     });
   });
 
-  select("#tag-plot-reset").on("click", () => {
+  select("#tag-plot-reset").on("click", (event) => {
     event.preventDefault();
     tagChart.filterAll();
     dc.redrawAll();
@@ -1229,78 +1296,42 @@ Promise.all([
     //update_CategoryValue(sliceVar);
     updateUrlParams("category_var", this.value);
     resetChartColours();
-
+    updateStackedBarItems(sliceVar);
     switch (sliceVar) {
       case "species_code":
-        items = uniqueSpecies;
-        lookupMap = speciesMap;
-        plotLabel = "Species Stocked Through Time";
         speciesChart.colors(sharedColourScale);
         break;
       case "lake":
-        items = uniqueLakes;
-        lookupMap = lakeMap;
-        plotLabel = "Stocking By Lake Through Time";
         lakeChart.colors(sharedColourScale);
         break;
       case "stateProv":
-        items = uniqueStateProvs;
-        lookupMap = stateProvMap;
-        plotLabel = "Stocking By State/Province Through Time";
         stateProvChart.colors(sharedColourScale);
         break;
       case "jurisdiction_code":
-        items = uniqueJurisdictions;
-        lookupMap = jurisdictionMap;
-        plotLabel = "Stocking By Jurisdiction Through Time";
         jurisdictionChart.colors(sharedColourScale);
         break;
       case "agency_code":
-        items = uniqueAgencies;
-        lookupMap = agencyMap;
-        plotLabel = "Stocking By Agency Through Time";
         agencyChart.colors(sharedColourScale);
         break;
       case "strain":
-        items = uniqueStrains;
-        lookupMap = strainShortMap;
-        plotLabel = "Stocking By Strain Through Time";
         strainChart.colors(sharedColourScale);
         break;
       case "clip":
-        items = uniqueClips;
-        lookupMap = clipMap;
-        plotLabel = "Stocking By Clip Through Time";
         clipChart.colors(sharedColourScale);
         break;
       case "mark":
-        items = uniqueMarks;
-        lookupMap = markMap;
-        plotLabel = "Stocking By Mark Through Time";
         markChart.colors(sharedColourScale);
         break;
       case "tag":
-        items = uniqueTags;
-        lookupMap = tagMap;
-        plotLabel = "Stocking By Tag Type Through Time";
         tagChart.colors(sharedColourScale);
         break;
       case "lifestage_code":
-        items = uniqueLifestages;
-        lookupMap = lifestageMap;
-        plotLabel = "Stocking By LifeStage Through Time";
         lifestageChart.colors(sharedColourScale);
         break;
       case "stockingMethod":
-        items = uniqueStockingMethods;
-        lookupMap = stockingMethodMap;
-        plotLabel = "Stocking By Stocking Method Through Time";
         stockingMethodChart.colors(sharedColourScale);
         break;
       default:
-        items = uniqueSpecies;
-        lookupMap = speciesMap;
-        plotLabel = "Species Stocked Through Time";
         speciesChart.colors(sharedColourScale);
     }
 
