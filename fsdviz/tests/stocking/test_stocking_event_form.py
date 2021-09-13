@@ -304,13 +304,12 @@ numeric_fields = [
     ),
     (
         "weight",
-        [-10, -1, 0.5, "foo", "8,9"],
+        [-10, -1, "foo", "8,9"],
         [
-            "Ensure this value is greater than or equal to 1.",
-            "Ensure this value is greater than or equal to 1.",
-            "Enter a whole number.",
-            "Enter a whole number.",
-            "Enter a whole number.",
+            "Ensure this value is greater than or equal to 0.01.",
+            "Ensure this value is greater than or equal to 0.01.",
+            "Enter a number.",
+            "Enter a number.",
         ],
     ),
 ]

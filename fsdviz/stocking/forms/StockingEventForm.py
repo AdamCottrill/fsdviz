@@ -197,7 +197,7 @@ class StockingEventForm(forms.Form):
         label="Tag Retention", min_value=0, max_value=100, required=False
     )
     length = forms.IntegerField(label="Avg. Length (mm)", min_value=1, required=False)
-    weight = forms.IntegerField(label="Avg. Weight (g)", min_value=1, required=False)
+    weight = forms.FloatField(label="Avg. Weight (g)", min_value=0.01, required=False)
     condition_id = forms.ChoiceField(
         label="General Condition", choices=[], required=False, widget=MySelect
     )
