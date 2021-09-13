@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from fsdviz.common.utils import fill_color_widget
 from .models import (
     LifeStage,
     Condition,
@@ -15,7 +16,10 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(LifeStage)
 class LifeStageModelAdmin(admin.ModelAdmin):
-    list_display = ("abbrev", "description", "color")
+    list_display = ("abbrev", "description", "fill_color")
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(YearlingEquivalent)
@@ -40,8 +44,11 @@ class ConditionModelAdmin(admin.ModelAdmin):
 
 @admin.register(StockingMethod)
 class StockingMethodModelAdmin(admin.ModelAdmin):
-    list_display = ("stk_meth", "description", "color")
+    list_display = ("stk_meth", "description", "fill_color")
     search_fields = ("stk_meth", "description")
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(Hatchery)

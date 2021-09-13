@@ -1,5 +1,6 @@
 from django.contrib.gis import admin
 
+from .utils import fill_color_widget
 from .models import (
     Agency,
     Lake,
@@ -24,31 +25,46 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(Agency)
 class AgencyModelAdmin(admin.ModelAdmin):
-    list_display = ("agency_name", "abbrev", "color")
+    list_display = ("agency_name", "abbrev", "fill_color")
     search_fields = ("agency_name",)
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(Lake)
 class LakeModelAdmin(admin.GeoModelAdmin):
-    list_display = ("lake_name", "abbrev", "color")
+    list_display = ("lake_name", "abbrev", "fill_color")
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(StateProvince)
 class StateProvinceModelAdmin(admin.GeoModelAdmin):
-    list_display = ("name", "abbrev", "country", "color")
+    list_display = ("name", "abbrev", "country", "fill_color")
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(Jurisdiction)
 class JurisdictionModelAdmin(admin.GeoModelAdmin):
-    list_display = ("name", "lake", "stateprov", "description", "color")
+    list_display = ("name", "lake", "stateprov", "description", "fill_color")
     list_filter = ("lake", "stateprov")
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(ManagementUnit)
 class ManagementUnitModelAdmin(admin.GeoModelAdmin):
-    list_display = ("label", "lake", "mu_type", "description", "color")
+    list_display = ("label", "lake", "mu_type", "description", "fill_color")
     list_filter = ("lake", "mu_type")
     search_fields = ("label",)
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(Grid10)
@@ -60,13 +76,16 @@ class Grid10Admin(admin.GeoModelAdmin):
 
 @admin.register(Species)
 class SpeciesModelAdmin(admin.ModelAdmin):
-    list_display = ("abbrev", "common_name", "scientific_name", "color")
+    list_display = ("abbrev", "common_name", "scientific_name", "fill_color")
     search_fields = ["abbrev", "common_name"]
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(Strain)
 class StrainModelAdmin(admin.ModelAdmin):
-    list_display = ("strain_code", "strain_species", "strain_label", "color")
+    list_display = ("strain_code", "strain_species", "strain_label", "fill_color")
     # list_select_related = ('strain_species',)
     list_filter = ("strain_species", "strain_code")
     search_fields = ("strain_label",)
@@ -75,13 +94,19 @@ class StrainModelAdmin(admin.ModelAdmin):
         qs = super(StrainModelAdmin, self).get_queryset(request)
         return qs.distinct()
 
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
+
 
 @admin.register(StrainRaw)
 class StrainRawModelAdmin(admin.ModelAdmin):
-    list_display = ("raw_strain", "description", "species", "strain", "color")
+    list_display = ("raw_strain", "description", "species", "strain", "fill_color")
     # list_select_related = ('strain', 'species',)
     list_filter = ("species",)
     search_fields = ("description", "raw_strain")
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(Mark)
@@ -93,36 +118,48 @@ class MarkModelAdmin(admin.ModelAdmin):
 
 @admin.register(PhysChemMark)
 class PhysChemMarkModelAdmin(admin.ModelAdmin):
-    list_display = ("mark_code", "mark_type", "description", "color")
+    list_display = ("mark_code", "mark_type", "description", "fill_color")
     list_filter = ("mark_type",)
     search_fields = (
         "mark_code",
         "description",
     )
 
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
+
 
 @admin.register(FishTag)
 class FishTagModelAdmin(admin.ModelAdmin):
-    list_display = ("tag_code", "tag_type", "tag_colour", "description", "color")
+    list_display = ("tag_code", "tag_type", "tag_colour", "description", "fill_color")
     list_filter = ("tag_code", "tag_type", "tag_colour")
     search_fields = (
         "tag_code",
         "description",
     )
 
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
+
 
 @admin.register(FinClip)
 class FinClipModelAdmin(admin.ModelAdmin):
-    list_display = ("abbrev", "description", "color")
+    list_display = ("abbrev", "description", "fill_color")
     list_filter = ("abbrev",)
     search_fields = ("abbrev", "description")
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(CompositeFinClip)
 class CompositeFinClipModelAdmin(admin.ModelAdmin):
-    list_display = ("clip_code", "description", "color")
+    list_display = ("clip_code", "description", "fill_color")
     list_filter = ("clip_code",)
     search_fields = ("clip_code", "description")
+
+    def fill_color(self, obj):
+        return fill_color_widget(obj.color)
 
 
 @admin.register(LatLonFlag)
