@@ -10,6 +10,7 @@
 
         <script src="{% static "bookmark_modal_form.js" %}"></script>
 
+
         <style type="text/css" media="screen">
 
          .ui.grid {
@@ -163,6 +164,27 @@
 
         {% block messages %}
 
+
+
+
+            <div id="unsupported-browser" class="ui hidden negative icon message">
+                <i class="exclamation circle icon"></i>
+                <i class="close icon"></i>
+                <div class="content">
+                    <div class="header">
+                        Unsupported Browser!
+                    </div>
+                    <p>
+                        This website will offer limited functionality
+                        in this browser. The mapping and interactive
+                        graphics on this website require a more recent
+                        version of major browsers like Chrome,
+                        Firefox, Safari, and Edge in order to render
+                        properly.
+                    </p>
+                </div>
+            </div>
+
             <div class="ui negative icon message">
                 <i class="exclamation circle icon"></i>
                 <i class="close icon"></i>
@@ -201,6 +223,20 @@
 
         <script>
 
+         function isIE() {
+             return /Trident\/|MSIE/.test(window.navigator.userAgent);
+         }
+
+         let showBrowserAlert = (function () {
+             let message = document.getElementById('unsupported-browser');
+             let is_IE = isIE();
+             if (is_IE) {
+                 message.classList.remove("hidden");
+             }
+         });
+
+         document.addEventListener('DOMContentLoaded', showBrowserAlert);
+
          $(document).ready(function() {
 
              $('.ui.accordion')
@@ -208,7 +244,6 @@
 
              $('.ui.dropdown')
                  .dropdown();
-
 
              $('.message .close')
                  .on('click', function() {
@@ -231,11 +266,7 @@
 
         {% block extra_js %}
 
-
-
-
         {% endblock extra_js%}
-
 
     </body>
 </html>
