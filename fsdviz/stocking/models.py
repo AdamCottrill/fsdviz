@@ -8,6 +8,9 @@ from django.db.models.signals import post_save
 
 from django.template.defaultfilters import slugify
 from django.urls import reverse
+
+from colorfield.fields import ColorField
+
 from fsdviz.common.models import (
     Agency,
     CompositeFinClip,
@@ -106,6 +109,7 @@ class LifeStage(models.Model):
 
     abbrev = models.CharField(max_length=7, unique=True)
     description = models.CharField(max_length=100)
+    color = ColorField(default="#FF0000")
 
     class Meta:
         ordering = ["abbrev"]
@@ -149,6 +153,9 @@ class Condition(models.Model):
 
     condition = models.IntegerField(unique=True)
     description = models.CharField(max_length=100)
+    # colour field on this model causes all kinds of grief with migrations.
+    # seems to be related to get_default_method??
+    # color = ColorField(default="#FF0000")
 
     class Meta:
         ordering = ["condition"]
@@ -172,6 +179,7 @@ class StockingMethod(models.Model):
 
     stk_meth = models.CharField("Stocking Method", max_length=25, unique=True)
     description = models.CharField(max_length=100)
+    color = ColorField(default="#FF0000")
 
     class Meta:
         ordering = ["stk_meth"]
@@ -297,7 +305,7 @@ class StockingEvent(models.Model):
         Condition,
         on_delete=models.CASCADE,
         related_name="stocking_events",
-        default=lambda: Condition.objects.filter(condition=99).first(),
+        default=get_default_condition,
     )
 
     # unique fish stocking event identifier
@@ -675,29 +683,6 @@ class StockingEvent(models.Model):
             return True
         else:
             return False
-
-
-#     def get_cwt_csv(self):
-#         """return a string containing a comma seperated list of cwt numbers
-#         associated with this stocking event.  Used to create views
-#         that match the format of the GLFC data submission.  Not to be
-#         used for any serious analysis!
-#
-#         Arguments:
-#         - `self`:
-#
-#         """
-#         tmp =[]
-#         for tag in self.cwt_sequences:
-#             tmp.append(tag.cwt.cwt_number)
-#         tags = list(set(tmp))
-#         tags.sort()
-#         if tags:
-#             cwt_csv = ','.join(tags)
-#             return cwt_csv
-#         else:
-#             return None
-#
 
 
 def update_events_yreq(sender, **kwargs):

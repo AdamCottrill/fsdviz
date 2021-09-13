@@ -15,7 +15,7 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(LifeStage)
 class LifeStageModelAdmin(admin.ModelAdmin):
-    list_display = ("abbrev", "description")
+    list_display = ("abbrev", "description", "color")
 
 
 @admin.register(YearlingEquivalent)
@@ -40,7 +40,7 @@ class ConditionModelAdmin(admin.ModelAdmin):
 
 @admin.register(StockingMethod)
 class StockingMethodModelAdmin(admin.ModelAdmin):
-    list_display = ("stk_meth", "description")
+    list_display = ("stk_meth", "description", "color")
     search_fields = ("stk_meth", "description")
 
 

@@ -45,6 +45,8 @@ coreschema==0.0.4
     # via coreapi
 coverage==5.5
     # via pytest-cov
+django-colorfield==0.4.2
+    # via -r base.in
 django-cors-headers==3.5.0
     # via -r base.in
 django-crispy-forms==1.10.0
@@ -63,7 +65,7 @@ django-rest-swagger==2.2.0
     # via -r base.in
 django-taggit==1.1.0
     # via -r base.in
-django==2.2.23
+django==2.2.24
     # via
     #   -r base.in
     #   django-cors-headers
@@ -121,7 +123,7 @@ jinja2==3.0.1
     #   sphinx
 lazy-object-proxy==1.6.0
     # via astroid
-markdown2==2.3.10
+markdown2==2.4.0
     # via -r base.in
 markdown==3.3.3
     # via -r base.in

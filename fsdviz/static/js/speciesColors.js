@@ -25,7 +25,7 @@ const speciesColours = [
   "#ffd8b1",
   "#000075",
   "#808080",
-  "#ffffff"
+  "#ffffff",
 ];
 
 //19 species
@@ -48,5 +48,5 @@ const all_species = [
   "MUE",
   "SMB",
   "TIM",
-  "NOP"
+  "NOP",
 ];
