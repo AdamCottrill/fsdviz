@@ -25,26 +25,39 @@ from fsdviz.common.models import (
 from rest_framework import serializers
 
 
-class AgencySerializer(serializers.ModelSerializer):
+class ModelColorSerializer(serializers.ModelSerializer):
+    """An abstract base class for serializers for objects that have an
+    optional colour attribute.  Colours only need be returned on
+    lookup-api endpoints - not every endpoint. Colour is returned if
+    color=True is passed to the serializer."""
+
+    def __init__(self, *args, **kwargs):
+        color = kwargs.pop("color", False)
+        super(ModelColorSerializer, self).__init__(*args, **kwargs)
+        if color is False:
+            self.fields.pop("color")
+
+
+class AgencySerializer(ModelColorSerializer):
     class Meta:
         model = Agency
-        fields = ("abbrev", "agency_name")
+        fields = ("abbrev", "agency_name", "color")
 
 
-class LakeSerializer(serializers.ModelSerializer):
+class LakeSerializer(ModelColorSerializer):
     class Meta:
         model = Lake
-        fields = ("abbrev", "lake_name")
+        fields = ("abbrev", "lake_name", "color")
         lookup_field = "abbrev"
 
 
-class StateProvinceSerializer(serializers.ModelSerializer):
+class StateProvinceSerializer(ModelColorSerializer):
     class Meta:
         model = StateProvince
-        fields = ("id", "abbrev", "name", "country", "description")
+        fields = ("id", "abbrev", "name", "country", "description", "color")
 
 
-class JurisdictionSerializer(serializers.ModelSerializer):
+class JurisdictionSerializer(ModelColorSerializer):
 
     lake = LakeSerializer()
     stateprov = StateProvinceSerializer()
@@ -54,26 +67,26 @@ class JurisdictionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Jurisdiction
-        fields = ("id", "slug", "name", "lake", "stateprov", "description")
+        fields = ("id", "slug", "name", "lake", "stateprov", "description", "color")
 
     @staticmethod
     def setup_eager_loading(queryset):
-        """ Perform necessary eager loading of data. """
+        """Perform necessary eager loading of data."""
         queryset = queryset.select_related("lake", "stateprov")
         return queryset
 
 
-class ManagementUnitSerializer(serializers.ModelSerializer):
+class ManagementUnitSerializer(ModelColorSerializer):
 
     lake = LakeSerializer()
 
     class Meta:
         model = ManagementUnit
-        fields = ("id", "label", "lake", "mu_type", "slug", "primary")
+        fields = ("id", "label", "lake", "mu_type", "slug", "primary", "color")
 
     @staticmethod
     def setup_eager_loading(queryset):
-        """ Perform necessary eager loading of data. """
+        """Perform necessary eager loading of data."""
         queryset = queryset.select_related("lake")
         return queryset
 
@@ -93,7 +106,7 @@ class SimpleSpeciesSerializer(serializers.ModelSerializer):
         lookup_field = "abbrev"
 
 
-class SpeciesSerializer(serializers.ModelSerializer):
+class SpeciesSerializer(ModelColorSerializer):
     class Meta:
         model = Species
         fields = (
@@ -102,11 +115,12 @@ class SpeciesSerializer(serializers.ModelSerializer):
             "scientific_name",
             "species_code",
             "speciescommon",
+            "color",
         )
         lookup_field = "abbrev"
 
 
-class StrainSpeciesSerializer(serializers.ModelSerializer):
+class StrainSpeciesSerializer(ModelColorSerializer):
     """A serialicer for strain objects that also includes attributes of
     the related species.  There can only be one related species
     object for each strain.
@@ -116,16 +130,23 @@ class StrainSpeciesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Strain
-        fields = ("id", "strain_code", "strain_label", "strain_species", "slug")
+        fields = (
+            "id",
+            "strain_code",
+            "strain_label",
+            "strain_species",
+            "slug",
+            "color",
+        )
 
     @staticmethod
     def setup_eager_loading(queryset):
-        """ Perform necessary eager loading of data. """
+        """Perform necessary eager loading of data."""
         queryset = queryset.select_related("strain_species")
         return queryset
 
 
-class StrainSerializer(serializers.ModelSerializer):
+class StrainSerializer(ModelColorSerializer):
     """A simplified serializer for strain objects - used in the strainRaw
     Serializers.  This version does *not* include the species serializer as
     it is already included in the StrainRawSerializer.
@@ -133,10 +154,10 @@ class StrainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Strain
-        fields = ("id", "strain_code", "strain_label", "slug")
+        fields = ("id", "strain_code", "strain_label", "slug", "color")
 
 
-class StrainRawSerializer(serializers.ModelSerializer):
+class StrainRawSerializer(ModelColorSerializer):
     """A serializer for Strain Raw objects. Includes nested serializers
     for both species and strain objects.  Uses the simplified strain
     serializer that does not include species.  StrainRaw is
@@ -149,11 +170,11 @@ class StrainRawSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StrainRaw
-        fields = ("id", "raw_strain", "description", "species", "strain")
+        fields = ("id", "raw_strain", "description", "species", "strain", "color")
 
     @staticmethod
     def setup_eager_loading(queryset):
-        """ Perform necessary eager loading of data. """
+        """Perform necessary eager loading of data."""
         queryset = queryset.select_related("species", "strain")
         return queryset
 
@@ -191,7 +212,7 @@ class Grid10Serializer(serializers.ModelSerializer):
 
     @staticmethod
     def setup_eager_loading(queryset):
-        """ Perform necessary eager loading of data. """
+        """Perform necessary eager loading of data."""
         queryset = queryset.select_related("lake")
         return queryset
 
@@ -208,19 +229,19 @@ class MarkSerializer(serializers.ModelSerializer):
         fields = ("clip_code", "mark_code", "mark_type", "description")
 
 
-class CompositeFinClipSerializer(serializers.ModelSerializer):
+class CompositeFinClipSerializer(ModelColorSerializer):
     class Meta:
         model = CompositeFinClip
-        fields = ("clip_code", "description")
+        fields = ("clip_code", "description", "color")
 
 
-class FishTagSerializer(serializers.ModelSerializer):
+class FishTagSerializer(ModelColorSerializer):
     class Meta:
         model = FishTag
-        fields = ("tag_code", "tag_type", "tag_colour", "description")
+        fields = ("tag_code", "tag_type", "tag_colour", "description", "color")
 
 
-class PhysChemMarkSerializer(serializers.ModelSerializer):
+class PhysChemMarkSerializer(ModelColorSerializer):
     class Meta:
         model = PhysChemMark
-        fields = ("mark_code", "mark_type", "description")
+        fields = ("mark_code", "mark_type", "description", "color")

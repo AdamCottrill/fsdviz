@@ -91,12 +91,11 @@ class TestLifestageAPI(APITestCase):
         # create a list of dicts that will be used create our objects
         # and tested against the json in the response.
         objects = [
-            {"abbrev": "e", "description": "egg", "color": "#FF5733"},
-            {"abbrev": "f", "description": "fingerling, age-0", "color": "#46f0f0"},
+            {"abbrev": "e", "description": "egg"},
+            {"abbrev": "f", "description": "fingerling, age-0"},
             {
                 "abbrev": "ff",
                 "description": "fall fingerling, age-0",
-                "color": "#bcf60c",
             },
         ]
 
@@ -117,7 +116,7 @@ class TestLifestageAPI(APITestCase):
         object by passing it's abbrev to the url."""
 
         abbrev = "f"
-        obj = {"abbrev": abbrev, "description": "fingerling, age-0", "color": "#bcf60c"}
+        obj = {"abbrev": abbrev, "description": "fingerling, age-0"}
 
         LifeStageFactory(**obj)
 
@@ -133,16 +132,14 @@ class TestStockingMethodAPI(APITestCase):
     def test_stocking_method_api_get_list(self):
 
         objects = [
-            {"stk_meth": "acc", "description": "Acclimation Site", "color": "#46f0f0"},
+            {"stk_meth": "acc", "description": "Acclimation Site"},
             {
                 "stk_meth": "atv",
                 "description": "all terrain vehicle",
-                "color": "#FF5733",
             },
             {
                 "stk_meth": "b",
                 "description": "boat, offshore stocking",
-                "color": "#bcf60c",
             },
         ]
 
@@ -166,7 +163,6 @@ class TestStockingMethodAPI(APITestCase):
         obj = {
             "stk_meth": stk_meth,
             "description": "boat, offshore stocking",
-            "color": "#46f0f0",
         }
 
         StockingMethodFactory(**obj)

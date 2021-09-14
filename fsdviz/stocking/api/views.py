@@ -543,8 +543,10 @@ class StockingEventLookUpsAPIView(APIView):
 
     def get(self, request):
 
-        lifestages = LifeStage.objects.values("abbrev", "description")
-        stockingmethods = StockingMethod.objects.values("stk_meth", "description")
+        lifestages = LifeStage.objects.values("abbrev", "description", "color")
+        stockingmethods = StockingMethod.objects.values(
+            "stk_meth", "description", "color"
+        )
 
         lookups = {
             "stockingmethods": list(stockingmethods),

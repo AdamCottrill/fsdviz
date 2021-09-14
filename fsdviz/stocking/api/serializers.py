@@ -10,7 +10,7 @@ from fsdviz.common.api.serializers import (
     AgencySerializer,
     Grid10Serializer,
     JurisdictionSerializer,
-    LakeSerializer,
+    ModelColorSerializer,
     LatLonFlagSerializer,
     SimpleSpeciesSerializer,
     SpeciesSerializer,
@@ -27,7 +27,7 @@ from ..models import (
 )
 
 
-class LifeStageSerializer(serializers.ModelSerializer):
+class LifeStageSerializer(ModelColorSerializer):
     class Meta:
         model = LifeStage
         fields = ("abbrev", "description", "color")
@@ -56,7 +56,7 @@ class ConditionSerializer(serializers.ModelSerializer):
         fields = ("condition", "description")
 
 
-class StockingMethodSerializer(serializers.ModelSerializer):
+class StockingMethodSerializer(ModelColorSerializer):
     class Meta:
         model = StockingMethod
         fields = ("stk_meth", "description", "color")
