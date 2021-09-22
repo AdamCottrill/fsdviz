@@ -8,7 +8,8 @@ export const prepare_stocking_data = (data) => {
   data.total = +data.total_stocked;
   data.year_class = data.year_class ? data.year_class + "" : "Unkn";
   data.yreq = +data.yreq;
-  data.mark = data.mark ? data.mark : "None";
+  data.mark = data._mark ? data._mark : "NONE";
+  data.clip = data.clip ? data.clip : "NONE";
   data.month = data.month ? data.month + "" : "0";
 };
 

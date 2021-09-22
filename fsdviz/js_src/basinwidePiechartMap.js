@@ -42,7 +42,7 @@ import { spatialRadioButtons } from "./components/RadioButtons";
 import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
 
-import { speciesColours, all_species } from "./components/constants";
+//import { speciesColours, all_species } from "./components/constants";
 
 import {
   parseParams,
@@ -98,15 +98,23 @@ const labelLookup = {};
 // empty objects to hold our lookup values - populated after we get the data from the api.
 let species_lookup = {};
 let species_inverse_lookup = {};
+let species_colors = {};
 
 let strain_lookup = {};
 let strain_inverse_lookup = {};
+let strain_colors = {};
 
 let lifestage_lookup = {};
 let lifestage_inverse_lookup = {};
+let lifestage_colors = {};
 
 let stocking_method_lookup = {};
 let stocking_method_inverse_lookup = {};
+let stocking_method_colors = {};
+
+let agency_colors = {};
+let clip_colors = {};
+let mark_colors = {};
 
 // sliceVar, responseVar, column should reflect current state of the url
 // or provided with reasonable defaults:
@@ -156,9 +164,7 @@ Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
 }).addTo(mymap);
 
-const speciesColourScale = scaleOrdinal()
-  .range(speciesColours)
-  .domain(all_species);
+const colourScale = scaleOrdinal();
 
 // intantiation our polygon overlay
 let polygons = polygon_overlay().leafletMap(mymap);
@@ -182,7 +188,7 @@ function projectPoint(x, y) {
 let piecharts = piechart_overlay(mymap)
   .responseVar(responseVar)
   .getProjection(projectPoint)
-  .fillScale(speciesColourScale);
+  .fillScale(colourScale);
 
 //======================================================
 //           RADIO BUTTONS
@@ -213,6 +219,7 @@ let slices = [
   { name: "species_name", label: "Species" },
   { name: "strain", label: "Strain" },
   { name: "mark", label: "Mark" },
+  { name: "clip", label: "Clip" },
   { name: "life_stage", label: "Life Stage" },
   { name: "stk_method", label: "Stocking Method" },
 ];
@@ -262,6 +269,11 @@ Promise.all([
     return accumulator;
   }, {});
 
+  species_colors = common["species"].reduce((accumulator, d) => {
+    accumulator[d.abbrev] = d.color;
+    return accumulator;
+  }, {});
+
   // Strain Maps (these may need some more work!)
   strain_lookup = common["strains"].reduce((accumulator, d) => {
     accumulator[d.strain_species.slug] = d.strain_label;
@@ -273,10 +285,23 @@ Promise.all([
     return accumulator;
   }, {});
 
+  strain_colors = common["strains"].reduce((accumulator, d) => {
+    accumulator[d.slug] = d.color;
+    return accumulator;
+  }, {});
+
   // Stocking Method Maps:
   stocking_method_lookup = stocking["stockingmethods"].reduce(
     (accumulator, d) => {
       accumulator[d.stk_meth] = d.description;
+      return accumulator;
+    },
+    {}
+  );
+
+  stocking_method_colors = stocking["stockingmethods"].reduce(
+    (accumulator, d) => {
+      accumulator[d.stk_meth] = d.color;
       return accumulator;
     },
     {}
@@ -303,6 +328,26 @@ Promise.all([
     },
     {}
   );
+
+  lifestage_colors = stocking["lifestages"].reduce((accumulator, d) => {
+    accumulator[d.abbrev] = d.color;
+    return accumulator;
+  }, {});
+
+  agency_colors = common["agencies"].reduce((accumulator, d) => {
+    accumulator[d.abbrev] = d.color;
+    return accumulator;
+  }, {});
+
+  clip_colors = common["clipcodes"].reduce((accumulator, d) => {
+    accumulator[d.clip_code] = d.color;
+    return accumulator;
+  }, {});
+
+  mark_colors = common["physchem_marks"].reduce((accumulator, d) => {
+    accumulator[d.mark_code] = d.color;
+    return accumulator;
+  }, {});
 
   // an accessor function to get values of our currently selected
   // response variable.
@@ -344,6 +389,37 @@ Promise.all([
     return pts.filter((d) => d.total > 0);
   };
 
+  const updateColorScale = (value) => {
+    let colors;
+    switch (value) {
+      case "agency_abbrev":
+        colors = agency_colors;
+        break;
+      case "species_name":
+        colors = species_colors;
+        break;
+      case "strain":
+        colors = strain_colors;
+        break;
+      case "mark":
+        colors = mark_colors;
+        break;
+      case "clip":
+        colors = clip_colors;
+        break;
+      case "life_stage":
+        colors = lifestage_colors;
+        break;
+      case "stk_method":
+        colors = stocking_method_colors;
+        break;
+    }
+
+    colourScale
+      .domain(Object.entries(colors).map((x) => x[0]))
+      .range(Object.entries(colors).map((x) => x[1]));
+  };
+
   // recacalculate the points given the current spatial unit and
   // point accessor
   const updatePieCharts = () => {
@@ -352,7 +428,7 @@ Promise.all([
     piecharts.selectedPie(null).clear_pointInfo();
 
     update_stats_panel(all, {
-      fillScale: speciesColourScale,
+      fillScale: colourScale,
       label: slices.filter((d) => d.name === sliceVar)[0].label,
       what: sliceVar,
     });
@@ -372,6 +448,7 @@ Promise.all([
   // the global variable and update the pie charts
   const update_sliceVar = (value) => {
     sliceVar = value;
+    updateColorScale(sliceVar);
     calcMapGroups();
     updatePieCharts();
     updateUrlParams("sliceVar", value);
@@ -404,6 +481,7 @@ Promise.all([
   let yearClassDim = ndx.dimension((d) => d.year_class);
   let lifeStageDim = ndx.dimension((d) => d.life_stage);
   let markDim = ndx.dimension((d) => d.mark);
+  let clipDim = ndx.dimension((d) => d.clip);
   let monthDim = ndx.dimension((d) => d.month);
   let stkMethDim = ndx.dimension((d) => d.stk_method);
 
@@ -418,6 +496,7 @@ Promise.all([
   let yearClassGroup = yearClassDim.group().reduceSum((d) => d[column]);
   let lifeStageGroup = lifeStageDim.group().reduceSum((d) => d[column]);
   let markGroup = markDim.group().reduceSum((d) => d[column]);
+  let clipGroup = clipDim.group().reduceSum((d) => d[column]);
   let monthGroup = monthDim.group().reduceSum((d) => d[column]);
   let stkMethGroup = stkMethDim.group().reduceSum((d) => d[column]);
 
@@ -467,12 +546,6 @@ Promise.all([
 
   calcMapGroups();
 
-  // update_stats_panel(all, {
-  //   fillScale: speciesColourScale,
-  //   label: slices.filter((d) => d.name === sliceVar)[0].label,
-  //   what: sliceVar,
-  //});
-
   //A function to set all of the filters to checked - called when
   //the page loads or if the reset button is clicked.
   const set_or_reset_filters = (query_args) => {
@@ -486,6 +559,7 @@ Promise.all([
     initialize_filter(filters, "yearClass", yearClassDim, query_args);
     initialize_filter(filters, "lifeStage", lifeStageDim, query_args);
     initialize_filter(filters, "mark", markDim, query_args);
+    initialize_filter(filters, "clip", clipDim, query_args);
     initialize_filter(filters, "stockingMonth", monthDim, query_args);
     initialize_filter(filters, "stkMeth", stkMethDim, query_args);
   };
@@ -495,9 +569,10 @@ Promise.all([
 
   // initialize our filters when everything loads
   set_or_reset_filters(query_args);
+  updateColorScale(sliceVar);
   update_clear_button_state(filters);
   update_stats_panel(all, {
-    fillScale: speciesColourScale,
+    fillScale: colourScale,
     label: slices.filter((d) => d.name === sliceVar)[0].label,
     what: sliceVar,
   });
@@ -576,6 +651,14 @@ Promise.all([
     filterkey: "mark",
     xfdim: markDim,
     xfgroup: markGroup,
+    filters: filters,
+  });
+
+  let clipSelection = select("#clip-filter");
+  checkBoxes(clipSelection, {
+    filterkey: "clip",
+    xfdim: clipDim,
+    xfgroup: clipGroup,
     filters: filters,
   });
 
@@ -741,7 +824,7 @@ Promise.all([
   // if the crossfilter changes, update our checkboxes:
   ndx.onChange(() => {
     update_stats_panel(all, {
-      fillScale: speciesColourScale,
+      fillScale: colourScale,
       label: slices.filter((d) => d.name === sliceVar)[0].label,
       what: sliceVar,
     });
@@ -806,6 +889,13 @@ Promise.all([
       filterkey: "mark",
       xfdim: markDim,
       xfgroup: markGroup,
+      filters: filters,
+    });
+
+    checkBoxes(clipSelection, {
+      filterkey: "clip",
+      xfdim: clipDim,
+      xfgroup: clipGroup,
       filters: filters,
     });
 
