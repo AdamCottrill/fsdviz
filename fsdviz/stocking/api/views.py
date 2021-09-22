@@ -464,11 +464,12 @@ class StockingEventListAPIView(APIView):
             "_tags": StringAgg(
                 "fish_tags__tag_code", delimiter=";", ordering="fish_tags__tag_code"
             ),
-            "_marks": StringAgg(
-                "physchem_marks__mark_code",
-                delimiter=";",
-                ordering="physchem_marks__mark_code",
-            ),
+            "_marks": F("physchem_marks__mark_code"),
+            # "_marks": StringAgg(
+            #     "physchem_marks__mark_code",
+            #     delimiter=";",
+            #     ordering="physchem_marks__mark_code",
+            # ),
         }
 
         fields = [

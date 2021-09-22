@@ -1,20 +1,11 @@
 /* global  $, dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, yearRange, currentYear */
 
-// needed to build the breadcrumbs if mapstate !== basin-all
-// muMap = {}
-//common.manUnits.map(d=>muMap[d.slug] = d.jurisdiction)
-
 import debug from "debug";
 
 import Leaflet from "leaflet";
 import crossfilter from "crossfilter2";
 
 import { scaleOrdinal, selectAll, select, csv, json, sum } from "d3";
-
-// import { scaleOrdinal } from "d3-scale";
-// import { selectAll, select } from "d3-selection";
-// import { csv, json } from "d3-fetch";
-// import { sum } from "d3-array";
 
 import { checkBoxes } from "./components/checkBoxArray";
 
@@ -41,8 +32,6 @@ import { polygon_overlay } from "./components/polygon_overlay";
 import { spatialRadioButtons } from "./components/RadioButtons";
 import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
-
-//import { speciesColours, all_species } from "./components/constants";
 
 import {
   parseParams,
@@ -117,12 +106,6 @@ let clip_colors = {};
 let mark_colors = {};
 
 // sliceVar, responseVar, column should reflect current state of the url
-// or provided with reasonable defaults:
-// similarly, we need to set the spatial resultion based on the value of map-state
-
-// the name of the column with our response:
-//let responseVar = "yreq";
-//let sliceVar = "agency_abbrev";
 
 sliceVar = getUrlParamValue("sliceVar")
   ? getUrlParamValue("sliceVar")
@@ -137,7 +120,6 @@ let mapState = getUrlParamValue("mapState")
   ? getUrlParamValue("mapState")
   : "basin-all";
 
-//let column = "events";
 let column = responseVar;
 
 // a map from mapState strings to feature types in topodata
