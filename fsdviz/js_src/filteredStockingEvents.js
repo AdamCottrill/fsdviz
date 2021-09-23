@@ -24,7 +24,7 @@ import {
 import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
 import { get_coordinates, add_roi } from "./components/spatial_utils";
-import { makeLookup } from "./components/utils";
+import { makeItemMap, getColorScale, makeColorMap } from "./components/utils";
 import { piechart_overlay } from "./components/piechart_overlay";
 import {
   stockingAdd,
@@ -58,13 +58,6 @@ let responseVar = getUrlParamValue("response_var") || "yreq";
 const labelLookup = {};
 
 const sharedColourScale = scaleOrdinal();
-// a little helper function that will return a custom d3 colour
-// scale if we pass an object containing key-value pairs of keys and colours
-const getColourScale = (colors) => {
-  return scaleOrdinal()
-    .domain(Object.entries(colors).map((x) => x[0]))
-    .range(Object.entries(colors).map((x) => x[1]));
-};
 
 // setup the map with rough bounds (need to get pies to plot first,
 // this will be tweaked later):
@@ -216,26 +209,13 @@ Promise.all([
   // create key:value pairs for all of the objects will need to lookup.
   // used mostly for labels. eg. lakeMap["HU"] will return "Lake Huron"
 
-  const lakeMap = common.lakes.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.lake_name;
-    return accumulator;
-  }, {});
+  const lakeMap = makeItemMap(common.lakes, "abbrev", "lake_name");
+  const lakeColors = makeColorMap(common.lakes);
 
-  const lakeColors = common.lakes.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.color;
-    return accumulator;
-  }, {});
+  const agencyMap = makeItemMap(common.agencies, "abbrev", "agency_name");
+  const agencyColors = makeColorMap(common.agencies);
 
-  const agencyMap = common.agencies.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.agency_name;
-    return accumulator;
-  }, {});
-
-  const agencyColors = common.agencies.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.color;
-    return accumulator;
-  }, {});
-
+  const jurisdictionColors = makeColorMap(common.jurisdictions, "slug");
   const jurisdictionMap = common.jurisdictions.reduce((accumulator, d) => {
     accumulator[d.slug] = {
       description: d.description,
@@ -244,28 +224,12 @@ Promise.all([
     return accumulator;
   }, {});
 
-  const jurisdictionColors = common.jurisdictions.reduce((accumulator, d) => {
-    accumulator[d.slug] = d.color;
-    return accumulator;
-  }, {});
+  const stateProvColors = makeColorMap(common.stateprov);
+  const stateProvMap = makeItemMap(common.stateprov, "abbrev", "name");
 
-  const stateProvMap = common.stateprov.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.name;
-    return accumulator;
-  }, {});
-
-  const stateProvColors = common.stateprov.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.color;
-    return accumulator;
-  }, {});
-
+  const speciesColors = makeColorMap(common.species);
   const speciesMap = common.species.reduce((accumulator, d) => {
     accumulator[d.abbrev] = `${d.common_name} - (${d.abbrev})`;
-    return accumulator;
-  }, {});
-
-  const speciesColors = common.species.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.color;
     return accumulator;
   }, {});
 
@@ -292,51 +256,29 @@ Promise.all([
     return accumulator;
   }, {});
 
-  const stockingMethodMap = stocking.stockingmethods.reduce(
-    (accumulator, d) => {
-      accumulator[d.stk_meth] = d.description;
-      return accumulator;
-    },
-    {}
+  const stockingMethodColors = makeColorMap(
+    stocking.stockingmethods,
+    "stk_meth"
   );
 
-  const stockingMethodColors = stocking.stockingmethods.reduce(
-    (accumulator, d) => {
-      accumulator[d.stk_meth] = d.color;
-      return accumulator;
-    },
-    {}
+  const stockingMethodMap = makeItemMap(
+    stocking.stockingmethods,
+    "stk_meth",
+    "description"
   );
 
-  const clipMap = common.clipcodes.reduce((accumulator, d) => {
-    accumulator[d.clip_code] = d.description;
-    return accumulator;
-  }, {});
+  const clipColors = makeColorMap(common.clipcodes, "clip_code");
+  const clipMap = makeItemMap(common.clipcodes, "clip_code", "description");
 
-  const clipColors = common.clipcodes.reduce((accumulator, d) => {
-    accumulator[d.clip_code] = d.color;
-    return accumulator;
-  }, {});
+  const lifestageColors = makeColorMap(stocking.lifestages);
+  const lifestageMap = makeItemMap(
+    stocking.lifestages,
+    "abbrev",
+    "description"
+  );
 
-  const lifestageMap = stocking.lifestages.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.description;
-    return accumulator;
-  }, {});
-
-  const lifestageColors = stocking.lifestages.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.color;
-    return accumulator;
-  }, {});
-
-  const markColors = common["physchem_marks"].reduce((accumulator, d) => {
-    accumulator[d.mark_code] = d.color;
-    return accumulator;
-  }, {});
-
-  const tagColors = common["fish_tags"].reduce((accumulator, d) => {
-    accumulator[d.tag_code] = d.color;
-    return accumulator;
-  }, {});
+  const markColors = makeColorMap(common.physchem_marks, "mark_code");
+  const tagColors = makeColorMap(common.fish_tags, "tag_code");
 
   // a little cleanup - these were originally passed in, but have not
   // been transformed
@@ -897,7 +839,7 @@ Promise.all([
   //==========================================================
   //                   LAKE
 
-  const lakeColorScale = getColourScale(lakeColors);
+  const lakeColorScale = getColorScale(lakeColors);
 
   lakeChart
     .width(width1)
@@ -930,7 +872,7 @@ Promise.all([
   //==============================================
   //            AGENCY
 
-  const agencyColorScale = getColourScale(agencyColors);
+  const agencyColorScale = getColorScale(agencyColors);
   agencyChart
     .width(width1)
     .height(height1)
@@ -961,7 +903,7 @@ Promise.all([
   //==============================================
   //            JURISDICTION
 
-  const jurisdictionColorScale = getColourScale(jurisdictionColors);
+  const jurisdictionColorScale = getColorScale(jurisdictionColors);
 
   jurisdictionChart
     .width(width1)
@@ -1004,7 +946,7 @@ Promise.all([
   //==============================================
   //               STATE OR PROVINCE
 
-  const stateProvColorScale = getColourScale(stateProvColors);
+  const stateProvColorScale = getColorScale(stateProvColors);
   stateProvChart
     .width(width1)
     .height(height1)
@@ -1035,7 +977,7 @@ Promise.all([
   //==============================================
   //               SPECIES
 
-  const speciesColourScale = getColourScale(speciesColors);
+  const speciesColourScale = getColorScale(speciesColors);
   speciesChart
     .width(width1)
     .height(height1)
@@ -1065,7 +1007,7 @@ Promise.all([
 
   //==============================================
   //               STRAIN
-  const strainColorScale = getColourScale(strainColors);
+  const strainColorScale = getColorScale(strainColors);
   strainChart
     .width(width1)
     .height(height1)
@@ -1096,7 +1038,7 @@ Promise.all([
   //==============================================
   //               LIFESTAGE
 
-  const lifestageColorScale = getColourScale(lifestageColors);
+  const lifestageColorScale = getColorScale(lifestageColors);
 
   lifestageChart
     .width(width2)
@@ -1133,7 +1075,7 @@ Promise.all([
   //==============================================
   //               STOCKING METHOD
 
-  const stockingMethodColorScale = getColourScale(stockingMethodColors);
+  const stockingMethodColorScale = getColorScale(stockingMethodColors);
   stockingMethodChart
     .width(width2)
     .height(height2)
@@ -1208,7 +1150,7 @@ Promise.all([
   //==============================================
   //               MARKS
 
-  const markColorScale = getColourScale(markColors);
+  const markColorScale = getColorScale(markColors);
 
   markChart
     .width(width2)
@@ -1238,7 +1180,7 @@ Promise.all([
   //==============================================
   //               CLIPS
 
-  const clipColorScale = getColourScale(clipColors);
+  const clipColorScale = getColorScale(clipColors);
 
   clipChart
     .width(width2)
@@ -1268,7 +1210,7 @@ Promise.all([
   //==============================================
   //               TAGS
 
-  const tagColorScale = getColourScale(tagColors);
+  const tagColorScale = getColorScale(tagColors);
 
   tagChart
     .width(width2)

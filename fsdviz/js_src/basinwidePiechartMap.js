@@ -13,6 +13,8 @@ import {
   prepare_stocking_data,
   initialize_filter,
   update_clear_button_state,
+  makeItemMap,
+  makeColorMap,
 } from "./components/utils";
 
 import {
@@ -241,95 +243,39 @@ Promise.all([
   // prepare our stocking data and set up our cross filters:
   data.forEach((d) => prepare_stocking_data(d));
 
-  species_lookup = common["species"].reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.common_name;
-    return accumulator;
-  }, {});
+  // LOOKUP MAPA
 
-  species_inverse_lookup = common["species"].reduce((accumulator, d) => {
-    accumulator[d.common_name] = d.abbrev;
-    return accumulator;
-  }, {});
+  species_lookup = makeItemMap(common.species, "abbrev", "common_name");
+  species_inverse_lookup = makeItemMap(common.species, "common_name", "abbrev");
+  species_colors = makeColorMap(common.species, "abbrev");
 
-  species_colors = common["species"].reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.color;
-    return accumulator;
-  }, {});
+  strain_lookup = makeItemMap(common.strains, "slug", "strain_label");
+  strain_inverse_lookup = makeItemMap(common.strains, "strain_label", "slug");
+  strain_colors = makeColorMap(common.strains, "slug");
 
-  // Strain Maps (these may need some more work!)
-  strain_lookup = common["strains"].reduce((accumulator, d) => {
-    accumulator[d.strain_species.slug] = d.strain_label;
-    return accumulator;
-  }, {});
-
-  strain_inverse_lookup = common["strains"].reduce((accumulator, d) => {
-    accumulator[d.strain_label] = d.strain_species.slug;
-    return accumulator;
-  }, {});
-
-  strain_colors = common["strains"].reduce((accumulator, d) => {
-    accumulator[d.slug] = d.color;
-    return accumulator;
-  }, {});
-
-  // Stocking Method Maps:
-  stocking_method_lookup = stocking["stockingmethods"].reduce(
-    (accumulator, d) => {
-      accumulator[d.stk_meth] = d.description;
-      return accumulator;
-    },
-    {}
+  stocking_method_lookup = makeItemMap(
+    stocking.stockingmethods,
+    "stk_meth",
+    "description"
   );
-
-  stocking_method_colors = stocking["stockingmethods"].reduce(
-    (accumulator, d) => {
-      accumulator[d.stk_meth] = d.color;
-      return accumulator;
-    },
-    {}
+  stocking_method_inverse_lookup = makeItemMap(
+    stocking.stockingmethods,
+    "description",
+    "stk_meth"
   );
+  stocking_method_colors = makeColorMap(stocking.stockingmethods, "stk_meth");
 
-  stocking_method_inverse_lookup = stocking["stockingmethods"].reduce(
-    (accumulator, d) => {
-      accumulator[d.description] = d.stk_meth;
-      return accumulator;
-    },
-    {}
+  lifestage_lookup = makeItemMap(stocking.lifestages, "abbrev", "description");
+  lifestage_inverse_lookup = makeItemMap(
+    stocking.lifestages,
+    "description",
+    "abbrev"
   );
+  lifestage_colors = makeColorMap(stocking.lifestages, "abbrev");
 
-  // Lifestage Maps:
-  lifestage_lookup = stocking["lifestages"].reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.description;
-    return accumulator;
-  }, {});
-
-  lifestage_inverse_lookup = stocking["stockingmethods"].reduce(
-    (accumulator, d) => {
-      accumulator[d.description] = d.abbrev;
-      return accumulator;
-    },
-    {}
-  );
-
-  lifestage_colors = stocking["lifestages"].reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.color;
-    return accumulator;
-  }, {});
-
-  agency_colors = common["agencies"].reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.color;
-    return accumulator;
-  }, {});
-
-  clip_colors = common["clipcodes"].reduce((accumulator, d) => {
-    accumulator[d.clip_code] = d.color;
-    return accumulator;
-  }, {});
-
-  mark_colors = common["physchem_marks"].reduce((accumulator, d) => {
-    accumulator[d.mark_code] = d.color;
-    return accumulator;
-  }, {});
+  agency_colors = makeColorMap(common.agencies, "abbrev");
+  clip_colors = makeColorMap(common.clipcodes, "clip_code");
+  mark_colors = makeColorMap(common.physchem_marks, "mark_code");
 
   // an accessor function to get values of our currently selected
   // response variable.
