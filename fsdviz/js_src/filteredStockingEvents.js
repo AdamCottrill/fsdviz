@@ -24,7 +24,7 @@ import {
 import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
 import { get_coordinates, add_roi } from "./components/spatial_utils";
-import { makeLookup } from "./components/utils";
+import { makeItemMap, getColorScale, makeColorMap } from "./components/utils";
 import { piechart_overlay } from "./components/piechart_overlay";
 import {
   stockingAdd,
@@ -57,18 +57,7 @@ let responseVar = getUrlParamValue("response_var") || "yreq";
 // the currently selected spatial unit.
 const labelLookup = {};
 
-// these assume that all_species and speciesColours have already been
-// loaded from the ~/js/speciesColors.js file.
-// colour scale that will be used anywhere scpecies
-// are displayed
-const speciesColourScale = scaleOrdinal()
-  .range(speciesColours)
-  .domain(all_species);
-
-// for now - use a generic colour scale.
-const sharedColourScale = scaleOrdinal()
-  .range(speciesColours)
-  .domain(all_species);
+const sharedColourScale = scaleOrdinal();
 
 // setup the map with rough bounds (need to get pies to plot first,
 // this will be tweaked later):
@@ -112,8 +101,7 @@ function projectPoint(x, y) {
 
 let piecharts = piechart_overlay(mymap)
   .responseVar(responseVar)
-  .getProjection(projectPoint)
-  .fillScale(speciesColourScale);
+  .getProjection(projectPoint);
 
 //======================================================
 //           RADIO BUTTONS
@@ -188,7 +176,6 @@ Promise.all([
   json("/api/v1/stocking/lookups"),
   json("/api/v1/common/lookups"),
   json(centroidsURL),
-  //json(topoURL),
   csv(slugURL),
 ]).then(([data, stocking, common, centroids, slugs]) => {
   slugs.forEach((d) => (labelLookup[d.slug] = d.label));
@@ -222,16 +209,13 @@ Promise.all([
   // create key:value pairs for all of the objects will need to lookup.
   // used mostly for labels. eg. lakeMap["HU"] will return "Lake Huron"
 
-  const lakeMap = common.lakes.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.lake_name;
-    return accumulator;
-  }, {});
+  const lakeMap = makeItemMap(common.lakes, "abbrev", "lake_name");
+  const lakeColors = makeColorMap(common.lakes);
 
-  const agencyMap = common.agencies.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.agency_name;
-    return accumulator;
-  }, {});
+  const agencyMap = makeItemMap(common.agencies, "abbrev", "agency_name");
+  const agencyColors = makeColorMap(common.agencies);
 
+  const jurisdictionColors = makeColorMap(common.jurisdictions, "slug");
   const jurisdictionMap = common.jurisdictions.reduce((accumulator, d) => {
     accumulator[d.slug] = {
       description: d.description,
@@ -240,11 +224,10 @@ Promise.all([
     return accumulator;
   }, {});
 
-  const stateProvMap = common.stateprov.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.name;
-    return accumulator;
-  }, {});
+  const stateProvColors = makeColorMap(common.stateprov);
+  const stateProvMap = makeItemMap(common.stateprov, "abbrev", "name");
 
+  const speciesColors = makeColorMap(common.species);
   const speciesMap = common.species.reduce((accumulator, d) => {
     accumulator[d.abbrev] = `${d.common_name} - (${d.abbrev})`;
     return accumulator;
@@ -267,23 +250,35 @@ Promise.all([
     return accumulator;
   }, {});
 
-  const stockingMethodMap = stocking.stockingmethods.reduce(
-    (accumulator, d) => {
-      accumulator[d.stk_meth] = d.description;
-      return accumulator;
-    },
-    {}
+  const strainColors = common.strains.reduce((accumulator, d) => {
+    let key = `${d.strain_code}-${d.strain_species.abbrev}`;
+    accumulator[key] = d.color;
+    return accumulator;
+  }, {});
+
+  const stockingMethodColors = makeColorMap(
+    stocking.stockingmethods,
+    "stk_meth"
   );
 
-  const clipMap = common.clipcodes.reduce((accumulator, d) => {
-    accumulator[d.clip_code] = d.description;
-    return accumulator;
-  }, {});
+  const stockingMethodMap = makeItemMap(
+    stocking.stockingmethods,
+    "stk_meth",
+    "description"
+  );
 
-  const lifestageMap = stocking.lifestages.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.description;
-    return accumulator;
-  }, {});
+  const clipColors = makeColorMap(common.clipcodes, "clip_code");
+  const clipMap = makeItemMap(common.clipcodes, "clip_code", "description");
+
+  const lifestageColors = makeColorMap(stocking.lifestages);
+  const lifestageMap = makeItemMap(
+    stocking.lifestages,
+    "abbrev",
+    "description"
+  );
+
+  const markColors = makeColorMap(common.physchem_marks, "mark_code");
+  const tagColors = makeColorMap(common.fish_tags, "tag_code");
 
   // a little cleanup - these were originally passed in, but have not
   // been transformed
@@ -310,9 +305,9 @@ Promise.all([
     d.events = 1;
     d.total = parseInt(d.no_stocked);
 
-    d.clip = d.clip ? d.clip : "UNKN";
-    d.tag = d._tags == "" ? "None" : d._tags;
-    d.mark = d._marks == "" ? "None" : d._marks;
+    d.clip = d.clip ? d.clip : "UN";
+    d.tag = d._tags ? d._tags : "None";
+    d.mark = d._marks ? d._marks : "None";
 
     d.point = [+d.longitude, +d.latitude];
     d.geom = `Point(${d.longitude} ${d.latitude})`;
@@ -325,11 +320,72 @@ Promise.all([
     accumulator[d.tag] = d.tag;
     return accumulator;
   }, {});
+
   const markMap = data.reduce((accumulator, d) => {
     accumulator[d.mark] = d.mark;
     return accumulator;
   }, {});
 
+  const updateColorScale = (value) => {
+    let colors;
+
+    switch (value) {
+      case "species_code":
+        //speciesChart.colors(sharedColourScale);
+        colors = speciesColors;
+        break;
+      case "lake":
+        //lakeChart.colors(sharedColourScale);
+        colors = lakeColors;
+        break;
+      case "stateProv":
+        //stateProvChart.colors(sharedColourScale);
+        colors = stateProvColors;
+        break;
+      case "jurisdiction_code":
+        //jurisdictionChart.colors(sharedColourScale);
+        colors = jurisdictionColors;
+        break;
+      case "agency_code":
+        colors = agencyColors;
+        //agencyChart.colors(sharedColourScale);
+        break;
+      case "species":
+        colors = speciesColours;
+        break;
+      case "strain":
+        colors = strainColors;
+        //strainChart.colors(sharedColourScale);
+        break;
+      case "clip":
+        colors = clipColors;
+        //clipChart.colors(sharedColourScale);
+        break;
+      case "mark":
+        colors = markColors;
+        //markChart.colors(sharedColourScale);
+        break;
+      case "tag":
+        colors = tagColors;
+        //tagChart.colors(sharedColourScale);
+        break;
+      case "lifestage_code":
+        colors = lifestageColors;
+        //lifestageChart.colors(sharedColourScale);
+        break;
+      case "stockingMethod":
+        //stockingMethodChart.colors(sharedColourScale);
+        colors = stockingMethodColors;
+        break;
+    }
+
+    sharedColourScale
+      .domain(Object.entries(colors).map((x) => x[0]))
+      .range(Object.entries(colors).map((x) => x[1]));
+  };
+
+  updateColorScale(sliceVar);
+  piecharts.fillScale(sharedColourScale);
   //=======================================================================
   //                         CROSSFILTER
 
@@ -533,21 +589,6 @@ Promise.all([
   // get the default colour scale used by DC.js so we can revert
   // the charts back if they are no longer the selected category.
   const dcColours = strainChart.colors();
-
-  const resetChartColours = () => {
-    lakeChart.colors(dcColours);
-    stateProvChart.colors(dcColours);
-    agencyChart.colors(dcColours);
-    jurisdictionChart.colors(dcColours);
-    speciesChart.colors(dcColours);
-    strainChart.colors(dcColours);
-    lifestageChart.colors(dcColours);
-    stockingMethodChart.colors(dcColours);
-    stockingMonthChart.colors(dcColours);
-    markChart.colors(dcColours);
-    tagChart.colors(dcColours);
-    clipChart.colors(dcColours);
-  };
 
   const updateChartGroups = () => {
     lakeChart.group(lakeGroup);
@@ -797,11 +838,15 @@ Promise.all([
 
   //==========================================================
   //                   LAKE
+
+  const lakeColorScale = getColorScale(lakeColors);
+
   lakeChart
     .width(width1)
     .height(height1)
     .dimension(lakeDim)
     .group(lakeGroup)
+    .colors(lakeColorScale)
     .label((d) => lakeMap[d.key])
     .title((d) => `${lakeMap[d.key]}: ${commaFormat(d.value)}`);
 
@@ -827,11 +872,13 @@ Promise.all([
   //==============================================
   //            AGENCY
 
+  const agencyColorScale = getColorScale(agencyColors);
   agencyChart
     .width(width1)
     .height(height1)
     .dimension(agencyDim)
     .group(agencyGroup)
+    .colors(agencyColorScale)
     .title((d) => `${agencyMap[d.key]}: ${commaFormat(d.value)}`);
 
   agencyChart.on("renderlet", function (chart) {
@@ -856,11 +903,14 @@ Promise.all([
   //==============================================
   //            JURISDICTION
 
+  const jurisdictionColorScale = getColorScale(jurisdictionColors);
+
   jurisdictionChart
     .width(width1)
     .height(height1)
     .dimension(jurisdictionDim)
     .group(jurisdictionGroup)
+    .colors(jurisdictionColorScale)
     .label((d) => {
       if (typeof jurisdictionMap[d.key] === "undefined") {
         return jurisdictionMap[d.key];
@@ -896,11 +946,13 @@ Promise.all([
   //==============================================
   //               STATE OR PROVINCE
 
+  const stateProvColorScale = getColorScale(stateProvColors);
   stateProvChart
     .width(width1)
     .height(height1)
     .dimension(stateProvDim)
     .group(stateProvGroup)
+    .colors(stateProvColorScale)
     .title((d) => `${stateProvMap[d.key]}: ${commaFormat(d.value)}`);
 
   stateProvChart.on("renderlet", function (chart) {
@@ -922,13 +974,16 @@ Promise.all([
     dc.redrawAll();
   });
 
+  //==============================================
+  //               SPECIES
+
+  const speciesColourScale = getColorScale(speciesColors);
   speciesChart
     .width(width1)
     .height(height1)
     .dimension(speciesDim)
     .group(speciesGroup)
     .colors(speciesColourScale)
-
     .title((d) => `${speciesMap[d.key]}: ${commaFormat(d.value)}`);
 
   speciesChart.on("renderlet", function (chart) {
@@ -952,10 +1007,11 @@ Promise.all([
 
   //==============================================
   //               STRAIN
-
+  const strainColorScale = getColorScale(strainColors);
   strainChart
     .width(width1)
     .height(height1)
+    .colors(strainColorScale)
     .dimension(strainDim)
     .group(strainGroup)
     .title((d) => `${strainMap[d.key].long}: ${commaFormat(d.value)}`)
@@ -982,12 +1038,15 @@ Promise.all([
   //==============================================
   //               LIFESTAGE
 
+  const lifestageColorScale = getColorScale(lifestageColors);
+
   lifestageChart
     .width(width2)
     .height(height2)
     .margins({ top: 5, left: 10, right: 10, bottom: 20 })
     .dimension(lifeStageDim)
     .group(lifeStageGroup)
+    .colors(lifestageColorScale)
     //.ordering(d => d.key)
     .gap(2)
     .title((d) => commaFormat(d.value))
@@ -1016,12 +1075,14 @@ Promise.all([
   //==============================================
   //               STOCKING METHOD
 
+  const stockingMethodColorScale = getColorScale(stockingMethodColors);
   stockingMethodChart
     .width(width2)
     .height(height2)
     .margins({ top: 5, left: 10, right: 10, bottom: 20 })
     .dimension(stkMethDim)
     .group(stkMethGroup)
+    .colors(stockingMethodColorScale)
     //.ordering(d => d.key)
     .gap(2)
     .title((d) => commaFormat(d.value))
@@ -1089,11 +1150,14 @@ Promise.all([
   //==============================================
   //               MARKS
 
+  const markColorScale = getColorScale(markColors);
+
   markChart
     .width(width2)
     .height(height2)
     .dimension(markDim)
     .group(markGroup)
+    .colors(markColorScale)
     .title((d) => `${d.key}: ${commaFormat(d.value)}`);
 
   markChart.on("renderlet", function (chart) {
@@ -1116,11 +1180,14 @@ Promise.all([
   //==============================================
   //               CLIPS
 
+  const clipColorScale = getColorScale(clipColors);
+
   clipChart
     .width(width2)
     .height(height2)
     .dimension(clipDim)
     .group(clipGroup)
+    .colors(clipColorScale)
     .title((d) => `${d.key}: ${commaFormat(d.value)}`);
 
   clipChart.on("renderlet", function (chart) {
@@ -1143,11 +1210,14 @@ Promise.all([
   //==============================================
   //               TAGS
 
+  const tagColorScale = getColorScale(tagColors);
+
   tagChart
     .width(width2)
     .height(height2)
     .dimension(tagDim)
     .group(tagGroup)
+    .colors(tagColorScale)
     .title((d) => `${d.key}: ${commaFormat(d.value)}`);
 
   tagChart.on("renderlet", function (chart) {
@@ -1230,7 +1300,6 @@ Promise.all([
     pieg.data([pts]).call(piecharts);
 
     update_stats_panel(all, {
-      //fillScale: speciesColourScale,
       fillScale: sharedColourScale,
       label: categories.filter((d) => d.name === sliceVar)[0].label,
       what: sliceVar,
@@ -1289,59 +1358,16 @@ Promise.all([
     let tmp = select('input[name="brush-toggle"]:checked').node().value;
     setBrushTooltip(tmp === "tooltip");
   });
+
   //==========================================================
   //     CATEGORY VARIABLE HAS CHANGED!
   category_selector.on("change", function () {
     sliceVar = this.value;
     //update_CategoryValue(sliceVar);
+    updateColorScale(sliceVar);
     updateUrlParams("category_var", this.value);
-    resetChartColours();
+    //resetChartColours();
     updateStackedBarItems(sliceVar);
-    switch (sliceVar) {
-      case "species_code":
-        speciesChart.colors(sharedColourScale);
-        break;
-      case "lake":
-        lakeChart.colors(sharedColourScale);
-        break;
-      case "stateProv":
-        stateProvChart.colors(sharedColourScale);
-        break;
-      case "jurisdiction_code":
-        jurisdictionChart.colors(sharedColourScale);
-        break;
-      case "agency_code":
-        agencyChart.colors(sharedColourScale);
-        break;
-      case "strain":
-        strainChart.colors(sharedColourScale);
-        break;
-      case "clip":
-        clipChart.colors(sharedColourScale);
-        break;
-      case "mark":
-        markChart.colors(sharedColourScale);
-        break;
-      case "tag":
-        tagChart.colors(sharedColourScale);
-        break;
-      case "lifestage_code":
-        lifestageChart.colors(sharedColourScale);
-        break;
-      case "stockingMethod":
-        stockingMethodChart.colors(sharedColourScale);
-        break;
-      default:
-        speciesChart.colors(sharedColourScale);
-    }
-
-    // these need to be recalculated.  All Species is Global to the application,
-    // items list of unique values of the resposne variable available when the page loaded.
-    if (sliceVar === "species_code") {
-      sharedColourScale.domain(all_species);
-    } else {
-      sharedColourScale.domain(items);
-    }
 
     byYear = yearDim
       .group()

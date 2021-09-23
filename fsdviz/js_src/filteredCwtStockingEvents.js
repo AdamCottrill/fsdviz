@@ -6,7 +6,7 @@
 // update check boxes to show tool tip make count optional.
 
 //import crossfilter from "crossfilter2";
-import { select, selectAll, json, extent, scaleOrdinal } from "d3";
+import { select, selectAll, json, extent } from "d3";
 
 import Leaflet from "leaflet";
 
@@ -24,15 +24,13 @@ import {
 
 import { RadioButtons } from "./components/semanticRadioButtons";
 
-import {
-  speciesColours,
-  all_species_abbrev,
-  month_lookup,
-} from "./components/constants";
+import { month_lookup } from "./components/constants";
 
 import { get_coordinates, add_roi } from "./components/spatial_utils";
 import {
-  makeLookup,
+  makeItemMap,
+  makeColorMap,
+  getColorScale,
   initialize_filter,
   hideShowTableRows,
   update_clear_button_state,
@@ -43,10 +41,6 @@ const filters = {};
 // intial values of global variabls that control the state of our page:
 const roi = getUrlSearchValue("roi") || false;
 let catgory = getUrlParamValue("category_var") || "species_code";
-
-const colourScale = scaleOrdinal()
-  .range(speciesColours)
-  .domain(all_species_abbrev);
 
 let categoryVar = getUrlParamValue("categoryVar")
   ? getUrlParamValue("categoryVar")
@@ -130,36 +124,50 @@ Promise.all([
   // csv(slugURL),
 ]).then(([data, stocking, common]) => {
   // create our lookups so that our widgets have nice labels:
-  const lakeLookup = makeLookup(common["lakes"], "abbrev", "lake_name");
-  const agencyLookup = makeLookup(common["agencies"], "abbrev", "agency_name");
+  const lakeLookup = makeItemMap(common.lakes, "abbrev", "lake_name");
 
-  const jurisdictionLookup = makeLookup(
-    common["jurisdictions"],
+  const agencyLookup = makeItemMap(common.agencies, "abbrev", "agency_name");
+  const agencyColors = makeColorMap(common.agencies, "abbrev");
+
+  const jurisdictionLookup = makeItemMap(
+    common.jurisdictions,
     "slug",
     "description"
   );
 
-  const manUnitLookup = makeLookup(common["manUnits"], "slug", "label");
+  const manUnitLookup = makeItemMap(common.manUnits, "slug", "label");
 
-  const speciesLookup = makeLookup(common["species"], "abbrev", "common_name");
-  const strainLookup = makeLookup(common["strains"], "slug", "strain_label");
+  const speciesLookup = makeItemMap(common.species, "abbrev", "common_name");
+  const speciesColors = makeColorMap(common.species, "abbrev");
 
-  const stockingMethodLookup = makeLookup(
-    stocking["stockingmethods"],
+  const strainLookup = makeItemMap(common.strains, "slug", "strain_label");
+  const strainColors = makeColorMap(common.strains, "slug");
+
+  const stockingMethodLookup = makeItemMap(
+    stocking.stockingmethods,
     "stk_meth",
     "description"
   );
-  const lifestageLookup = makeLookup(
-    stocking["lifestages"],
+  const stockingMethodColors = makeColorMap(
+    stocking.stockingmethods,
+    "stk_meth"
+  );
+
+  const lifestageLookup = makeItemMap(
+    stocking.lifestages,
     "abbrev",
     "description"
   );
+  const lifestageColors = makeColorMap(stocking.lifestages, "abbrev");
 
-  const clipcodeLookup = makeLookup(
-    common["clipcodes"],
+  const clipcodeLookup = makeItemMap(
+    common.clipcodes,
     "clip_code",
     "description"
   );
+  const clipColors = makeColorMap(common.clipcodes, "clip_code");
+
+  const colourScale = getColorScale(speciesColors);
 
   const lookup_values = {
     //lake: lakeGroup.top(Infinity).map((d) => d.key),
@@ -574,6 +582,36 @@ Promise.all([
 
   //===============================================
 
+  const updateColorScale = (value) => {
+    let colors;
+    switch (value) {
+      case "agency_code":
+        colors = agencyColors;
+        break;
+      case "spc":
+        colors = speciesColors;
+        break;
+      case "strain":
+        colors = strainColors;
+        break;
+      case "clipcode":
+        colors = clipColors;
+        break;
+      case "stage":
+        colors = lifestageColors;
+        break;
+      case "method":
+        colors = stockingMethodColors;
+        break;
+      default:
+        colors = speciesColors;
+    }
+
+    colourScale
+      .domain(Object.entries(colors).map((x) => x[0]))
+      .range(Object.entries(colors).map((x) => x[1]));
+  };
+
   const refresh_legend = () => {
     let category_label = categoryLabels[categoryVar] || "Category";
 
@@ -585,11 +623,7 @@ Promise.all([
       (x) => items.indexOf(x[0]) >= 0
     );
 
-    if (categoryVar === "spc") {
-      colourScale.domain(all_species_abbrev);
-    } else {
-      colourScale.domain(items);
-    }
+    updateColorScale(categoryVar);
 
     updateUrlParams("categoryVar", categoryVar);
     update_category_legend(colourScale, itemList, category_label);

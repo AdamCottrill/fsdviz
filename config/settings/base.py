@@ -77,6 +77,7 @@ THIRD_PARTY_APPS = [
     "rest_auth",
     "rest_framework_swagger",
     "leaflet",
+    "colorfield",
     "crispy_forms",  # ticket tracker
     "taggit",
     "tickets",

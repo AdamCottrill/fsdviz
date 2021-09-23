@@ -47,6 +47,7 @@ class LifeStageFactory(factory.django.DjangoModelFactory):
 
     abbrev = "y"
     description = "Yearling"
+    color = "#bcf60c"
 
 
 class YearlingEquivalentFactory(factory.django.DjangoModelFactory):

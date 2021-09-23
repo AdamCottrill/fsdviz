@@ -549,17 +549,22 @@ class CommonLookUpsAPIView(APIView):
 
     def get(self, request):
 
-        lakes = Lake.objects.values("abbrev", "lake_name")
+        lakes = Lake.objects.values("abbrev", "lake_name", "color")
         lakes_dict = {x["abbrev"]: x for x in lakes}
 
         stateprov = StateProvince.objects.values(
-            "abbrev", "name", "country", "description"
+            "abbrev", "name", "country", "description", "color"
         )
         stateprov_dict = {x["abbrev"]: x for x in stateprov}
 
         jurisdictions = list(
             Jurisdiction.objects.prefetch_related("lake", "stateprov").values(
-                "slug", "name", "lake__abbrev", "stateprov__abbrev", "description"
+                "slug",
+                "name",
+                "lake__abbrev",
+                "stateprov__abbrev",
+                "description",
+                "color",
             )
         )
         for jur in jurisdictions:
@@ -574,23 +579,33 @@ class CommonLookUpsAPIView(APIView):
         manUnits = list(
             ManagementUnit.objects.filter(primary=True)
             .prefetch_related("jurisdiction")
-            .values("slug", "label", "jurisdiction__slug", "description")
+            .values("slug", "label", "jurisdiction__slug", "description", "color")
         )
         for mu in manUnits:
             mu["jurisdiction"] = jurisdiction_dict.get(mu.get("jurisdiction__slug"))
             mu.pop("jurisdiction__slug", None)
 
-        agencies = Agency.objects.values("abbrev", "agency_name")
+        agencies = Agency.objects.values("abbrev", "agency_name", "color")
 
         species = Species.objects.values(
-            "abbrev", "common_name", "scientific_name", "species_code", "speciescommon"
+            "abbrev",
+            "common_name",
+            "scientific_name",
+            "species_code",
+            "speciescommon",
+            "color",
         )
         species_dict = {x["abbrev"]: x for x in species}
 
         strains = list(
             Strain.objects.prefetch_related("strain_species")
             .values(
-                "id", "strain_code", "strain_label", "slug", "strain_species__abbrev"
+                "id",
+                "strain_code",
+                "strain_label",
+                "slug",
+                "strain_species__abbrev",
+                "color",
             )
             .distinct()
         )
@@ -600,12 +615,25 @@ class CommonLookUpsAPIView(APIView):
             .exclude(raw_strain="")
             .select_related("species", "strain")
             .values(
-                "id", "raw_strain", "description", "species__abbrev", "strain__slug"
+                "id",
+                "raw_strain",
+                "description",
+                "species__abbrev",
+                "strain__slug",
+                "color",
             )
         )
 
         clipcodes = CompositeFinClip.objects.order_by("clip_code").values(
-            "clip_code", "description"
+            "clip_code", "description", "color"
+        )
+
+        fish_tags = FishTag.objects.order_by("tag_code").values(
+            "tag_code", "description", "color"
+        )
+
+        physchem_marks = PhysChemMark.objects.order_by("mark_code").values(
+            "mark_code", "description", "color"
         )
 
         # now update the strains with the nested species dicts and add a slug
@@ -624,6 +652,8 @@ class CommonLookUpsAPIView(APIView):
             "strains": strains,
             "raw_strains": list(raw_strains),
             "clipcodes": list(clipcodes),
+            "fish_tags": list(fish_tags),
+            "physchem_marks": list(physchem_marks),
         }
 
         return Response(lookups)

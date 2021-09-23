@@ -10,7 +10,7 @@ from fsdviz.common.api.serializers import (
     AgencySerializer,
     Grid10Serializer,
     JurisdictionSerializer,
-    LakeSerializer,
+    ModelColorSerializer,
     LatLonFlagSerializer,
     SimpleSpeciesSerializer,
     SpeciesSerializer,
@@ -27,10 +27,10 @@ from ..models import (
 )
 
 
-class LifeStageSerializer(serializers.ModelSerializer):
+class LifeStageSerializer(ModelColorSerializer):
     class Meta:
         model = LifeStage
-        fields = ("abbrev", "description")
+        fields = ("abbrev", "description", "color")
 
 
 class HatcherySerializer(serializers.ModelSerializer):
@@ -56,10 +56,10 @@ class ConditionSerializer(serializers.ModelSerializer):
         fields = ("condition", "description")
 
 
-class StockingMethodSerializer(serializers.ModelSerializer):
+class StockingMethodSerializer(ModelColorSerializer):
     class Meta:
         model = StockingMethod
-        fields = ("stk_meth", "description")
+        fields = ("stk_meth", "description", "color")
 
 
 class StockingEventFastSerializer(serializers.Serializer):
@@ -117,7 +117,7 @@ class StockingEventSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def setup_eager_loading(queryset):
-        """ Perform necessary eager loading of data. """
+        """Perform necessary eager loading of data."""
         queryset = queryset.prefetch_related(
             "species",
             "agency",

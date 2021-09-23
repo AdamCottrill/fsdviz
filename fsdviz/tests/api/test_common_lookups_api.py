@@ -23,6 +23,8 @@ from ..common_factories import (
     JurisdictionFactory,
     ManagementUnitFactory,
     CompositeFinClipFactory,
+    PhysChemMarkFactory,
+    FishTagFactory,
 )
 
 
@@ -47,12 +49,13 @@ class TestCommonLookupAPI(APITestCase):
 
         """
 
-        self.lake_dict = dict(abbrev="HU", lake_name="Huron")
+        self.lake_dict = dict(abbrev="HU", lake_name="Huron", color="#808080")
         self.lake = LakeFactory(**self.lake_dict)
 
         self.agency_dict = dict(
             abbrev="MNRF",
             agency_name="Ontario Ministry of Natural Resources and Forestry",
+            color="#808080",
         )
         self.agency = AgencyFactory(**self.agency_dict)
 
@@ -61,6 +64,7 @@ class TestCommonLookupAPI(APITestCase):
             name="Ontario",
             country="CAN",
             description="The Province of Ontario",
+            color="#808080",
         )
         self.stateProv = StateProvinceFactory(**self.stateProv_dict)
 
@@ -69,6 +73,7 @@ class TestCommonLookupAPI(APITestCase):
             description="The Ontario waters of Lake Huron.",
             lake=self.lake,
             stateprov=self.stateProv,
+            color="#808080",
         )
         self.jurisdiction = JurisdictionFactory(**self.jurisdiction_dict)
 
@@ -77,6 +82,7 @@ class TestCommonLookupAPI(APITestCase):
             description="A management unit in Lake Huron",
             lake=self.lake,
             jurisdiction=self.jurisdiction,
+            color="#808080",
         )
         self.management_unit = ManagementUnitFactory(**self.management_unit_dict)
 
@@ -86,6 +92,7 @@ class TestCommonLookupAPI(APITestCase):
             "scientific_name": "Salvelinus namaycush",
             "species_code": 81,
             "speciescommon": "1230101098",
+            "color": "#808080",
         }
 
         self.species = SpeciesFactory(**self.species_dict)
@@ -95,6 +102,7 @@ class TestCommonLookupAPI(APITestCase):
             "strain_code": "SN",
             "strain_label": "Seneca",
             "strain_species": self.species,
+            "color": "#808080",
         }
 
         self.strain = StrainFactory(**self.strain_dict)
@@ -105,6 +113,7 @@ class TestCommonLookupAPI(APITestCase):
             "description": "Seneca One",
             "species": self.species,
             "strain": self.strain,
+            "color": "#808080",
         }
 
         self.raw_strain = StrainRawFactory(**self.strain_raw_dict)
@@ -118,8 +127,25 @@ class TestCommonLookupAPI(APITestCase):
         self.clipcode_dict = dict(
             clip_code="ADLP",
             description="Adipose, Left Pectoral",
+            color="#808080",
         )
         self.clipcodes = CompositeFinClipFactory(**self.clipcode_dict)
+
+        self.fishtag_dict = {
+            "tag_code": "FTB",
+            "description": "floy tag, blue",
+            "color": "#808080",
+        }
+
+        self.fishtags = FishTagFactory(**self.fishtag_dict)
+
+        self.physchem_dict = {
+            "mark_code": "DY",
+            "description": "dye, general",
+            "color": "#808080",
+        }
+
+        self.phychem_marks = PhysChemMarkFactory(**self.physchem_dict)
 
     def test_common_lookups_api(self):
         """the common lookups api should return a list of dictionaries/json
@@ -148,6 +174,8 @@ class TestCommonLookupAPI(APITestCase):
                 "strains",
                 "raw_strains",
                 "clipcodes",
+                "fish_tags",
+                "physchem_marks",
             ]
         )
         obs = set(response.data.keys())
@@ -164,6 +192,10 @@ class TestCommonLookupAPI(APITestCase):
         assert response.data.get("raw_strains") == [self.strain_raw_dict]
 
         assert response.data.get("clipcodes") == [self.clipcode_dict]
+
+        assert response.data.get("fish_tags") == [self.fishtag_dict]
+        assert response.data.get("physchem_marks") == [self.physchem_dict]
+
         # juristiction, mangement_unit, and strains are a little more complicated as
         # they contains a nested objects or keys derived from nested objects
         expected = self.strain_dict.copy()

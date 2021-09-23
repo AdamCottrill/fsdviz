@@ -12,6 +12,8 @@ from django.contrib.postgres.fields import IntegerRangeField
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
 
+from colorfield.fields import ColorField
+
 from .validators import validate_cwt_sequence_range
 
 
@@ -56,6 +58,7 @@ class Agency(models.Model):
 
     abbrev = models.CharField(max_length=15, unique=True)
     agency_name = models.CharField(max_length=100, unique=True)
+    color = ColorField(default="#FF0000")
 
     class Meta:
         verbose_name_plural = "Agencies"
@@ -67,7 +70,7 @@ class Agency(models.Model):
         return self.get(abbrev=abbrev)
 
     def __str__(self):
-        """ String representation for a agency."""
+        """String representation for a agency."""
         return "{} ({})".format(self.agency_name, self.abbrev)
 
 
@@ -81,7 +84,7 @@ class Lake(models.Model):
     abbrev = models.CharField(max_length=2, unique=True)
     lake_name = models.CharField(max_length=30, unique=True)
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
-
+    color = ColorField(default="#FF0000")
     # geom including associated watersheds
     # geom_plus = models.MultiPolygonField(srid=4326, blank=True, null=True)
 
@@ -89,7 +92,7 @@ class Lake(models.Model):
         ordering = ["abbrev"]
 
     def __str__(self):
-        """ String representation for a lake."""
+        """String representation for a lake."""
         return "{} ({})".format(self.lake_name, self.abbrev)
 
     def short_name(self):
@@ -118,12 +121,13 @@ class StateProvince(models.Model):
     name = models.CharField(max_length=30, unique=True)
     description = models.CharField(max_length=300)
     country = models.CharField(max_length=3, choices=COUNTRIES)
+    color = ColorField(default="#FF0000")
 
     class Meta:
         ordering = ["abbrev"]
 
     def __str__(self):
-        """ String representation for a State."""
+        """String representation for a State."""
         return "{} ({})".format(self.name, self.abbrev)
 
 
@@ -150,7 +154,7 @@ class Jurisdiction(models.Model):
     slug = models.CharField(max_length=5, unique=True)
     name = models.CharField(max_length=30, unique=True)
     description = models.CharField(max_length=300)
-
+    color = ColorField(default="#FF0000")
     # complete geometry of shoreline and state/province boundaries
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     # juristiction including associated watersheds
@@ -160,7 +164,7 @@ class Jurisdiction(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        """ String representation for a State."""
+        """String representation for a State."""
         return "{} - {} waters".format(self.lake.lake_name, self.stateprov.name)
 
     def save(self, *args, **kwargs):
@@ -194,6 +198,7 @@ class ManagementUnit(models.Model):
     label = models.CharField(max_length=25)
     slug = models.SlugField(blank=True, unique=True, editable=False)
     description = models.CharField(max_length=300)
+    color = ColorField(default="#FF0000")
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     # geom including associated watersheds
     # geom_plus = models.MultiPolygonField(srid=4326, blank=True, null=True)
@@ -272,7 +277,7 @@ class Grid10(models.Model):
         ordering = ["lake__abbrev", "grid"]
 
     def __str__(self):
-        """ String representation for a State."""
+        """String representation for a State."""
         return "{} ({})".format(self.grid, self.lake.abbrev)
 
     def get_slug(self):
@@ -311,6 +316,7 @@ class Species(models.Model):
     scientific_name = models.CharField(max_length=50, blank=True, null=True)
     # family = models.CharField(max_length=50)
     species_code = models.IntegerField(unique=True)
+    color = ColorField(default="#FF0000")
 
     strains = models.ManyToManyField(
         "Strain", through="StrainRaw", related_name="species"
@@ -321,7 +327,7 @@ class Species(models.Model):
         ordering = ["abbrev"]
 
     def __str__(self):
-        """ String representation for a Species."""
+        """String representation for a Species."""
         return "{} ({})".format(self.common_name.title(), self.abbrev)
 
 
@@ -341,6 +347,7 @@ class Strain(models.Model):
     strain_code = models.CharField(max_length=10)
     strain_label = models.CharField(max_length=100)
     description = models.CharField(max_length=500, blank=True, null=True)
+    color = ColorField(default="#FF0000")
 
     strain_species = models.ForeignKey("Species", on_delete=models.CASCADE)
 
@@ -388,6 +395,7 @@ class StrainRaw(models.Model):
     # raw_strain_code = models.CharField(max_length=10)
     raw_strain = models.CharField(max_length=100)
     description = models.CharField(max_length=500)
+    color = ColorField(default="#FF0000")
 
     class Meta:
         ordering = ["species__abbrev", "raw_strain"]
@@ -442,6 +450,7 @@ class FinClip(models.Model):
 
     abbrev = models.CharField(max_length=2, unique=True)
     description = models.CharField(max_length=100)
+    color = ColorField(default="#FF0000")
 
     class Meta:
         ordering = ["abbrev"]
@@ -463,6 +472,7 @@ class CompositeFinClip(models.Model):
 
     clip_code = models.CharField(max_length=10, unique=True)
     description = models.CharField(max_length=100)
+    color = ColorField(default="#FF0000")
 
     class Meta:
         ordering = ["clip_code"]
@@ -500,6 +510,7 @@ class PhysChemMark(models.Model):
     mark_code = models.CharField(max_length=10, unique=True)
     mark_type = models.CharField(max_length=10, choices=MARK_TYPE_CHOICES)
     description = models.CharField(max_length=100)
+    color = ColorField(default="#FF0000")
 
     class Meta:
         ordering = ["mark_code"]
@@ -540,6 +551,7 @@ class FishTag(models.Model):
     tag_type = models.CharField(max_length=10, choices=TAG_TYPE_CHOICES)
     tag_colour = models.CharField(max_length=10, choices=TAG_COLOUR_CHOICES)
     description = models.CharField(max_length=100)
+    color = ColorField(default="#FF0000")
 
     class Meta:
         ordering = ["tag_code"]

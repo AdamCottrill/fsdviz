@@ -1,5 +1,7 @@
 import { select, selectAll } from "d3-selection";
 
+import { scaleOrdinal } from "d3-scale";
+
 // a function to prepare the json stocking data for use in our map
 export const prepare_stocking_data = (data) => {
   data.point = [+data.longitude, +data.latitude];
@@ -8,7 +10,8 @@ export const prepare_stocking_data = (data) => {
   data.total = +data.total_stocked;
   data.year_class = data.year_class ? data.year_class + "" : "Unkn";
   data.yreq = +data.yreq;
-  data.mark = data.mark ? data.mark : "None";
+  data.mark = data._mark ? data._mark : "NONE";
+  data.clip = data.clip ? data.clip : "NONE";
   data.month = data.month ? data.month + "" : "0";
 };
 
@@ -42,14 +45,6 @@ export const get_coordinates = (pt) => {
   return [parseFloat(coords[0]), parseFloat(coords[1])];
 };
 
-export const makeLookup = (itemList, key_index = 0, value_index = 1) => {
-  const itemMap = itemList.reduce((accumulator, d) => {
-    accumulator[d[key_index]] = d[value_index];
-    return accumulator;
-  }, {});
-  return itemMap;
-};
-
 export const hideShowTableRows = (selector, row_ids) => {
   // get all of the rows in the current able and set the visibility
   // if the id of the row is in the rowIds attribute.
@@ -70,4 +65,28 @@ export const update_clear_button_state = (filters) => {
 
   let clear_button = select("#clear-filters-button");
   clear_button.classed("disabled", !filtered);
+};
+
+// a little helper function that will return a custom d3 colour
+// scale if we pass an object containing key-value pairs of keys and colours
+export const getColorScale = (colors) => {
+  return scaleOrdinal()
+    .domain(Object.entries(colors).map((x) => x[0]))
+    .range(Object.entries(colors).map((x) => x[1]));
+};
+
+export const makeColorMap = (itemList, key = "abbrev") => {
+  const itemMap = itemList.reduce((accumulator, d) => {
+    accumulator[d[`${key}`]] = d.color;
+    return accumulator;
+  }, {});
+  return itemMap;
+};
+
+export const makeItemMap = (itemList, key, value) => {
+  const itemMap = itemList.reduce((accumulator, d) => {
+    accumulator[d[`${key}`]] = d[`${value}`];
+    return accumulator;
+  }, {});
+  return itemMap;
 };

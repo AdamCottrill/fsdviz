@@ -336,6 +336,8 @@ class StockingEventMapListView(generics.ListAPIView):
             "grid10": F("grid_10__slug"),
             "stk_method": F("stocking_method__stk_meth"),
             "life_stage": F("lifestage__abbrev"),
+            "clip": F("clip_code__clip_code"),
+            "_mark": F("physchem_marks__mark_code"),
             "agency_abbrev": F("agency__abbrev"),
             "species_name": F("species__abbrev"),
             "strain": F("strain_raw__strain__strain_label"),
@@ -378,6 +380,8 @@ class StockingEventMapListView(generics.ListAPIView):
                 "grid_10",
                 "management_unit",
                 "agency",
+                "clip_code",
+                "physchem_mark",
                 "strain_raw__strain",
                 "stocking_method",
             )
@@ -409,7 +413,8 @@ class StockingEventMapListView(generics.ListAPIView):
                 "species_name",
                 "strain",
                 "year_class",
-                "mark",
+                "clip",
+                "_mark",
             )
             .order_by()
             .annotate(**aggregation_metrics)
@@ -459,11 +464,12 @@ class StockingEventListAPIView(APIView):
             "_tags": StringAgg(
                 "fish_tags__tag_code", delimiter=";", ordering="fish_tags__tag_code"
             ),
-            "_marks": StringAgg(
-                "physchem_marks__mark_code",
-                delimiter=";",
-                ordering="physchem_marks__mark_code",
-            ),
+            "_marks": F("physchem_marks__mark_code"),
+            # "_marks": StringAgg(
+            #     "physchem_marks__mark_code",
+            #     delimiter=";",
+            #     ordering="physchem_marks__mark_code",
+            # ),
         }
 
         fields = [
@@ -543,8 +549,10 @@ class StockingEventLookUpsAPIView(APIView):
 
     def get(self, request):
 
-        lifestages = LifeStage.objects.values("abbrev", "description")
-        stockingmethods = StockingMethod.objects.values("stk_meth", "description")
+        lifestages = LifeStage.objects.values("abbrev", "description", "color")
+        stockingmethods = StockingMethod.objects.values(
+            "stk_meth", "description", "color"
+        )
 
         lookups = {
             "stockingmethods": list(stockingmethods),

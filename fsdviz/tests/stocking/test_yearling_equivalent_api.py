@@ -90,10 +90,7 @@ def test_yearing_equivalent_detail(client):
     }
     species = SpeciesFactory(**species_dict)
 
-    lifestage_dict = {
-        "abbrev": "f",
-        "description": "fry",
-    }
+    lifestage_dict = {"abbrev": "f", "description": "fry"}
     lifestage = LifeStageFactory(**lifestage_dict)
 
     yreq_factor = 0.1

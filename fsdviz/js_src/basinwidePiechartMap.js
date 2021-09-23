@@ -1,9 +1,5 @@
 /* global  $, dataURL,  topoUrl, centroidsUrl, sliceVar, spatialUnit, yearRange, currentYear */
 
-// needed to build the breadcrumbs if mapstate !== basin-all
-// muMap = {}
-//common.manUnits.map(d=>muMap[d.slug] = d.jurisdiction)
-
 import debug from "debug";
 
 import Leaflet from "leaflet";
@@ -11,17 +7,14 @@ import crossfilter from "crossfilter2";
 
 import { scaleOrdinal, selectAll, select, csv, json, sum } from "d3";
 
-// import { scaleOrdinal } from "d3-scale";
-// import { selectAll, select } from "d3-selection";
-// import { csv, json } from "d3-fetch";
-// import { sum } from "d3-array";
-
 import { checkBoxes } from "./components/checkBoxArray";
 
 import {
   prepare_stocking_data,
   initialize_filter,
   update_clear_button_state,
+  makeItemMap,
+  makeColorMap,
 } from "./components/utils";
 
 import {
@@ -41,8 +34,6 @@ import { polygon_overlay } from "./components/polygon_overlay";
 import { spatialRadioButtons } from "./components/RadioButtons";
 import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
-
-import { speciesColours, all_species } from "./components/constants";
 
 import {
   parseParams,
@@ -98,23 +89,25 @@ const labelLookup = {};
 // empty objects to hold our lookup values - populated after we get the data from the api.
 let species_lookup = {};
 let species_inverse_lookup = {};
+let species_colors = {};
 
 let strain_lookup = {};
 let strain_inverse_lookup = {};
+let strain_colors = {};
 
 let lifestage_lookup = {};
 let lifestage_inverse_lookup = {};
+let lifestage_colors = {};
 
 let stocking_method_lookup = {};
 let stocking_method_inverse_lookup = {};
+let stocking_method_colors = {};
+
+let agency_colors = {};
+let clip_colors = {};
+let mark_colors = {};
 
 // sliceVar, responseVar, column should reflect current state of the url
-// or provided with reasonable defaults:
-// similarly, we need to set the spatial resultion based on the value of map-state
-
-// the name of the column with our response:
-//let responseVar = "yreq";
-//let sliceVar = "agency_abbrev";
 
 sliceVar = getUrlParamValue("sliceVar")
   ? getUrlParamValue("sliceVar")
@@ -129,7 +122,6 @@ let mapState = getUrlParamValue("mapState")
   ? getUrlParamValue("mapState")
   : "basin-all";
 
-//let column = "events";
 let column = responseVar;
 
 // a map from mapState strings to feature types in topodata
@@ -156,9 +148,7 @@ Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
 }).addTo(mymap);
 
-const speciesColourScale = scaleOrdinal()
-  .range(speciesColours)
-  .domain(all_species);
+const colourScale = scaleOrdinal();
 
 // intantiation our polygon overlay
 let polygons = polygon_overlay().leafletMap(mymap);
@@ -182,7 +172,7 @@ function projectPoint(x, y) {
 let piecharts = piechart_overlay(mymap)
   .responseVar(responseVar)
   .getProjection(projectPoint)
-  .fillScale(speciesColourScale);
+  .fillScale(colourScale);
 
 //======================================================
 //           RADIO BUTTONS
@@ -213,6 +203,7 @@ let slices = [
   { name: "species_name", label: "Species" },
   { name: "strain", label: "Strain" },
   { name: "mark", label: "Mark" },
+  { name: "clip", label: "Clip" },
   { name: "life_stage", label: "Life Stage" },
   { name: "stk_method", label: "Stocking Method" },
 ];
@@ -252,57 +243,39 @@ Promise.all([
   // prepare our stocking data and set up our cross filters:
   data.forEach((d) => prepare_stocking_data(d));
 
-  species_lookup = common["species"].reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.common_name;
-    return accumulator;
-  }, {});
+  // LOOKUP MAPA
 
-  species_inverse_lookup = common["species"].reduce((accumulator, d) => {
-    accumulator[d.common_name] = d.abbrev;
-    return accumulator;
-  }, {});
+  species_lookup = makeItemMap(common.species, "abbrev", "common_name");
+  species_inverse_lookup = makeItemMap(common.species, "common_name", "abbrev");
+  species_colors = makeColorMap(common.species, "abbrev");
 
-  // Strain Maps (these may need some more work!)
-  strain_lookup = common["strains"].reduce((accumulator, d) => {
-    accumulator[d.strain_species.slug] = d.strain_label;
-    return accumulator;
-  }, {});
+  strain_lookup = makeItemMap(common.strains, "slug", "strain_label");
+  strain_inverse_lookup = makeItemMap(common.strains, "strain_label", "slug");
+  strain_colors = makeColorMap(common.strains, "slug");
 
-  strain_inverse_lookup = common["strains"].reduce((accumulator, d) => {
-    accumulator[d.strain_label] = d.strain_species.slug;
-    return accumulator;
-  }, {});
-
-  // Stocking Method Maps:
-  stocking_method_lookup = stocking["stockingmethods"].reduce(
-    (accumulator, d) => {
-      accumulator[d.stk_meth] = d.description;
-      return accumulator;
-    },
-    {}
+  stocking_method_lookup = makeItemMap(
+    stocking.stockingmethods,
+    "stk_meth",
+    "description"
   );
-
-  stocking_method_inverse_lookup = stocking["stockingmethods"].reduce(
-    (accumulator, d) => {
-      accumulator[d.description] = d.stk_meth;
-      return accumulator;
-    },
-    {}
+  stocking_method_inverse_lookup = makeItemMap(
+    stocking.stockingmethods,
+    "description",
+    "stk_meth"
   );
+  stocking_method_colors = makeColorMap(stocking.stockingmethods, "stk_meth");
 
-  // Lifestage Maps:
-  lifestage_lookup = stocking["lifestages"].reduce((accumulator, d) => {
-    accumulator[d.abbrev] = d.description;
-    return accumulator;
-  }, {});
-
-  lifestage_inverse_lookup = stocking["stockingmethods"].reduce(
-    (accumulator, d) => {
-      accumulator[d.description] = d.abbrev;
-      return accumulator;
-    },
-    {}
+  lifestage_lookup = makeItemMap(stocking.lifestages, "abbrev", "description");
+  lifestage_inverse_lookup = makeItemMap(
+    stocking.lifestages,
+    "description",
+    "abbrev"
   );
+  lifestage_colors = makeColorMap(stocking.lifestages, "abbrev");
+
+  agency_colors = makeColorMap(common.agencies, "abbrev");
+  clip_colors = makeColorMap(common.clipcodes, "clip_code");
+  mark_colors = makeColorMap(common.physchem_marks, "mark_code");
 
   // an accessor function to get values of our currently selected
   // response variable.
@@ -344,6 +317,37 @@ Promise.all([
     return pts.filter((d) => d.total > 0);
   };
 
+  const updateColorScale = (value) => {
+    let colors;
+    switch (value) {
+      case "agency_abbrev":
+        colors = agency_colors;
+        break;
+      case "species_name":
+        colors = species_colors;
+        break;
+      case "strain":
+        colors = strain_colors;
+        break;
+      case "mark":
+        colors = mark_colors;
+        break;
+      case "clip":
+        colors = clip_colors;
+        break;
+      case "life_stage":
+        colors = lifestage_colors;
+        break;
+      case "stk_method":
+        colors = stocking_method_colors;
+        break;
+    }
+
+    colourScale
+      .domain(Object.entries(colors).map((x) => x[0]))
+      .range(Object.entries(colors).map((x) => x[1]));
+  };
+
   // recacalculate the points given the current spatial unit and
   // point accessor
   const updatePieCharts = () => {
@@ -352,7 +356,7 @@ Promise.all([
     piecharts.selectedPie(null).clear_pointInfo();
 
     update_stats_panel(all, {
-      fillScale: speciesColourScale,
+      fillScale: colourScale,
       label: slices.filter((d) => d.name === sliceVar)[0].label,
       what: sliceVar,
     });
@@ -372,6 +376,7 @@ Promise.all([
   // the global variable and update the pie charts
   const update_sliceVar = (value) => {
     sliceVar = value;
+    updateColorScale(sliceVar);
     calcMapGroups();
     updatePieCharts();
     updateUrlParams("sliceVar", value);
@@ -404,6 +409,7 @@ Promise.all([
   let yearClassDim = ndx.dimension((d) => d.year_class);
   let lifeStageDim = ndx.dimension((d) => d.life_stage);
   let markDim = ndx.dimension((d) => d.mark);
+  let clipDim = ndx.dimension((d) => d.clip);
   let monthDim = ndx.dimension((d) => d.month);
   let stkMethDim = ndx.dimension((d) => d.stk_method);
 
@@ -418,6 +424,7 @@ Promise.all([
   let yearClassGroup = yearClassDim.group().reduceSum((d) => d[column]);
   let lifeStageGroup = lifeStageDim.group().reduceSum((d) => d[column]);
   let markGroup = markDim.group().reduceSum((d) => d[column]);
+  let clipGroup = clipDim.group().reduceSum((d) => d[column]);
   let monthGroup = monthDim.group().reduceSum((d) => d[column]);
   let stkMethGroup = stkMethDim.group().reduceSum((d) => d[column]);
 
@@ -467,12 +474,6 @@ Promise.all([
 
   calcMapGroups();
 
-  // update_stats_panel(all, {
-  //   fillScale: speciesColourScale,
-  //   label: slices.filter((d) => d.name === sliceVar)[0].label,
-  //   what: sliceVar,
-  //});
-
   //A function to set all of the filters to checked - called when
   //the page loads or if the reset button is clicked.
   const set_or_reset_filters = (query_args) => {
@@ -486,6 +487,7 @@ Promise.all([
     initialize_filter(filters, "yearClass", yearClassDim, query_args);
     initialize_filter(filters, "lifeStage", lifeStageDim, query_args);
     initialize_filter(filters, "mark", markDim, query_args);
+    initialize_filter(filters, "clip", clipDim, query_args);
     initialize_filter(filters, "stockingMonth", monthDim, query_args);
     initialize_filter(filters, "stkMeth", stkMethDim, query_args);
   };
@@ -495,9 +497,10 @@ Promise.all([
 
   // initialize our filters when everything loads
   set_or_reset_filters(query_args);
+  updateColorScale(sliceVar);
   update_clear_button_state(filters);
   update_stats_panel(all, {
-    fillScale: speciesColourScale,
+    fillScale: colourScale,
     label: slices.filter((d) => d.name === sliceVar)[0].label,
     what: sliceVar,
   });
@@ -576,6 +579,14 @@ Promise.all([
     filterkey: "mark",
     xfdim: markDim,
     xfgroup: markGroup,
+    filters: filters,
+  });
+
+  let clipSelection = select("#clip-filter");
+  checkBoxes(clipSelection, {
+    filterkey: "clip",
+    xfdim: clipDim,
+    xfgroup: clipGroup,
     filters: filters,
   });
 
@@ -741,7 +752,7 @@ Promise.all([
   // if the crossfilter changes, update our checkboxes:
   ndx.onChange(() => {
     update_stats_panel(all, {
-      fillScale: speciesColourScale,
+      fillScale: colourScale,
       label: slices.filter((d) => d.name === sliceVar)[0].label,
       what: sliceVar,
     });
@@ -806,6 +817,13 @@ Promise.all([
       filterkey: "mark",
       xfdim: markDim,
       xfgroup: markGroup,
+      filters: filters,
+    });
+
+    checkBoxes(clipSelection, {
+      filterkey: "clip",
+      xfdim: clipDim,
+      xfgroup: clipGroup,
       filters: filters,
     });
 

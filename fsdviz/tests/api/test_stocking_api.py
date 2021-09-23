@@ -93,7 +93,10 @@ class TestLifestageAPI(APITestCase):
         objects = [
             {"abbrev": "e", "description": "egg"},
             {"abbrev": "f", "description": "fingerling, age-0"},
-            {"abbrev": "ff", "description": "fall fingerling, age-0"},
+            {
+                "abbrev": "ff",
+                "description": "fall fingerling, age-0",
+            },
         ]
 
         for obj in objects:
@@ -130,8 +133,14 @@ class TestStockingMethodAPI(APITestCase):
 
         objects = [
             {"stk_meth": "acc", "description": "Acclimation Site"},
-            {"stk_meth": "atv", "description": "all terrain vehicle"},
-            {"stk_meth": "b", "description": "boat, offshore stocking"},
+            {
+                "stk_meth": "atv",
+                "description": "all terrain vehicle",
+            },
+            {
+                "stk_meth": "b",
+                "description": "boat, offshore stocking",
+            },
         ]
 
         for obj in objects:
@@ -151,7 +160,10 @@ class TestStockingMethodAPI(APITestCase):
         object by passing it's abbrev to the url."""
 
         stk_meth = "b"
-        obj = {"stk_meth": stk_meth, "description": "boat, offshore stocking"}
+        obj = {
+            "stk_meth": stk_meth,
+            "description": "boat, offshore stocking",
+        }
 
         StockingMethodFactory(**obj)
 
