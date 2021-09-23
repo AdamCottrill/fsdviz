@@ -30,7 +30,7 @@
 
     </style>
 
-    
+
 {% endblock %}
 
 
@@ -40,9 +40,18 @@
 
         <h1>Find CWT Stocking Events</h1>
 
+        <div class="ui grid">
+            <div class="eight wide column ">
         <h5>Estimated number of events: <strong>
             <span id="event-total"></span>
         </strong> </h5>
+            </div>
+            <div class="right floated two wide column">
+                <button class="ui mini blue basic button"  id="toggle-map-link" onclick="toggle_map();">
+                    Hide Map
+                </button>
+            </div>
+        </div>
 
         <div class="ui basic segment">
 
@@ -50,13 +59,13 @@
                 <div class="ui large text loader">Retrieving Stocking Events...</div>
             </div>
 
-            
+
             <form class="ui form" id="find-events-form" action="{% url 'stocking:find-cwt-stocking-events' %}" method="POST">
                 {% csrf_token %}
-               
-                
+
+
                 <div class="grid">
-                    
+
                     <div class="fields">
                         {% if form.errors %}
                             <div class="ui negative message">
@@ -82,7 +91,7 @@
                                         {% endfor %}
                                     {% endif %}
 
-                                    
+
                             </div>
                         {% endif %}
 
@@ -98,9 +107,9 @@
                     <div class="ui segment">
                         {{ form.roi }}
                     </div>
-                    
+
                     <div class="ui segment">
-                        
+
                         <div class="fields">
                             <!-- LAKE -->
                             <div class="eight wide field {% if form.lake.errors %} error{% endif %}">
@@ -192,16 +201,16 @@
                         </div>
 
 
-                        
 
 
 
 
-                        
+
+
                     </div>
 
 
-                    
+
 
                     <div class="ui segment">
                         <div class="fields">
@@ -293,7 +302,7 @@
 
 
 
-                    
+
                     <div class="ui segment">
                         <div class="fields">
                             <!-- LIFE_STAGE -->
@@ -327,7 +336,7 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
 
                     <div class="row">
                         <div class="ui clear button" id="reset-button">Reset Form</div>
@@ -354,18 +363,18 @@
      $('.ui.form').form();
      $(".select.dropdown").dropdown();
 
-     
+
      $('#find-events-form').form({
          onSuccess: function(e) {
              $('#event-loader').addClass('active');
          }
      });
-     
-     
+
+
      // our dropdown label lookups - cross filter returns the
      // current id's or slugs. these are used to create meaningful lables
 
-     
+
      let lakes = {{ lakes|safe}};
      let agencies = {{ agencies|safe}};
      let jurisdictions = {{ jurisdictions|safe}};
@@ -375,7 +384,7 @@
      let strains = {{ strains|safe }};
      let lifestages = {{ lifestages|safe }};
      let stockingMethods = {{ stocking_methods|safe }};
-     
+
      //these are our disctict combinations of values represented in our drop-down boxes.
      // crossfilter will be used to track available values as filters are applied on other dimensions.
      // e.g. - OMNR stocking should disappear when Lake Michigan is selected.
@@ -394,26 +403,26 @@
          }
      };
 
-     
+
     </script>
-    
+
     <script src="{% static "js/findEventsForm.js" %}">    </script>
-   
+
     <script>
-     
+
      //==========================================
      // ROI Code
 
-     
+
      const csrf_token = "{{ csrf_token }}";
-     const roiURL = "{% url 'common_api:api-lookup-roi-attrs' %}";          
+     const roiURL = "{% url 'common_api:api-lookup-roi-attrs' %}";
      let geojson;
 
-     
+
      //ajax call when we draw or edit our region of interest:
-     
+
      const call_api_roi = (geom) =>{
-         
+
          $.ajax({
              type: "POST",
              url: roiURL,
@@ -423,16 +432,16 @@
                  roi: JSON.stringify(geom.geometry),
                  csrfmiddlewaretoken: csrf_token
              },
-             success: data => {                 
+             success: data => {
                  // get all of the returned jurisdiction slugs and use them to apply filters:
-                 if (data.juridictions != ""){                   
+                 if (data.juridictions != ""){
                      // primary management units in roi:
                      //slugs = data.jurisdictions.map(d=>d.jurisd);
                      slugs = data.manUnits.filter(x=>x.primary).map(d=>d.slug)
                      filterDim(roiDim, slugs);
                  } else {
-                     filterDim(roiDim, NaN)                     
-                 }       
+                     filterDim(roiDim, NaN)
+                 }
              },
              error: data => {
                  console.log("error retrieving geoms from roi!")
@@ -440,13 +449,13 @@
          });
      }
 
-     
-     
+
+
      window.addEventListener(
          "map:init",
          function (e) {
              let map = e.detail.map;
-             
+
              let geojson;
              map.on(L.Draw.Event.CREATED, function (e) {
                  geojson = e.layer.toGeoJSON();
@@ -455,32 +464,55 @@
              // this does work as expected!!
              /* map.on(L.Draw.Event.EDITED, function (e) {
               *     //map.on('draw:editstop', function (e) {
-              *     e.target.eachLayer(layer => {                 
+              *     e.target.eachLayer(layer => {
               *         console.log(layer);
-              *         
+              *
               *     });
               *     geojson = e.layer.toGeoJSON();
               *     console.log("edited");
               *     roi=true;
               *     call_api_roi(geojson);
-              *     
+              *
               * }); */
 
-             
+
              map.on(L.Draw.Event.DELETED, function (e) {
                  filterDim(roiDim, NaN)
 
              });
 
-             
+
          },
          false
      );
-     
 
 
-     
-     
+
+     const toggle_map = () => {
+         // get the parent container of element "id_roi-map"
+         let mapDiv = document.getElementById("id_roi-map").parentElement;
+         let toggleLink = document.getElementById("toggle-map-link");
+         if(mapDiv.style.display !== 'block'){
+             mapDiv.style.display = 'block';
+             toggleLink.innerHTML = 'Hide Map';
+             mapReferences[0].invalidateSize();
+         }  else {
+             mapDiv.style.display = 'none';
+             toggleLink.innerHTML = 'Show Map';
+             mapReferences[0].invalidateSize();
+         }
+     };
+
+
+     $(document).ready(function(){
+         let mapDiv = document.getElementById("id_roi-map").parentElement;
+         let toggleLink = document.getElementById("toggle-map-link");
+         mapDiv.style.display = 'block';
+         toggleLink.innerHTML = 'Hide Map';
+     });
+
+
+
     </script>
 
 
