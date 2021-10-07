@@ -46,6 +46,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
   text-transform: capitalize;
   }
 
+.ui .checkbox > label {
+  text-transform: capitalize;
+  }
+
+
 .point:hover {
     fill: yellow;
     fill-opacity: 1.0;

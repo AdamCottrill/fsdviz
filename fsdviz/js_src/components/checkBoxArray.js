@@ -3,7 +3,15 @@ import { select } from "d3-selection";
 import { updateUrlCheckBoxParams } from "./url_parsing";
 
 export const checkBoxes = (selection, props) => {
-  const { filterkey, xfdim, xfgroup, filters } = props;
+  const {
+    filterkey,
+    xfdim,
+    xfgroup,
+    filters,
+    label_lookup,
+    withKey,
+    sortByLabel,
+  } = props;
 
   // semantic-ui checkbox markup:
   //  `<div class="checkbox" id={}>
@@ -16,7 +24,18 @@ export const checkBoxes = (selection, props) => {
   let myfilters = filters[filterkey].values;
 
   let keys = xfgroup.top("Infinity").filter((d) => d.value > 0);
-  keys.sort((a, b) => a.key - b.key);
+
+  let compareFn;
+  if (sortByLabel) {
+    compareFn = (a, b) =>
+      label_lookup[a.key].localeCompare(label_lookup[b.key]);
+  } else {
+    compareFn = (a, b) => a.key.localeCompare(b.key);
+  }
+  if (filterkey == "stockingMonth") {
+    compareFn = (a, b) => a.key - b.key;
+  }
+  keys.sort(compareFn);
 
   // an object to contain the checkbox status for each checkbox
   let checkbox_map = {};
@@ -66,7 +85,20 @@ export const checkBoxes = (selection, props) => {
       xfdim.filter((val) => myfilters.indexOf(val) > -1);
     });
 
-  uiCheckbox.append("label").text((d) => d.key + " (n=" + d.value + ")");
+  //uiCheckbox.append("label").text((d) => d.key + " (n=" + d.value + ")");
+  // format the label with or withiout a the key
+
+  if (withKey) {
+    uiCheckbox.append("label").text((d) => {
+      const label = d.key ? `${label_lookup[d.key]} (${d.key})` : d.key;
+      return label;
+    });
+  } else {
+    uiCheckbox.append("label").text((d) => {
+      const label = d.key ? label_lookup[d.key] : d.key;
+      return label;
+    });
+  }
 
   let buttonbar = select(`#${selector}-buttons`).attr("class", "ui buttons");
 

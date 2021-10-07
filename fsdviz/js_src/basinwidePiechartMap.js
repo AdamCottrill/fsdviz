@@ -8,6 +8,7 @@ import crossfilter from "crossfilter2";
 import { scaleOrdinal, selectAll, select, csv, json, sum } from "d3";
 
 import { checkBoxes } from "./components/checkBoxArray";
+import { month_lookup } from "./components/constants";
 
 import {
   prepare_stocking_data,
@@ -243,7 +244,26 @@ Promise.all([
   // prepare our stocking data and set up our cross filters:
   data.forEach((d) => prepare_stocking_data(d));
 
-  // LOOKUP MAPA
+  // LOOKUP MAPS
+
+  const lake_lookup = makeItemMap(common.lakes, "abbrev", "lake_name");
+  const agency_lookup = makeItemMap(common.agencies, "abbrev", "agency_name");
+  const stateprov_lookup = makeItemMap(common.stateprov, "abbrev", "name");
+  const managementUnit_lookup = makeItemMap(common.manUnits, "slug", "label");
+  const jurisdiction_lookup = makeItemMap(common.jurisdictions, "slug", "name");
+  // prefix the jurisdiction labels with 'Lake'
+  for (const [key, val] of Object.entries(jurisdiction_lookup)) {
+    jurisdiction_lookup[key] = `Lake ${val}`;
+  }
+
+  const clip_lookup = makeItemMap(common.clipcodes, "clip_code", "description");
+  const mark_lookup = makeItemMap(
+    common.physchem_marks,
+    "mark_code",
+    "description"
+  );
+  // need to account for events without any marks:
+  mark_lookup["NONE"] = "No Mark";
 
   species_lookup = makeItemMap(common.species, "abbrev", "common_name");
   species_inverse_lookup = makeItemMap(common.species, "common_name", "abbrev");
@@ -511,11 +531,15 @@ Promise.all([
   clear_button.on("click", set_or_reset_filters);
 
   let lakeSelection = select("#lake-filter");
+
   checkBoxes(lakeSelection, {
     filterkey: "lake",
     xfdim: lakeDim,
     xfgroup: lakeGroup,
     filters: filters,
+    label_lookup: lake_lookup,
+    withKey: true,
+    sortByLabel: true,
   });
 
   let stateProvSelection = select("#state-prov-filter");
@@ -524,14 +548,21 @@ Promise.all([
     xfdim: stateProvDim,
     xfgroup: stateProvGroup,
     filters: filters,
+    label_lookup: stateprov_lookup,
+    withKey: true,
+    sortByLabel: true,
   });
 
   let jurisdictionSelection = select("#jurisdiction-filter");
+
   checkBoxes(jurisdictionSelection, {
     filterkey: "jurisdiction",
     xfdim: jurisdictionDim,
     xfgroup: jurisdictionGroup,
     filters: filters,
+    label_lookup: jurisdiction_lookup,
+    withKey: false,
+    sortByLabel: true,
   });
 
   let manUnitSelection = select("#manUnit-filter");
@@ -540,6 +571,9 @@ Promise.all([
     xfdim: manUnitDim,
     xfgroup: manUnitGroup,
     filters: filters,
+    label_lookup: managementUnit_lookup,
+    withKey: false,
+    sortByLabel: true,
   });
 
   let agencySelection = select("#agency-filter");
@@ -548,6 +582,9 @@ Promise.all([
     xfdim: agencyDim,
     xfgroup: agencyGroup,
     filters: filters,
+    label_lookup: agency_lookup,
+    withKey: true,
+    sortByLabel: true,
   });
 
   let speciesSelection = select("#species-filter");
@@ -556,6 +593,9 @@ Promise.all([
     xfdim: speciesDim,
     xfgroup: speciesGroup,
     filters: filters,
+    label_lookup: species_lookup,
+    withKey: true,
+    sortByLabel: true,
   });
 
   let strainSelection = select("#strain-filter");
@@ -564,6 +604,9 @@ Promise.all([
     xfdim: strainDim,
     xfgroup: strainGroup,
     filters: filters,
+    label_lookup: makeItemMap(strainGroup.all(), "key", "key"),
+    withKey: false,
+    sortByLabel: true,
   });
 
   let yearClassSelection = select("#year-class-filter");
@@ -572,6 +615,9 @@ Promise.all([
     xfdim: yearClassDim,
     xfgroup: yearClassGroup,
     filters: filters,
+    label_lookup: makeItemMap(yearClassGroup.all(), "key", "key"),
+    withKey: false,
+    sortByLabel: true,
   });
 
   let markSelection = select("#mark-filter");
@@ -580,6 +626,9 @@ Promise.all([
     xfdim: markDim,
     xfgroup: markGroup,
     filters: filters,
+    label_lookup: mark_lookup,
+    withKey: true,
+    sortByLabel: true,
   });
 
   let clipSelection = select("#clip-filter");
@@ -588,6 +637,9 @@ Promise.all([
     xfdim: clipDim,
     xfgroup: clipGroup,
     filters: filters,
+    label_lookup: clip_lookup,
+    withKey: true,
+    sortByLabel: true,
   });
 
   let monthSelection = select("#stocking-month-filter");
@@ -595,8 +647,10 @@ Promise.all([
     filterkey: "stockingMonth",
     xfdim: monthDim,
     xfgroup: monthGroup,
-
     filters: filters,
+    label_lookup: month_lookup,
+    withKey: true,
+    sortByLabel: false,
   });
 
   let stkMethSelection = select("#stocking-method-filter");
@@ -605,6 +659,9 @@ Promise.all([
     xfdim: stkMethDim,
     xfgroup: stkMethGroup,
     filters: filters,
+    label_lookup: stocking_method_lookup,
+    withKey: true,
+    sortByLabel: true,
   });
 
   let lifeStageSelection = select("#life-stage-filter");
@@ -613,6 +670,9 @@ Promise.all([
     xfdim: lifeStageDim,
     xfgroup: lifeStageGroup,
     filters: filters,
+    label_lookup: lifestage_lookup,
+    withKey: true,
+    sortByLabel: true,
   });
 
   // we need to create a function to update the crossfilter based on
@@ -762,6 +822,9 @@ Promise.all([
       xfdim: lakeDim,
       xfgroup: lakeGroup,
       filters: filters,
+      label_lookup: lake_lookup,
+      withKey: true,
+      sortByLabel: true,
     });
 
     checkBoxes(stateProvSelection, {
@@ -769,6 +832,9 @@ Promise.all([
       xfdim: stateProvDim,
       xfgroup: stateProvGroup,
       filters: filters,
+      label_lookup: stateprov_lookup,
+      withKey: true,
+      sortByLabel: true,
     });
 
     checkBoxes(jurisdictionSelection, {
@@ -776,6 +842,9 @@ Promise.all([
       xfdim: jurisdictionDim,
       xfgroup: jurisdictionGroup,
       filters: filters,
+      label_lookup: jurisdiction_lookup,
+      withKey: false,
+      sortByLabel: true,
     });
 
     checkBoxes(manUnitSelection, {
@@ -783,6 +852,9 @@ Promise.all([
       xfdim: manUnitDim,
       xfgroup: manUnitGroup,
       filters: filters,
+      label_lookup: managementUnit_lookup,
+      withKey: false,
+      sortByLabel: true,
     });
 
     checkBoxes(agencySelection, {
@@ -790,6 +862,9 @@ Promise.all([
       xfdim: agencyDim,
       xfgroup: agencyGroup,
       filters: filters,
+      label_lookup: agency_lookup,
+      withKey: true,
+      sortByLabel: true,
     });
 
     checkBoxes(speciesSelection, {
@@ -797,6 +872,9 @@ Promise.all([
       xfdim: speciesDim,
       xfgroup: speciesGroup,
       filters: filters,
+      label_lookup: species_lookup,
+      withKey: true,
+      sortByLabel: true,
     });
 
     checkBoxes(strainSelection, {
@@ -804,6 +882,9 @@ Promise.all([
       xfdim: strainDim,
       xfgroup: strainGroup,
       filters: filters,
+      label_lookup: makeItemMap(strainGroup.all(), "key", "key"),
+      withKey: false,
+      sortByLabel: true,
     });
 
     checkBoxes(yearClassSelection, {
@@ -811,6 +892,9 @@ Promise.all([
       xfdim: yearClassDim,
       xfgroup: yearClassGroup,
       filters: filters,
+      label_lookup: makeItemMap(yearClassGroup.all(), "key", "key"),
+      withKey: false,
+      sortByLabel: true,
     });
 
     checkBoxes(markSelection, {
@@ -818,6 +902,9 @@ Promise.all([
       xfdim: markDim,
       xfgroup: markGroup,
       filters: filters,
+      label_lookup: mark_lookup,
+      withKey: true,
+      sortByLabel: true,
     });
 
     checkBoxes(clipSelection, {
@@ -825,6 +912,9 @@ Promise.all([
       xfdim: clipDim,
       xfgroup: clipGroup,
       filters: filters,
+      label_lookup: clip_lookup,
+      withKey: true,
+      sortByLabel: true,
     });
 
     checkBoxes(monthSelection, {
@@ -832,6 +922,9 @@ Promise.all([
       xfdim: monthDim,
       xfgroup: monthGroup,
       filters: filters,
+      label_lookup: month_lookup,
+      withKey: true,
+      sortByLabel: false,
     });
 
     checkBoxes(stkMethSelection, {
@@ -839,6 +932,9 @@ Promise.all([
       xfdim: stkMethDim,
       xfgroup: stkMethGroup,
       filters: filters,
+      label_lookup: stocking_method_lookup,
+      withKey: true,
+      sortByLabel: true,
     });
 
     checkBoxes(lifeStageSelection, {
@@ -846,6 +942,9 @@ Promise.all([
       xfdim: lifeStageDim,
       xfgroup: lifeStageGroup,
       filters: filters,
+      label_lookup: lifestage_lookup,
+      withKey: true,
+      sortByLabel: true,
     });
 
     update_clear_button_state(filters);
