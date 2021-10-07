@@ -9,7 +9,14 @@
          font-size: 0.8rem;
      }
 
-     
+     #dms_lon_sec {
+         padding: 7.4px 8px;
+     }
+     #dms_lat_sec {
+         padding: 7.4px 8px;
+     }
+
+
     </style>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
@@ -35,17 +42,17 @@
                         management unit(s) and 10-minute grid
                         associated with those coordinates.</p>
                 </div>
-                
+
                 <div class="ui grid">
                     <div class="four wide column">
                         <div class="ui small form" id="spatial-lookup-form">
-                            
+
                             <div class="ui fluid card">
                                 <div class="content">
                                     <div class="header">Lake:</div>
                                 </div>
                                 <div class="content">
-                                    <div id="lake-radio-buttons"></div>                                    
+                                    <div id="lake-radio-buttons"></div>
                                 </div>
                             </div>
 
@@ -63,7 +70,7 @@
                                     <div class="header">Management Unit(s):</div>
                                 </div>
                                 <div class="content">
-                                    <div class="grouped fields" id="mu-radio-buttons">                                        
+                                    <div class="grouped fields" id="mu-radio-buttons">
                                     </div>
                                 </div>
                             </div>
@@ -88,70 +95,73 @@
                                         <a class="item" data-tab="dms">DMS</a>
                                     </div>
                                     <div class="ui bottom attached active tab segment" data-tab="dd">
-                                        <div class="field">
-                                            <input type="text" id="id_dd_lat" placeholder="Latitude (degrees)">
-                                        </div>
-                                        <div class="field">
-                                            <input type="text" id="id_dd_lon" placeholder="Longitude (degrees)">
+                                        <div class="ui tiny form">
+                                            <div class="field">
+                                                <input type="text" id="id_dd_lat" placeholder="Latitude (degrees)">
+                                            </div>
+                                            <div class="field">
+                                                <input type="text" id="id_dd_lon" placeholder="Longitude (degrees)">
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="ui bottom attached tab segment" data-tab="ddm">
-                                        <div class="two fields">
-                                            <div class="field">
-                                                <input type="text" id="ddm_lat_deg" placeholder="Degrees" name="ddm_lat">
+                                        <div class="ui tiny form">
+                                            <div class="two fields">
+                                                <div class="field">
+                                                    <input type="text" id="ddm_lat_deg" placeholder="Degrees" name="ddm_lat">
+                                                </div>
+                                                <div class="field">
+                                                    <input type="text" id="ddm_lat_min"  data-validate="numeric_minutes"placeholder="Minutes" name="ddm_lat">
+                                                </div>
+                                                <p>N</p>
                                             </div>
-                                            <div class="field">
-                                                <input type="text" id="ddm_lat_min"  data-validate="numeric_minutes"placeholder="Minutes" name="ddm_lat">
-                                            </div>
-                                            <p>N</p>
-                                        </div>
 
-                                        <div class="two fields">
-                                            <div class="field">
-                                                <input type="text" id="ddm_lon_deg" placeholder="Degrees" name="ddm_lon">
+                                            <div class="two fields">
+                                                <div class="field">
+                                                    <input type="text" id="ddm_lon_deg" placeholder="Degrees" name="ddm_lon">
+                                                </div>
+                                                <div class="field">
+                                                    <input type="text" id="ddm_lon_min" data-validate="numeric_minutes" placeholder="Minutes" name="ddm_lon">
+                                                </div>
+                                                <p>W</p>
                                             </div>
-                                            <div class="field">
-                                                <input type="text" id="ddm_lon_min" data-validate="numeric_minutes" placeholder="Minutes" name="ddm_lon">
-                                            </div>
-                                            <p>W</p>
                                         </div>
-                                        
                                     </div>
                                     <div class="ui bottom attached tab segment" data-tab="dms">
+                                        <div class="ui mini form">
+                                            <div class="three fields">
+                                                <div class="field">
+                                                    <input type="text" id="dms_lat_deg" placeholder="Degrees" name="dms_lat">
+                                                </div>
+                                                <div class="field">
+                                                    <input type="text" id="dms_lat_min" data-validate="integer_minutes"placeholder="Minutes" name="dms_lat">
+                                                </div>
+                                                <div class="field">
+                                                    <input type="text" id="dms_lat_sec" data-validate="numeric_seconds" placeholder="Seconds" name="dms_lat">
+                                                </div>
+                                                <p>N</p>
+                                            </div>
 
-                                        <div class="three fields">
-                                            <div class="field">
-                                                <input type="text" id="dms_lat_deg" placeholder="Degrees" name="dms_lat">
-                                            </div>
-                                            <div class="field">
-                                                <input type="text" id="dms_lat_min" data-validate="integer_minutes"placeholder="Minutes" name="dms_lat">
-                                            </div>
-                                            <div class="field">
-                                                <input type="text" id="dms_lat_sec" data-validate="numeric_seconds" placeholder="Seconds" name="dms_lat">
-                                            </div>
-                                            <p>N</p>                                            
-                                        </div>
+                                            <div class="three fields">
+                                                <div class="field">
+                                                    <input name="dms_lon" type="text" id="dms_lon_deg" placeholder="Degrees">
+                                                </div>
+                                                <div class="field">
+                                                    <input name="dms_lon" type="text" id="dms_lon_min" data-validate="integer_minutes" placeholder="Minutes">
+                                                </div>
+                                                <div class="field">
+                                                    <input name="dms_lon" type="text" id="dms_lon_sec" data-validate="numeric_seconds" placeholder="Seconds">
+                                                </div>
 
-                                        <div class="three fields">
-                                            <div class="field">
-                                                <input name="dms_lon" type="text" id="dms_lon_deg" placeholder="Degrees">
+                                                <p>W</p>
                                             </div>
-                                            <div class="field">
-                                                <input name="dms_lon" type="text" id="dms_lon_min" data-validate="integer_minutes" placeholder="Minutes">
-                                            </div>
-                                            <div class="field">
-                                                <input name="dms_lon" type="text" id="dms_lon_sec"  data-validate="numeric_seconds" placeholder="Seconds">
-                                            </div>
-                                            
-                                            <p>W</p>
                                         </div>
-                                        
                                     </div>
-                                    
+
                                 </div>
                             </div>
                         </div>
-                        
+
                     </div>
                     <div class="twelve wide column">
                         <div class="ui segment">
@@ -161,9 +171,9 @@
                 </div>
             </div>
         </div>
-        
+
     </div>
-    
+
 
 {% endblock %}
 
@@ -181,16 +191,16 @@
      ;
 
      const lakeURL = "{% url 'common_api:api-lookup-lake-from-pt' %}";
-     const jurisdictionURL = "{% url 'common_api:api-lookup-jurisdiction-from-pt' %}";     
+     const jurisdictionURL = "{% url 'common_api:api-lookup-jurisdiction-from-pt' %}";
      const manUnitURL = "{% url 'common_api:api-lookup-management-unit-from-pt' %}";
      const grid10URL = "{% url 'common_api:api-lookup-grid10-from-pt' %}";
      const csrf_token = "{{ csrf_token }}";
-     
+
     </script>
-    
-    
+
+
     {{ map_bounds|json_script:"map-bounds" }}
-    
+
 
     <script src="{% static "js/spatial_lookup.js" %}"></script>
 
@@ -206,7 +216,7 @@
      let max_lon = bbox[2];
      let max_lat = bbox[3];
 
-     
+
      //=============================
      //       FORM VALIDATION
 
@@ -229,7 +239,7 @@
          {
              type: "lessThan",
              value: 59,
-             prompt: "Minutes must be less than 60."                         
+             prompt: "Minutes must be less than 60."
          }
      ]
 
@@ -244,7 +254,7 @@
          {
              type: "lessThan",
              value: 59.999999,
-             prompt: "Minutes must be less than 60."                         
+             prompt: "Minutes must be less than 60."
          }
      ]
 
@@ -260,7 +270,7 @@
          {
              type: "lessThan",
              value: 59.999999,
-             prompt: "Seconds must be less than 60."                         
+             prompt: "Seconds must be less than 60."
          }
      ]
 
@@ -278,7 +288,7 @@
              prompt: `Latitude cannot be more than ${Math.floor(max_lat)} degrees.`
          }
      ]
-     
+
      const integer_longitude =  [
          { type: "empty", prompt: "This field is required." },
          { type: "integer", prompt: "Please enter an integer." },
@@ -294,7 +304,7 @@
          }
      ]
 
-     
+
      $("#spatial-lookup-form").form({
          onSuccess:function(e){e.preventDefault()},
          on: "blur",
@@ -354,7 +364,7 @@
                  rules: integer_longitude
              },
 
-             
+
              ddm_lon_min: {
                  identifier: "ddm_lon_min",
                  rules: numeric_minutes
@@ -367,18 +377,18 @@
                  identifier: "dms_lat_deg",
                  rules: integer_latitude
              },
-             
+
              dms_lat_min: {
                  identifier: "dms_lat_min",
                  rules: integer_minutes
              },
-             
+
              dms_lat_sec: {
                  identifier: "dms_lat_sec",
                  rules: numeric_seconds
              },
 
-             
+
              dms_lon_deg: {
                  identifier: "dms_lon_deg",
                  rules: integer_longitude
@@ -393,14 +403,14 @@
                  identifier: "dms_lon_sec",
                  rules: numeric_seconds
              },
-             
-             
+
+
          }
      });
 
-     
+
     </script>
 
-    
+
 
 {% endblock %}
