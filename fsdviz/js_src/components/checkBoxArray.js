@@ -64,7 +64,12 @@ export const checkBoxes = (selection, props) => {
 
   boxesEnter = boxesEnter.merge(boxes);
 
-  let uiCheckbox = boxesEnter.append("div").attr("class", "ui checkbox");
+  let uiCheckbox = boxesEnter
+    .append("div")
+    .attr("data-tooltip", (d) => `N=${d.value.toLocaleString()}`)
+    .attr("data-position", "right center")
+    .append("div")
+    .attr("class", "ui tiny checkbox");
 
   uiCheckbox
     .append("input")
