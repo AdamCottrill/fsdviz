@@ -42,6 +42,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
 .lake_breadcrumb, .jurisdiction_breadcrumb, .manunit_breadcrumb {visibility: hidden}
 
+.capitalize {
+  text-transform: capitalize;
+  }
+
 .species-name {
   text-transform: capitalize;
   }

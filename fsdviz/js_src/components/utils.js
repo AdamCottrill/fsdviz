@@ -4,7 +4,10 @@ import { scaleOrdinal } from "d3-scale";
 
 // a function to prepare the json stocking data for use in our map
 export const prepare_stocking_data = (data) => {
-  data.point = [+data.longitude, +data.latitude];
+  data.longitude = Number.parseFloat(data.longitude).toPrecision(6);
+  data.latitude = Number.parseFloat(data.latitude).toPrecision(6);
+
+  data.point = [data.longitude, data.latitude];
   data.geom = `Point(${data.longitude} ${data.latitude})`;
 
   data.total = +data.total_stocked;

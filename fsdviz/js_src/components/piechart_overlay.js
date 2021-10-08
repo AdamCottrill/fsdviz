@@ -3,10 +3,9 @@
 //import { event } from "d3";
 import { format } from "d3-format";
 import { arc, pie } from "d3-shape";
-import { select, selectAll, pointer } from "d3-selection";
+import { select, selectAll } from "d3-selection";
 import { scaleSqrt, scaleOrdinal } from "d3-scale";
-import { descending, max, sum } from "d3-array";
-import { transition } from "d3-transition";
+import { descending, sum } from "d3-array";
 
 export const piechart_overlay = () => {
   // default values:
@@ -14,7 +13,8 @@ export const piechart_overlay = () => {
   let selectedPie;
   let data;
 
-  let labelLookup = {};
+  let sliceLabelLookup = {};
+  let pieLabelLookup = {};
 
   let radiusAccessor = (d) => d.total;
   let fillAccessor = (d) => d.value;
@@ -38,6 +38,18 @@ export const piechart_overlay = () => {
   // when we instantiate the overlay
   let getProjection;
 
+  const getLabel = (value, lookups) => {
+    let label;
+    const label_obj = lookups.filter((x) => x.slug === value)[0];
+
+    if (typeof label_obj === "undefined") {
+      label = value;
+    } else {
+      label = label_obj.label;
+    }
+    return label;
+  };
+
   let get_pointInfo = (d) => {
     // this does not work as expected - it needs to be updated if the
     // filters change.
@@ -46,7 +58,7 @@ export const piechart_overlay = () => {
     dataArray.sort((a, b) => b.value - a.value);
     let total = sum(dataArray.map((d) => d.value));
 
-    let label = labelLookup[d.key];
+    let label = sliceLabelLookup[d.key];
 
     if (typeof label === "undefined") {
       label = d.key;
@@ -172,16 +184,14 @@ export const piechart_overlay = () => {
           .attr("class", "arc")
           .attr("style", "pointer-events: auto;")
           .on("mouseover", function (event, d) {
-            let slug = this.parentElement.id;
-            let label = labelLookup[slug];
+            // need slice label and pie label!
 
-            if (typeof label === "undefined") {
-              label = slug;
-            }
+            const pie_label = getLabel(this.parentElement.id, pieLabelLookup);
+            const slice_label = getLabel(d.data.slice, sliceLabelLookup);
 
-            let html = `<strong>${label}</strong><br>${
-              d.data.slice
-            }: ${commaFormat(d.data.value)}`;
+            let html = `<strong class="capitalize">${pie_label}</strong><br><strong class="capitalize">${slice_label}</strong><br>N:${commaFormat(
+              d.data.value
+            )}`;
 
             select(this).classed("hover", true);
 
@@ -286,9 +296,16 @@ export const piechart_overlay = () => {
   // };
 
   // our object to connect pie chart keys (slugs) with their pretty labels
-  chart.labelLookup = function (value) {
-    if (!arguments.length) return labelLookup;
-    labelLookup = value;
+  chart.sliceLabelLookup = function (value) {
+    if (!arguments.length) return sliceLabelLookup;
+    sliceLabelLookup = value;
+    return chart;
+  };
+
+  // our object to connect pie chart keys (slugs) with their pretty labels
+  chart.pieLabelLookup = function (value) {
+    if (!arguments.length) return pieLabelLookup;
+    pieLabelLookup = value;
     return chart;
   };
 

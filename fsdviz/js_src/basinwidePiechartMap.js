@@ -32,7 +32,6 @@ import {
 
 import { piechart_overlay } from "./components/piechart_overlay";
 import { polygon_overlay } from "./components/polygon_overlay";
-import { spatialRadioButtons } from "./components/RadioButtons";
 import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
 
@@ -59,7 +58,6 @@ const updateYearButtons = () => {
   // if the current year >= than maxYear, disable the next-year-button
   // if the current year <= than minYear, disable the previous-year-button
 
-  let hash = window.location.hash;
   let previousYearButton = document.getElementById("previous-year-btn");
   let nextYearButton = document.getElementById("next-year-btn");
 
@@ -89,19 +87,19 @@ const labelLookup = {};
 
 // empty objects to hold our lookup values - populated after we get the data from the api.
 let species_lookup = {};
-let species_inverse_lookup = {};
+//let species_inverse_lookup = {};
 let species_colors = {};
 
 let strain_lookup = {};
-let strain_inverse_lookup = {};
+//let strain_inverse_lookup = {};
 let strain_colors = {};
 
 let lifestage_lookup = {};
-let lifestage_inverse_lookup = {};
+//let lifestage_inverse_lookup = {};
 let lifestage_colors = {};
 
 let stocking_method_lookup = {};
-let stocking_method_inverse_lookup = {};
+//let stocking_method_inverse_lookup = {};
 let stocking_method_colors = {};
 
 let agency_colors = {};
@@ -266,11 +264,11 @@ Promise.all([
   mark_lookup["NONE"] = "No Mark";
 
   species_lookup = makeItemMap(common.species, "abbrev", "common_name");
-  species_inverse_lookup = makeItemMap(common.species, "common_name", "abbrev");
+  //species_inverse_lookup = makeItemMap(common.species, "common_name", "abbrev");
   species_colors = makeColorMap(common.species, "abbrev");
 
   strain_lookup = makeItemMap(common.strains, "slug", "strain_label");
-  strain_inverse_lookup = makeItemMap(common.strains, "strain_label", "slug");
+  //strain_inverse_lookup = makeItemMap(common.strains, "strain_label", "slug");
   strain_colors = makeColorMap(common.strains, "slug");
 
   stocking_method_lookup = makeItemMap(
@@ -278,19 +276,19 @@ Promise.all([
     "stk_meth",
     "description"
   );
-  stocking_method_inverse_lookup = makeItemMap(
-    stocking.stockingmethods,
-    "description",
-    "stk_meth"
-  );
+  //  stocking_method_inverse_lookup = makeItemMap(
+  //    stocking.stockingmethods,
+  //    "description",
+  //    "stk_meth"
+  //  );
   stocking_method_colors = makeColorMap(stocking.stockingmethods, "stk_meth");
 
   lifestage_lookup = makeItemMap(stocking.lifestages, "abbrev", "description");
-  lifestage_inverse_lookup = makeItemMap(
-    stocking.lifestages,
-    "description",
-    "abbrev"
-  );
+  //  lifestage_inverse_lookup = makeItemMap(
+  //    stocking.lifestages,
+  //    "description",
+  //    "abbrev"
+  //  );
   lifestage_colors = makeColorMap(stocking.lifestages, "abbrev");
 
   agency_colors = makeColorMap(common.agencies, "abbrev");
@@ -368,12 +366,59 @@ Promise.all([
       .range(Object.entries(colors).map((x) => x[1]));
   };
 
+  // convert out lookup arrays to arrays of the form: {key:value}
+  // the format exected py our piechart slice labels: {slug:key, label: "value (key)"}
+  const lookupToLabels = (lookup) => {
+    const labels = [];
+    Object.entries(lookup).forEach(([key, val]) => {
+      labels.push({ slug: key, label: `${val} (${key})` });
+    });
+    return labels;
+  };
+
+  const lookupToLabelsNoKey = (lookup) => {
+    const labels = [];
+    Object.entries(lookup).forEach(([key, val]) => {
+      labels.push({ slug: key, label: `${val}` });
+    });
+    return labels;
+  };
+
+  const pieLabels = {};
+  pieLabels["lake"] = lookupToLabels(lake_lookup);
+  pieLabels["stateProv"] = lookupToLabels(stateprov_lookup);
+  pieLabels["jurisdiction"] = lookupToLabelsNoKey(jurisdiction_lookup);
+  pieLabels["manUnit"] = lookupToLabelsNoKey(managementUnit_lookup);
+
+  const mygrids = [...new Set(data.map((x) => x.grid10))];
+  const grid_labels = mygrids.map((x) => {
+    const [lake, grid] = x.split("_");
+    return { slug: x, label: `Grid ${grid} (${lake.toUpperCase()})` };
+  });
+  pieLabels["grid10"] = grid_labels;
+
+  const mypts = [...new Set(data.map((x) => x.geom))];
+  pieLabels["geom"] = mypts.map((x) => {
+    return { slug: x, label: x };
+  });
+
+  const sliceLabels = {};
+  sliceLabels["species_name"] = lookupToLabels(species_lookup);
+  sliceLabels["agency_abbrev"] = lookupToLabels(agency_lookup);
+  sliceLabels["strain"] = lookupToLabels(strain_lookup);
+  sliceLabels["mark"] = lookupToLabels(mark_lookup);
+  sliceLabels["clip"] = lookupToLabels(clip_lookup);
+  sliceLabels["life_stage"] = lookupToLabels(lifestage_lookup);
+  sliceLabels["stk_method"] = lookupToLabels(stocking_method_lookup);
+
   // recacalculate the points given the current spatial unit and
   // point accessor
   const updatePieCharts = () => {
     let pts = get_pts(spatialUnit, centroids, ptAccessor);
     pieg.data([pts]).call(piecharts);
     piecharts.selectedPie(null).clear_pointInfo();
+    piecharts.pieLabelLookup(pieLabels[spatialUnit]);
+    piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
 
     update_stats_panel(all, {
       fillScale: colourScale,
@@ -400,11 +445,10 @@ Promise.all([
     calcMapGroups();
     updatePieCharts();
     updateUrlParams("sliceVar", value);
-    updateYearButtons();
   };
 
-  slugs.forEach((d) => (labelLookup[d.slug] = d.label));
-  piecharts.labelLookup(labelLookup);
+  piecharts.pieLabelLookup(pieLabels[spatialUnit]);
+  piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
 
   // load our geometries and call our polygon overlay on the geom group:
   geomg.datum(topodata).call(polygons);
