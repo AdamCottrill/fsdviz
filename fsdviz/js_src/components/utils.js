@@ -93,3 +93,102 @@ export const makeItemMap = (itemList, key, value) => {
   }, {});
   return itemMap;
 };
+
+// convert out lookup arrays to arrays of the form: {key:value}
+// the format exected py our piechart slice labels: {slug:key, label: "value (key)"}
+const lookupToLabels = (lookup) => {
+  const labels = [];
+  Object.entries(lookup).forEach(([key, val]) => {
+    labels.push({ slug: key, label: `${val} (${key})` });
+  });
+  return labels;
+};
+// the format exected py our piechart slice labels: {slug:key, label: "value"}
+const lookupToLabelsNoKey = (lookup) => {
+  const labels = [];
+  Object.entries(lookup).forEach(([key, val]) => {
+    labels.push({ slug: key, label: `${val}` });
+  });
+  return labels;
+};
+
+export const makePieLabels = (data, common) => {
+  // given our data and common api responses, build an object
+  // containing appropriated formatted labels for each pie chart.
+  // the labels for lake and agency are of the form 'value (key)',
+  // jurisdiction, management unit, and point are just value.
+  // Additional logic is included to format juristiction, grid.  The
+  // keys of the returned object must correspond to the values used
+  // for spatialUnit in mapping function.
+
+  const lake_lookup = makeItemMap(common.lakes, "abbrev", "lake_name");
+  const stateprov_lookup = makeItemMap(common.stateprov, "abbrev", "name");
+  const managementUnit_lookup = makeItemMap(common.manUnits, "slug", "label");
+  const jurisdiction_lookup = makeItemMap(common.jurisdictions, "slug", "name");
+  // prefix the jurisdiction labels with 'Lake'
+  for (const [key, val] of Object.entries(jurisdiction_lookup)) {
+    jurisdiction_lookup[key] = `Lake ${val}`;
+  }
+
+  const pieLabels = {};
+  pieLabels["lake"] = lookupToLabels(lake_lookup);
+  pieLabels["stateProv"] = lookupToLabels(stateprov_lookup);
+  pieLabels["jurisdiction"] = lookupToLabelsNoKey(jurisdiction_lookup);
+  pieLabels["manUnit"] = lookupToLabelsNoKey(managementUnit_lookup);
+
+  const mygrids = [...new Set(data.map((x) => x.grid10))];
+  const grid_labels = mygrids.map((x) => {
+    const [_lake, grid] = x.split("_");
+    return { slug: x, label: `Grid ${grid} (${_lake.toUpperCase()})` };
+  });
+  pieLabels["grid10"] = grid_labels;
+
+  const mypts = [...new Set(data.map((x) => x.geom))];
+  pieLabels["geom"] = mypts.map((x) => {
+    return { slug: x, label: x };
+  });
+
+  return pieLabels;
+};
+
+export const makeSliceLabels = (common, stocking) => {
+  // given our commonand stocking api responses, build an object
+  // containing appropriatedl formated labels for each pie chart
+  // slices.  Most of the labels are of the form 'value (key)'.  The
+  // keys of the returned object must correspond to the values used
+  // for sliceVar in mapping function.
+
+  const agency_lookup = makeItemMap(common.agencies, "abbrev", "agency_name");
+  const species_lookup = makeItemMap(common.species, "abbrev", "common_name");
+  const strain_lookup = makeItemMap(common.strains, "slug", "strain_label");
+  const mark_lookup = makeItemMap(
+    common.physchem_marks,
+    "mark_code",
+    "description"
+  );
+  // need to account for events without any marks:
+  mark_lookup["NONE"] = "No Mark";
+
+  const clip_lookup = makeItemMap(common.clipcodes, "clip_code", "description");
+  const lifestage_lookup = makeItemMap(
+    stocking.lifestages,
+    "abbrev",
+    "description"
+  );
+  const stocking_method_lookup = makeItemMap(
+    stocking.stockingmethods,
+    "stk_meth",
+    "description"
+  );
+
+  const sliceLabels = {};
+  sliceLabels["agency_abbrev"] = lookupToLabels(agency_lookup);
+  sliceLabels["species_name"] = lookupToLabels(species_lookup);
+  sliceLabels["strain"] = lookupToLabels(strain_lookup);
+  sliceLabels["mark"] = lookupToLabels(mark_lookup);
+  sliceLabels["clip"] = lookupToLabels(clip_lookup);
+  sliceLabels["life_stage"] = lookupToLabels(lifestage_lookup);
+  sliceLabels["stk_method"] = lookupToLabels(stocking_method_lookup);
+
+  return sliceLabels;
+};

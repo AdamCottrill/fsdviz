@@ -16,6 +16,8 @@ import {
   update_clear_button_state,
   makeItemMap,
   makeColorMap,
+  makePieLabels,
+  makeSliceLabels,
 } from "./components/utils";
 
 import {
@@ -242,7 +244,12 @@ Promise.all([
   // prepare our stocking data and set up our cross filters:
   data.forEach((d) => prepare_stocking_data(d));
 
+  // pie chart and slice labesl
+  const pieLabels = makePieLabels(data, common);
+  const sliceLabels = makeSliceLabels(common, stocking);
+
   // LOOKUP MAPS
+
   const lake_lookup = makeItemMap(common.lakes, "abbrev", "lake_name");
   const agency_lookup = makeItemMap(common.agencies, "abbrev", "agency_name");
   const stateprov_lookup = makeItemMap(common.stateprov, "abbrev", "name");
@@ -312,51 +319,6 @@ Promise.all([
       .domain(Object.entries(colors).map((x) => x[0]))
       .range(Object.entries(colors).map((x) => x[1]));
   };
-
-  // convert out lookup arrays to arrays of the form: {key:value}
-  // the format exected py our piechart slice labels: {slug:key, label: "value (key)"}
-  const lookupToLabels = (lookup) => {
-    const labels = [];
-    Object.entries(lookup).forEach(([key, val]) => {
-      labels.push({ slug: key, label: `${val} (${key})` });
-    });
-    return labels;
-  };
-  // the format exected py our piechart slice labels: {slug:key, label: "value"}
-  const lookupToLabelsNoKey = (lookup) => {
-    const labels = [];
-    Object.entries(lookup).forEach(([key, val]) => {
-      labels.push({ slug: key, label: `${val}` });
-    });
-    return labels;
-  };
-
-  const pieLabels = {};
-  pieLabels["lake"] = lookupToLabels(lake_lookup);
-  pieLabels["stateProv"] = lookupToLabels(stateprov_lookup);
-  pieLabels["jurisdiction"] = lookupToLabelsNoKey(jurisdiction_lookup);
-  pieLabels["manUnit"] = lookupToLabelsNoKey(managementUnit_lookup);
-
-  const mygrids = [...new Set(data.map((x) => x.grid10))];
-  const grid_labels = mygrids.map((x) => {
-    const [_lake, grid] = x.split("_");
-    return { slug: x, label: `Grid ${grid} (${_lake.toUpperCase()})` };
-  });
-  pieLabels["grid10"] = grid_labels;
-
-  const mypts = [...new Set(data.map((x) => x.geom))];
-  pieLabels["geom"] = mypts.map((x) => {
-    return { slug: x, label: x };
-  });
-
-  const sliceLabels = {};
-  sliceLabels["species_name"] = lookupToLabels(species_lookup);
-  sliceLabels["agency_abbrev"] = lookupToLabels(agency_lookup);
-  sliceLabels["strain"] = lookupToLabels(strain_lookup);
-  sliceLabels["mark"] = lookupToLabels(mark_lookup);
-  sliceLabels["clip"] = lookupToLabels(clip_lookup);
-  sliceLabels["life_stage"] = lookupToLabels(lifestage_lookup);
-  sliceLabels["stk_method"] = lookupToLabels(stocking_method_lookup);
 
   let ndx = crossfilter(data);
 
