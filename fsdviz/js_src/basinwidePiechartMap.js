@@ -18,6 +18,7 @@ import {
   makeColorMap,
   makePieLabels,
   makeSliceLabels,
+  makeFillColours,
 } from "./components/utils";
 
 import {
@@ -84,29 +85,6 @@ const updateYearButtons = () => {
 };
 
 const filters = {};
-
-const labelLookup = {};
-
-// empty objects to hold our lookup values - populated after we get the data from the api.
-let species_lookup = {};
-//let species_inverse_lookup = {};
-let species_colors = {};
-
-let strain_lookup = {};
-//let strain_inverse_lookup = {};
-let strain_colors = {};
-
-let lifestage_lookup = {};
-//let lifestage_inverse_lookup = {};
-let lifestage_colors = {};
-
-let stocking_method_lookup = {};
-//let stocking_method_inverse_lookup = {};
-let stocking_method_colors = {};
-
-let agency_colors = {};
-let clip_colors = {};
-let mark_colors = {};
 
 // sliceVar, responseVar, column should reflect current state of the url
 
@@ -200,13 +178,13 @@ const spatial_resolution = selectAll("#strata-selector input");
 // slices buttons:
 // name must correspond to column names in our data
 let slices = [
-  { name: "agency_abbrev", label: "Agency" },
-  { name: "species_name", label: "Species" },
+  { name: "agency_code", label: "Agency" },
+  { name: "species_code", label: "Species" },
   { name: "strain", label: "Strain" },
   { name: "mark", label: "Mark" },
   { name: "clip", label: "Clip" },
-  { name: "life_stage", label: "Life Stage" },
-  { name: "stk_method", label: "Stocking Method" },
+  { name: "lifestage_code", label: "Life Stage" },
+  { name: "stockingMethod", label: "Stocking Method" },
 ];
 
 let sliceSelector = RadioButtons()
@@ -248,73 +226,9 @@ Promise.all([
   const pieLabels = makePieLabels(data, common);
   const sliceLabels = makeSliceLabels(common, stocking);
 
-  // LOOKUP MAPS
-
-  const lake_lookup = makeItemMap(common.lakes, "abbrev", "lake_name");
-  const agency_lookup = makeItemMap(common.agencies, "abbrev", "agency_name");
-  const stateprov_lookup = makeItemMap(common.stateprov, "abbrev", "name");
-  const managementUnit_lookup = makeItemMap(common.manUnits, "slug", "label");
-  const jurisdiction_lookup = makeItemMap(common.jurisdictions, "slug", "name");
-  // prefix the jurisdiction labels with 'Lake'
-  for (const [key, val] of Object.entries(jurisdiction_lookup)) {
-    jurisdiction_lookup[key] = `Lake ${val}`;
-  }
-
-  const clip_lookup = makeItemMap(common.clipcodes, "clip_code", "description");
-  const mark_lookup = makeItemMap(
-    common.physchem_marks,
-    "mark_code",
-    "description"
-  );
-  // need to account for events without any marks:
-  mark_lookup["NONE"] = "No Mark";
-
-  species_lookup = makeItemMap(common.species, "abbrev", "common_name");
-  species_colors = makeColorMap(common.species, "abbrev");
-
-  strain_lookup = makeItemMap(common.strains, "slug", "strain_label");
-  strain_colors = makeColorMap(common.strains, "slug");
-
-  stocking_method_lookup = makeItemMap(
-    stocking.stockingmethods,
-    "stk_meth",
-    "description"
-  );
-  stocking_method_colors = makeColorMap(stocking.stockingmethods, "stk_meth");
-
-  lifestage_lookup = makeItemMap(stocking.lifestages, "abbrev", "description");
-  lifestage_colors = makeColorMap(stocking.lifestages, "abbrev");
-
-  agency_colors = makeColorMap(common.agencies, "abbrev");
-  clip_colors = makeColorMap(common.clipcodes, "clip_code");
-  mark_colors = makeColorMap(common.physchem_marks, "mark_code");
-
+  const fillColours = makeFillColours(common, stocking);
   const updateColorScale = (value) => {
-    let colors;
-    switch (value) {
-      case "agency_abbrev":
-        colors = agency_colors;
-        break;
-      case "species_name":
-        colors = species_colors;
-        break;
-      case "strain":
-        colors = strain_colors;
-        break;
-      case "mark":
-        colors = mark_colors;
-        break;
-      case "clip":
-        colors = clip_colors;
-        break;
-      case "life_stage":
-        colors = lifestage_colors;
-        break;
-      case "stk_method":
-        colors = stocking_method_colors;
-        break;
-    }
-
+    const colors = fillColours[value];
     colourScale
       .domain(Object.entries(colors).map((x) => x[0]))
       .range(Object.entries(colors).map((x) => x[1]));
@@ -328,20 +242,20 @@ Promise.all([
   let manUnitPolygonDim = ndx.dimension((d) => d.man_unit);
 
   let lakeDim = ndx.dimension((d) => d.lake);
-  let agencyDim = ndx.dimension((d) => d.agency_abbrev);
+  let agencyDim = ndx.dimension((d) => d.agency_code);
   let stateProvDim = ndx.dimension((d) => d.stateprov);
   let jurisdictionDim = ndx.dimension((d) => d.jurisdiction_slug);
   let manUnitDim = ndx.dimension((d) => d.man_unit);
   let grid10Dim = ndx.dimension((d) => d.grid10);
   let geomDim = ndx.dimension((d) => d.geom);
-  let speciesDim = ndx.dimension((d) => d.species_name);
+  let speciesDim = ndx.dimension((d) => d.species_code);
   let strainDim = ndx.dimension((d) => d.strain);
   let yearClassDim = ndx.dimension((d) => d.year_class);
-  let lifeStageDim = ndx.dimension((d) => d.life_stage);
+  let lifeStageDim = ndx.dimension((d) => d.lifestage_code);
   let markDim = ndx.dimension((d) => d.mark);
   let clipDim = ndx.dimension((d) => d.clip);
   let monthDim = ndx.dimension((d) => d.month);
-  let stkMethDim = ndx.dimension((d) => d.stk_method);
+  let stkMethDim = ndx.dimension((d) => d.stockingMethod);
 
   let lakeGroup = lakeDim.group().reduceSum((d) => d[column]);
   let agencyGroup = agencyDim.group().reduceSum((d) => d[column]);
@@ -499,7 +413,7 @@ Promise.all([
     initialize_filter(filters, "stateProv", stateProvDim, query_args);
     initialize_filter(filters, "jurisdiction", jurisdictionDim, query_args);
     initialize_filter(filters, "manUnit", manUnitDim, query_args);
-    initialize_filter(filters, "agency", agencyDim, query_args);
+    initialize_filter(filters, "agency_code", agencyDim, query_args);
     initialize_filter(filters, "species", speciesDim, query_args);
     initialize_filter(filters, "strain", strainDim, query_args);
     initialize_filter(filters, "yearClass", yearClassDim, query_args);
@@ -530,9 +444,7 @@ Promise.all([
     xfdim: lakeDim,
     xfgroup: lakeGroup,
     filters: filters,
-    label_lookup: lake_lookup,
-    withKey: true,
-    sortByLabel: true,
+    label_lookup: pieLabels["lake"],
   });
 
   let stateProvSelection = select("#state-prov-filter");
@@ -541,8 +453,7 @@ Promise.all([
     xfdim: stateProvDim,
     xfgroup: stateProvGroup,
     filters: filters,
-    label_lookup: stateprov_lookup,
-    withKey: true,
+    label_lookup: pieLabels["stateProv"],
     sortByLabel: true,
   });
 
@@ -553,8 +464,7 @@ Promise.all([
     xfdim: jurisdictionDim,
     xfgroup: jurisdictionGroup,
     filters: filters,
-    label_lookup: jurisdiction_lookup,
-    withKey: false,
+    label_lookup: pieLabels["jurisdiction"],
     sortByLabel: true,
   });
 
@@ -564,19 +474,17 @@ Promise.all([
     xfdim: manUnitDim,
     xfgroup: manUnitGroup,
     filters: filters,
-    label_lookup: managementUnit_lookup,
-    withKey: false,
+    label_lookup: pieLabels["manUnit"],
     sortByLabel: true,
   });
 
   let agencySelection = select("#agency-filter");
   checkBoxes(agencySelection, {
-    filterkey: "agency",
+    filterkey: "agency_code",
     xfdim: agencyDim,
     xfgroup: agencyGroup,
     filters: filters,
-    label_lookup: agency_lookup,
-    withKey: true,
+    label_lookup: sliceLabels["agency_code"],
     sortByLabel: true,
   });
 
@@ -586,8 +494,7 @@ Promise.all([
     xfdim: speciesDim,
     xfgroup: speciesGroup,
     filters: filters,
-    label_lookup: species_lookup,
-    withKey: true,
+    label_lookup: sliceLabels["species_code"],
     sortByLabel: true,
   });
 
@@ -597,8 +504,7 @@ Promise.all([
     xfdim: strainDim,
     xfgroup: strainGroup,
     filters: filters,
-    label_lookup: makeItemMap(strainGroup.all(), "key", "key"),
-    withKey: false,
+    label_lookup: sliceLabels["strain"],
     sortByLabel: true,
   });
 
@@ -608,8 +514,9 @@ Promise.all([
     xfdim: yearClassDim,
     xfgroup: yearClassGroup,
     filters: filters,
-    label_lookup: makeItemMap(yearClassGroup.all(), "key", "key"),
-    withKey: false,
+    label_lookup: yearClassGroup
+      .all()
+      .map((x) => ({ slug: x.key, label: x.key })),
     sortByLabel: true,
   });
 
@@ -619,8 +526,7 @@ Promise.all([
     xfdim: markDim,
     xfgroup: markGroup,
     filters: filters,
-    label_lookup: mark_lookup,
-    withKey: true,
+    label_lookup: sliceLabels["mark"],
     sortByLabel: true,
   });
 
@@ -630,8 +536,7 @@ Promise.all([
     xfdim: clipDim,
     xfgroup: clipGroup,
     filters: filters,
-    label_lookup: clip_lookup,
-    withKey: true,
+    label_lookup: sliceLabels["clip"],
     sortByLabel: true,
   });
 
@@ -641,8 +546,10 @@ Promise.all([
     xfdim: monthDim,
     xfgroup: monthGroup,
     filters: filters,
-    label_lookup: month_lookup,
-    withKey: true,
+    label_lookup: Object.entries(month_lookup).map((x) => ({
+      slug: x[0],
+      label: `${x[1]} (${x[0]})`,
+    })),
     sortByLabel: false,
   });
 
@@ -652,8 +559,7 @@ Promise.all([
     xfdim: stkMethDim,
     xfgroup: stkMethGroup,
     filters: filters,
-    label_lookup: stocking_method_lookup,
-    withKey: true,
+    label_lookup: sliceLabels["stockingMethod"],
     sortByLabel: true,
   });
 
@@ -663,8 +569,7 @@ Promise.all([
     xfdim: lifeStageDim,
     xfgroup: lifeStageGroup,
     filters: filters,
-    label_lookup: lifestage_lookup,
-    withKey: true,
+    label_lookup: sliceLabels["lifestage_code"],
     sortByLabel: true,
   });
 
@@ -809,8 +714,7 @@ Promise.all([
       xfdim: lakeDim,
       xfgroup: lakeGroup,
       filters: filters,
-      label_lookup: lake_lookup,
-      withKey: true,
+      label_lookup: pieLabels["lake"],
       sortByLabel: true,
     });
 
@@ -819,8 +723,7 @@ Promise.all([
       xfdim: stateProvDim,
       xfgroup: stateProvGroup,
       filters: filters,
-      label_lookup: stateprov_lookup,
-      withKey: true,
+      label_lookup: pieLabels["stateProv"],
       sortByLabel: true,
     });
 
@@ -829,8 +732,7 @@ Promise.all([
       xfdim: jurisdictionDim,
       xfgroup: jurisdictionGroup,
       filters: filters,
-      label_lookup: jurisdiction_lookup,
-      withKey: false,
+      label_lookup: pieLabels["jurisdiction"],
       sortByLabel: true,
     });
 
@@ -839,18 +741,16 @@ Promise.all([
       xfdim: manUnitDim,
       xfgroup: manUnitGroup,
       filters: filters,
-      label_lookup: managementUnit_lookup,
-      withKey: false,
+      label_lookup: pieLabels["manUnit"],
       sortByLabel: true,
     });
 
     checkBoxes(agencySelection, {
-      filterkey: "agency",
+      filterkey: "agency_code",
       xfdim: agencyDim,
       xfgroup: agencyGroup,
       filters: filters,
-      label_lookup: agency_lookup,
-      withKey: true,
+      label_lookup: sliceLabels["agency_code"],
       sortByLabel: true,
     });
 
@@ -859,8 +759,7 @@ Promise.all([
       xfdim: speciesDim,
       xfgroup: speciesGroup,
       filters: filters,
-      label_lookup: species_lookup,
-      withKey: true,
+      label_lookup: sliceLabels["species_code"],
       sortByLabel: true,
     });
 
@@ -869,8 +768,7 @@ Promise.all([
       xfdim: strainDim,
       xfgroup: strainGroup,
       filters: filters,
-      label_lookup: makeItemMap(strainGroup.all(), "key", "key"),
-      withKey: false,
+      label_lookup: sliceLabels["strain"],
       sortByLabel: true,
     });
 
@@ -879,8 +777,9 @@ Promise.all([
       xfdim: yearClassDim,
       xfgroup: yearClassGroup,
       filters: filters,
-      label_lookup: makeItemMap(yearClassGroup.all(), "key", "key"),
-      withKey: false,
+      label_lookup: yearClassGroup
+        .all()
+        .map((x) => ({ slug: x.key, label: x.key })),
       sortByLabel: true,
     });
 
@@ -889,8 +788,7 @@ Promise.all([
       xfdim: markDim,
       xfgroup: markGroup,
       filters: filters,
-      label_lookup: mark_lookup,
-      withKey: true,
+      label_lookup: sliceLabels["mark"],
       sortByLabel: true,
     });
 
@@ -899,8 +797,7 @@ Promise.all([
       xfdim: clipDim,
       xfgroup: clipGroup,
       filters: filters,
-      label_lookup: clip_lookup,
-      withKey: true,
+      label_lookup: sliceLabels["clip"],
       sortByLabel: true,
     });
 
@@ -909,8 +806,11 @@ Promise.all([
       xfdim: monthDim,
       xfgroup: monthGroup,
       filters: filters,
-      label_lookup: month_lookup,
-      withKey: true,
+      label_lookup: Object.entries(month_lookup).map((x) => ({
+        slug: x[0],
+        label: `${x[1]} (${x[0]})`,
+      })),
+
       sortByLabel: false,
     });
 
@@ -919,8 +819,7 @@ Promise.all([
       xfdim: stkMethDim,
       xfgroup: stkMethGroup,
       filters: filters,
-      label_lookup: stocking_method_lookup,
-      withKey: true,
+      label_lookup: sliceLabels["stockingMethod"],
       sortByLabel: true,
     });
 
@@ -929,8 +828,7 @@ Promise.all([
       xfdim: lifeStageDim,
       xfgroup: lifeStageGroup,
       filters: filters,
-      label_lookup: lifestage_lookup,
-      withKey: true,
+      label_lookup: sliceLabels["lifestage_code"],
       sortByLabel: true,
     });
 

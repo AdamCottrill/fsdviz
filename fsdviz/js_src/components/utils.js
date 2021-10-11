@@ -4,6 +4,11 @@ import { scaleOrdinal } from "d3-scale";
 
 // a function to prepare the json stocking data for use in our map
 export const prepare_stocking_data = (data) => {
+  data.agency_code = data.agency_abbrev;
+  data.species_code = data.species_name;
+  data.lifestage_code = data.life_stage;
+  data.stockingMethod = data.stk_method;
+
   data.longitude = Number.parseFloat(data.longitude).toPrecision(6);
   data.latitude = Number.parseFloat(data.latitude).toPrecision(6);
 
@@ -101,6 +106,9 @@ const lookupToLabels = (lookup) => {
   Object.entries(lookup).forEach(([key, val]) => {
     labels.push({ slug: key, label: `${val} (${key})` });
   });
+
+  labels.sort((a, b) => a.label.localeCompare(b.label));
+
   return labels;
 };
 // the format exected py our piechart slice labels: {slug:key, label: "value"}
@@ -109,6 +117,7 @@ const lookupToLabelsNoKey = (lookup) => {
   Object.entries(lookup).forEach(([key, val]) => {
     labels.push({ slug: key, label: `${val}` });
   });
+  labels.sort((a, b) => a.label.localeCompare(b.label));
   return labels;
 };
 
@@ -168,7 +177,7 @@ export const makeSliceLabels = (common, stocking) => {
   );
   // need to account for events without any marks:
   mark_lookup["NONE"] = "No Mark";
-
+  const tag_lookup = makeItemMap(common.strains, "tag_code", "description");
   const clip_lookup = makeItemMap(common.clipcodes, "clip_code", "description");
   const lifestage_lookup = makeItemMap(
     stocking.lifestages,
@@ -182,13 +191,37 @@ export const makeSliceLabels = (common, stocking) => {
   );
 
   const sliceLabels = {};
-  sliceLabels["agency_abbrev"] = lookupToLabels(agency_lookup);
-  sliceLabels["species_name"] = lookupToLabels(species_lookup);
+  sliceLabels["agency_code"] = lookupToLabels(agency_lookup);
+  sliceLabels["species_code"] = lookupToLabels(species_lookup);
   sliceLabels["strain"] = lookupToLabels(strain_lookup);
   sliceLabels["mark"] = lookupToLabels(mark_lookup);
   sliceLabels["clip"] = lookupToLabels(clip_lookup);
-  sliceLabels["life_stage"] = lookupToLabels(lifestage_lookup);
-  sliceLabels["stk_method"] = lookupToLabels(stocking_method_lookup);
+  sliceLabels["tag"] = lookupToLabels(tag_lookup);
+  sliceLabels["lifestage_code"] = lookupToLabels(lifestage_lookup);
+  sliceLabels["stockingMethod"] = lookupToLabels(stocking_method_lookup);
 
   return sliceLabels;
+};
+
+export const makeFillColours = (common, stocking) => {
+  // given our common and stocking api responses, create an object
+  // to hold the colours used for each entity type. used by all
+  // script that fill graphs or maps with colours.
+
+  const fillColours = {};
+  // common
+  fillColours["agency_code"] = makeColorMap(common.agencies, "abbrev");
+  fillColours["species_code"] = makeColorMap(common.species, "abbrev");
+  fillColours["strain"] = makeColorMap(common.strains, "slug");
+
+  fillColours["clip"] = makeColorMap(common.clipcodes, "clip_code");
+  fillColours["mark"] = makeColorMap(common.physchem_marks, "mark_code");
+  // stocking colours
+  fillColours["stockingMethod"] = makeColorMap(
+    stocking.stockingmethods,
+    "stk_meth"
+  );
+  fillColours["lifestage_code"] = makeColorMap(stocking.lifestages, "abbrev");
+
+  return fillColours;
 };

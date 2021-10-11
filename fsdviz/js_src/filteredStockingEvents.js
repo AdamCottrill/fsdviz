@@ -24,7 +24,13 @@ import {
 import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
 import { get_coordinates, add_roi } from "./components/spatial_utils";
-import { makeItemMap, getColorScale, makeColorMap } from "./components/utils";
+import {
+  makeItemMap,
+  getColorScale,
+  makeColorMap,
+  makePieLabels,
+  makeSliceLabels,
+} from "./components/utils";
 import { piechart_overlay } from "./components/piechart_overlay";
 import {
   stockingAdd,
@@ -49,13 +55,13 @@ let roi = getUrlSearchValue("roi") || false;
 let spatialUnit = getUrlParamValue("spatial_unit") || "geom";
 
 // this should probably be 'category'
-let sliceVar = getUrlParamValue("category_var") || "species_code";
+let sliceVar = getUrlParamValue("category_var") || "species_name";
 
 let responseVar = getUrlParamValue("response_var") || "yreq";
 
 // a global object that will hold slug:label pairs for the labels of
 // the currently selected spatial unit.
-const labelLookup = {};
+//const labelLookup = {};
 
 const sharedColourScale = scaleOrdinal();
 
@@ -132,7 +138,7 @@ const spatial_resolution = selectAll("#strata-selector input");
 let categories = [
   { name: "lake", label: "Lake" },
   { name: "stateProv", label: "State/Province" },
-  { name: "jurisdiction_code", label: "Jurisdiction" },
+  { name: "jurisdiction", label: "Jurisdiction" },
   { name: "agency_code", label: "Agency" },
   { name: "species_code", label: "Species" },
   { name: "strain", label: "Strain" },
@@ -178,10 +184,14 @@ Promise.all([
   json(centroidsURL),
   csv(slugURL),
 ]).then(([data, stocking, common, centroids, slugs]) => {
-  slugs.forEach((d) => (labelLookup[d.slug] = d.label));
-  piecharts.labelLookup(labelLookup);
+  // slugs.forEach((d) => (labelLookup[d.slug] = d.label));
+  // piecharts.labelLookup(labelLookup);
 
   data.forEach((d) => (d.mark = d.mark || "NC"));
+
+  // pie chart and slice labesl
+  const pieLabels = makePieLabels(data, common);
+  const sliceLabels = { ...pieLabels, ...makeSliceLabels(common, stocking) };
 
   // get the geographic extents of our data and update our map if
   // there is no roi.
@@ -277,8 +287,18 @@ Promise.all([
     "description"
   );
 
-  const markColors = makeColorMap(common.physchem_marks, "mark_code");
+  //a bit of short cut for now:
+  const tagMap = data.reduce((accumulator, d) => {
+    accumulator[d.tag] = d.tag;
+    return accumulator;
+  }, {});
   const tagColors = makeColorMap(common.fish_tags, "tag_code");
+
+  const markMap = data.reduce((accumulator, d) => {
+    accumulator[d.mark] = d.mark;
+    return accumulator;
+  }, {});
+  const markColors = makeColorMap(common.physchem_marks, "mark_code");
 
   // a little cleanup - these were originally passed in, but have not
   // been transformed
@@ -315,17 +335,6 @@ Promise.all([
     return d;
   });
 
-  //a bit of short cut for now:
-  const tagMap = data.reduce((accumulator, d) => {
-    accumulator[d.tag] = d.tag;
-    return accumulator;
-  }, {});
-
-  const markMap = data.reduce((accumulator, d) => {
-    accumulator[d.mark] = d.mark;
-    return accumulator;
-  }, {});
-
   const updateColorScale = (value) => {
     let colors;
 
@@ -342,16 +351,13 @@ Promise.all([
         //stateProvChart.colors(sharedColourScale);
         colors = stateProvColors;
         break;
-      case "jurisdiction_code":
+      case "jurisdiction":
         //jurisdictionChart.colors(sharedColourScale);
         colors = jurisdictionColors;
         break;
       case "agency_code":
         colors = agencyColors;
         //agencyChart.colors(sharedColourScale);
-        break;
-      case "species":
-        colors = speciesColours;
         break;
       case "strain":
         colors = strainColors;
@@ -378,6 +384,9 @@ Promise.all([
         colors = stockingMethodColors;
         break;
     }
+
+    console.log("value = ", value);
+    console.log("colours = ", colors);
 
     sharedColourScale
       .domain(Object.entries(colors).map((x) => x[0]))
@@ -633,7 +642,7 @@ Promise.all([
         plotLabel = "Stocking By State/Province Through Time";
 
         break;
-      case "jurisdiction_code":
+      case "jurisdiction":
         items = uniqueJurisdictions;
         lookupMap = jurisdictionMap;
         plotLabel = "Stocking By Jurisdiction Through Time";
@@ -1296,6 +1305,9 @@ Promise.all([
   const updatePieCharts = () => {
     piecharts.fillScale(sharedColourScale).selectedPie(null).clear_pointInfo();
 
+    piecharts.pieLabelLookup(pieLabels[spatialUnit]);
+    piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
+
     pts = get_pts(spatialUnit, centroids, ptAccessor);
     pieg.data([pts]).call(piecharts);
 
@@ -1321,6 +1333,9 @@ Promise.all([
     calcMapGroups();
     updatePieCharts();
   };
+
+  piecharts.pieLabelLookup(pieLabels[spatialUnit]);
+  piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
 
   // set up a change event handler each fime the crossfilter changes
   ndx.onChange(() => {

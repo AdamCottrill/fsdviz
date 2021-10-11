@@ -9,7 +9,7 @@ export const checkBoxes = (selection, props) => {
     xfgroup,
     filters,
     label_lookup,
-    withKey,
+    //withKey,
     sortByLabel,
   } = props;
 
@@ -25,10 +25,20 @@ export const checkBoxes = (selection, props) => {
 
   let keys = xfgroup.top("Infinity").filter((d) => d.value > 0);
 
+  const pluck_label = (val) => {
+    const label_obj = label_lookup.filter((x) => x.slug === val);
+    if (label_obj.length) {
+      return label_obj[0].label;
+    } else {
+      return val;
+    }
+  };
+
   let compareFn;
   if (sortByLabel) {
-    compareFn = (a, b) =>
-      label_lookup[a.key].localeCompare(label_lookup[b.key]);
+    compareFn = (a, b) => {
+      return pluck_label(a.key).localeCompare(pluck_label(b.key));
+    };
   } else {
     compareFn = (a, b) => a.key.localeCompare(b.key);
   }
@@ -90,20 +100,7 @@ export const checkBoxes = (selection, props) => {
       xfdim.filter((val) => myfilters.indexOf(val) > -1);
     });
 
-  //uiCheckbox.append("label").text((d) => d.key + " (n=" + d.value + ")");
-  // format the label with or withiout a the key
-
-  if (withKey) {
-    uiCheckbox.append("label").text((d) => {
-      const label = d.key ? `${label_lookup[d.key]} (${d.key})` : d.key;
-      return label;
-    });
-  } else {
-    uiCheckbox.append("label").text((d) => {
-      const label = d.key ? label_lookup[d.key] : d.key;
-      return label;
-    });
-  }
+  uiCheckbox.append("label").text((d) => pluck_label(d.key));
 
   let buttonbar = select(`#${selector}-buttons`).attr("class", "ui buttons");
 
