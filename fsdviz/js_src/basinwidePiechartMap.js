@@ -243,7 +243,6 @@ Promise.all([
   data.forEach((d) => prepare_stocking_data(d));
 
   // LOOKUP MAPS
-
   const lake_lookup = makeItemMap(common.lakes, "abbrev", "lake_name");
   const agency_lookup = makeItemMap(common.agencies, "abbrev", "agency_name");
   const stateprov_lookup = makeItemMap(common.stateprov, "abbrev", "name");
@@ -264,11 +263,9 @@ Promise.all([
   mark_lookup["NONE"] = "No Mark";
 
   species_lookup = makeItemMap(common.species, "abbrev", "common_name");
-  //species_inverse_lookup = makeItemMap(common.species, "common_name", "abbrev");
   species_colors = makeColorMap(common.species, "abbrev");
 
   strain_lookup = makeItemMap(common.strains, "slug", "strain_label");
-  //strain_inverse_lookup = makeItemMap(common.strains, "strain_label", "slug");
   strain_colors = makeColorMap(common.strains, "slug");
 
   stocking_method_lookup = makeItemMap(
@@ -276,64 +273,14 @@ Promise.all([
     "stk_meth",
     "description"
   );
-  //  stocking_method_inverse_lookup = makeItemMap(
-  //    stocking.stockingmethods,
-  //    "description",
-  //    "stk_meth"
-  //  );
   stocking_method_colors = makeColorMap(stocking.stockingmethods, "stk_meth");
 
   lifestage_lookup = makeItemMap(stocking.lifestages, "abbrev", "description");
-  //  lifestage_inverse_lookup = makeItemMap(
-  //    stocking.lifestages,
-  //    "description",
-  //    "abbrev"
-  //  );
   lifestage_colors = makeColorMap(stocking.lifestages, "abbrev");
 
   agency_colors = makeColorMap(common.agencies, "abbrev");
   clip_colors = makeColorMap(common.clipcodes, "clip_code");
   mark_colors = makeColorMap(common.physchem_marks, "mark_code");
-
-  // an accessor function to get values of our currently selected
-  // response variable.
-  let ptAccessor = (d) =>
-    Object.keys(d.value).map((x) => d.value[x][responseVar]);
-
-  // a helper function to get the data in the correct format for plotting on the map.
-  const get_pts = (spatialUnit, centriods, ptAccessor) => {
-    let pts;
-
-    switch (spatialUnit) {
-      case "lake":
-        pts = Object.values(lakeMapGroup.all());
-        break;
-      case "stateProv":
-        pts = Object.values(stateProvMapGroup.all());
-        break;
-      case "jurisdiction":
-        pts = Object.values(jurisdictionMapGroup.all());
-        break;
-      case "manUnit":
-        pts = Object.values(manUnitMapGroup.all());
-        break;
-      case "grid10":
-        pts = Object.values(grid10MapGroup.all());
-        break;
-      case "geom":
-        pts = Object.values(geomMapGroup.all());
-        break;
-    }
-
-    if (spatialUnit === "geom") {
-      pts.forEach((d) => (d["coordinates"] = get_coordinates(d.key)));
-    } else {
-      pts.forEach((d) => (d["coordinates"] = centroids[spatialUnit][d.key]));
-    }
-    pts.forEach((d) => (d["total"] = sum(ptAccessor(d))));
-
-    return pts.filter((d) => d.total > 0);
-  };
 
   const updateColorScale = (value) => {
     let colors;
@@ -375,7 +322,7 @@ Promise.all([
     });
     return labels;
   };
-
+  // the format exected py our piechart slice labels: {slug:key, label: "value"}
   const lookupToLabelsNoKey = (lookup) => {
     const labels = [];
     Object.entries(lookup).forEach(([key, val]) => {
@@ -392,8 +339,8 @@ Promise.all([
 
   const mygrids = [...new Set(data.map((x) => x.grid10))];
   const grid_labels = mygrids.map((x) => {
-    const [lake, grid] = x.split("_");
-    return { slug: x, label: `Grid ${grid} (${lake.toUpperCase()})` };
+    const [_lake, grid] = x.split("_");
+    return { slug: x, label: `Grid ${grid} (${_lake.toUpperCase()})` };
   });
   pieLabels["grid10"] = grid_labels;
 
@@ -411,52 +358,9 @@ Promise.all([
   sliceLabels["life_stage"] = lookupToLabels(lifestage_lookup);
   sliceLabels["stk_method"] = lookupToLabels(stocking_method_lookup);
 
-  // recacalculate the points given the current spatial unit and
-  // point accessor
-  const updatePieCharts = () => {
-    let pts = get_pts(spatialUnit, centroids, ptAccessor);
-    pieg.data([pts]).call(piecharts);
-    piecharts.selectedPie(null).clear_pointInfo();
-    piecharts.pieLabelLookup(pieLabels[spatialUnit]);
-    piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
-
-    update_stats_panel(all, {
-      fillScale: colourScale,
-      label: slices.filter((d) => d.name === sliceVar)[0].label,
-      what: sliceVar,
-    });
-  };
-
-  // if the spatial radio buttons change, update the global variable
-  // and update the pie charts
-  const update_spatialUnit = (value) => {
-    spatialUnit = value;
-    spatialSelector.checked(spatialUnit).refresh();
-    updatePieCharts();
-    updateUrlParams("spatialUnit", value);
-    updateYearButtons();
-  };
-
-  // if the pie chart slice selector radio buttons changes, update
-  // the global variable and update the pie charts
-  const update_sliceVar = (value) => {
-    sliceVar = value;
-    updateColorScale(sliceVar);
-    calcMapGroups();
-    updatePieCharts();
-    updateUrlParams("sliceVar", value);
-  };
-
-  piecharts.pieLabelLookup(pieLabels[spatialUnit]);
-  piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
-
-  // load our geometries and call our polygon overlay on the geom group:
-  geomg.datum(topodata).call(polygons);
-
   let ndx = crossfilter(data);
 
   // these are dimensions that will be used by the polygon overlay:
-
   let lakePolygonDim = ndx.dimension((d) => d.lake);
   let jurisdictionPolygonDim = ndx.dimension((d) => d.jurisdiction_slug);
   let manUnitPolygonDim = ndx.dimension((d) => d.man_unit);
@@ -538,6 +442,94 @@ Promise.all([
 
   calcMapGroups();
 
+  // an accessor function to get values of our currently selected
+  // response variable.
+  let ptAccessor = (d) =>
+    Object.keys(d.value).map((x) => d.value[x][responseVar]);
+
+  // a helper function to get the data in the correct format for
+  // plotting on the map.  we need to manually filters for those
+  // spatial units taht have both checkbox and radio buttons ()
+  const get_pts = (spatialUnit, centriods, ptAccessor) => {
+    let pts;
+
+    switch (spatialUnit) {
+      case "lake":
+        pts = Object.values(lakeMapGroup.all());
+        pts = pts.filter((x) => filters.lake.values.includes(x.key));
+        break;
+      case "stateProv":
+        pts = Object.values(stateProvMapGroup.all());
+        pts = pts.filter((x) => filters.stateProv.values.includes(x.key));
+        break;
+      case "jurisdiction":
+        pts = Object.values(jurisdictionMapGroup.all());
+        pts = pts.filter((x) => filters.jurisdiction.values.includes(x.key));
+        break;
+      case "manUnit":
+        pts = Object.values(manUnitMapGroup.all());
+        pts = pts.filter((x) => filters.manUnit.values.includes(x.key));
+        break;
+      case "grid10":
+        pts = Object.values(grid10MapGroup.all());
+        break;
+      case "geom":
+        pts = Object.values(geomMapGroup.all());
+        break;
+    }
+
+    if (spatialUnit === "geom") {
+      pts.forEach((d) => (d["coordinates"] = get_coordinates(d.key)));
+    } else {
+      pts.forEach((d) => (d["coordinates"] = centroids[spatialUnit][d.key]));
+    }
+    pts.forEach((d) => (d["total"] = sum(ptAccessor(d))));
+
+    return pts.filter((d) => d.total > 0);
+  };
+
+  // recacalculate the points given the current spatial unit and
+  // point accessor
+  const updatePieCharts = () => {
+    let pts = get_pts(spatialUnit, centroids, ptAccessor);
+    pieg.data([pts]).call(piecharts);
+    piecharts.selectedPie(null).clear_pointInfo();
+    piecharts.pieLabelLookup(pieLabels[spatialUnit]);
+    piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
+
+    update_stats_panel(all, {
+      fillScale: colourScale,
+      label: slices.filter((d) => d.name === sliceVar)[0].label,
+      what: sliceVar,
+    });
+  };
+
+  // if the spatial radio buttons change, update the global variable
+  // and update the pie charts
+  const update_spatialUnit = (value) => {
+    spatialUnit = value;
+    spatialSelector.checked(spatialUnit).refresh();
+    updatePieCharts();
+    updateUrlParams("spatialUnit", value);
+    updateYearButtons();
+  };
+
+  // if the pie chart slice selector radio buttons changes, update
+  // the global variable and update the pie charts
+  const update_sliceVar = (value) => {
+    sliceVar = value;
+    updateColorScale(sliceVar);
+    calcMapGroups();
+    updatePieCharts();
+    updateUrlParams("sliceVar", value);
+  };
+
+  piecharts.pieLabelLookup(pieLabels[spatialUnit]);
+  piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
+
+  // load our geometries and call our polygon overlay on the geom group:
+  geomg.datum(topodata).call(polygons);
+
   //A function to set all of the filters to checked - called when
   //the page loads or if the reset button is clicked.
   const set_or_reset_filters = (query_args) => {
@@ -563,11 +555,7 @@ Promise.all([
   set_or_reset_filters(query_args);
   updateColorScale(sliceVar);
   update_clear_button_state(filters);
-  update_stats_panel(all, {
-    fillScale: colourScale,
-    label: slices.filter((d) => d.name === sliceVar)[0].label,
-    what: sliceVar,
-  });
+  updatePieCharts();
 
   updateYearButtons();
 
@@ -575,7 +563,6 @@ Promise.all([
   clear_button.on("click", set_or_reset_filters);
 
   let lakeSelection = select("#lake-filter");
-
   checkBoxes(lakeSelection, {
     filterkey: "lake",
     xfdim: lakeDim,
@@ -855,12 +842,6 @@ Promise.all([
 
   // if the crossfilter changes, update our checkboxes:
   ndx.onChange(() => {
-    update_stats_panel(all, {
-      fillScale: colourScale,
-      label: slices.filter((d) => d.name === sliceVar)[0].label,
-      what: sliceVar,
-    });
-
     checkBoxes(lakeSelection, {
       filterkey: "lake",
       xfdim: lakeDim,
@@ -991,26 +972,10 @@ Promise.all([
       sortByLabel: true,
     });
 
+    updatePieCharts();
     update_clear_button_state(filters);
-
-    //================================================
-
-    // now we need to compile the list of filters needed to populate the url:
-    // foo
     updateUrlCheckBoxParams(filters);
     updateYearButtons();
-
-    //// - update url when settings change
-    //// - apply url params when page loads.
-    //let url_params = decodeURIComponent($.param(filter_values, true));
-    //// update the url with our url_parameters
-    //window.location.hash = url_params;
-
-    //================================================
-
-    //update our map too:
-    let pts = get_pts(spatialUnit, centroids, ptAccessor);
-    pieg.data([pts]).call(piecharts);
   });
 
   mymap.on("moveend", function () {

@@ -52,7 +52,7 @@ export const checkBoxes = (selection, props) => {
   // if this dimension is filtered, add the class filtered to the title
   // so we can style it differently to indicate that:
   let selector = selection.attr("id");
-  let titleclass = select(`#${selector}-title`).classed("filtered", filtered);
+  select(`#${selector}-title`).classed("filtered", filtered);
 
   let cbarray = selection.enter().append("div").merge(selection);
 
