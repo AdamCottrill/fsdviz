@@ -2,6 +2,8 @@ import { select } from "d3-selection";
 
 import { updateUrlCheckBoxParams } from "./url_parsing";
 
+import { pluckLabel } from "./utils";
+
 export const checkBoxes = (selection, props) => {
   const {
     filterkey,
@@ -9,7 +11,6 @@ export const checkBoxes = (selection, props) => {
     xfgroup,
     filters,
     label_lookup,
-    //withKey,
     sortByLabel,
   } = props;
 
@@ -25,19 +26,12 @@ export const checkBoxes = (selection, props) => {
 
   let keys = xfgroup.top("Infinity").filter((d) => d.value > 0);
 
-  const pluck_label = (val) => {
-    const label_obj = label_lookup.filter((x) => x.slug === val);
-    if (label_obj.length) {
-      return label_obj[0].label;
-    } else {
-      return val;
-    }
-  };
-
   let compareFn;
   if (sortByLabel) {
     compareFn = (a, b) => {
-      return pluck_label(a.key).localeCompare(pluck_label(b.key));
+      return pluckLabel(a.key, label_lookup).localeCompare(
+        pluckLabel(b.key, label_lookup)
+      );
     };
   } else {
     compareFn = (a, b) => a.key.localeCompare(b.key);
@@ -100,7 +94,7 @@ export const checkBoxes = (selection, props) => {
       xfdim.filter((val) => myfilters.indexOf(val) > -1);
     });
 
-  uiCheckbox.append("label").text((d) => pluck_label(d.key));
+  uiCheckbox.append("label").text((d) => pluckLabel(d.key, label_lookup));
 
   let buttonbar = select(`#${selector}-buttons`).attr("class", "ui buttons");
 

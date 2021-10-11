@@ -377,6 +377,7 @@ Promise.all([
       fillScale: colourScale,
       label: slices.filter((d) => d.name === sliceVar)[0].label,
       what: sliceVar,
+      row_labels: sliceLabels[sliceVar],
     });
   };
 

@@ -7,6 +7,8 @@ import { select, selectAll } from "d3-selection";
 import { scaleSqrt, scaleOrdinal } from "d3-scale";
 import { descending, sum } from "d3-array";
 
+import { pluckLabel } from "./utils";
+
 export const piechart_overlay = () => {
   // default values:
 
@@ -38,41 +40,33 @@ export const piechart_overlay = () => {
   // when we instantiate the overlay
   let getProjection;
 
-  const getLabel = (value, lookups) => {
-    let label;
-    const label_obj = lookups.filter((x) => x.slug === value)[0];
-
-    if (typeof label_obj === "undefined") {
-      label = value;
-    } else {
-      label = label_obj.label;
-    }
-    return label;
-  };
-
-  let get_pointInfo = (d) => {
+  let show_pointInfo = (d, row_labels, fillScale) => {
     // this does not work as expected - it needs to be updated if the
     // filters change.
+
     let data = d.values;
     let dataArray = Object.keys(data).map((x) => data[x]);
     dataArray.sort((a, b) => b.value - a.value);
     let total = sum(dataArray.map((d) => d.value));
 
-    let label = sliceLabelLookup[d.key];
+    let label = pluckLabel(d.key, pieLabelLookup);
 
-    if (typeof label === "undefined") {
-      label = d.key;
-    }
+    const rectSize = 15;
 
     let html = `<h5>${label}: ${commaFormat(total)}</h5>`;
-    html += '<table class="ui celled compact table">';
+    html += '<table class="ui celled compact table" style="font-size: 0.7em">';
     dataArray
       .filter((d) => d.value > 0)
       .forEach((row) => {
         let rowid = row.slice.replace(/ /g, "-").replace(/[()]/g, "");
 
         html += `<tr id="tr-${rowid}">
-           <td class="species-name">${row.slice}</td>
+           <td class="species-name">
+<svg width="${rectSize}" height="${rectSize}">
+  <rect width="${rectSize}" height="${rectSize}"
+style="fill:${fillScale(row.slice)}; stroke-width:0.5;stroke:#808080" />
+        </svg>
+${pluckLabel(row.slice, row_labels)}</td>
            <td class="right aligned">${commaFormat(row.value)}</td>
        </tr>`;
       });
@@ -141,7 +135,9 @@ export const piechart_overlay = () => {
           } else {
             // set selectedPie, fill in map info and highlight our selectedPie pie
             selectedPie = d.key;
-            select(pointInfoSelector).html(get_pointInfo(d));
+            select(pointInfoSelector).html(
+              show_pointInfo(d, sliceLabelLookup, fillScale)
+            );
             selectAll(".selected-pie").classed("selected-pie", false);
             select(this).classed("selected-pie", true);
           }
@@ -186,8 +182,8 @@ export const piechart_overlay = () => {
           .on("mouseover", function (event, d) {
             // need slice label and pie label!
 
-            const pie_label = getLabel(this.parentElement.id, pieLabelLookup);
-            const slice_label = getLabel(d.data.slice, sliceLabelLookup);
+            const pie_label = pluckLabel(this.parentElement.id, pieLabelLookup);
+            const slice_label = pluckLabel(d.data.slice, sliceLabelLookup);
 
             let html = `<strong class="capitalize">${pie_label}</strong><br><strong class="capitalize">${slice_label}</strong><br>N:${commaFormat(
               d.data.value
@@ -195,7 +191,7 @@ export const piechart_overlay = () => {
 
             select(this).classed("hover", true);
 
-            if (selectedPie && selectedPie === slug) {
+            if (selectedPie && selectedPie === this.parentElement.id) {
               highlight_row(d, true);
               //select("#point-info").html(get_sliceInfo(d));
             }

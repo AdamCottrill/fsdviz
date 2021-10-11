@@ -1,6 +1,7 @@
 import { sum } from "d3-array";
 import { format } from "d3-format";
 import { select, selectAll } from "d3-selection";
+import { pluckLabel } from "./utils";
 
 const update_summary_table = (data, props) => {
   // generate the html for rows of our summary table body.  for each species in data
@@ -18,7 +19,7 @@ const update_summary_table = (data, props) => {
   // ad species key to each summary object and create an
   // array of objects - sorted by yreq
 
-  const { fillScale, what, label } = props;
+  const { fillScale, what, label, row_labels } = props;
 
   //  let tmp = props.slices.filter(d => d.name === what);
   //  let sliceVarLabel = tmp[0].label;
@@ -28,10 +29,10 @@ const update_summary_table = (data, props) => {
 
   dataArray.sort((a, b) => b.yreq - a.yreq);
 
-  let commaFormat = format(",d");
+  const commaFormat = format(",d");
   let html = "";
 
-  let rectSize = 15;
+  const rectSize = 15;
 
   dataArray
     .filter((d) => d.events > 0)
@@ -41,7 +42,7 @@ const update_summary_table = (data, props) => {
 <svg width="${rectSize}" height="${rectSize}">
   <rect width="${rectSize}" height="${rectSize}"
 style="fill:${fillScale(row.category)}; stroke-width:0.5;stroke:#808080" />
-        </svg>  ${row.category}</td>
+        </svg>  ${pluckLabel(row.category, row_labels)}</td>
            <td class="center aligned">${row.events}</td>
            <td class="right aligned">${commaFormat(row.yreq)}</td>
        </tr>`;

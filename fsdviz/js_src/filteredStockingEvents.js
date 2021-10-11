@@ -385,9 +385,6 @@ Promise.all([
         break;
     }
 
-    console.log("value = ", value);
-    console.log("colours = ", colors);
-
     sharedColourScale
       .domain(Object.entries(colors).map((x) => x[0]))
       .range(Object.entries(colors).map((x) => x[1]));

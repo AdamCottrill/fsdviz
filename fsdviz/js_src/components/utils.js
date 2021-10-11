@@ -225,3 +225,15 @@ export const makeFillColours = (common, stocking) => {
 
   return fillColours;
 };
+
+// given a value, and an label lookup object (with keys slug and label)
+// return the label of the object where slug==val, otherwise return val.
+
+export const pluckLabel = (val, label_lookup) => {
+  const label_obj = label_lookup.filter((x) => x.slug === val);
+  if (label_obj.length) {
+    return label_obj[0].label;
+  } else {
+    return val;
+  }
+};
