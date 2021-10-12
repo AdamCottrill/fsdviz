@@ -38,7 +38,7 @@ export const prepare_filtered_stocking_data = (data) => {
   data.grid_10 = data.grid10;
   data.date = data.date ? dateParser(data.date) : "";
   data.month = data.month ? parseInt(data.month) : 0;
-
+  data.strain = `${data.species_code}-${data.strain}`.toLowerCase();
   data.year = parseInt(data.year);
   data.year_class = parseInt(data.year_class);
   //yreq, events, & total_stocked match names on other views

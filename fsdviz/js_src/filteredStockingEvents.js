@@ -194,6 +194,10 @@ Promise.all([
 
   data.forEach((d) => prepare_filtered_stocking_data(d));
 
+  console.log("data[0] = ", data[0]);
+
+  console.log("data[0] = ", data[0]);
+
   // pie chart and slice labesl
   const pieLabels = makePieLabels(data, common);
   const sliceLabels = { ...pieLabels, ...makeSliceLabels(common, stocking) };
@@ -231,24 +235,6 @@ Promise.all([
     data.length >= maxEvents ? false : true
   );
 
-  const strainMap = common.strains.reduce((accumulator, d) => {
-    //let key = `${d.strain_code}-${d.strain_species.abbrev}`;
-
-    accumulator[d.slug] = {
-      long: `${d.strain_species.common_name} - ${d.strain_label}(${d.strain_code})`,
-      short: `${d.strain_code}-${d.strain_species.abbrev}`,
-    };
-    return accumulator;
-  }, {});
-
-  //just the short form for the stack bar labels:
-  // key of of the form: <strain_code>-<species_abbrev>
-  const strainShortMap = common.strains.reduce((accumulator, d) => {
-    //let key = `${d.strain_code}-${d.strain_species.abbrev}`;
-    accumulator[d.slug] = d.slug;
-    return accumulator;
-  }, {});
-
   //=======================================================================
   //                         CROSSFILTER
 
@@ -272,6 +258,10 @@ Promise.all([
   let tagDim = ndx.dimension((d) => d.tag);
   let markDim = ndx.dimension((d) => d.mark);
   let stkMethDim = ndx.dimension((d) => d.stockingMethod);
+
+  // let lakeMapDim = ndx.dimension((d) => d.lake);
+  // let stateProvMapDim = ndx.dimension((d) => d.stateProv);
+  // let jurisdictionMapDim = ndx.dimension((d) => d.jurisdiction);
 
   // Create our groups here so the variables are in scope. They are
   // actually populated in a function that can be called when the
@@ -510,7 +500,7 @@ Promise.all([
         break;
       case "strain":
         items = uniqueStrains;
-        lookupMap = strainShortMap;
+        lookupMap = sliceLabels["strain"];
         plotLabel = "Stocking By Strain Through Time";
 
         break;
@@ -899,8 +889,7 @@ Promise.all([
       if (!filters || !filters.length) {
         select("#strain-filter").text("All").classed("filtered", false);
       } else {
-        let labels = filters.map((d) => strainMap[d].short);
-        select("#strain-filter").text(labels).classed("filtered", true);
+        select("#strain-filter").text(filters).classed("filtered", true);
       }
     });
   });
@@ -1150,30 +1139,43 @@ Promise.all([
     Object.keys(d.value).map((x) => d.value[x][responseVar]);
 
   // a helper function to get the data in the correct format for
-  const get_pts = (spatialUnit, centriods, ptAccessor) => {
+  const get_pts = (spatialUnit, centroids, ptAccessor) => {
     let pts;
 
     switch (spatialUnit) {
       case "lake":
         pts = Object.values(lakeMapGroup.all());
+        if (lakeChart.hasFilter()) {
+          pts = pts.filter((pt) => lakeChart.filters().includes(pt.key));
+        }
+
         break;
       case "stateProv":
         pts = Object.values(stateProvMapGroup.all());
+        if (stateProvChart.hasFilter()) {
+          pts = pts.filter((pt) => stateProvChart.filters().includes(pt.key));
+        }
         break;
       case "jurisdiction":
         pts = Object.values(jurisdictionMapGroup.all());
+        if (jurisdictionChart.hasFilter()) {
+          pts = pts.filter((pt) =>
+            jurisdictionChart.filters().includes(pt.key)
+          );
+        }
         break;
       case "manUnit":
         pts = Object.values(manUnitMapGroup.all());
         break;
       case "grid10":
         pts = Object.values(grid10MapGroup.all());
-
         break;
       case "geom":
         pts = Object.values(geomMapGroup.all());
         break;
     }
+
+    console.log("pts = ", pts);
 
     if (spatialUnit === "geom") {
       pts.forEach((d) => (d["coordinates"] = get_coordinates(d.key)));
