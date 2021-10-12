@@ -2,6 +2,10 @@ import { select, selectAll } from "d3-selection";
 
 import { scaleOrdinal } from "d3-scale";
 
+import { timeParse } from "d3";
+
+const dateParser = timeParse("%Y-%m-%d");
+
 // a function to prepare the json stocking data for use in our map
 export const prepare_stocking_data = (data) => {
   data.agency_code = data.agency_abbrev;
@@ -21,6 +25,30 @@ export const prepare_stocking_data = (data) => {
   data.mark = data._mark ? data._mark : "NONE";
   data.clip = data.clip ? data.clip : "NONE";
   data.month = data.month ? data.month + "" : "0";
+};
+
+export const prepare_filtered_stocking_data = (data) => {
+  // Prepare our data:
+
+  data.jurisdiction = data.jurisdiction_code;
+  data.longitude = Number.parseFloat(data.longitude).toPrecision(6);
+  data.latitude = Number.parseFloat(data.latitude).toPrecision(6);
+  data.point = [data.longitude, data.latitude];
+  data.geom = `Point(${data.longitude} ${data.latitude})`;
+  data.grid_10 = data.grid10;
+  data.date = data.date ? dateParser(data.date) : "";
+  data.month = data.month ? parseInt(data.month) : 0;
+
+  data.year = parseInt(data.year);
+  data.year_class = parseInt(data.year_class);
+  //yreq, events, & total_stocked match names on other views
+  data.yreq = parseInt(data.yreq_stocked);
+  data.events = 1;
+  data.total = parseInt(data.no_stocked);
+
+  data.clip = data.clip ? data.clip : "UN";
+  data.tag = data._tags ? data._tags : "None";
+  data.mark = data._marks ? data._marks : "None";
 };
 
 // a funciton to add an element to our filter registry for a dimension
@@ -210,18 +238,21 @@ export const makeFillColours = (common, stocking) => {
 
   const fillColours = {};
   // common
-  fillColours["agency_code"] = makeColorMap(common.agencies, "abbrev");
-  fillColours["species_code"] = makeColorMap(common.species, "abbrev");
+  fillColours["lake"] = makeColorMap(common.lakes);
+  fillColours["stateProv"] = makeColorMap(common.stateprov);
+  fillColours["jurisdiction"] = makeColorMap(common.jurisdictions, "slug");
+  fillColours["agency_code"] = makeColorMap(common.agencies);
+  fillColours["species_code"] = makeColorMap(common.species);
   fillColours["strain"] = makeColorMap(common.strains, "slug");
-
   fillColours["clip"] = makeColorMap(common.clipcodes, "clip_code");
   fillColours["mark"] = makeColorMap(common.physchem_marks, "mark_code");
+  fillColours["tag"] = makeColorMap(common.fish_tags, "tag_code");
   // stocking colours
   fillColours["stockingMethod"] = makeColorMap(
     stocking.stockingmethods,
     "stk_meth"
   );
-  fillColours["lifestage_code"] = makeColorMap(stocking.lifestages, "abbrev");
+  fillColours["lifestage_code"] = makeColorMap(stocking.lifestages);
 
   return fillColours;
 };
@@ -236,4 +267,14 @@ export const pluckLabel = (val, label_lookup) => {
   } else {
     return val;
   }
+};
+
+export const responseVarLabels = {
+  yreq: "Yearling Equivalent",
+  total: "Individual",
+  events: "Event",
+};
+
+export const pluralize = (value, count) => {
+  return count > 1 ? value + "s" : value;
 };

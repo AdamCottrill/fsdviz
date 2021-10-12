@@ -3,16 +3,20 @@
 import crossfilter from "crossfilter2";
 import Leaflet from "leaflet";
 
-import { mouse, event } from "d3";
+import {
+  select,
+  selectAll,
+  csv,
+  json,
+  format,
+  scaleLinear,
+  scaleOrdinal,
+  range,
+  extent,
+  sum,
+  event,
+} from "d3";
 
-import { select, selectAll } from "d3-selection";
-import { csv, json } from "d3-fetch";
-import { format } from "d3-format";
-import { scaleLinear, scaleOrdinal } from "d3-scale";
-import { range, extent, sum } from "d3-array";
-import { timeParse } from "d3-time-format";
-
-import { wktToGeoJSON } from "@terraformer/wkt";
 import {
   update_dc_url,
   apply_url_filters,
@@ -25,12 +29,16 @@ import { RadioButtons } from "./components/semanticRadioButtons";
 import { update_stats_panel } from "./components/stats_panel";
 import { get_coordinates, add_roi } from "./components/spatial_utils";
 import {
-  makeItemMap,
+  prepare_filtered_stocking_data,
   getColorScale,
-  makeColorMap,
   makePieLabels,
   makeSliceLabels,
+  makeFillColours,
+  pluckLabel,
+  pluralize,
+  responseVarLabels,
 } from "./components/utils";
+
 import { piechart_overlay } from "./components/piechart_overlay";
 import {
   stockingAdd,
@@ -39,9 +47,6 @@ import {
 } from "./components/reducers";
 import { month_lookup } from "./components/constants";
 
-// import dc from "dc";
-
-const dateParser = timeParse("%Y-%m-%d");
 let commaFormat = format(",");
 
 const width1 = 425;
@@ -55,7 +60,7 @@ let roi = getUrlSearchValue("roi") || false;
 let spatialUnit = getUrlParamValue("spatial_unit") || "geom";
 
 // this should probably be 'category'
-let sliceVar = getUrlParamValue("category_var") || "species_name";
+let sliceVar = getUrlParamValue("category_var") || "species_code";
 
 let responseVar = getUrlParamValue("response_var") || "yreq";
 
@@ -187,11 +192,24 @@ Promise.all([
   // slugs.forEach((d) => (labelLookup[d.slug] = d.label));
   // piecharts.labelLookup(labelLookup);
 
-  data.forEach((d) => (d.mark = d.mark || "NC"));
+  data.forEach((d) => prepare_filtered_stocking_data(d));
 
   // pie chart and slice labesl
   const pieLabels = makePieLabels(data, common);
   const sliceLabels = { ...pieLabels, ...makeSliceLabels(common, stocking) };
+  const fillColours = makeFillColours(common, stocking);
+
+  const updateColorScale = (value) => {
+    const colors = fillColours[value];
+    sharedColourScale
+      .domain(Object.entries(colors).map((x) => x[0]))
+      .range(Object.entries(colors).map((x) => x[1]));
+  };
+
+  updateColorScale(sliceVar);
+  piecharts.fillScale(sharedColourScale);
+  piecharts.pieLabelLookup(pieLabels[spatialUnit]);
+  piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
 
   // get the geographic extents of our data and update our map if
   // there is no roi.
@@ -213,39 +231,10 @@ Promise.all([
     data.length >= maxEvents ? false : true
   );
 
-  // ==================================================================
-  //                    LOOKUP-MAPS
-
-  // create key:value pairs for all of the objects will need to lookup.
-  // used mostly for labels. eg. lakeMap["HU"] will return "Lake Huron"
-
-  const lakeMap = makeItemMap(common.lakes, "abbrev", "lake_name");
-  const lakeColors = makeColorMap(common.lakes);
-
-  const agencyMap = makeItemMap(common.agencies, "abbrev", "agency_name");
-  const agencyColors = makeColorMap(common.agencies);
-
-  const jurisdictionColors = makeColorMap(common.jurisdictions, "slug");
-  const jurisdictionMap = common.jurisdictions.reduce((accumulator, d) => {
-    accumulator[d.slug] = {
-      description: d.description,
-      stateprov: d.stateprov.name,
-    };
-    return accumulator;
-  }, {});
-
-  const stateProvColors = makeColorMap(common.stateprov);
-  const stateProvMap = makeItemMap(common.stateprov, "abbrev", "name");
-
-  const speciesColors = makeColorMap(common.species);
-  const speciesMap = common.species.reduce((accumulator, d) => {
-    accumulator[d.abbrev] = `${d.common_name} - (${d.abbrev})`;
-    return accumulator;
-  }, {});
-
   const strainMap = common.strains.reduce((accumulator, d) => {
-    let key = `${d.strain_code}-${d.strain_species.abbrev}`;
-    accumulator[key] = {
+    //let key = `${d.strain_code}-${d.strain_species.abbrev}`;
+
+    accumulator[d.slug] = {
       long: `${d.strain_species.common_name} - ${d.strain_label}(${d.strain_code})`,
       short: `${d.strain_code}-${d.strain_species.abbrev}`,
     };
@@ -255,143 +244,11 @@ Promise.all([
   //just the short form for the stack bar labels:
   // key of of the form: <strain_code>-<species_abbrev>
   const strainShortMap = common.strains.reduce((accumulator, d) => {
-    let key = `${d.strain_code}-${d.strain_species.abbrev}`;
-    accumulator[key] = key;
+    //let key = `${d.strain_code}-${d.strain_species.abbrev}`;
+    accumulator[d.slug] = d.slug;
     return accumulator;
   }, {});
 
-  const strainColors = common.strains.reduce((accumulator, d) => {
-    let key = `${d.strain_code}-${d.strain_species.abbrev}`;
-    accumulator[key] = d.color;
-    return accumulator;
-  }, {});
-
-  const stockingMethodColors = makeColorMap(
-    stocking.stockingmethods,
-    "stk_meth"
-  );
-
-  const stockingMethodMap = makeItemMap(
-    stocking.stockingmethods,
-    "stk_meth",
-    "description"
-  );
-
-  const clipColors = makeColorMap(common.clipcodes, "clip_code");
-  const clipMap = makeItemMap(common.clipcodes, "clip_code", "description");
-
-  const lifestageColors = makeColorMap(stocking.lifestages);
-  const lifestageMap = makeItemMap(
-    stocking.lifestages,
-    "abbrev",
-    "description"
-  );
-
-  //a bit of short cut for now:
-  const tagMap = data.reduce((accumulator, d) => {
-    accumulator[d.tag] = d.tag;
-    return accumulator;
-  }, {});
-  const tagColors = makeColorMap(common.fish_tags, "tag_code");
-
-  const markMap = data.reduce((accumulator, d) => {
-    accumulator[d.mark] = d.mark;
-    return accumulator;
-  }, {});
-  const markColors = makeColorMap(common.physchem_marks, "mark_code");
-
-  // a little cleanup - these were originally passed in, but have not
-  // been transformed
-  slugs = null;
-  common = null;
-  stocking = null;
-
-  // Prepare our data:
-  data.forEach((d) => {
-    //d.date: "2016-02-01"
-    d.date = d.date ? dateParser(d.date) : "";
-    d.latitude = parseFloat(d.latitude);
-    d.longitude = parseFloat(d.longitude);
-    //d.grid_10 = d.lake.toLowerCase() + "_" + d.grid_10; // this should be the slug
-    d.grid_10 = d.grid10;
-    d.month = d.month ? parseInt(d.month) : 0;
-
-    //NOTE: this will break when we get the database to return the strain slug.
-    d.strain = d.strain + "-" + d.species_code;
-    d.year = parseInt(d.year);
-    d.year_class = parseInt(d.year_class);
-    //yreq, events, & total_stocked match names on other views
-    d.yreq = parseInt(d.yreq_stocked);
-    d.events = 1;
-    d.total = parseInt(d.no_stocked);
-
-    d.clip = d.clip ? d.clip : "UN";
-    d.tag = d._tags ? d._tags : "None";
-    d.mark = d._marks ? d._marks : "None";
-
-    d.point = [+d.longitude, +d.latitude];
-    d.geom = `Point(${d.longitude} ${d.latitude})`;
-
-    return d;
-  });
-
-  const updateColorScale = (value) => {
-    let colors;
-
-    switch (value) {
-      case "species_code":
-        //speciesChart.colors(sharedColourScale);
-        colors = speciesColors;
-        break;
-      case "lake":
-        //lakeChart.colors(sharedColourScale);
-        colors = lakeColors;
-        break;
-      case "stateProv":
-        //stateProvChart.colors(sharedColourScale);
-        colors = stateProvColors;
-        break;
-      case "jurisdiction":
-        //jurisdictionChart.colors(sharedColourScale);
-        colors = jurisdictionColors;
-        break;
-      case "agency_code":
-        colors = agencyColors;
-        //agencyChart.colors(sharedColourScale);
-        break;
-      case "strain":
-        colors = strainColors;
-        //strainChart.colors(sharedColourScale);
-        break;
-      case "clip":
-        colors = clipColors;
-        //clipChart.colors(sharedColourScale);
-        break;
-      case "mark":
-        colors = markColors;
-        //markChart.colors(sharedColourScale);
-        break;
-      case "tag":
-        colors = tagColors;
-        //tagChart.colors(sharedColourScale);
-        break;
-      case "lifestage_code":
-        colors = lifestageColors;
-        //lifestageChart.colors(sharedColourScale);
-        break;
-      case "stockingMethod":
-        //stockingMethodChart.colors(sharedColourScale);
-        colors = stockingMethodColors;
-        break;
-    }
-
-    sharedColourScale
-      .domain(Object.entries(colors).map((x) => x[0]))
-      .range(Object.entries(colors).map((x) => x[1]));
-  };
-
-  updateColorScale(sliceVar);
-  piecharts.fillScale(sharedColourScale);
   //=======================================================================
   //                         CROSSFILTER
 
@@ -403,7 +260,7 @@ Promise.all([
   let lakeDim = ndx.dimension((d) => d.lake);
   let agencyDim = ndx.dimension((d) => d.agency_code);
   let stateProvDim = ndx.dimension((d) => d.stateProv);
-  let jurisdictionDim = ndx.dimension((d) => d.jurisdiction_code);
+  let jurisdictionDim = ndx.dimension((d) => d.jurisdiction);
   let manUnitDim = ndx.dimension((d) => d.man_unit);
   let grid10Dim = ndx.dimension((d) => d.grid_10);
   let geomDim = ndx.dimension((d) => d.geom);
@@ -451,7 +308,7 @@ Promise.all([
     jurisdictionGroup = jurisdictionDim
       .group()
       .reduceSum((d) => d[responseVar]);
-    let manUnitGroup = manUnitDim.group().reduceSum((d) => d[responseVar]);
+    //let manUnitGroup = manUnitDim.group().reduceSum((d) => d[responseVar]);
     grid10Group = grid10Dim.group().reduceSum((d) => d[responseVar]);
     speciesGroup = speciesDim.group().reduceSum((d) => d[responseVar]);
     strainGroup = strainDim.group().reduceSum((d) => d[responseVar]);
@@ -530,6 +387,7 @@ Promise.all([
     label: categories.filter((d) => d.name === sliceVar)[0].label,
     //what: responseVar,
     what: sliceVar,
+    row_labels: sliceLabels[sliceVar],
   });
 
   // set up an array of years:
@@ -564,7 +422,7 @@ Promise.all([
     };
   };
 
-  select("#btn_reset_filters").on("click", (event) => {
+  select("#btn_reset_filters").on("click", () => {
     dc.filterAll();
     dc.renderAll();
   });
@@ -594,7 +452,6 @@ Promise.all([
 
   // get the default colour scale used by DC.js so we can revert
   // the charts back if they are no longer the selected category.
-  const dcColours = strainChart.colors();
 
   const updateChartGroups = () => {
     lakeChart.group(lakeGroup);
@@ -623,31 +480,31 @@ Promise.all([
     switch (category) {
       case "species_code":
         items = uniqueSpecies;
-        lookupMap = speciesMap;
+        lookupMap = sliceLabels["species_code"];
         plotLabel = "Species Stocked Through Time";
 
         break;
       case "lake":
         items = uniqueLakes;
-        lookupMap = lakeMap;
+        lookupMap = sliceLabels["lake"];
         plotLabel = "Stocking By Lake Through Time";
 
         break;
       case "stateProv":
         items = uniqueStateProvs;
-        lookupMap = stateProvMap;
+        lookupMap = sliceLabels["stateProv"];
         plotLabel = "Stocking By State/Province Through Time";
 
         break;
       case "jurisdiction":
         items = uniqueJurisdictions;
-        lookupMap = jurisdictionMap;
+        lookupMap = sliceLabels["jurisdiction"];
         plotLabel = "Stocking By Jurisdiction Through Time";
 
         break;
       case "agency_code":
         items = uniqueAgencies;
-        lookupMap = agencyMap;
+        lookupMap = sliceLabels["agency_code"];
         plotLabel = "Stocking By Agency Through Time";
 
         break;
@@ -659,37 +516,37 @@ Promise.all([
         break;
       case "clip":
         items = uniqueClips;
-        lookupMap = clipMap;
+        lookupMap = sliceLabels["clip"];
         plotLabel = "Stocking By Clip Through Time";
 
         break;
       case "mark":
         items = uniqueMarks;
-        lookupMap = markMap;
+        lookupMap = sliceLabels["mark"];
         plotLabel = "Stocking By Mark Through Time";
 
         break;
       case "tag":
         items = uniqueTags;
-        lookupMap = tagMap;
+        lookupMap = sliceLabels["tag"];
         plotLabel = "Stocking By Tag Type Through Time";
 
         break;
       case "lifestage_code":
         items = uniqueLifestages;
-        lookupMap = lifestageMap;
+        lookupMap = sliceLabels["lifestage_code"];
         plotLabel = "Stocking By LifeStage Through Time";
 
         break;
       case "stockingMethod":
         items = uniqueStockingMethods;
-        lookupMap = stockingMethodMap;
+        lookupMap = sliceLabels["stockingMethod"];
         plotLabel = "Stocking By Stocking Method Through Time";
 
         break;
       default:
         items = uniqueSpecies;
-        lookupMap = speciesMap;
+        lookupMap = sliceLabels["species_code"];
         plotLabel = "Species Stocked Through Time";
     }
   };
@@ -717,14 +574,15 @@ Promise.all([
   let barchartTooltip = function (d) {
     let layer = this.layer.trim();
     if (layer !== "0") {
-      let yr = d.key;
-      let label = lookupMap[layer];
+      const yr = d.key;
+      const N = d.value[layer] == 0 ? 0 : d.value[layer][responseVar];
+      let label = pluckLabel(layer, lookupMap);
+      const what = pluralize(responseVarLabels[responseVar], N);
       // some of our lookups are objects with a description attribute:
       label = typeof label === "object" ? label.description : label;
-      let stocked = commaFormat(
-        d.value[layer] == 0 ? 0 : d.value[layer][responseVar]
-      );
-      return `${yr} - ${label}: ${stocked}`;
+
+      let stocked = commaFormat(N);
+      return `${yr} - ${label}: ${stocked} ${what}`;
     } else {
       return "";
     }
@@ -836,7 +694,7 @@ Promise.all([
 
   //   javascript:lakeChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#stackedbar-chart-reset").on("click", (event) => {
+  select("#stackedbar-chart-reset").on("click", () => {
     event.preventDefault();
     stackedByYearBarChart.filterAll();
     dc.redrawAll();
@@ -845,16 +703,20 @@ Promise.all([
   //==========================================================
   //                   LAKE
 
-  const lakeColorScale = getColorScale(lakeColors);
-
+  const lakeColorScale = getColorScale(fillColours["lake"]);
+  //  const getLabel = (d, lookup) => pluckLabel(d.key, lookup);
   lakeChart
     .width(width1)
     .height(height1)
     .dimension(lakeDim)
     .group(lakeGroup)
     .colors(lakeColorScale)
-    .label((d) => lakeMap[d.key])
-    .title((d) => `${lakeMap[d.key]}: ${commaFormat(d.value)}`);
+    .label((d) => pluckLabel(d.key, sliceLabels["lake"]))
+    .title((d) => {
+      const label = pluckLabel(d.key, sliceLabels["lake"]);
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${label}: ${commaFormat(d.value)} ${what}`;
+    });
 
   lakeChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
@@ -869,7 +731,7 @@ Promise.all([
 
   //   javascript:lakeChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#lake-plot-reset").on("click", (event) => {
+  select("#lake-plot-reset").on("click", () => {
     event.preventDefault();
     lakeChart.filterAll();
     dc.redrawAll();
@@ -878,14 +740,18 @@ Promise.all([
   //==============================================
   //            AGENCY
 
-  const agencyColorScale = getColorScale(agencyColors);
+  const agencyColorScale = getColorScale(fillColours["agency_code"]);
   agencyChart
     .width(width1)
     .height(height1)
     .dimension(agencyDim)
     .group(agencyGroup)
     .colors(agencyColorScale)
-    .title((d) => `${agencyMap[d.key]}: ${commaFormat(d.value)}`);
+    .title((d) => {
+      const label = pluckLabel(d.key, sliceLabels["agency_code"]);
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${label}: ${commaFormat(d.value)} ${what}`;
+    });
 
   agencyChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
@@ -900,7 +766,7 @@ Promise.all([
 
   //   javascript:agencyChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#agency-plot-reset").on("click", (event) => {
+  select("#agency-plot-reset").on("click", () => {
     event.preventDefault();
     agencyChart.filterAll();
     dc.redrawAll();
@@ -909,7 +775,7 @@ Promise.all([
   //==============================================
   //            JURISDICTION
 
-  const jurisdictionColorScale = getColorScale(jurisdictionColors);
+  const jurisdictionColorScale = getColorScale(fillColours["jurisdiction"]);
 
   jurisdictionChart
     .width(width1)
@@ -917,17 +783,11 @@ Promise.all([
     .dimension(jurisdictionDim)
     .group(jurisdictionGroup)
     .colors(jurisdictionColorScale)
-    .label((d) => {
-      if (typeof jurisdictionMap[d.key] === "undefined") {
-        return jurisdictionMap[d.key];
-      }
-      return jurisdictionMap[d.key].stateprov;
-    })
+    .label((d) => pluckLabel(d.key, sliceLabels["jurisdiction"]))
     .title((d) => {
-      if (typeof jurisdictionMap[d.key] === "undefined") {
-        return `${jurisdictionMap[d.key]}: ${commaFormat(d.value)}`;
-      }
-      return `${jurisdictionMap[d.key].description}: ${commaFormat(d.value)}`;
+      const label = pluckLabel(d.key, sliceLabels["jurisdiction"]);
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${label}: ${commaFormat(d.value)} ${what}`;
     });
 
   jurisdictionChart.on("renderlet", function (chart) {
@@ -943,7 +803,7 @@ Promise.all([
 
   //   javascript:jurisdictionChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#jurisdiction-plot-reset").on("click", (event) => {
+  select("#jurisdiction-plot-reset").on("click", () => {
     event.preventDefault();
     jurisdictionChart.filterAll();
     dc.redrawAll();
@@ -952,14 +812,18 @@ Promise.all([
   //==============================================
   //               STATE OR PROVINCE
 
-  const stateProvColorScale = getColorScale(stateProvColors);
+  const stateProvColorScale = getColorScale(fillColours["stateProv"]);
   stateProvChart
     .width(width1)
     .height(height1)
     .dimension(stateProvDim)
     .group(stateProvGroup)
     .colors(stateProvColorScale)
-    .title((d) => `${stateProvMap[d.key]}: ${commaFormat(d.value)}`);
+    .title((d) => {
+      const label = pluckLabel(d.key, sliceLabels["stateProv"]);
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${label}: ${commaFormat(d.value)} ${what}`;
+    });
 
   stateProvChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
@@ -974,7 +838,7 @@ Promise.all([
 
   //   javascript:stateProvChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#state-province-plot-reset").on("click", (event) => {
+  select("#state-province-plot-reset").on("click", () => {
     event.preventDefault();
     stateProvChart.filterAll();
     dc.redrawAll();
@@ -983,14 +847,18 @@ Promise.all([
   //==============================================
   //               SPECIES
 
-  const speciesColourScale = getColorScale(speciesColors);
+  const speciesColourScale = getColorScale(fillColours["species_code"]);
   speciesChart
     .width(width1)
     .height(height1)
     .dimension(speciesDim)
     .group(speciesGroup)
     .colors(speciesColourScale)
-    .title((d) => `${speciesMap[d.key]}: ${commaFormat(d.value)}`);
+    .title((d) => {
+      const label = pluckLabel(d.key, sliceLabels["species_code"]);
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${label}: ${commaFormat(d.value)} ${what}`;
+    });
 
   speciesChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
@@ -1005,7 +873,7 @@ Promise.all([
 
   //   javascript:speciesChart.filterAll();dc.redrawAll();
   // set up our reset listener
-  select("#species-plot-reset").on("click", (event) => {
+  select("#species-plot-reset").on("click", () => {
     event.preventDefault();
     speciesChart.filterAll();
     dc.redrawAll();
@@ -1013,15 +881,17 @@ Promise.all([
 
   //==============================================
   //               STRAIN
-  const strainColorScale = getColorScale(strainColors);
+  const strainColorScale = getColorScale(fillColours["strain"]);
   strainChart
     .width(width1)
     .height(height1)
     .colors(strainColorScale)
     .dimension(strainDim)
     .group(strainGroup)
-    .title((d) => `${strainMap[d.key].long}: ${commaFormat(d.value)}`)
-    .label((d) => strainMap[d.key].short);
+    .title(
+      (d) =>
+        `${pluckLabel(d.key, sliceLabels["strain"])}: ${commaFormat(d.value)}`
+    );
 
   strainChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
@@ -1035,7 +905,7 @@ Promise.all([
     });
   });
 
-  select("#strain-plot-reset").on("click", (event) => {
+  select("#strain-plot-reset").on("click", () => {
     event.preventDefault();
     strainChart.filterAll();
     dc.redrawAll();
@@ -1044,7 +914,7 @@ Promise.all([
   //==============================================
   //               LIFESTAGE
 
-  const lifestageColorScale = getColorScale(lifestageColors);
+  const lifestageColorScale = getColorScale(fillColours["lifestage_code"]);
 
   lifestageChart
     .width(width2)
@@ -1054,9 +924,12 @@ Promise.all([
     .group(lifeStageGroup)
     .colors(lifestageColorScale)
     //.ordering(d => d.key)
+    .title((d) => {
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${commaFormat(d.value)} ${what}`;
+    })
+    .label((d) => pluckLabel(d.key, sliceLabels["lifestage_code"]))
     .gap(2)
-    .title((d) => commaFormat(d.value))
-    .label((d) => lifestageMap[d.key])
     .elasticX(true)
     .xAxis()
     .ticks(4);
@@ -1072,7 +945,7 @@ Promise.all([
     });
   });
 
-  select("#lifestage-plot-reset").on("click", (event) => {
+  select("#lifestage-plot-reset").on("click", () => {
     event.preventDefault();
     lifestageChart.filterAll();
     dc.redrawAll();
@@ -1081,7 +954,7 @@ Promise.all([
   //==============================================
   //               STOCKING METHOD
 
-  const stockingMethodColorScale = getColorScale(stockingMethodColors);
+  const stockingMethodColorScale = getColorScale(fillColours["stockingMethod"]);
   stockingMethodChart
     .width(width2)
     .height(height2)
@@ -1091,8 +964,11 @@ Promise.all([
     .colors(stockingMethodColorScale)
     //.ordering(d => d.key)
     .gap(2)
-    .title((d) => commaFormat(d.value))
-    .label((d) => stockingMethodMap[d.key])
+    .title((d) => {
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${commaFormat(d.value)} ${what}`;
+    })
+    .label((d) => pluckLabel(d.key, sliceLabels["stockingMethod"]))
     .elasticX(true)
     .xAxis()
     .ticks(4);
@@ -1112,7 +988,7 @@ Promise.all([
     });
   });
 
-  select("#stocking-method-plot-reset").on("click", (event) => {
+  select("#stocking-method-plot-reset").on("click", () => {
     event.preventDefault();
     stockingMethodChart.filterAll();
     dc.redrawAll();
@@ -1129,7 +1005,10 @@ Promise.all([
     .group(monthGroup)
     .ordering((d) => d.key)
     .gap(2)
-    .title((d) => commaFormat(d.value))
+    .title((d) => {
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${commaFormat(d.value)} ${what}`;
+    })
     .label((d) => month_lookup[d.key])
     .elasticX(true)
     .xAxis()
@@ -1147,7 +1026,7 @@ Promise.all([
     });
   });
 
-  select("#stocking-month-plot-reset").on("click", (event) => {
+  select("#stocking-month-plot-reset").on("click", () => {
     event.preventDefault();
     stockingMonthChart.filterAll();
     dc.redrawAll();
@@ -1156,7 +1035,7 @@ Promise.all([
   //==============================================
   //               MARKS
 
-  const markColorScale = getColorScale(markColors);
+  const markColorScale = getColorScale(fillColours["mark"]);
 
   markChart
     .width(width2)
@@ -1164,7 +1043,11 @@ Promise.all([
     .dimension(markDim)
     .group(markGroup)
     .colors(markColorScale)
-    .title((d) => `${d.key}: ${commaFormat(d.value)}`);
+    .title((d) => {
+      const label = pluckLabel(d.key, sliceLabels["mark"]);
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${label}: ${commaFormat(d.value)} ${what}`;
+    });
 
   markChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
@@ -1177,7 +1060,7 @@ Promise.all([
     });
   });
 
-  select("#mark-plot-reset").on("click", (event) => {
+  select("#mark-plot-reset").on("click", () => {
     event.preventDefault();
     markChart.filterAll();
     dc.redrawAll();
@@ -1186,7 +1069,7 @@ Promise.all([
   //==============================================
   //               CLIPS
 
-  const clipColorScale = getColorScale(clipColors);
+  const clipColorScale = getColorScale(fillColours["clip"]);
 
   clipChart
     .width(width2)
@@ -1194,7 +1077,11 @@ Promise.all([
     .dimension(clipDim)
     .group(clipGroup)
     .colors(clipColorScale)
-    .title((d) => `${d.key}: ${commaFormat(d.value)}`);
+    .title((d) => {
+      const label = pluckLabel(d.key, sliceLabels["clip"]);
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${label}: ${commaFormat(d.value)} ${what}`;
+    });
 
   clipChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
@@ -1207,7 +1094,7 @@ Promise.all([
     });
   });
 
-  select("#clip-plot-reset").on("click", (event) => {
+  select("#clip-plot-reset").on("click", () => {
     event.preventDefault();
     clipChart.filterAll();
     dc.redrawAll();
@@ -1216,7 +1103,7 @@ Promise.all([
   //==============================================
   //               TAGS
 
-  const tagColorScale = getColorScale(tagColors);
+  const tagColorScale = getColorScale(fillColours["tag"]);
 
   tagChart
     .width(width2)
@@ -1224,7 +1111,11 @@ Promise.all([
     .dimension(tagDim)
     .group(tagGroup)
     .colors(tagColorScale)
-    .title((d) => `${d.key}: ${commaFormat(d.value)}`);
+    .title((d) => {
+      const label = pluckLabel(d.key, sliceLabels["tag"]);
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${label}: ${commaFormat(d.value)} ${what}`;
+    });
 
   tagChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
@@ -1237,7 +1128,7 @@ Promise.all([
     });
   });
 
-  select("#tag-plot-reset").on("click", (event) => {
+  select("#tag-plot-reset").on("click", () => {
     event.preventDefault();
     tagChart.filterAll();
     dc.redrawAll();
@@ -1294,26 +1185,25 @@ Promise.all([
     return pts.filter((d) => d.total > 0);
   };
 
-  let pts = get_pts(spatialUnit, centroids, ptAccessor);
-  pieg.data([pts]).call(piecharts);
-
   // recacalculate the points given the current spatial unit and
   // point accessor
   const updatePieCharts = () => {
     piecharts.fillScale(sharedColourScale).selectedPie(null).clear_pointInfo();
-
     piecharts.pieLabelLookup(pieLabels[spatialUnit]);
     piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
 
-    pts = get_pts(spatialUnit, centroids, ptAccessor);
+    const pts = get_pts(spatialUnit, centroids, ptAccessor);
     pieg.data([pts]).call(piecharts);
 
     update_stats_panel(all, {
       fillScale: sharedColourScale,
       label: categories.filter((d) => d.name === sliceVar)[0].label,
       what: sliceVar,
+      row_labels: sliceLabels[sliceVar],
     });
   };
+
+  updatePieCharts();
 
   // if the spatial radio buttons change, update the global variable
   // and update the pie charts
@@ -1331,20 +1221,9 @@ Promise.all([
     updatePieCharts();
   };
 
-  piecharts.pieLabelLookup(pieLabels[spatialUnit]);
-  piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
-
   // set up a change event handler each fime the crossfilter changes
   ndx.onChange(() => {
-    //update our map:
-    pts = get_pts(spatialUnit, centroids, ptAccessor);
-    pieg.data([pts]).call(piecharts);
     updatePieCharts();
-    update_stats_panel(all, {
-      fillScale: sharedColourScale,
-      label: categories.filter((d) => d.name === sliceVar)[0].label,
-      what: responseVar,
-    });
   });
 
   //==================================================+
@@ -1398,12 +1277,6 @@ Promise.all([
     for (let i = 1; i < items.length; ++i) {
       stackedByYearBarChart.stack(byYearWith0s, items[i], sel_stack(items[i]));
     }
-
-    update_stats_panel(all, {
-      fillScale: sharedColourScale,
-      label: categories.filter((d) => d.name === sliceVar)[0].label,
-      what: responseVar,
-    });
 
     dc.redrawAll();
     //stackedByYearBarChart.redraw();

@@ -7,7 +7,7 @@ import { select, selectAll } from "d3-selection";
 import { scaleSqrt, scaleOrdinal } from "d3-scale";
 import { descending, sum } from "d3-array";
 
-import { pluckLabel } from "./utils";
+import { pluckLabel, pluralize, responseVarLabels } from "./utils";
 
 export const piechart_overlay = () => {
   // default values:
@@ -118,7 +118,6 @@ ${pluckLabel(row.slice, row_labels)}</td>
         .domain([0, sum(data, radiusAccessor)]);
 
       let pies = selection.selectAll(".pie").data(data, (d) => d.key);
-
       pies.exit().transition().duration(200).remove();
 
       let piesEnter = pies
@@ -184,10 +183,15 @@ ${pluckLabel(row.slice, row_labels)}</td>
 
             const pie_label = pluckLabel(this.parentElement.id, pieLabelLookup);
             const slice_label = pluckLabel(d.data.slice, sliceLabelLookup);
-
-            let html = `<strong class="capitalize">${pie_label}</strong><br><strong class="capitalize">${slice_label}</strong><br>N:${commaFormat(
+            const what = pluralize(
+              responseVarLabels[responseVar],
               d.data.value
-            )}`;
+            );
+            const N = commaFormat(d.data.value);
+
+            let html = `<strong class="capitalize">${pie_label}</strong><br>
+                        <strong class="capitalize">${slice_label}</strong><br>
+                        N:${N} ${what}`;
 
             select(this).classed("hover", true);
 
