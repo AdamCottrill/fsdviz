@@ -13,7 +13,6 @@ import Leaflet from "leaflet";
 import { checkBoxes } from "./components/checkBoxArray";
 import { update_category_legend } from "./components/stats_panel";
 import {
-  //  update_dc_url,
   updateUrlCheckBoxParams,
   parseParams,
   updateUrlParams,
@@ -25,7 +24,7 @@ import { RadioButtons } from "./components/semanticRadioButtons";
 
 import { month_lookup } from "./components/constants";
 
-import { get_coordinates, add_roi } from "./components/spatial_utils";
+import { add_roi } from "./components/spatial_utils";
 import {
   initialize_filter,
   hideShowTableRows,
@@ -217,7 +216,7 @@ Promise.all([
       .top(Infinity)
       .map((d) => d.key)
       .sort(),
-    //lake: lakeGroup.top(Infinity).map((d) => d.key),
+    lake: lakeGroup.top(Infinity).map((d) => d.key),
     agency_code: agencyGroup
       .top(Infinity)
       .map((d) => d.key)
@@ -325,140 +324,146 @@ Promise.all([
   const clear_button = select("#clear-filters-button");
   clear_button.on("click", set_or_reset_filters);
 
+  // our refine by checkboxes:
   const cwtReusedSelection = select("#cwt-reused-filter");
-  checkBoxes(cwtReusedSelection, {
-    filterkey: "cwtReused",
-    xfdim: cwtReusedDim,
-    xfgroup: cwtReusedGroup,
-    filters: filters,
-    label_lookup: lookup_values["cwtReused"],
-  });
-
   const lakeSelection = select("#lake-filter");
-  checkBoxes(lakeSelection, {
-    filterkey: "lake",
-    xfdim: lakeDim,
-    xfgroup: lakeGroup,
-    filters: filters,
-    label_lookup: lookup_values["lake"],
-  });
-
   const stateProvSelection = select("#state-prov-filter");
-  checkBoxes(stateProvSelection, {
-    filterkey: "stateProv",
-    xfdim: stateProvDim,
-    xfgroup: stateProvGroup,
-    filters: filters,
-    label_lookup: lookup_values["stateProv"],
-  });
-
   const jurisdictionSelection = select("#jurisdiction-filter");
-  checkBoxes(jurisdictionSelection, {
-    filterkey: "jurisdiction",
-    xfdim: jurisdictionDim,
-    xfgroup: jurisdictionGroup,
-    filters: filters,
-    label_lookup: lookup_values["jurisdiction"],
-  });
-
   const manUnitSelection = select("#manUnit-filter");
-  checkBoxes(manUnitSelection, {
-    filterkey: "manUnit",
-    xfdim: manUnitDim,
-    xfgroup: manUnitGroup,
-    filters: filters,
-    label_lookup: lookup_values["manUnit"],
-  });
-
   const agencySelection = select("#agency-filter");
-  checkBoxes(agencySelection, {
-    filterkey: "agency",
-    xfdim: agencyDim,
-    xfgroup: agencyGroup,
-    filters: filters,
-    label_lookup: lookup_values["agency_code"],
-  });
-
   const speciesSelection = select("#species-filter");
-  checkBoxes(speciesSelection, {
-    filterkey: "species",
-    xfdim: speciesDim,
-    xfgroup: speciesGroup,
-    filters: filters,
-    label_lookup: lookup_values["species_code"],
-  });
-
   const strainSelection = select("#strain-filter");
-  checkBoxes(strainSelection, {
-    filterkey: "strain",
-    xfdim: strainDim,
-    xfgroup: strainGroup,
-    filters: filters,
-    label_lookup: lookup_values["strain"],
-  });
-
   const yearClassSelection = select("#year-class-filter");
-  checkBoxes(yearClassSelection, {
-    filterkey: "yearClass",
-    xfdim: yearClassDim,
-    xfgroup: yearClassGroup,
-    filters: filters,
-    label_lookup: lookup_values["yearClass"],
-  });
-
   const lifeStageSelection = select("#life-stage-filter");
-  checkBoxes(lifeStageSelection, {
-    filterkey: "lifeStage",
-    xfdim: lifeStageDim,
-    xfgroup: lifeStageGroup,
-    filters: filters,
-    label_lookup: lookup_values["lifestage_code"],
-  });
-
   const clipCodeSelection = select("#clip-code-filter");
-  checkBoxes(clipCodeSelection, {
-    filterkey: "clipCode",
-    xfdim: clipCodeDim,
-    xfgroup: clipCodeGroup,
-    filters: filters,
-    label_lookup: lookup_values["clip"],
-  });
-
   const markSelection = select("#mark-filter");
-  checkBoxes(markSelection, {
-    filterkey: "mark",
-    xfdim: markDim,
-    xfgroup: markGroup,
-    filters: filters,
-    label_lookup: lookup_values["mark"],
-  });
-
   const tagSelection = select("#tag-type-filter");
-  checkBoxes(tagSelection, {
-    filterkey: "tag_type",
-    xfdim: tagTypeDim,
-    xfgroup: tagTypeGroup,
-    filters: filters,
-    label_lookup: lookup_values["tag_type"],
-  });
-
   const monthSelection = select("#stocking-month-filter");
-  checkBoxes(monthSelection, {
-    filterkey: "stockingMonth",
-    xfdim: monthDim,
-    xfgroup: monthGroup,
-    filters: filters,
-    label_lookup: lookup_values["stockingMonth"],
-  });
-
   const stkMethSelection = select("#stocking-method-filter");
-  checkBoxes(stkMethSelection, {
-    filterkey: "stkMeth",
-    xfdim: stkMethDim,
-    xfgroup: stkMethGroup,
-    filters: filters,
-    label_lookup: lookup_values["stockingMethod"],
-  });
+
+  const updateRefinByCheckboxes = () => {
+    checkBoxes(cwtReusedSelection, {
+      filterkey: "cwtReused",
+      xfdim: cwtReusedDim,
+      xfgroup: cwtReusedGroup,
+      filters: filters,
+      label_lookup: lookup_values["cwtReused"],
+    });
+
+    checkBoxes(lakeSelection, {
+      filterkey: "lake",
+      xfdim: lakeDim,
+      xfgroup: lakeGroup,
+      filters: filters,
+      label_lookup: lookup_values["lake"],
+    });
+
+    checkBoxes(stateProvSelection, {
+      filterkey: "stateProv",
+      xfdim: stateProvDim,
+      xfgroup: stateProvGroup,
+      filters: filters,
+      label_lookup: lookup_values["stateProv"],
+    });
+
+    checkBoxes(jurisdictionSelection, {
+      filterkey: "jurisdiction",
+      xfdim: jurisdictionDim,
+      xfgroup: jurisdictionGroup,
+      filters: filters,
+      label_lookup: lookup_values["jurisdiction"],
+    });
+
+    checkBoxes(manUnitSelection, {
+      filterkey: "manUnit",
+      xfdim: manUnitDim,
+      xfgroup: manUnitGroup,
+      filters: filters,
+      label_lookup: lookup_values["manUnit"],
+    });
+
+    checkBoxes(agencySelection, {
+      filterkey: "agency",
+      xfdim: agencyDim,
+      xfgroup: agencyGroup,
+      filters: filters,
+      label_lookup: lookup_values["agency_code"],
+    });
+
+    checkBoxes(speciesSelection, {
+      filterkey: "species",
+      xfdim: speciesDim,
+      xfgroup: speciesGroup,
+      filters: filters,
+      label_lookup: lookup_values["species_code"],
+    });
+
+    checkBoxes(strainSelection, {
+      filterkey: "strain",
+      xfdim: strainDim,
+      xfgroup: strainGroup,
+      filters: filters,
+      label_lookup: lookup_values["strain"],
+    });
+
+    checkBoxes(yearClassSelection, {
+      filterkey: "yearClass",
+      xfdim: yearClassDim,
+      xfgroup: yearClassGroup,
+      filters: filters,
+      label_lookup: lookup_values["yearClass"],
+    });
+
+    checkBoxes(lifeStageSelection, {
+      filterkey: "lifeStage",
+      xfdim: lifeStageDim,
+      xfgroup: lifeStageGroup,
+      filters: filters,
+      label_lookup: lookup_values["lifestage_code"],
+    });
+
+    checkBoxes(clipCodeSelection, {
+      filterkey: "clipCode",
+      xfdim: clipCodeDim,
+      xfgroup: clipCodeGroup,
+      filters: filters,
+      label_lookup: lookup_values["clip"],
+    });
+
+    checkBoxes(markSelection, {
+      filterkey: "mark",
+      xfdim: markDim,
+      xfgroup: markGroup,
+      filters: filters,
+      label_lookup: lookup_values["mark"],
+    });
+
+    checkBoxes(tagSelection, {
+      filterkey: "tag_type",
+      xfdim: tagTypeDim,
+      xfgroup: tagTypeGroup,
+      filters: filters,
+      label_lookup: lookup_values["tag_type"],
+    });
+
+    checkBoxes(monthSelection, {
+      filterkey: "stockingMonth",
+      xfdim: monthDim,
+      xfgroup: monthGroup,
+      filters: filters,
+      label_lookup: lookup_values["stockingMonth"],
+    });
+
+    checkBoxes(stkMethSelection, {
+      filterkey: "stkMeth",
+      xfdim: stkMethDim,
+      xfgroup: stkMethGroup,
+      filters: filters,
+      label_lookup: lookup_values["stockingMethod"],
+    });
+  };
+
+  updateRefinByCheckboxes();
 
   //===============================================
 
@@ -596,117 +601,6 @@ Promise.all([
     hideShowTableRows("#event-list tbody tr", activeIds());
     update_clear_button_state(filters);
     updateUrlCheckBoxParams(filters);
-
-    checkBoxes(cwtReusedSelection, {
-      filterkey: "cwtReused",
-      xfdim: cwtReusedDim,
-      xfgroup: cwtReusedGroup,
-      filters: filters,
-      label_lookup: lookup_values["cwtReused"],
-    });
-
-    checkBoxes(lakeSelection, {
-      filterkey: "lake",
-      xfdim: lakeDim,
-      xfgroup: lakeGroup,
-      filters: filters,
-      label_lookup: lookup_values["lake"],
-    });
-
-    checkBoxes(stateProvSelection, {
-      filterkey: "stateProv",
-      xfdim: stateProvDim,
-      xfgroup: stateProvGroup,
-      filters: filters,
-      label_lookup: lookup_values["stateProv"],
-    });
-
-    checkBoxes(jurisdictionSelection, {
-      filterkey: "jurisdiction",
-      xfdim: jurisdictionDim,
-      xfgroup: jurisdictionGroup,
-      filters: filters,
-      label_lookup: lookup_values["jurisdiction"],
-    });
-
-    checkBoxes(manUnitSelection, {
-      filterkey: "manUnit",
-      xfdim: manUnitDim,
-      xfgroup: manUnitGroup,
-      filters: filters,
-      label_lookup: lookup_values["manUnit"],
-    });
-
-    checkBoxes(agencySelection, {
-      filterkey: "agency",
-      xfdim: agencyDim,
-      xfgroup: agencyGroup,
-      filters: filters,
-      label_lookup: lookup_values["agency_code"],
-    });
-
-    checkBoxes(speciesSelection, {
-      filterkey: "species",
-      xfdim: speciesDim,
-      xfgroup: speciesGroup,
-      filters: filters,
-      label_lookup: lookup_values["species_code"],
-    });
-
-    checkBoxes(strainSelection, {
-      filterkey: "strain",
-      xfdim: strainDim,
-      xfgroup: strainGroup,
-      filters: filters,
-      label_lookup: lookup_values["strain"],
-    });
-
-    checkBoxes(yearClassSelection, {
-      filterkey: "yearClass",
-      xfdim: yearClassDim,
-      xfgroup: yearClassGroup,
-      filters: filters,
-      label_lookup: lookup_values["yearClass"],
-    });
-
-    checkBoxes(lifeStageSelection, {
-      filterkey: "lifeStage",
-      xfdim: lifeStageDim,
-      xfgroup: lifeStageGroup,
-      filters: filters,
-      label_lookup: lookup_values["lifestage_code"],
-    });
-
-    checkBoxes(clipCodeSelection, {
-      filterkey: "clipCode",
-      xfdim: clipCodeDim,
-      xfgroup: clipCodeGroup,
-      filters: filters,
-      label_lookup: lookup_values["clip"],
-    });
-
-    checkBoxes(markSelection, {
-      filterkey: "mark",
-      xfdim: markDim,
-      xfgroup: markGroup,
-      filters: filters,
-      label_lookup: lookup_values["mark"],
-    });
-
-    checkBoxes(monthSelection, {
-      filterkey: "stockingMonth",
-      xfdim: monthDim,
-      xfgroup: monthGroup,
-      filters: filters,
-      label_lookup: lookup_values["stockingMonth"],
-    });
-
-    checkBoxes(stkMethSelection, {
-      filterkey: "stkMeth",
-      xfdim: stkMethDim,
-      xfgroup: stkMethGroup,
-      filters: filters,
-      label_lookup: lookup_values["stockingMethod"],
-    });
+    updateRefinByCheckboxes();
   });
 });

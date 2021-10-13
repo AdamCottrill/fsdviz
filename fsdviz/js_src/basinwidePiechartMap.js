@@ -436,143 +436,148 @@ Promise.all([
 
   updateYearButtons();
 
-  let clear_button = select("#clear-filters-button");
+  const clear_button = select("#clear-filters-button");
   clear_button.on("click", set_or_reset_filters);
 
-  let lakeSelection = select("#lake-filter");
-  checkBoxes(lakeSelection, {
-    filterkey: "lake",
-    xfdim: lakeDim,
-    xfgroup: lakeGroup,
-    filters: filters,
-    label_lookup: pieLabels["lake"],
-  });
+  const lakeSelection = select("#lake-filter");
+  const stateProvSelection = select("#state-prov-filter");
+  const jurisdictionSelection = select("#jurisdiction-filter");
+  const manUnitSelection = select("#manUnit-filter");
+  const agencySelection = select("#agency-filter");
 
-  let stateProvSelection = select("#state-prov-filter");
-  checkBoxes(stateProvSelection, {
-    filterkey: "stateProv",
-    xfdim: stateProvDim,
-    xfgroup: stateProvGroup,
-    filters: filters,
-    label_lookup: pieLabels["stateProv"],
-    sortByLabel: true,
-  });
+  const speciesSelection = select("#species-filter");
+  const strainSelection = select("#strain-filter");
+  const yearClassSelection = select("#year-class-filter");
+  const markSelection = select("#mark-filter");
+  const clipSelection = select("#clip-filter");
+  const monthSelection = select("#stocking-month-filter");
+  const stkMethSelection = select("#stocking-method-filter");
+  const lifeStageSelection = select("#life-stage-filter");
 
-  let jurisdictionSelection = select("#jurisdiction-filter");
+  const updateRefinByCheckboxes = () => {
+    checkBoxes(lakeSelection, {
+      filterkey: "lake",
+      xfdim: lakeDim,
+      xfgroup: lakeGroup,
+      filters: filters,
+      label_lookup: pieLabels["lake"],
+    });
 
-  checkBoxes(jurisdictionSelection, {
-    filterkey: "jurisdiction",
-    xfdim: jurisdictionDim,
-    xfgroup: jurisdictionGroup,
-    filters: filters,
-    label_lookup: pieLabels["jurisdiction"],
-    sortByLabel: true,
-  });
+    checkBoxes(stateProvSelection, {
+      filterkey: "stateProv",
+      xfdim: stateProvDim,
+      xfgroup: stateProvGroup,
+      filters: filters,
+      label_lookup: pieLabels["stateProv"],
+      sortByLabel: true,
+    });
 
-  let manUnitSelection = select("#manUnit-filter");
-  checkBoxes(manUnitSelection, {
-    filterkey: "manUnit",
-    xfdim: manUnitDim,
-    xfgroup: manUnitGroup,
-    filters: filters,
-    label_lookup: pieLabels["manUnit"],
-    sortByLabel: true,
-  });
+    checkBoxes(jurisdictionSelection, {
+      filterkey: "jurisdiction",
+      xfdim: jurisdictionDim,
+      xfgroup: jurisdictionGroup,
+      filters: filters,
+      label_lookup: pieLabels["jurisdiction"],
+      sortByLabel: true,
+    });
 
-  let agencySelection = select("#agency-filter");
-  checkBoxes(agencySelection, {
-    filterkey: "agency_code",
-    xfdim: agencyDim,
-    xfgroup: agencyGroup,
-    filters: filters,
-    label_lookup: sliceLabels["agency_code"],
-    sortByLabel: true,
-  });
+    checkBoxes(manUnitSelection, {
+      filterkey: "manUnit",
+      xfdim: manUnitDim,
+      xfgroup: manUnitGroup,
+      filters: filters,
+      label_lookup: pieLabels["manUnit"],
+      sortByLabel: true,
+    });
 
-  let speciesSelection = select("#species-filter");
-  checkBoxes(speciesSelection, {
-    filterkey: "species",
-    xfdim: speciesDim,
-    xfgroup: speciesGroup,
-    filters: filters,
-    label_lookup: sliceLabels["species_code"],
-    sortByLabel: true,
-  });
+    checkBoxes(agencySelection, {
+      filterkey: "agency_code",
+      xfdim: agencyDim,
+      xfgroup: agencyGroup,
+      filters: filters,
+      label_lookup: sliceLabels["agency_code"],
+      sortByLabel: true,
+    });
 
-  let strainSelection = select("#strain-filter");
-  checkBoxes(strainSelection, {
-    filterkey: "strain",
-    xfdim: strainDim,
-    xfgroup: strainGroup,
-    filters: filters,
-    label_lookup: sliceLabels["strain"],
-    sortByLabel: true,
-  });
+    checkBoxes(speciesSelection, {
+      filterkey: "species",
+      xfdim: speciesDim,
+      xfgroup: speciesGroup,
+      filters: filters,
+      label_lookup: sliceLabels["species_code"],
+      sortByLabel: true,
+    });
 
-  let yearClassSelection = select("#year-class-filter");
-  checkBoxes(yearClassSelection, {
-    filterkey: "yearClass",
-    xfdim: yearClassDim,
-    xfgroup: yearClassGroup,
-    filters: filters,
-    label_lookup: yearClassGroup
-      .all()
-      .map((x) => ({ slug: x.key, label: x.key })),
-    sortByLabel: true,
-  });
+    checkBoxes(strainSelection, {
+      filterkey: "strain",
+      xfdim: strainDim,
+      xfgroup: strainGroup,
+      filters: filters,
+      label_lookup: sliceLabels["strain"],
+      sortByLabel: true,
+    });
 
-  let markSelection = select("#mark-filter");
-  checkBoxes(markSelection, {
-    filterkey: "mark",
-    xfdim: markDim,
-    xfgroup: markGroup,
-    filters: filters,
-    label_lookup: sliceLabels["mark"],
-    sortByLabel: true,
-  });
+    checkBoxes(yearClassSelection, {
+      filterkey: "yearClass",
+      xfdim: yearClassDim,
+      xfgroup: yearClassGroup,
+      filters: filters,
+      label_lookup: yearClassGroup
+        .all()
+        .map((x) => ({ slug: x.key, label: x.key })),
+      sortByLabel: true,
+    });
 
-  let clipSelection = select("#clip-filter");
-  checkBoxes(clipSelection, {
-    filterkey: "clip",
-    xfdim: clipDim,
-    xfgroup: clipGroup,
-    filters: filters,
-    label_lookup: sliceLabels["clip"],
-    sortByLabel: true,
-  });
+    checkBoxes(markSelection, {
+      filterkey: "mark",
+      xfdim: markDim,
+      xfgroup: markGroup,
+      filters: filters,
+      label_lookup: sliceLabels["mark"],
+      sortByLabel: true,
+    });
 
-  let monthSelection = select("#stocking-month-filter");
-  checkBoxes(monthSelection, {
-    filterkey: "stockingMonth",
-    xfdim: monthDim,
-    xfgroup: monthGroup,
-    filters: filters,
-    label_lookup: Object.entries(month_lookup).map((x) => ({
-      slug: x[0],
-      label: `${x[1]} (${x[0]})`,
-    })),
-    sortByLabel: false,
-  });
+    checkBoxes(clipSelection, {
+      filterkey: "clip",
+      xfdim: clipDim,
+      xfgroup: clipGroup,
+      filters: filters,
+      label_lookup: sliceLabels["clip"],
+      sortByLabel: true,
+    });
 
-  let stkMethSelection = select("#stocking-method-filter");
-  checkBoxes(stkMethSelection, {
-    filterkey: "stkMeth",
-    xfdim: stkMethDim,
-    xfgroup: stkMethGroup,
-    filters: filters,
-    label_lookup: sliceLabels["stockingMethod"],
-    sortByLabel: true,
-  });
+    checkBoxes(monthSelection, {
+      filterkey: "stockingMonth",
+      xfdim: monthDim,
+      xfgroup: monthGroup,
+      filters: filters,
+      label_lookup: Object.entries(month_lookup).map((x) => ({
+        slug: x[0],
+        label: `${x[1]} (${x[0]})`,
+      })),
+      sortByLabel: false,
+    });
 
-  let lifeStageSelection = select("#life-stage-filter");
-  checkBoxes(lifeStageSelection, {
-    filterkey: "lifeStage",
-    xfdim: lifeStageDim,
-    xfgroup: lifeStageGroup,
-    filters: filters,
-    label_lookup: sliceLabels["lifestage_code"],
-    sortByLabel: true,
-  });
+    checkBoxes(stkMethSelection, {
+      filterkey: "stkMeth",
+      xfdim: stkMethDim,
+      xfgroup: stkMethGroup,
+      filters: filters,
+      label_lookup: sliceLabels["stockingMethod"],
+      sortByLabel: true,
+    });
+
+    checkBoxes(lifeStageSelection, {
+      filterkey: "lifeStage",
+      xfdim: lifeStageDim,
+      xfgroup: lifeStageGroup,
+      filters: filters,
+      label_lookup: sliceLabels["lifestage_code"],
+      sortByLabel: true,
+    });
+  };
+
+  updateRefinByCheckboxes();
 
   // we need to create a function to update the crossfilter based on
   // the current state of our map.  it needs to take two arguments:
@@ -710,129 +715,7 @@ Promise.all([
 
   // if the crossfilter changes, update our checkboxes:
   ndx.onChange(() => {
-    checkBoxes(lakeSelection, {
-      filterkey: "lake",
-      xfdim: lakeDim,
-      xfgroup: lakeGroup,
-      filters: filters,
-      label_lookup: pieLabels["lake"],
-      sortByLabel: true,
-    });
-
-    checkBoxes(stateProvSelection, {
-      filterkey: "stateProv",
-      xfdim: stateProvDim,
-      xfgroup: stateProvGroup,
-      filters: filters,
-      label_lookup: pieLabels["stateProv"],
-      sortByLabel: true,
-    });
-
-    checkBoxes(jurisdictionSelection, {
-      filterkey: "jurisdiction",
-      xfdim: jurisdictionDim,
-      xfgroup: jurisdictionGroup,
-      filters: filters,
-      label_lookup: pieLabels["jurisdiction"],
-      sortByLabel: true,
-    });
-
-    checkBoxes(manUnitSelection, {
-      filterkey: "manUnit",
-      xfdim: manUnitDim,
-      xfgroup: manUnitGroup,
-      filters: filters,
-      label_lookup: pieLabels["manUnit"],
-      sortByLabel: true,
-    });
-
-    checkBoxes(agencySelection, {
-      filterkey: "agency_code",
-      xfdim: agencyDim,
-      xfgroup: agencyGroup,
-      filters: filters,
-      label_lookup: sliceLabels["agency_code"],
-      sortByLabel: true,
-    });
-
-    checkBoxes(speciesSelection, {
-      filterkey: "species",
-      xfdim: speciesDim,
-      xfgroup: speciesGroup,
-      filters: filters,
-      label_lookup: sliceLabels["species_code"],
-      sortByLabel: true,
-    });
-
-    checkBoxes(strainSelection, {
-      filterkey: "strain",
-      xfdim: strainDim,
-      xfgroup: strainGroup,
-      filters: filters,
-      label_lookup: sliceLabels["strain"],
-      sortByLabel: true,
-    });
-
-    checkBoxes(yearClassSelection, {
-      filterkey: "yearClass",
-      xfdim: yearClassDim,
-      xfgroup: yearClassGroup,
-      filters: filters,
-      label_lookup: yearClassGroup
-        .all()
-        .map((x) => ({ slug: x.key, label: x.key })),
-      sortByLabel: true,
-    });
-
-    checkBoxes(markSelection, {
-      filterkey: "mark",
-      xfdim: markDim,
-      xfgroup: markGroup,
-      filters: filters,
-      label_lookup: sliceLabels["mark"],
-      sortByLabel: true,
-    });
-
-    checkBoxes(clipSelection, {
-      filterkey: "clip",
-      xfdim: clipDim,
-      xfgroup: clipGroup,
-      filters: filters,
-      label_lookup: sliceLabels["clip"],
-      sortByLabel: true,
-    });
-
-    checkBoxes(monthSelection, {
-      filterkey: "stockingMonth",
-      xfdim: monthDim,
-      xfgroup: monthGroup,
-      filters: filters,
-      label_lookup: Object.entries(month_lookup).map((x) => ({
-        slug: x[0],
-        label: `${x[1]} (${x[0]})`,
-      })),
-
-      sortByLabel: false,
-    });
-
-    checkBoxes(stkMethSelection, {
-      filterkey: "stkMeth",
-      xfdim: stkMethDim,
-      xfgroup: stkMethGroup,
-      filters: filters,
-      label_lookup: sliceLabels["stockingMethod"],
-      sortByLabel: true,
-    });
-
-    checkBoxes(lifeStageSelection, {
-      filterkey: "lifeStage",
-      xfdim: lifeStageDim,
-      xfgroup: lifeStageGroup,
-      filters: filters,
-      label_lookup: sliceLabels["lifestage_code"],
-      sortByLabel: true,
-    });
-
+    updateRefinByCheckboxes();
     updatePieCharts();
     update_clear_button_state(filters);
     updateUrlCheckBoxParams(filters);
