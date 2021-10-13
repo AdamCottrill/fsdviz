@@ -96,7 +96,7 @@ export const update_stats_panel = (allxf, props) => {
 };
 
 export const update_category_legend = (fillScale, items, category_label) => {
-  //  simplified verions of stats panel taht includes just the
+  //  simplified verions of stats panel that includes just the
   //  category levels and associated colours - not stattistics. Used
   //  in the filtered cwt vizualization:
 
@@ -110,8 +110,8 @@ export const update_category_legend = (fillScale, items, category_label) => {
            <td class="center aligned">
   <svg  width="${rectSize}" height="${rectSize + vertical_offset}">
   <rect class="legend-rect" y="${vertical_offset}" width="${rectSize}" height="${rectSize}"
-style="fill:${fillScale(item[0])}; stroke-width:0.5;stroke:#808080" />
-        </svg> </td><td class="category-name"> ${item[1]}</td>
+style="fill:${fillScale(item.slug)}; stroke-width:0.5;stroke:#808080" />
+        </svg> </td><td class="category-name"> ${item.label}</td>
        </tr>`;
   });
 

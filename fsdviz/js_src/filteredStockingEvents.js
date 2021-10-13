@@ -194,10 +194,6 @@ Promise.all([
 
   data.forEach((d) => prepare_filtered_stocking_data(d));
 
-  console.log("data[0] = ", data[0]);
-
-  console.log("data[0] = ", data[0]);
-
   // pie chart and slice labesl
   const pieLabels = makePieLabels(data, common);
   const sliceLabels = { ...pieLabels, ...makeSliceLabels(common, stocking) };

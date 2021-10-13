@@ -6,7 +6,7 @@
 // update check boxes to show tool tip make count optional.
 
 //import crossfilter from "crossfilter2";
-import { select, selectAll, json, extent } from "d3";
+import { select, selectAll, json, extent, scaleOrdinal } from "d3";
 
 import Leaflet from "leaflet";
 
@@ -16,7 +16,6 @@ import {
   //  update_dc_url,
   updateUrlCheckBoxParams,
   parseParams,
-  apply_url_filters,
   updateUrlParams,
   getUrlParamValue,
   getUrlSearchValue,
@@ -28,23 +27,26 @@ import { month_lookup } from "./components/constants";
 
 import { get_coordinates, add_roi } from "./components/spatial_utils";
 import {
-  makeItemMap,
-  makeColorMap,
-  getColorScale,
   initialize_filter,
   hideShowTableRows,
   update_clear_button_state,
+  makePieLabels,
+  makeSliceLabels,
+  makeFillColours,
+  prepare_filtered_cwt_data,
+  assignDefaultColours,
 } from "./components/utils";
 
 const filters = {};
 
+const colourScale = scaleOrdinal();
+
 // intial values of global variabls that control the state of our page:
 const roi = getUrlSearchValue("roi") || false;
-let catgory = getUrlParamValue("category_var") || "species_code";
 
 let categoryVar = getUrlParamValue("categoryVar")
   ? getUrlParamValue("categoryVar")
-  : "spc";
+  : "species_code";
 
 let jitter_points = getUrlParamValue("jitter-points")
   ? getUrlParamValue("jitter-points")
@@ -59,14 +61,14 @@ let selectedEvent = getUrlParamValue("selected-event")
 // label appears on radio buttons:
 let categories = [
   { name: "agency_code", label: "Agency" },
-  //{ name: "tag_type", label: "CWT Type" },
+  { name: "tag_type", label: "CWT Type" },
   { name: "cwtReused", label: "CWT Re-used" },
-  { name: "spc", label: "Species" },
+  { name: "species_code", label: "Species" },
   { name: "strain", label: "Strain" },
-  //{ name: "mark", label: "Mark" },
-  { name: "clipcode", label: "Clip Code" },
-  { name: "stage", label: "Life Stage" },
-  { name: "method", label: "Stocking Method" },
+  { name: "mark", label: "Mark" },
+  { name: "clip", label: "Clip Code" },
+  { name: "lifestage_code", label: "Life Stage" },
+  { name: "stockingMethod", label: "Stocking Method" },
   { name: "stockingYear", label: "Stocking Year" },
   { name: "stockingMonth", label: "Stocking Month" },
   { name: "yearClass", label: "Year Class" },
@@ -124,85 +126,23 @@ Promise.all([
   // csv(slugURL),
 ]).then(([data, stocking, common]) => {
   // create our lookups so that our widgets have nice labels:
-  const lakeLookup = makeItemMap(common.lakes, "abbrev", "lake_name");
-
-  const agencyLookup = makeItemMap(common.agencies, "abbrev", "agency_name");
-  const agencyColors = makeColorMap(common.agencies, "abbrev");
-
-  const jurisdictionLookup = makeItemMap(
-    common.jurisdictions,
-    "slug",
-    "description"
-  );
-
-  const manUnitLookup = makeItemMap(common.manUnits, "slug", "label");
-
-  const speciesLookup = makeItemMap(common.species, "abbrev", "common_name");
-  const speciesColors = makeColorMap(common.species, "abbrev");
-
-  const strainLookup = makeItemMap(common.strains, "slug", "strain_label");
-  const strainColors = makeColorMap(common.strains, "slug");
-
-  const stockingMethodLookup = makeItemMap(
-    stocking.stockingmethods,
-    "stk_meth",
-    "description"
-  );
-  const stockingMethodColors = makeColorMap(
-    stocking.stockingmethods,
-    "stk_meth"
-  );
-
-  const lifestageLookup = makeItemMap(
-    stocking.lifestages,
-    "abbrev",
-    "description"
-  );
-  const lifestageColors = makeColorMap(stocking.lifestages, "abbrev");
-
-  const clipcodeLookup = makeItemMap(
-    common.clipcodes,
-    "clip_code",
-    "description"
-  );
-  const clipColors = makeColorMap(common.clipcodes, "clip_code");
-
-  const colourScale = getColorScale(speciesColors);
-
-  const lookup_values = {
-    //lake: lakeGroup.top(Infinity).map((d) => d.key),
-    agency_code: agencyLookup,
-    spc: speciesLookup,
-    strain: strainLookup,
-    stage: lifestageLookup,
-    method: stockingMethodLookup,
-    //marks:
-    clipcode: clipcodeLookup,
-    //stockingMonth: month_lookup
-  };
-
-  // clipcodeLookup
-  // marksLookup
-  // tagsLookup
-  // Month?
 
   // Prepare our actual cwt data:
-  data.forEach((d) => {
-    d.key = d.stock_id + "-" + d.cwt_number;
-    d.cwtReused = d.tag_reused ? "yes" : "no";
-    d.point = { lng: +d.longitude, lat: +d.latitude };
-    d.stockingMonth = month_lookup[d.month]
-      ? "" + month_lookup[d.month]
-      : "Unkn";
-    d.yearClass = d.year_class ? "" + d.year_class : "9999";
-    d.stockingYear = d.year ? "" + d.year : "9999";
-    d.clipcode = d.clipcode ? d.clipcode.trim() : "None";
-    //d.month = d.month ? parseInt(d.month) : 0;
-    //d.year = parseInt(d.year);
-    //d.year_class = parseInt(d.year_class);
+  data.forEach((d) => prepare_filtered_cwt_data(d));
 
-    return d;
-  });
+  const lookup_values = {
+    ...makePieLabels([], common),
+    ...makeSliceLabels(common, stocking),
+  };
+
+  const fillColours = makeFillColours(common, stocking);
+
+  const updateColorScale = (value) => {
+    const colors = fillColours[value];
+    colourScale
+      .domain(Object.entries(colors).map((x) => x[0]))
+      .range(Object.entries(colors).map((x) => x[1]));
+  };
 
   // get the geographic extents of our data and update our map if
   // there is no roi.
@@ -223,7 +163,7 @@ Promise.all([
 
   const ndx = crossfilter(data);
 
-  const eventDim = ndx.dimension((d) => d.stock_id);
+  //const eventDim = ndx.dimension((d) => d.stock_id);
   const yearDim = ndx.dimension((d) => d.stockingYear);
   const monthDim = ndx.dimension((d) => d.stockingMonth);
 
@@ -239,12 +179,12 @@ Promise.all([
   const strainDim = ndx.dimension((d) => d.strain);
   const yearClassDim = ndx.dimension((d) => d.yearClass);
   const lifeStageDim = ndx.dimension((d) => d.stage);
-  const stkMethDim = ndx.dimension((d) => d.method);
+  const stkMethDim = ndx.dimension((d) => d.stockingMethod);
   const clipCodeDim = ndx.dimension((d) => d.clipcode);
-  // // const markDim = ndx.dimension((d) => d.mark);
-  // // const tagDim = ndx.dimension((d) => d.tag);
+  const markDim = ndx.dimension((d) => d.mark);
+  const tagTypeDim = ndx.dimension((d) => d.tag_type);
 
-  const eventGroup = eventDim.group().reduceCount();
+  //const eventGroup = eventDim.group().reduceCount();
   const yearGroup = yearDim.group().reduceCount();
   const monthGroup = monthDim.group().reduceCount();
   const cwtReusedGroup = cwtReusedDim.group().reduceCount();
@@ -260,8 +200,8 @@ Promise.all([
   const lifeStageGroup = lifeStageDim.group().reduceCount();
   const stkMethGroup = stkMethDim.group().reduceCount();
   const clipCodeGroup = clipCodeDim.group().reduceCount();
-  // const markGroup = markDim.group().reduceCount();
-  // const tagGroup = tagDim.group().reduceCount();
+  const markGroup = markDim.group().reduceCount();
+  const tagTypeGroup = tagTypeDim.group().reduceCount();
 
   const activeIds = () => {
     const ids = ndx.allFiltered().map((x) => x.key);
@@ -282,7 +222,7 @@ Promise.all([
       .top(Infinity)
       .map((d) => d.key)
       .sort(),
-    spc: speciesGroup
+    species_code: speciesGroup
       .top(Infinity)
       .map((d) => d.key)
       .sort(),
@@ -290,16 +230,20 @@ Promise.all([
       .top(Infinity)
       .map((d) => d.key)
       .sort(),
-    stage: lifeStageGroup
+    lifestage_code: lifeStageGroup
       .top(Infinity)
       .map((d) => d.key)
       .sort(),
-    method: stkMethGroup
+    stockingMethod: stkMethGroup
       .top(Infinity)
       .map((d) => d.key)
       .sort(),
-    //marks: markGroup.top(Infinity).map((d) => d.key),
-    clipcode: clipCodeGroup
+    mark: markGroup.top(Infinity).map((d) => d.key),
+    tag_type: tagTypeGroup
+      .top(Infinity)
+      .map((d) => d.key)
+      .sort(),
+    clip: clipCodeGroup
       .top(Infinity)
       .map((d) => d.key)
       .sort(),
@@ -321,28 +265,38 @@ Promise.all([
   // year class that are one-to-one (the name and
   // the label are the same):
 
-  lookup_values["stockingMonth"] = unique_values["stockingMonth"].reduce(
-    (acc, x) => {
-      acc[x] = x;
-      return acc;
-    },
-    {}
-  );
+  lookup_values["stockingMonth"] = unique_values["stockingMonth"].map((x) => ({
+    slug: x,
+    label: x,
+  }));
+  lookup_values["stockingYear"] = unique_values["stockingYear"].map((x) => ({
+    slug: x,
+    label: x,
+  }));
+  lookup_values["yearClass"] = [
+    ...unique_values["yearClass"].map((x) => ({ slug: x, label: x })),
+    { slug: "9999", label: "Unknown" },
+  ];
+  lookup_values["cwtReused"] = [
+    { slug: "yes", label: "Yes" },
+    { slug: "no", label: "No" },
+  ];
 
-  lookup_values["stockingYear"] = unique_values["stockingYear"].reduce(
-    (acc, x) => {
-      acc[x] = x;
-      return acc;
-    },
-    {}
-  );
-  lookup_values["yearClass"] = unique_values["yearClass"].reduce((acc, x) => {
-    acc[x] = x;
-    return acc;
-  }, {});
-  lookup_values["yearClass"]["9999"] = "Unknown";
+  lookup_values["tag_type"] = [
+    { slug: "cwt", label: "Standard CWT" },
+    { slug: "sequential", label: "Sequential CWT" },
+  ];
 
-  lookup_values["cwtReused"] = { yes: "Yes", no: "No" };
+  // assign random, differnt colours to these categories:
+  fillColours["yearClass"] = assignDefaultColours(unique_values["yearClass"]);
+  fillColours["stockingYear"] = assignDefaultColours(
+    unique_values["stockingYear"]
+  );
+  fillColours["stockingMonth"] = assignDefaultColours(
+    unique_values["stockingMonth"]
+  );
+  fillColours["cwtReused"] = { yes: "#4363d8", no: "#f58231" };
+  fillColours["tag_type"] = { cwt: "#4363d8", sequential: "#f58231" };
 
   // // get any query parameters from the url
   let query_args = parseParams(window.location.hash);
@@ -357,7 +311,8 @@ Promise.all([
     initialize_filter(filters, "strain", strainDim, query_args);
     initialize_filter(filters, "yearClass", yearClassDim, query_args);
     initialize_filter(filters, "lifeStage", lifeStageDim, query_args);
-    // initialize_filter(filters, "mark", markDim, query_args);
+    initialize_filter(filters, "mark", markDim, query_args);
+    initialize_filter(filters, "tag_type", tagTypeDim, query_args);
     initialize_filter(filters, "clipCode", clipCodeDim, query_args);
     initialize_filter(filters, "stkMeth", stkMethDim, query_args);
     initialize_filter(filters, "stockingMonth", monthDim, query_args);
@@ -376,6 +331,7 @@ Promise.all([
     xfdim: cwtReusedDim,
     xfgroup: cwtReusedGroup,
     filters: filters,
+    label_lookup: lookup_values["cwtReused"],
   });
 
   const lakeSelection = select("#lake-filter");
@@ -384,6 +340,7 @@ Promise.all([
     xfdim: lakeDim,
     xfgroup: lakeGroup,
     filters: filters,
+    label_lookup: lookup_values["lake"],
   });
 
   const stateProvSelection = select("#state-prov-filter");
@@ -392,6 +349,7 @@ Promise.all([
     xfdim: stateProvDim,
     xfgroup: stateProvGroup,
     filters: filters,
+    label_lookup: lookup_values["stateProv"],
   });
 
   const jurisdictionSelection = select("#jurisdiction-filter");
@@ -400,6 +358,7 @@ Promise.all([
     xfdim: jurisdictionDim,
     xfgroup: jurisdictionGroup,
     filters: filters,
+    label_lookup: lookup_values["jurisdiction"],
   });
 
   const manUnitSelection = select("#manUnit-filter");
@@ -408,6 +367,7 @@ Promise.all([
     xfdim: manUnitDim,
     xfgroup: manUnitGroup,
     filters: filters,
+    label_lookup: lookup_values["manUnit"],
   });
 
   const agencySelection = select("#agency-filter");
@@ -416,6 +376,7 @@ Promise.all([
     xfdim: agencyDim,
     xfgroup: agencyGroup,
     filters: filters,
+    label_lookup: lookup_values["agency_code"],
   });
 
   const speciesSelection = select("#species-filter");
@@ -424,6 +385,7 @@ Promise.all([
     xfdim: speciesDim,
     xfgroup: speciesGroup,
     filters: filters,
+    label_lookup: lookup_values["species_code"],
   });
 
   const strainSelection = select("#strain-filter");
@@ -432,6 +394,7 @@ Promise.all([
     xfdim: strainDim,
     xfgroup: strainGroup,
     filters: filters,
+    label_lookup: lookup_values["strain"],
   });
 
   const yearClassSelection = select("#year-class-filter");
@@ -440,6 +403,7 @@ Promise.all([
     xfdim: yearClassDim,
     xfgroup: yearClassGroup,
     filters: filters,
+    label_lookup: lookup_values["yearClass"],
   });
 
   const lifeStageSelection = select("#life-stage-filter");
@@ -448,6 +412,7 @@ Promise.all([
     xfdim: lifeStageDim,
     xfgroup: lifeStageGroup,
     filters: filters,
+    label_lookup: lookup_values["lifestage_code"],
   });
 
   const clipCodeSelection = select("#clip-code-filter");
@@ -456,23 +421,34 @@ Promise.all([
     xfdim: clipCodeDim,
     xfgroup: clipCodeGroup,
     filters: filters,
+    label_lookup: lookup_values["clip"],
   });
 
-  // const markSelection = select("#mark-filter");
-  // checkBoxes(markSelection, {
-  //   filterkey: "mark",
-  //   xfdim: markDim,
-  //   xfgroup: markGroup,
-  //   filters: filters,
-  // });
+  const markSelection = select("#mark-filter");
+  checkBoxes(markSelection, {
+    filterkey: "mark",
+    xfdim: markDim,
+    xfgroup: markGroup,
+    filters: filters,
+    label_lookup: lookup_values["mark"],
+  });
+
+  const tagSelection = select("#tag-type-filter");
+  checkBoxes(tagSelection, {
+    filterkey: "tag_type",
+    xfdim: tagTypeDim,
+    xfgroup: tagTypeGroup,
+    filters: filters,
+    label_lookup: lookup_values["tag_type"],
+  });
 
   const monthSelection = select("#stocking-month-filter");
   checkBoxes(monthSelection, {
     filterkey: "stockingMonth",
     xfdim: monthDim,
     xfgroup: monthGroup,
-
     filters: filters,
+    label_lookup: lookup_values["stockingMonth"],
   });
 
   const stkMethSelection = select("#stocking-method-filter");
@@ -481,6 +457,7 @@ Promise.all([
     xfdim: stkMethDim,
     xfgroup: stkMethGroup,
     filters: filters,
+    label_lookup: lookup_values["stockingMethod"],
   });
 
   //===============================================
@@ -582,50 +559,18 @@ Promise.all([
 
   //===============================================
 
-  const updateColorScale = (value) => {
-    let colors;
-    switch (value) {
-      case "agency_code":
-        colors = agencyColors;
-        break;
-      case "spc":
-        colors = speciesColors;
-        break;
-      case "strain":
-        colors = strainColors;
-        break;
-      case "clipcode":
-        colors = clipColors;
-        break;
-      case "stage":
-        colors = lifestageColors;
-        break;
-      case "method":
-        colors = stockingMethodColors;
-        break;
-      default:
-        colors = speciesColors;
-    }
-
-    colourScale
-      .domain(Object.entries(colors).map((x) => x[0]))
-      .range(Object.entries(colors).map((x) => x[1]));
-  };
-
   const refresh_legend = () => {
     let category_label = categoryLabels[categoryVar] || "Category";
+
+    updateColorScale(categoryVar);
+    updateUrlParams("categoryVar", categoryVar);
 
     // get the labels by filter the global lookups for this category with
     // those values present in the current view:
     const items = unique_values[categoryVar];
     const lookup = lookup_values[categoryVar];
-    const itemList = Object.entries(lookup).filter(
-      (x) => items.indexOf(x[0]) >= 0
-    );
+    const itemList = lookup.filter((x) => items.includes(x.slug));
 
-    updateColorScale(categoryVar);
-
-    updateUrlParams("categoryVar", categoryVar);
     update_category_legend(colourScale, itemList, category_label);
     update_map();
   };
@@ -657,6 +602,7 @@ Promise.all([
       xfdim: cwtReusedDim,
       xfgroup: cwtReusedGroup,
       filters: filters,
+      label_lookup: lookup_values["cwtReused"],
     });
 
     checkBoxes(lakeSelection, {
@@ -664,6 +610,7 @@ Promise.all([
       xfdim: lakeDim,
       xfgroup: lakeGroup,
       filters: filters,
+      label_lookup: lookup_values["lake"],
     });
 
     checkBoxes(stateProvSelection, {
@@ -671,6 +618,7 @@ Promise.all([
       xfdim: stateProvDim,
       xfgroup: stateProvGroup,
       filters: filters,
+      label_lookup: lookup_values["stateProv"],
     });
 
     checkBoxes(jurisdictionSelection, {
@@ -678,6 +626,7 @@ Promise.all([
       xfdim: jurisdictionDim,
       xfgroup: jurisdictionGroup,
       filters: filters,
+      label_lookup: lookup_values["jurisdiction"],
     });
 
     checkBoxes(manUnitSelection, {
@@ -685,6 +634,7 @@ Promise.all([
       xfdim: manUnitDim,
       xfgroup: manUnitGroup,
       filters: filters,
+      label_lookup: lookup_values["manUnit"],
     });
 
     checkBoxes(agencySelection, {
@@ -692,6 +642,7 @@ Promise.all([
       xfdim: agencyDim,
       xfgroup: agencyGroup,
       filters: filters,
+      label_lookup: lookup_values["agency_code"],
     });
 
     checkBoxes(speciesSelection, {
@@ -699,6 +650,7 @@ Promise.all([
       xfdim: speciesDim,
       xfgroup: speciesGroup,
       filters: filters,
+      label_lookup: lookup_values["species_code"],
     });
 
     checkBoxes(strainSelection, {
@@ -706,6 +658,7 @@ Promise.all([
       xfdim: strainDim,
       xfgroup: strainGroup,
       filters: filters,
+      label_lookup: lookup_values["strain"],
     });
 
     checkBoxes(yearClassSelection, {
@@ -713,6 +666,7 @@ Promise.all([
       xfdim: yearClassDim,
       xfgroup: yearClassGroup,
       filters: filters,
+      label_lookup: lookup_values["yearClass"],
     });
 
     checkBoxes(lifeStageSelection, {
@@ -720,6 +674,7 @@ Promise.all([
       xfdim: lifeStageDim,
       xfgroup: lifeStageGroup,
       filters: filters,
+      label_lookup: lookup_values["lifestage_code"],
     });
 
     checkBoxes(clipCodeSelection, {
@@ -727,20 +682,23 @@ Promise.all([
       xfdim: clipCodeDim,
       xfgroup: clipCodeGroup,
       filters: filters,
+      label_lookup: lookup_values["clip"],
     });
 
-    // checkBoxes(markSelection, {
-    //   filterkey: "mark",
-    //   xfdim: markDim,
-    //   xfgroup: markGroup,
-    //   filters: filters,
-    // });
+    checkBoxes(markSelection, {
+      filterkey: "mark",
+      xfdim: markDim,
+      xfgroup: markGroup,
+      filters: filters,
+      label_lookup: lookup_values["mark"],
+    });
 
     checkBoxes(monthSelection, {
       filterkey: "stockingMonth",
       xfdim: monthDim,
       xfgroup: monthGroup,
       filters: filters,
+      label_lookup: lookup_values["stockingMonth"],
     });
 
     checkBoxes(stkMethSelection, {
@@ -748,6 +706,7 @@ Promise.all([
       xfdim: stkMethDim,
       xfgroup: stkMethGroup,
       filters: filters,
+      label_lookup: lookup_values["stockingMethod"],
     });
   });
 });

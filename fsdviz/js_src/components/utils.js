@@ -1,8 +1,8 @@
 import { select, selectAll } from "d3-selection";
-
 import { scaleOrdinal } from "d3-scale";
-
 import { timeParse } from "d3";
+
+import { month_lookup, speciesColours } from "./constants";
 
 const dateParser = timeParse("%Y-%m-%d");
 
@@ -23,7 +23,7 @@ export const prepare_stocking_data = (data) => {
   data.year_class = data.year_class ? data.year_class + "" : "Unkn";
   data.yreq = +data.yreq;
   data.mark = data._mark ? data._mark : "NONE";
-  data.clip = data.clip ? data.clip : "NONE";
+  data.clip = data.clip ? data.clip : "None";
   data.month = data.month ? data.month + "" : "0";
 };
 
@@ -48,7 +48,27 @@ export const prepare_filtered_stocking_data = (data) => {
 
   data.clip = data.clip ? data.clip : "UN";
   data.tag = data._tags ? data._tags : "None";
-  data.mark = data._marks ? data._marks : "None";
+  data.mark = data._marks ? data._marks : "NONE";
+};
+
+export const prepare_filtered_cwt_data = (data) => {
+  data.key = data.stock_id + "-" + data.cwt_number;
+  data.cwtReused = data.tag_reused ? "yes" : "no";
+  data.point = { lng: +data.longitude, lat: +data.latitude };
+  data.stockingMonth = month_lookup[data.month]
+    ? "" + month_lookup[data.month]
+    : "Unkn";
+  data.yearClass = data.year_class ? "" + data.year_class : "9999";
+  data.stockingYear = data.year ? "" + data.year : "9999";
+  data.clipcode = data.clipcode ? data.clipcode.trim() : "None";
+  data.mark = data.mark ? data.mark : "NONE";
+  //data.month = data.month ? parseInt(data.month) : 0;
+  //data.year = parseInt(data.year);
+  //data.year_class = parseInt(data.year_class);
+  data.stockingMethod = data.method;
+  data.species_code = data.spc;
+  data.lifestage_code = data.stage;
+  return data;
 };
 
 // a funciton to add an element to our filter registry for a dimension
@@ -173,17 +193,19 @@ export const makePieLabels = (data, common) => {
   pieLabels["jurisdiction"] = lookupToLabelsNoKey(jurisdiction_lookup);
   pieLabels["manUnit"] = lookupToLabelsNoKey(managementUnit_lookup);
 
-  const mygrids = [...new Set(data.map((x) => x.grid10))];
-  const grid_labels = mygrids.map((x) => {
-    const [_lake, grid] = x.split("_");
-    return { slug: x, label: `Grid ${grid} (${_lake.toUpperCase()})` };
-  });
-  pieLabels["grid10"] = grid_labels;
+  if (data.length) {
+    const mygrids = [...new Set(data.map((x) => x.grid10))];
+    const grid_labels = mygrids.map((x) => {
+      const [_lake, grid] = x.split("_");
+      return { slug: x, label: `Grid ${grid} (${_lake.toUpperCase()})` };
+    });
+    pieLabels["grid10"] = grid_labels;
 
-  const mypts = [...new Set(data.map((x) => x.geom))];
-  pieLabels["geom"] = mypts.map((x) => {
-    return { slug: x, label: x };
-  });
+    const mypts = [...new Set(data.map((x) => x.geom))];
+    pieLabels["geom"] = mypts.map((x) => {
+      return { slug: x, label: x };
+    });
+  }
 
   return pieLabels;
 };
@@ -205,7 +227,7 @@ export const makeSliceLabels = (common, stocking) => {
   );
   // need to account for events without any marks:
   mark_lookup["NONE"] = "No Mark";
-  const tag_lookup = makeItemMap(common.strains, "tag_code", "description");
+  const tag_lookup = makeItemMap(common.fish_tags, "tag_code", "description");
   const clip_lookup = makeItemMap(common.clipcodes, "clip_code", "description");
   const lifestage_lookup = makeItemMap(
     stocking.lifestages,
@@ -246,6 +268,7 @@ export const makeFillColours = (common, stocking) => {
   fillColours["strain"] = makeColorMap(common.strains, "slug");
   fillColours["clip"] = makeColorMap(common.clipcodes, "clip_code");
   fillColours["mark"] = makeColorMap(common.physchem_marks, "mark_code");
+
   fillColours["tag"] = makeColorMap(common.fish_tags, "tag_code");
   // stocking colours
   fillColours["stockingMethod"] = makeColorMap(
@@ -277,4 +300,11 @@ export const responseVarLabels = {
 
 export const pluralize = (value, count) => {
   return count > 1 ? value + "s" : value;
+};
+
+export const assignDefaultColours = (keys) => {
+  const colourKey = Object.fromEntries(
+    keys.map((k, i) => [k, speciesColours[i]])
+  );
+  return colourKey;
 };
