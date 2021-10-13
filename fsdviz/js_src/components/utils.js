@@ -149,7 +149,7 @@ export const makeItemMap = (itemList, key, value) => {
 
 // convert out lookup arrays to arrays of the form: {key:value}
 // the format exected py our piechart slice labels: {slug:key, label: "value (key)"}
-const lookupToLabels = (lookup) => {
+export const lookupToLabels = (lookup) => {
   const labels = [];
   Object.entries(lookup).forEach(([key, val]) => {
     labels.push({ slug: key, label: `${val} (${key})` });

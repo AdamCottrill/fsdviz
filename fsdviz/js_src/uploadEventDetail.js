@@ -5,11 +5,10 @@ import { json, scaleOrdinal, extent } from "d3";
 
 import Leaflet from "leaflet";
 
-import { speciesColours, all_species } from "./components/constants";
+import { update_category_legend } from "./components/stats_panel";
+import { makeColorMap, makeItemMap, lookupToLabels } from "./components/utils";
 
-const speciesColourScale = scaleOrdinal()
-  .range(speciesColours)
-  .domain(all_species);
+const colourScale = scaleOrdinal();
 
 let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
 
@@ -72,31 +71,50 @@ function onClick(e) {
   }
 }
 
-json(dataURL).then((data) => {
-  data.forEach((d) => {
-    d.latitude = +d.latitude;
-    d.longitude = +d.longitude;
-    if (d.latitude & d.longitude) {
-      let circle = Leaflet.circleMarker([d.latitude, +d.longitude], {
-        color: speciesColourScale(d.species_name),
-        fillColor: speciesColourScale(d.species_name),
-        fillOpacity: 0.5,
-        opacity: 0.6,
-        weight: 2,
-        radius: 6,
-      });
-      circle.addTo(mymap).on("click", onClick);
-    }
-  });
+Promise.all([json(dataURL), json("/api/v1/common/lookups")]).then(
+  ([data, common]) => {
+    // prepare colour scale and label here:
+    const colors = makeColorMap(common.species);
+    const species_lookup = makeItemMap(common.species, "abbrev", "common_name");
+    const label_lookup = lookupToLabels(species_lookup);
 
-  //reset the the bounds of our map if required.
-  let lat_extent = extent(data, (d) => d.latitude);
-  let lon_extent = extent(data, (d) => d.longitude);
-  bbox = recalc_bbox(bbox, lat_extent, lon_extent);
-  if (bbox.every((x) => !typeof undefined)) {
-    mymap.fitBounds([
-      [bbox[1], bbox[0]],
-      [bbox[3], bbox[2]],
-    ]);
+    colourScale
+      .domain(Object.entries(colors).map((x) => x[0]))
+      .range(Object.entries(colors).map((x) => x[1]));
+
+    data.forEach((d) => {
+      d.latitude = +d.latitude;
+      d.longitude = +d.longitude;
+      if (d.latitude & d.longitude) {
+        let circle = Leaflet.circleMarker([d.latitude, +d.longitude], {
+          color: colourScale(d.species_name),
+          fillColor: colourScale(d.species_name),
+          fillOpacity: 0.5,
+          opacity: 0.6,
+          weight: 2,
+          radius: 6,
+        });
+        circle.addTo(mymap).on("click", onClick);
+      }
+    });
+
+    const uniqueSpecies = [...new Set(data.map((x) => x.species_name))];
+
+    const speciesList = label_lookup.filter((x) =>
+      uniqueSpecies.includes(x.slug)
+    );
+
+    update_category_legend(colourScale, speciesList, "");
+
+    //reset the the bounds of our map if required.
+    let lat_extent = extent(data, (d) => d.latitude);
+    let lon_extent = extent(data, (d) => d.longitude);
+    bbox = recalc_bbox(bbox, lat_extent, lon_extent);
+    if (bbox.every((x) => !typeof undefined)) {
+      mymap.fitBounds([
+        [bbox[1], bbox[0]],
+        [bbox[3], bbox[2]],
+      ]);
+    }
   }
-});
+);
