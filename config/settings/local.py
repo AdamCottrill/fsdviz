@@ -12,7 +12,6 @@ os.environ["PROJ_LIB"] = PROJ_LIB
 
 os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
 
-print("using c:/1work/fsdviz/config/settings/local.py")
 
 if not os.path.exists(OSGEO_VENV):
     print("Unable to find OSGEO_VENV at {}".format(OSGEO_VENV))

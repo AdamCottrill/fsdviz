@@ -14,8 +14,6 @@ GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal302.dll")
 
 os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
 
-print("using c:/1work/fsdviz/config/settings/local.py")
-
 if not os.path.exists(OSGEO_VENV):
     print("Unable to find OSGEO_VENV at {}".format(OSGEO_VENV))
 

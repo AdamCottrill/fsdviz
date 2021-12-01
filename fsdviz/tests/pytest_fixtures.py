@@ -891,11 +891,6 @@ def reused_cwt_stocking_events(db):
     been reused to ensure that filters still work as expected when
     cwts are associated with events that have differnt attributes.
 
-    ** NOTE ** - tag reuse flags are arbitrarily set in this fixture -
-       if we ever set up triggers intthe data base to update those
-       fields as stocking events are added or modified, these will
-       alsmost certainly be wrong and the tests will fail.
-
     """
 
     huron = LakeFactory(abbrev="HU", lake_name="Huron")
@@ -938,6 +933,10 @@ def reused_cwt_stocking_events(db):
         strain_code="BS", strain_label="Big Sound", strain_species=lat
     )
 
+    lat_strain2 = StrainFactory(
+        strain_code="SN", strain_label="Seneca Lake", strain_species=lat
+    )
+
     rbt_strain = StrainFactory(
         strain_code="GAN", strain_label="Ganaraska", strain_species=rbt
     )
@@ -950,6 +949,8 @@ def reused_cwt_stocking_events(db):
     raw_rbt = StrainRawFactory(species=rbt, strain=rbt_strain, raw_strain="RBT-1")
 
     raw_lat1 = StrainRawFactory(species=lat, strain=lat_strain1, raw_strain="BS-1")
+
+    raw_lat2 = StrainRawFactory(species=lat, strain=lat_strain2, raw_strain="SN-1")
 
     fry = LifeStageFactory(abbrev="fry", description="fry")
     fingerlings = LifeStageFactory(abbrev="f", description="fingerlings")
@@ -978,8 +979,8 @@ def reused_cwt_stocking_events(db):
 
     cwt1 = CWTFactory(
         cwt_number="111111",
-        multiple_agencies=True,
-        multiple_species=True,
+        # multiple_agencies=True,
+        # multiple_species=True,
     )
     cwtseq1 = CWTsequenceFactory(cwt=cwt1)
 
@@ -1034,8 +1035,8 @@ def reused_cwt_stocking_events(db):
 
     cwt3 = CWTFactory(
         cwt_number="333333",
-        multiple_species=True,
-        multiple_strains=True,
+        # multiple_species=True,
+        # multiple_strains=True,
     )
     cwtseq3 = CWTsequenceFactory(cwt=cwt3)
 
@@ -1063,6 +1064,27 @@ def reused_cwt_stocking_events(db):
     event3.physchem_marks.add(ca_mark)
     event3.fin_clips.add(lp_clip, rp_clip)
     event3.save()
+
+    # same as event 3, different strain
+    event3b = StockingEventFactory(
+        stock_id="3333b",
+        jurisdiction=on_er,
+        agency=mnrf,
+        year=2012,
+        year_class=2011,
+        month=None,
+        day=None,
+        species=lat,
+        strain_raw=raw_lat2,
+        lifestage=yearlings,
+        stocking_method=boat,
+        hatchery=mnrf_hatcheryB,
+        dd_lon=pt1.x,
+        dd_lat=pt1.y,
+    )
+
+    cwtseq3.events.add(event3b)
+    cwtseq3.save()
 
     event4 = StockingEventFactory(
         stock_id="4444",
@@ -1093,9 +1115,9 @@ def reused_cwt_stocking_events(db):
     cwt5 = CWTFactory(
         cwt_number="551111",
         manufacturer="mm",
-        tag_reused=True,
-        multiple_lakes=True,
-        multiple_yearclasses=True,
+        # tag_reused=True,
+        # multiple_lakes=True,
+        # multiple_yearclasses=True,
     )
     cwtseq5 = CWTsequenceFactory(cwt=cwt5)
 
@@ -1121,6 +1143,25 @@ def reused_cwt_stocking_events(db):
     # no marks, clips only.
     event5.fin_clips.add(rp_clip, rv_clip)
     event5.save()
+
+    # same as 5, but stocked in Lake Huron instead of Superior
+    event5b = StockingEventFactory(
+        stock_id="5555b",
+        jurisdiction=on_hu,
+        agency=mnrf,
+        year=2050,
+        year_class=2021,
+        month=6,
+        day=15,
+        species=lat,
+        strain_raw=raw_lat1,
+        lifestage=yearlings,
+        stocking_method=plane,
+        hatchery=mnrf_hatcheryB,
+        dd_lon=pt2.x,
+        dd_lat=pt2.y,
+    )
+    cwtseq5.events.add(event5b)
 
     # rainbow trout stocked in Lake Superior
     cwt6 = CWTFactory(cwt_number="111166", tag_type="sequential")
@@ -1170,76 +1211,89 @@ def reused_cwt_stocking_events(db):
 reused_cwt_parameters = [
     (
         {"tag_reused": True},
-        ["5555"],
-        ["1111", "2222", "3333", "4444", "6666", "7777"],
+        [
+            "1111",
+            "2222",
+            "3333",
+            "3333b",
+            "4444",
+            "5555",
+            "5555b",
+        ],
+        ["6666", "7777"],
         None,
     ),
     (
         {"tag_reused": False},
-        ["1111", "2222", "3333", "4444", "6666"],
-        ["5555", "7777"],
+        [
+            "6666",
+        ],
+        ["1111", "2222", "3333", "3333b", "4444", "7777"],
         None,
     ),
     (
         {"multiple_lakes": True},
-        ["5555"],
-        ["1111", "2222", "3333", "4444", "6666", "7777"],
+        [
+            "5555",
+            "5555b",
+        ],
+        ["1111", "2222", "3333", "3333b", "4444", "6666", "7777"],
         None,
     ),
     (
         {"multiple_lakes": False},
-        ["1111", "2222", "3333", "4444", "6666"],
-        ["5555", "7777"],
+        ["1111", "2222", "3333", "3333b", "4444", "6666"],
+        ["5555", "5555b", "7777"],
         None,
     ),
     (
         {"multiple_yearclasses": True},
-        ["5555"],
-        ["1111", "2222", "3333", "4444", "6666", "7777"],
+        ["5555", "5555b"],
+        ["1111", "2222", "3333", "3333b", "4444", "6666", "7777"],
         None,
     ),
     (
         {"multiple_yearclasses": False},
-        ["1111", "2222", "3333", "4444", "6666"],
-        ["5555", "7777"],
+        ["1111", "2222", "3333", "3333b", "4444", "6666"],
+        ["5555", "5555b", "7777"],
         None,
     ),
     (
         {"multiple_agencies": True},
-        ["1111", "2222"],
-        ["3333", "4444", "5555", "6666", "7777"],
+        ["1111", "2222", "3333", "3333b", "4444"],
+        ["5555", "5555b", "6666", "7777"],
         None,
     ),
     (
         {"multiple_agencies": False},
         [
-            "3333",
-            "4444",
             "5555",
+            "5555b",
             "6666",
         ],
-        ["1111", "2222", "7777"],
+        ["1111", "2222", "3333", "3333b", "4444", "7777"],
         None,
     ),
     (
         {"multiple_species": True},
-        ["1111", "2222", "3333", "4444"],
-        ["5555", "6666", "7777"],
+        ["1111", "2222", "3333", "3333b", "4444"],
+        ["5555", "5555b", "6666", "7777"],
         None,
     ),
     (
         {"multiple_species": False},
         [
             "5555",
+            "5555b",
             "6666",
         ],
-        ["1111", "2222", "3333", "4444", "7777"],
+        ["1111", "2222", "3333", "3333b", "4444", "7777"],
         None,
     ),
     (
         {"multiple_strains": True},
-        ["3333", "4444"],
-        ["1111", "2222", "5555", "6666", "7777"],
+        ["3333", "3333b", "4444"],
+        ["1111", "2222", "5555", "5555b", "6666", "7777"],
         None,
     ),
     (
@@ -1248,125 +1302,124 @@ reused_cwt_parameters = [
             "1111",
             "2222",
             "5555",
+            "5555b",
             "6666",
         ],
-        ["3333", "4444", "7777"],
+        ["3333", "3333b", "4444", "7777"],
         None,
     ),
     (
         {"cwt_number_like": "1111"},
-        ["1111", "2222", "5555", "6666"],
-        ["3333", "4444", "7777"],
+        ["1111", "2222", "5555", "5555b", "6666"],
+        ["3333", "3333b", "4444", "7777"],
         None,
     ),
     (
         {"cwt_number": "551111"},
-        [
-            "5555",
-        ],
-        ["1111", "2222", "3333", "4444", "6666", "7777"],
+        ["5555", "5555b"],
+        ["1111", "2222", "3333", "3333b", "4444", "6666", "7777"],
         None,
     ),
     (
         {"cwt_number": "551111,111166"},
-        ["5555", "6666"],
-        ["1111", "2222", "3333", "4444", "7777"],
+        ["5555", "5555b", "6666"],
+        ["1111", "2222", "3333", "3333b", "4444", "7777"],
         None,
     ),
     (
         {"tag_type": "sequential"},
         ["6666"],
-        ["1111", "5555", "2222", "3333", "4444", "7777"],
+        ["1111", "2222", "3333", "3333b", "4444", "5555", "5555b", "7777"],
         None,
     ),
     (
         {"manufacturer": "mm"},
-        ["5555"],
-        ["1111", "6666", "2222", "3333", "4444", "7777"],
+        ["5555", "5555b"],
+        ["1111", "6666", "2222", "3333", "3333b", "4444", "7777"],
         None,
     ),
     (
         {"lake": "HU"},
-        ["1111", "2222"],
-        ["3333", "4444", "5555", "6666", "7777"],
+        ["1111", "2222", "5555b"],
+        ["3333", "3333b", "4444", "5555", "6666", "7777"],
         "events__jurisdiction__lake",
     ),
     (
         {"lake": "HU,ER"},
-        ["1111", "2222", "3333", "4444"],
+        ["1111", "2222", "3333", "3333b", "4444", "5555b"],
         ["5555", "6666", "7777"],
         "events__jurisdiction__lake",
     ),
     (
         {"agency": "MNRF"},
-        ["1111", "3333", "5555", "6666"],
+        ["1111", "3333", "3333b", "5555", "5555b", "6666"],
         ["4444", "2222", "7777"],
         "events__agency",
     ),
     (
         {"agency": "ODNR,MDNR"},
         ["4444", "2222"],
-        ["1111", "3333", "5555", "6666", "7777"],
+        ["1111", "3333", "3333b", "5555", "5555b", "6666", "7777"],
         "events__agency",
     ),
     (
         {"stateprov": "ON"},
-        ["1111", "3333", "5555", "6666"],
+        ["1111", "3333", "3333b", "5555", "5555b", "6666"],
         ["2222", "4444", "7777"],
         "events__jurisdiction__stateprov",
     ),
     (
         {"stateprov": "MI,OH"},
         ["2222", "4444"],
-        ["1111", "3333", "5555", "6666", "7777"],
+        ["1111", "3333", "3333b", "5555", "5555b", "6666", "7777"],
         "events__jurisdiction__stateprov",
     ),
     (
         {"jurisdiction": "su_on"},
         ["5555", "6666"],
-        ["1111", "3333", "2222", "4444", "7777"],
+        ["1111", "3333", "3333", "5555b", "2222", "4444", "7777"],
         "events__jurisdiction",
     ),
     (
         {"jurisdiction": "hu_on, er_oh"},
-        ["1111", "4444"],
-        ["5555", "3333", "2222", "6666", "7777"],
+        ["1111", "4444", "5555b"],
+        ["2222", "3333", "3333b", "5555", "6666", "7777"],
         "events__jurisdiction",
     ),
     (
         {"first_year": "2010"},
-        ["1111", "2222", "3333", "5555"],
+        ["1111", "2222", "3333", "3333b", "5555", "5555b"],
         ["4444", "6666", "7777"],
         "events",
     ),
     (
         {"last_year": "2010"},
         ["1111", "2222", "4444", "6666"],
-        ["3333", "5555", "7777"],
+        ["3333", "3333b", "5555", "5555b", "7777"],
         "events",
     ),
     (
         {"first_year": "2009", "last_year": "2011"},
         ["1111", "2222"],
-        ["3333", "5555", "4444", "6666", "7777"],
+        ["3333", "3333b", "5555", "5555b", "4444", "6666", "7777"],
         "events",
     ),
     (
         {"year": "2010"},
         ["1111", "2222"],
-        ["3333", "4444", "5555", "6666", "7777"],
+        ["3333", "3333b", "4444", "5555", "5555b", "6666", "7777"],
         "events",
     ),
     (
         {"year_class": "2008"},
         ["4444", "6666"],
-        ["1111", "2222", "3333", "5555", "7777"],
+        ["1111", "2222", "3333", "3333b", "5555", "5555b", "7777"],
         "events",
     ),
     (
         {"year_class": "2009,2010,2011"},
-        ["1111", "2222", "3333"],
-        ["4444", "5555", "6666", "7777"],
+        ["1111", "2222", "3333", "3333b"],
+        ["4444", "5555", "5555b", "6666", "7777"],
         "events",
     ),
     (
@@ -1374,106 +1427,109 @@ reused_cwt_parameters = [
         [
             "1111",
         ],
-        ["2222", "3333", "4444", "5555", "6666", "7777"],
+        ["2222", "3333", "3333b", "5555b", "4444", "5555", "6666", "7777"],
         "events",
     ),
     (
         {"stocking_month": "99"},
-        [
-            "3333",
-        ],
-        ["1111", "2222", "4444", "5555", "6666", "7777"],
+        ["3333", "3333b"],
+        ["1111", "2222", "4444", "5555", "5555b", "6666", "7777"],
         "events",
     ),
     (
         {"stocking_month": "4,99"},
-        ["1111", "3333"],
-        ["2222", "4444", "5555", "6666", "7777"],
+        ["1111", "3333", "3333b"],
+        ["2222", "4444", "5555", "5555b", "6666", "7777"],
         "events",
     ),
     (
         {"stocking_month": "4,6"},
-        ["1111", "2222", "5555"],
-        ["3333", "4444", "6666", "7777"],
+        ["1111", "2222", "5555", "5555b"],
+        ["3333", "3333b", "4444", "6666", "7777"],
         "events",
     ),
     (
         {"species": "LAT"},
-        ["1111", "3333", "5555"],
+        ["1111", "3333", "3333b", "5555", "5555b"],
         ["2222", "4444", "6666", "7777"],
         "events__species",
     ),
     (
         {"species": "RBT,COS"},
         ["2222", "4444", "6666"],
-        ["1111", "3333", "5555", "7777"],
+        ["1111", "3333", "3333b", "5555", "5555b", "7777"],
         "events__species",
     ),
     (
         {"strain_name": "BS"},
-        ["1111", "3333", "5555"],
-        ["2222", "4444", "6666", "7777"],
+        ["1111", "3333", "5555", "5555b"],
+        ["2222", "3333b", "4444", "6666", "7777"],
         "events__species",
     ),
     (
         {"strain_name": "GAN,WILD"},
         ["2222", "4444", "6666"],
-        ["1111", "3333", "5555", "7777"],
+        ["1111", "3333", "3333b", "5555", "5555", "7777"],
         "events__species",
     ),
     # strain_id
     (
         {"stocking_method": "b"},
-        ["2222", "3333"],
-        ["1111", "4444", "6666", "5555", "7777"],
+        ["2222", "3333", "3333b"],
+        ["1111", "4444", "6666", "5555", "5555b" "7777"],
         "events__stocking_method",
     ),
     (
         {"stocking_method": "p,t"},
-        ["1111", "4444", "6666", "5555"],
-        ["2222", "3333", "7777"],
+        ["1111", "4444", "6666", "5555", "5555b"],
+        ["2222", "3333", "3333b", "7777"],
         "events__stocking_method",
     ),
     (
         {"lifestage": "y"},
-        ["1111", "3333", "5555"],
+        ["1111", "3333", "3333b", "5555", "5555b"],
         ["2222", "4444", "6666", "7777"],
         "events__lifestage",
     ),
     (
         {"lifestage": "fry,f"},
         ["2222", "4444", "6666"],
-        ["1111", "3333", "5555", "7777"],
+        ["1111", "3333", "3333b", "5555", "5555b", "7777"],
         "events__lifestage",
     ),
     (
         {"finclips": "RP"},
-        ["1111", "2222", "3333", "5555"],
-        ["6666", "4444", "7777"],
+        [
+            "1111",
+            "2222",
+            "3333",
+            "5555",
+        ],
+        ["3333b", "4444", "6666", "5555b", "7777"],
         "events__fin_clips",
     ),
     (
         {"finclips": "RP,XX"},
         ["1111", "2222", "3333", "5555"],
-        ["6666", "4444", "7777"],
+        ["4444", "3333b", "5555b", "6666", "7777"],
         "events__fin_clips",
     ),
     (
         {"physchem_marks": "CA"},
         ["3333", "4444"],
-        ["1111", "2222", "6666", "5555", "7777"],
+        ["1111", "2222", "3333b", "5555", "5555b", "6666", "7777"],
         "events__physchem_marks",
     ),
     (
         {"physchem_marks": "CA,OX"},
         ["1111", "2222", "3333", "4444"],
-        ["6666", "5555", "7777"],
+        ["6666", "3333b", "5555", "5555b", "7777"],
         "events__physchem_marks",
     ),
     (
         {"clip_code": "RP"},
         ["1111", "2222"],
-        ["3333", "4444", "6666", "5555", "7777"],
+        ["3333", "3333b", "4444", "6666", "5555", "5555b", "7777"],
         "events",
     ),
     (
@@ -1483,31 +1539,37 @@ reused_cwt_parameters = [
             "2222",
             "4444",
         ],
-        ["3333", "6666", "5555", "7777"],
+        ["3333", "3333b", "6666", "5555", "5555b", "7777"],
         "events",
     ),
     (
         {"fishtags": "FTR"},
         ["1111", "2222", "3333"],
-        ["4444", "6666", "5555", "7777"],
+        ["3333b", "4444", "6666", "5555", "5555b", "7777"],
         "events__fish_tags",
     ),
     (
         {"fishtags": "FTR,JAW"},
         ["1111", "2222", "3333", "4444"],
-        ["6666", "5555", "7777"],
+        ["3333b", "5555", "5555b", "6666", "7777"],
         "events__fish_tags",
     ),
     (
         {"hatchery": "mnrfB"},
-        ["3333", "6666", "5555"],
+        [
+            "3333",
+            "3333b",
+            "6666",
+            "5555",
+            "5555b",
+        ],
         ["1111", "2222", "4444", "7777"],
         "events__hatchery",
     ),
     (
         {"hatchery": "mnrfA,odnrA"},
         ["1111", "4444"],
-        ["2222", "3333", "6666", "5555", "7777"],
+        ["2222", "3333", "3333b", "6666", "5555", "5555b", "7777"],
         "events__hatchery",
     ),
     # roi

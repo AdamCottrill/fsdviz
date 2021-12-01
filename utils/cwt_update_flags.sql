@@ -5,16 +5,23 @@
 -- to change the criteria associated with each (e.g. - by species or not)
 
 
-select * from common_cwt limit 10;
-select * from common_cwtsequence limit 10;
-select * from common_cwtsequence_events limit 10;
-select * from stocking_stockingevent limit 10;
-select * from common_strainraw limit 10;
-select * from common_strain limit 10;
+-- select * from common_cwt limit 10;
+-- select * from common_cwtsequence limit 10;
+-- select * from common_cwtsequence_events limit 10;
+-- select * from stocking_stockingevent limit 10;
+-- select * from common_strainraw limit 10;
+-- select * from common_strain limit 10;
 
+
+
+CREATE FUNCTION update_reused_cwt_flags_trigger_fct()
+   RETURNS TRIGGER
+   LANGUAGE PLPGSQL
+AS $$
+BEGIN
 
 -- find cwt numbers that have been stocked by more than one agency
-
+update common_cwt set multiple_agencies=false;
 update common_cwt set multiple_agencies=true where cwt_number in (
 
 SELECT cwt_number
@@ -29,8 +36,9 @@ GROUP BY cwt_number
 HAVING COUNT(cwt_number) > 1
 
 );
-commit;
+--commit;
 -- find cwt numbers that have been stocked in more than one species
+update common_cwt set multiple_agencies=false;
 update common_cwt set multiple_species=true where cwt_number in (
 SELECT cwt_number
        --,COUNT(species_id) AS Species
@@ -41,16 +49,17 @@ SELECT DISTINCT cwt_number,
         JOIN common_cwtsequence_events ON common_cwtsequence_events.stockingevent_id = events.id
         JOIN common_cwtsequence ON common_cwtsequence_events.cwtsequence_id = common_cwtsequence.id
         JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id
-        
+
 ) AS tmp
 GROUP BY cwt_number
 HAVING COUNT(species_id) > 1
 );
-commit;
+--commit;
 
 -- find cwt numbers that have the same number but have been stocked in more than one lake
 -- regardless of what species they were stocked in (a tag that was used in chinook in
 -- Huron and lake trout in michigan will be flagged).
+update common_cwt set multiple_lakes=false;
 update common_cwt set multiple_lakes=true where cwt_number in (
 SELECT cwt_number
        --,COUNT(lake_id) AS Lakesb
@@ -62,12 +71,12 @@ SELECT DISTINCT cwt_number,
         JOIN common_cwtsequence_events ON common_cwtsequence_events.stockingevent_id = events.id
         JOIN common_cwtsequence ON common_cwtsequence_events.cwtsequence_id = common_cwtsequence.id
         JOIN common_cwt AS cwt ON cwt.id = common_cwtsequence.cwt_id
-        
+
 ) AS tmp
 GROUP BY cwt_number
 HAVING COUNT(lake_id) > 1
 );
-commit;
+--commit;
 
 -- find cwt numbers that have the same number but have been stocked in more than one lake and species
 -- lake trout stocked in both huron and Michigan will be flagged
@@ -88,7 +97,8 @@ commit;
 -- );
 
 
--- find cwt numbers that have been stocked in more than one year class within a species
+-- find cwt numbers that have been stocked in more than one year-class within a species
+update common_cwt set multiple_yearclasses=false;
 update common_cwt set multiple_yearclasses=true where cwt_number in (
 SELECT cwt_number
 --       ,COUNT(year_class) AS YearClasses
@@ -103,7 +113,7 @@ GROUP BY cwt_number,
          species_id
 HAVING COUNT(cwt_number) > 1
 )
-commit;
+--commit;
 
 -- find cwt numbers that have been stocked in more than one lifestage - within the same species!!
 
@@ -122,6 +132,7 @@ commit;
 
 
 -- find cwt numbers that have been stocked in more than one strain - within the same species!!
+update common_cwt set multiple_strains=false;
 update common_cwt set multiple_strains=true where cwt_number in (
 SELECT cwt_number
 --,      common_name,
@@ -140,16 +151,18 @@ GROUP BY cwt_number,
          common_name
 HAVING COUNT(cwt_number) > 1
 );
-commit;
+--commit;
 
 
 -- need the OMNR Patch completed to update those records where micro-mark tags were used.
-select cwt_number from (
-select cwt_number, manufacturer from common_cwt as cwt group by cwt_number, manufacturer
-) as x
-group by x.cwt_number having count(x.cwt_number)>1;
-
+--select cwt_number from (
+--select cwt_number, manufacturer from common_cwt as cwt group by cwt_number, manufacturer
+--) as x
+--group by x.cwt_number having count(x.cwt_number)>1;
+--
 -- finally, trip the tag_reused flag to exclude all
+UPDATE common_cwt
+   SET tag_reused = false;
 UPDATE common_cwt
    SET tag_reused = TRUE
 WHERE cwt_number IN (SELECT cwt_number
@@ -161,22 +174,35 @@ WHERE cwt_number IN (SELECT cwt_number
                      OR    multiple_agencies = TRUE
                      OR    multiple_lakes = TRUE);
 
+
+
 commit;
 
+-- trigger logic
+END;
+$$
 
+CREATE TRIGGER update_reused_cwt_flags_insert_trigger()
+   AFTER INSERT
+   ON stocking_stockingevent
+   FOR EACH STATEMENT
+       EXECUTE PROCEDURE update_reused_cwt_flags_trigger_fct()
 
+CREATE TRIGGER update_reused_cwt_flags_update_trigger()
+   AFTER UPDATE
+   ON stocking_stockingevent
+   FOR EACH STATEMENT
+       EXECUTE PROCEDURE update_reused_cwt_flags_trigger_fct()
 
+CREATE TRIGGER update_reused_cwt_flags_delete_trigger()
+   AFTER DELETE
+   ON stocking_stockingevent
+   FOR EACH STATEMENT
+       EXECUTE PROCEDURE update_reused_cwt_flags_trigger_fct()
 
---- Data for ted - April 17, 2020:
-SELECT stockingevent.stock_id,
-       cwt.*
-FROM common_cwt AS cwt
-  JOIN common_cwtsequence AS cwtsequence ON cwtsequence.cwt_id = cwt.id
-  JOIN common_cwtsequence_events AS cwtsequence_events ON cwtsequence_events.cwtsequence_id = cwtsequence.id
-  JOIN stocking_stockingevent AS stockingevent ON stockingevent.id = cwtsequence_events.stockingevent_id
-where cwt.cwt_number <> '99999';
+-- reverse:
 
-select * from common_cwt limit 10;
-select * from common_cwtsequence limit 10;
-select * from common_cwtsequence_events limit 10;
-select * from stocking_stockingevent limit 10;
+-- DROP TRIGGER update_reused_cwt_flags_insert_trigger;
+-- DROP TRIGGER update_reused_cwt_flags_update_trigger;
+-- DROP TRIGGER update_reused_cwt_flags_delete_trigger;
+-- DROP FUNCTION update_reused_cwt_flags_trigger_fct;

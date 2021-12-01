@@ -87,7 +87,7 @@ def test_cwt_list_filters(
 ):
     """Verify that the the cwt sequence filters behave as expected. This
     test is parmeterized to accept a series of four element tuples - the
-    filter to be applied, the excepted list of cwts numbers, a list of cwt
+    filter to be applied, the expected list of cwts numbers, a list of cwt
     numbers that should not be returned, and an optional string specifying
     a prefetch_related to pass to the queryset.
     """

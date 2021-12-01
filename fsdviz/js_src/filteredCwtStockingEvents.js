@@ -576,8 +576,6 @@ Promise.all([
     const lookup = lookup_values[categoryVar];
     const itemList = lookup.filter((x) => items.includes(x.slug));
 
-    console.log("itemsList = ", itemList);
-
     update_category_legend(colourScale, itemList, category_label);
     update_map();
   };
