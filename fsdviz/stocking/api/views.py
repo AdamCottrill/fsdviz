@@ -88,6 +88,13 @@ class HatcheryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_field = "abbrev"
 
+    def get_queryset(self):
+        queryset = Hatchery.objects.all().order_by("hatchery_name")
+        active = self.request.query_params.get("active")
+        if active:
+            queryset = queryset.filter(active=True)
+        return queryset
+
 
 class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
     """List of condition values and their descriptions reported by

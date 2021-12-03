@@ -206,6 +206,8 @@ class Hatchery(models.Model):
     abbrev = models.CharField(max_length=20, unique=True)
     description = models.TextField(blank=True, null=True)
 
+    active = models.BooleanField(default=True, db_index=True)
+
     hatchery_type = models.CharField(
         max_length=25, choices=HATCHERY_TYPE_CHOICES, blank=True, null=True
     )
