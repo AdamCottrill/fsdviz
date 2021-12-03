@@ -73,7 +73,7 @@ THIRD_PARTY_APPS = [
     "corsheaders",
     "rest_framework.authtoken",
     "rest_auth",
-    "rest_framework_swagger",
+    "drf_yasg",
     "leaflet",
     "colorfield",
     "crispy_forms",  # ticket tracker

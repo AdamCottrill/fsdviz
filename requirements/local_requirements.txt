@@ -39,10 +39,11 @@ coreapi==2.3.3
     # via
     #   -r base.in
     #   coreapi-cli
-    #   django-rest-swagger
-    #   openapi-codec
+    #   drf-yasg
 coreschema==0.0.4
-    # via coreapi
+    # via
+    #   coreapi
+    #   drf-yasg
 coverage==5.5
     # via pytest-cov
 django-colorfield==0.4.2
@@ -61,8 +62,6 @@ django-leaflet==0.28.0
     # via -r base.in
 django-rest-auth==0.9.5
     # via -r base.in
-django-rest-swagger==2.2.0
-    # via -r base.in
 django-taggit==1.1.0
     # via -r base.in
 django==2.2.24
@@ -75,17 +74,20 @@ django==2.2.24
     #   django-rest-auth
     #   django-taggit
     #   djangorestframework
+    #   drf-yasg
 djangorestframework==3.12.4
     # via
     #   -r base.in
     #   django-rest-auth
-    #   django-rest-swagger
     #   drf-renderer-xlsx
+    #   drf-yasg
 docutils==0.16
     # via
     #   -r local.in
     #   sphinx
 drf-renderer-xlsx==0.3.8
+    # via -r base.in
+drf-yasg==1.20.0
     # via -r base.in
 et-xmlfile==1.1.0
     # via openpyxl
@@ -109,6 +111,8 @@ importlib-metadata==4.4.0
     #   markdown
     #   pluggy
     #   pytest
+inflection==0.5.1
+    # via drf-yasg
 iniconfig==1.1.1
     # via pytest
 isort==5.8.0
@@ -131,14 +135,13 @@ markupsafe==2.0.1
     # via jinja2
 mccabe==0.6.1
     # via pylint
-openapi-codec==1.3.2
-    # via django-rest-swagger
 openpyxl==3.0.5
     # via
     #   -r base.in
     #   drf-renderer-xlsx
 packaging==20.9
     # via
+    #   drf-yasg
     #   pytest
     #   sphinx
 pip-tools==5.3.1
@@ -203,8 +206,10 @@ requests[socks]==2.25.1
     #   httpie
     #   requests-toolbelt
     #   sphinx
-simplejson==3.17.2
-    # via django-rest-swagger
+ruamel.yaml.clib==0.2.6
+    # via ruamel.yaml
+ruamel.yaml==0.17.17
+    # via drf-yasg
 six==1.16.0
     # via
     #   django-rest-auth
@@ -243,7 +248,9 @@ typing-extensions==3.10.0.0
     #   astroid
     #   importlib-metadata
 uritemplate==3.0.1
-    # via coreapi
+    # via
+    #   coreapi
+    #   drf-yasg
 urllib3==1.26.5
     # via requests
 werkzeug==1.0.1

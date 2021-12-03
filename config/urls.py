@@ -16,11 +16,13 @@ Including another URLconf
 
 from django.conf import settings
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, re_path, include
 
 from rest_framework.documentation import include_docs_urls
 from rest_framework.permissions import AllowAny
-from rest_framework_swagger.views import get_swagger_view
+
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 # our homepage:  TEMP!!
 from fsdviz.stocking.views import PieChartMapViewLatestYear
@@ -54,7 +56,6 @@ from fsdviz.stocking.api.views import (
 API_TITLE = "Great Lakes Fish Stocking API"
 API_DESCRIPTION = "A web API for Great Lakes Fish Stocking Database"
 
-schema_view = get_swagger_view(title=API_TITLE)
 
 public_urls = [
     path("api/v1/common/lake", LakeViewSet.as_view({"get": "list"})),
@@ -84,6 +85,22 @@ public_urls = [
     path("api/v1/stocking/get_cwt_events", CWTEventListAPIView.as_view()),
 ]
 
+schema_view = get_schema_view(
+    openapi.Info(
+        title=API_TITLE,
+        default_version="v1",
+        description=API_DESCRIPTION,
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="adam.cottrill@ontario.ca"),
+        license=openapi.License(name="BSD License"),
+    ),
+    # generate docs for all endpoint from here down:
+    # patterns=urlpatterns + common_api_urls + stocking_api_urls,
+    patterns=public_urls,
+    public=True,
+    permission_classes=(AllowAny,),
+)
+
 
 urlpatterns = [
     path("coregonusclupeaformis/doc/", include("django.contrib.admindocs.urls")),
@@ -103,20 +120,28 @@ urlpatterns = [
         "api/v1/stocking/",
         include("fsdviz.stocking.api.urls", namespace="stocking_api"),
     ),
+    path("bookmarks/", include("bookmark_it.urls")),
+    # =============================================
+    #          API AND DOCUMENTATION
     path(
         "api/public_urls/",
-        include_docs_urls(
-            title=API_TITLE,
-            description=API_DESCRIPTION,
-            permission_classes=[
-                AllowAny,
-            ],
-            patterns=public_urls,
-        ),
+        schema_view.with_ui("redoc", cache_timeout=0),
+        name="schema-redoc",
     ),
-    path("bookmarks/", include("bookmark_it.urls")),
+    # api documentation
+    re_path(
+        r"^api/swagger(?P<format>\.json|\.yaml)$",
+        schema_view.without_ui(cache_timeout=0),
+        name="schema-json",
+    ),
+    path(
+        "api/swagger/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
     path("", PieChartMapViewLatestYear, name="home"),
 ]
+
 
 if settings.DEBUG:
     import debug_toolbar
