@@ -76,8 +76,11 @@ class Grid10Admin(admin.GeoModelAdmin):
 
 @admin.register(Species)
 class SpeciesModelAdmin(admin.ModelAdmin):
-    list_display = ("abbrev", "common_name", "scientific_name", "fill_color")
+    list_display = ("abbrev", "common_name", "scientific_name", "active", "fill_color")
     search_fields = ["abbrev", "common_name"]
+    list_filter = [
+        "active",
+    ]
 
     def fill_color(self, obj):
         return fill_color_widget(obj.color)
@@ -85,9 +88,15 @@ class SpeciesModelAdmin(admin.ModelAdmin):
 
 @admin.register(Strain)
 class StrainModelAdmin(admin.ModelAdmin):
-    list_display = ("strain_code", "strain_species", "strain_label", "fill_color")
+    list_display = (
+        "strain_code",
+        "strain_species",
+        "strain_label",
+        "active",
+        "fill_color",
+    )
     # list_select_related = ('strain_species',)
-    list_filter = ("strain_species", "strain_code")
+    list_filter = ("active", "strain_species", "strain_code")
     search_fields = ("strain_label",)
 
     def get_queryset(self, request):
@@ -100,9 +109,16 @@ class StrainModelAdmin(admin.ModelAdmin):
 
 @admin.register(StrainRaw)
 class StrainRawModelAdmin(admin.ModelAdmin):
-    list_display = ("raw_strain", "description", "species", "strain", "fill_color")
+    list_display = (
+        "raw_strain",
+        "description",
+        "species",
+        "strain",
+        "active",
+        "fill_color",
+    )
     # list_select_related = ('strain', 'species',)
-    list_filter = ("species",)
+    list_filter = ("species", "active")
     search_fields = ("description", "raw_strain")
 
     def fill_color(self, obj):

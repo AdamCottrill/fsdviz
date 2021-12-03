@@ -231,6 +231,7 @@
                             <th>Raw Strain Description</th>
                             <th>Species</th>
                             <th>Strain Group</th>
+                            <th>Active</th>
                         </tr></thead>
                     <tbody>
                         {% for item in strains %}
@@ -239,6 +240,7 @@
                                 <td >{{ item.description}}</td>
                                 <td >{{ item.species.common_name}}({{ item.species.abbrev}})</td>
                                 <td >{{ item.strain.strain_label}}({{ item.strain.strain_code}})</td>
+                                <td>{{item.active|yesno:"Yes,No"}}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

@@ -322,6 +322,8 @@ class Species(models.Model):
         "Strain", through="StrainRaw", related_name="species"
     )
 
+    active = models.BooleanField(default=True, db_index=True)
+
     class Meta:
         verbose_name_plural = "Species"
         ordering = ["abbrev"]
@@ -352,6 +354,8 @@ class Strain(models.Model):
     strain_species = models.ForeignKey("Species", on_delete=models.CASCADE)
 
     slug = models.CharField(max_length=20, unique=True, null=True)
+
+    active = models.BooleanField(default=True, db_index=True)
 
     class Meta:
         ordering = ["species__abbrev", "strain_code"]
@@ -396,6 +400,8 @@ class StrainRaw(models.Model):
     raw_strain = models.CharField(max_length=100)
     description = models.CharField(max_length=500)
     color = ColorField(default="#FF0000")
+
+    active = models.BooleanField(default=True, db_index=True)
 
     class Meta:
         ordering = ["species__abbrev", "raw_strain"]

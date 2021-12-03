@@ -465,33 +465,51 @@ class ManagementUnitViewSet(viewsets.ReadOnlyModelViewSet):
 class SpeciesViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = Species.objects.all()
     serializer_class = SpeciesSerializer
     lookup_field = "abbrev"
+
+    queryset = Species.objects.all()
+
+    def get_queryset(self):
+        active = self.request.query_params.get("active")
+        if active:
+            queryset = Species.objects.filter(active=True)
+        else:
+            queryset = Species.objects.all()
+        return queryset
 
 
 class StrainSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = Strain.objects.prefetch_related("species").distinct()
     serializer_class = StrainSpeciesSerializer
     filterset_class = StrainFilter
+    queryset = Strain.objects.select_related("strain_species").distinct()
 
     def get_queryset(self):
-        """from: http://ses4j.github.io/2015/11/23/
-        optimizing-slow-django-rest-framework-performance/
-        """
-        queryset = Strain.objects.distinct()
-        queryset = self.get_serializer_class().setup_eager_loading(queryset)
+        """"""
+        active = self.request.query_params.get("active")
+        queryset = Strain.objects.select_related("strain_species").distinct()
+        if active:
+            queryset = queryset.filter(active=True)
         return queryset
 
 
 class StrainRawViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = StrainRaw.objects.prefetch_related("species", "strain").all().distinct()
     serializer_class = StrainRawSerializer
     filterset_class = StrainRawFilter
+
+    queryset = StrainRaw.objects.select_related("species", "strain").distinct()
+
+    def get_queryset(self):
+        active = self.request.query_params.get("active")
+        queryset = StrainRaw.objects.select_related("species", "strain").distinct()
+        if active:
+            queryset = queryset.filter(active=True)
+
+        return queryset
 
 
 class CwtViewSet(viewsets.ReadOnlyModelViewSet):
