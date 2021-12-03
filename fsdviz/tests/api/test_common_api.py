@@ -546,6 +546,7 @@ class TestManagementUnitAPI(APITestCase):
             obj = {
                 "id": mu.id,
                 "label": mu.label,
+                "description": mu.description,
                 "lake": erie_dict,
                 "mu_type": mu.mu_type,
                 "slug": mu.slug,
@@ -574,6 +575,7 @@ class TestManagementUnitAPI(APITestCase):
         expected = {
             "id": mu.id,
             "label": mu.label,
+            "description": mu.description,
             "lake": erie_dict,
             "mu_type": mu.mu_type,
             "slug": mu.slug,

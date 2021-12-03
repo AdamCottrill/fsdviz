@@ -367,11 +367,11 @@
     download_button.href = download_url + search;
   }
 
-  /* let visualize_url = "{% url 'stocking:filtered-stocking-events' %}";
-   * let visualize_button = document.getElementById("visualize-events-btn");
-   * if (visualize_button){
-   *     visualize_button.href = visualize_url + search;
-   * } */
+ let visualize_url = "{% url 'stocking:filtered-cwt-stocking-events' %}";
+ let visualize_button = document.getElementById("visualize-events-btn");
+  if (visualize_button){
+      visualize_button.href = visualize_url + search;
+  }
 
   $(".tablesorter").tablesorter({
     theme: "bootstrap",

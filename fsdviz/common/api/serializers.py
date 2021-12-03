@@ -82,7 +82,16 @@ class ManagementUnitSerializer(ModelColorSerializer):
 
     class Meta:
         model = ManagementUnit
-        fields = ("id", "label", "lake", "mu_type", "slug", "primary", "color")
+        fields = (
+            "id",
+            "label",
+            "description",
+            "lake",
+            "mu_type",
+            "slug",
+            "primary",
+            "color",
+        )
 
     @staticmethod
     def setup_eager_loading(queryset):

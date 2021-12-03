@@ -98,6 +98,7 @@ def test_management_unit_model_color_serializer():
     expected = {
         "id": mu.id,
         "label": mu.label,
+        "description": mu.description,
         "lake": lake_dict,
         "mu_type": mu.mu_type,
         "slug": mu.slug,

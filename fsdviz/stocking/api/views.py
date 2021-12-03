@@ -83,7 +83,7 @@ class YearlingEquivalentViewSet(viewsets.ReadOnlyModelViewSet):
 class HatcheryViewSet(viewsets.ReadOnlyModelViewSet):
     """Read-only api endpoint for hatcheries."""
 
-    queryset = Hatchery.objects.all()
+    queryset = Hatchery.objects.all().order_by("hatchery_name")
     serializer_class = HatcherySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_field = "abbrev"

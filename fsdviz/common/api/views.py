@@ -1,7 +1,6 @@
 """Views for the api for our common models
 
 The veiws in this file should all be publicly available as readonly.
-
 """
 
 
@@ -455,7 +454,9 @@ class StateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
 class ManagementUnitViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = ManagementUnit.objects.defer("geom", "lake__geom").all()
+    queryset = (
+        ManagementUnit.objects.defer("geom", "lake__geom").all().order_by("label")
+    )
     serializer_class = ManagementUnitSerializer
     filterset_class = ManagementUnitFilter
     lookup_field = "slug"

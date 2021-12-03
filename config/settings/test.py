@@ -36,3 +36,6 @@ COVERAGE_MODULE_EXCLUDES += THIRD_PARTY_APPS + DJANGO_APPS
 MAX_UPLOAD_EVENT_COUNT = 15
 # UPLOAD_KEY_FIELD_ROW = 1
 # UPLOAD_FIRST_DATA_ROW = 2
+
+# use the default static file storage for tests:
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
