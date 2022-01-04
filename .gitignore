@@ -10,6 +10,8 @@ __pycache__
 fsdviz/favicon.ico
 static/*
 utils/data/*
+utils/geojson/*.geojson
+utils/geojson/*.json
 utils/stocking_database_report.txt
 fsdviz/static/js/accessToken.js
 .tern-port
