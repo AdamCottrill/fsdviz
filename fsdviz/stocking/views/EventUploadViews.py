@@ -1,5 +1,5 @@
 from datetime import datetime
-import pdb
+
 
 from django.conf import settings
 from django.contrib import messages
@@ -95,6 +95,15 @@ def upload_events(request):
             messages.error(request, msg)
             return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
 
+        for i, event in enumerate(xls_events):
+            val = event.get("site")
+            if val:
+                event["site"] = val.title()
+            val = event.get("st_site")
+            if val:
+                event["st_site"] = val.title()
+            xls_events[i] = event
+
         # xls_errors = validate_events(xls_events)
         request.session["data"] = xls_events
         # request.session["errors"] = xls_errors
@@ -140,9 +149,9 @@ def xls_events(request):
 
     choices["strain"] = [
         [x.raw_strain, x.raw_strain]
-        for x in StrainRaw.objects.filter(raw_strain__isnull=False).exclude(
-            raw_strain=""
-        )
+        for x in StrainRaw.objects.filter(
+            active=True, raw_strain__isnull=False
+        ).exclude(raw_strain="")
     ]
 
     clips = [x for x in CompositeFinClip.objects.values_list("clip_code", "clip_code")]
@@ -156,8 +165,12 @@ def xls_events(request):
     tag_types = [x for x in FishTag.objects.values_list("tag_code", "tag_code")]
     choices["tag_types"] = tag_types
 
-    hatcheries = [x for x in Hatchery.objects.values_list("abbrev", "abbrev")]
-    choices["hatcheries"] = hatcheries
+    hatcheries = [
+        (x[0], f"{x[1]} [{x[0]}]")
+        for x in Hatchery.objects.values_list("abbrev", "hatchery_name")
+    ]
+
+    choices["hatcheries"] = sorted(hatcheries, key=lambda x: x[1])
 
     # the choices dictionary is used for simple lookups and the display
     # of more complicated fields, the cache dictionary is used for
@@ -165,10 +178,14 @@ def xls_events(request):
     # queries.
 
     cache = {"bbox": bbox}
-    strain_list = StrainRaw.objects.values_list(
-        "id", "species__abbrev", "strain__strain_code"
+    strain_list = StrainRaw.objects.filter(active=True).values_list(
+        # "id", "species__abbrev", "strain__strain_code"
+        "id",
+        "species__abbrev",
+        "raw_strain",
     )
-    cache["strains"] = make_strain_id_lookup(strain_list)
+    strain_id_lookup = make_strain_id_lookup(strain_list)
+    cache["strains"] = strain_id_lookup
 
     mus = (
         ManagementUnit.objects.filter(lake=lake, mu_type="stat_dist")
@@ -226,10 +243,10 @@ def xls_events(request):
             species = Species.objects.values_list("id", "abbrev")
             species_id_lookup = toLookup(species)
 
-            strains = StrainRaw.objects.values_list(
-                "id", "species__abbrev", "strain__strain_code"
-            )
-            strain_id_lookup = make_strain_id_lookup(strains)
+            # strains = StrainRaw.objects.filter(active=True).values_list(
+            #     "id", "species__abbrev", "strain__strain_code"
+            # )
+            # strain_id_lookup = make_strain_id_lookup(strains)
 
             stocking_methods = StockingMethod.objects.values_list("id", "stk_meth")
             stocking_method_id_lookup = toLookup(stocking_methods)

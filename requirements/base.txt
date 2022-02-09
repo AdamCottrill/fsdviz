@@ -6,11 +6,11 @@
 #
 brotli==1.0.9
     # via -r base.in
-certifi==2021.5.30
+certifi==2021.10.8
     # via requests
-charset-normalizer==2.0.4
+charset-normalizer==2.0.9
     # via requests
-click==8.0.1
+click==8.0.3
     # via coreapi-cli
 colorama==0.4.4
     # via click
@@ -33,7 +33,7 @@ django-crispy-forms==1.10.0
     # via -r base.in
 django-filter==2.4.0
     # via -r base.in
-django-leaflet==0.28.1
+django-leaflet==0.28.2
     # via -r base.in
 django-rest-auth==0.9.5
     # via -r base.in
@@ -63,9 +63,9 @@ et-xmlfile==1.1.0
     # via openpyxl
 gdal==3.2.1
     # via -r base.in
-idna==3.2
+idna==3.3
     # via requests
-importlib-metadata==4.8.1
+importlib-metadata==4.8.2
     # via
     #   click
     #   markdown
@@ -75,7 +75,7 @@ itypes==1.2.0
     # via coreapi
 jdcal==1.4.1
     # via openpyxl
-jinja2==3.0.1
+jinja2==3.0.3
     # via coreschema
 markdown2==2.4.0
     # via -r base.in
@@ -93,7 +93,7 @@ psycopg2==2.8.6
     # via -r base.in
 pyparsing==3.0.6
     # via packaging
-pytz==2021.1
+pytz==2021.3
     # via django
 pyyaml==5.4
     # via -r base.in
@@ -105,17 +105,17 @@ ruamel.yaml==0.17.17
     # via drf-yasg
 six==1.16.0
     # via django-rest-auth
-sqlparse==0.4.1
+sqlparse==0.4.2
     # via django
-typing-extensions==3.10.0.1
+typing-extensions==4.0.1
     # via importlib-metadata
-uritemplate==3.0.1
+uritemplate==4.1.1
     # via
     #   coreapi
     #   drf-yasg
-urllib3==1.26.6
+urllib3==1.26.7
     # via requests
 whitenoise==5.2.0
     # via -r base.in
-zipp==3.5.0
+zipp==3.6.0
     # via importlib-metadata

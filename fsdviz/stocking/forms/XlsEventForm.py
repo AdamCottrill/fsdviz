@@ -69,7 +69,16 @@ class XlsEventForm(forms.Form):
         # forget to add an empty placeholder:
         if self.initial:
             for fld in choice_fields:
-                val = self.initial[fld]
+                # some of our fields form excel need to be identified
+                # by their label: if the value is in our list of
+                # labels, reset the intial value to the corresponding
+                # slug/id
+                initial = self.initial[fld]
+                if initial in [x[1] for x in self.fields[fld].choices]:
+                    val = [x[0] for x in self.fields[fld].choices if x[1] == initial][0]
+                    self.initial[fld] = val
+                else:
+                    val = initial
                 if val not in [x[0] for x in self.fields[fld].choices]:
                     self.fields[fld].choices.insert(0, ("-999", val))
 
@@ -120,7 +129,11 @@ class XlsEventForm(forms.Form):
     clip_efficiency = forms.FloatField(min_value=0, max_value=100, required=False)
     physchem_mark = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     tag_type = forms.ChoiceField(choices=[], required=False, widget=MySelect)
-    hatchery = forms.ChoiceField(choices=[], required=False, widget=MySelect)
+    hatchery = forms.ChoiceField(
+        choices=[],
+        required=False,
+        widget=MySelect(attrs={"class": "ui search"}),
+    )
     # hatchery = forms.CharField(required=False)  # choice field some day too
     agency_stock_id = forms.CharField(required=False)
 

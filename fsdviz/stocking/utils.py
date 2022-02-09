@@ -127,11 +127,6 @@ def xls2dicts(data_file):
 
     """
 
-    wb = load_workbook(filename=data_file.open(), data_only=True)
-    ws = wb.worksheets[0]
-
-    data = []
-
     # process just one more than we need - keeps us from reading too many
     # records into memory if they are going to be flagged anyway.
     # add to max count - one for the header row, and one to trip the
@@ -139,6 +134,12 @@ def xls2dicts(data_file):
     maxrows = settings.MAX_UPLOAD_EVENT_COUNT + 2
     key_row = settings.UPLOAD_KEY_FIELD_ROW - 1
     first_data_row = settings.UPLOAD_FIRST_DATA_ROW - 1
+    data_sheet_name = settings.DATA_WORKSHEET_NAME
+
+    wb = load_workbook(filename=data_file.open(), data_only=True)
+    ws = wb[data_sheet_name]
+
+    data = []
 
     for i, row in enumerate(
         ws.iter_rows(min_row=0, max_row=(maxrows + first_data_row), values_only=True)
