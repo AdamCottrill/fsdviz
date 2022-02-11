@@ -172,8 +172,10 @@ EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_mails")
 
 # for xls upload
+
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 MAX_UPLOAD_EVENT_COUNT = 100
+DATA_WORKSHEET_NAME = "DATA_TEMPLATE"
 UPLOAD_KEY_FIELD_ROW = 4
 UPLOAD_FIRST_DATA_ROW = 5
 

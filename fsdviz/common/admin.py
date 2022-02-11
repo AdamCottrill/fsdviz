@@ -117,9 +117,23 @@ class StrainRawModelAdmin(admin.ModelAdmin):
         "active",
         "fill_color",
     )
-    # list_select_related = ('strain', 'species',)
     list_filter = ("species", "active")
     search_fields = ("description", "raw_strain")
+
+    list_select_related = ("strain", "species", "strain__strain_species")
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "strain":
+            object_id = request.resolver_match.kwargs.get("object_id")
+            qs = Strain.objects.prefetch_related("species")
+
+            if object_id:
+                strain = self.get_object(request, object_id)
+                qs = qs.filter(species=strain.species).distinct()
+
+            kwargs["queryset"] = qs.distinct()
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def fill_color(self, obj):
         return fill_color_widget(obj.color)

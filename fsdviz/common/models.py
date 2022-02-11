@@ -410,6 +410,20 @@ class StrainRaw(models.Model):
     def __str__(self):
         return "{} ({})".format(self.description, self.raw_strain)
 
+    def full_clean(self, *args, **kwargs):
+        """make sure that the species and strain are consistent."""
+
+        super(StrainRaw, self).full_clean(*args, **kwargs)
+
+        if self.species != self.strain.strain_species:
+            raise ValidationError(
+                ("Selected Strain is not consistent with selected Species.")
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(StrainRaw, self).save()
+
 
 class Mark(models.Model):
     """

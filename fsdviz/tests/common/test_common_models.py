@@ -5,6 +5,7 @@ species, ect.
 """
 
 import pytest
+from django.core.exceptions import ValidationError
 
 from ...common.models import CWTsequence
 
@@ -192,6 +193,33 @@ def test_strainraw_str():
 
     shouldbe = "{} ({})".format(description, strain_code)
     assert str(rawstrain) == shouldbe
+
+
+@pytest.mark.django_db
+def test_strainraw_clean():
+    """The strainraw model has a clean method that ensures that the
+    species associated with strain matches the species of the current
+    raw strain.
+
+    """
+    strain_code = "MSS"
+    description = "My Conflicted Strain"
+
+    lat = SpeciesFactory(abbrev="LAT", common_name="Lake Trout")
+    lat_strain = StrainFactory(strain_species=lat)
+
+    walleye = SpeciesFactory(abbrev="WAL", common_name="Walleye")
+
+    with pytest.raises(ValidationError) as excinfo:
+        rawstrain = StrainRawFactory(
+            strain=lat_strain,
+            species=walleye,
+            raw_strain=strain_code,
+            description=description,
+        )
+
+    msg = "Selected Strain is not consistent with selected Species."
+    assert msg in str(excinfo.value)
 
 
 @pytest.mark.django_db

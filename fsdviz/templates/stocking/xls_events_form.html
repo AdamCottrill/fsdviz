@@ -1,6 +1,8 @@
-{% extends 'fsdviz_base.html' %} {% block extra_head %}
+{% extends 'fsdviz_base.html' %}
 
-    {% load static %}
+{% load static %}
+
+{% block extra_head %}
 
     <style>
 
@@ -40,11 +42,12 @@
 
     </style>
 
-{% endblock %} {% block content %}
+{% endblock %}
+
+{% block content %}
 
 
     <h1>{{  event_count }} Uploaded {{ agency.abbrev }} Stocking Event{{ event_count|pluralize }} for {{ lake.lake_name }}</h1>
-
 
 
 
