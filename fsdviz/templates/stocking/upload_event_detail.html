@@ -62,7 +62,7 @@
 
                         <tr>
                             <td>Comment:</td>
-                            <td>Coming Soon</td>
+                            <td>{{ object.comment |default:"No comment provided."}}</td>
                         </tr>
 
                     </tbody>
@@ -117,6 +117,7 @@
                                     <th scope="col">Year Class</th>
                                     <th scope="col">Life Stage</th>
                                     <th scope="col">Stocking Method</th>
+                                    <th scope="col">Clip</th>
                                     <th scope="col">Mark</th>
                                     <th scope="col">Yr.Eq.</th>
                                 </tr>
@@ -132,7 +133,8 @@
                                         <td> {{ event.year_class }}</td>
                                         <td> {{ event.lifestage.description | title }}</td>
                                         <td> {{ event.stocking_method.description | title }}</td>
-                                        <td> {{event.mark}}</td>
+                                        <td> {{ event.clip_code.clip_code|default:"---"}}</td>
+                                        <td> {{ event.mark|default:"---"}}</td>
                                         <td> {{ event.yreq_stocked | intcomma }}</td>
                                     </tr>
                                 {% endfor %}

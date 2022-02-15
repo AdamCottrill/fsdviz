@@ -59,6 +59,7 @@ class DataUploadEvent(models.Model):
         related_name="upload_events",
     )
 
+    comment = models.TextField(blank=True, null=True, help_text="Data Upload Comment.")
     slug = models.CharField(max_length=75, unique=True)
 
     def save(self, *args, **kwargs):
@@ -486,7 +487,8 @@ class StockingEvent(models.Model):
             self.date = None
 
         if self.id:
-            self.mark = self.get_mark_code()
+
+            self.mark = self.get_physchem_code()
             self.clip_code = self.get_composite_clip_code()
 
             # if the stock ID is null or looks like the default uuid4 value,

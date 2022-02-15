@@ -48,14 +48,24 @@
             {% endif %}
 
             <form class="ui form" action="{% url "stocking:upload-stocking-events" %}" method="POST"
-                enctype="multipart/form-data" class="form-horizontal" id="upload-form">
+                  enctype="multipart/form-data" class="form-horizontal" id="upload-form">
+
+
+
                 {% csrf_token %}
-                <div class="inline fields">
-                    <div class="sixteen wide field">
-                        <label for="name">File: </label>
-                        <input type="file" name="data_file" id="data_file" required="True" accept=".xls, .xlsx">
-                    </div>
+
+                    <div class="field">
+                            <label for="upload_comment" >{{ form.upload_comment.label }}</label>
+                    {{ form.upload_comment }}
                 </div>
+
+
+                    <div class="field">
+                    <label for="data_file" >{{ form.data_file.label }}</label>
+                                {{ form.data_file }}
+                    </div>
+
+
                 <button class="ui right floated primary button" type="submit">Upload</button>
             </form>
         </div>

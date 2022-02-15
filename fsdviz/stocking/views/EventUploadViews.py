@@ -39,7 +39,7 @@ from fsdviz.common.utils import (
 )
 from fsdviz.myusers.permissions import user_can_create_edit_delete
 
-from ..forms import XlsEventForm
+from ..forms import XlsEventForm, DataUploadForm
 from ..models import (
     Condition,
     DataUploadEvent,
@@ -69,50 +69,70 @@ def upload_events(request):
 
     # data = {}
     maxEvents = settings.MAX_UPLOAD_EVENT_COUNT
+    if request.method == "POST":
 
-    if request.method == "GET":
-        return render(
-            request, "stocking/upload_stocking_events.html", {"maxEvents": maxEvents}
-        )
+        form = DataUploadForm(request.POST, request.FILES)
 
-    try:
-        data_file = request.FILES["data_file"]
-        if not (data_file.name.endswith(".xlsx") or data_file.name.endswith(".xls")):
-            msg = "Choosen file is not an Excel (*.xls or *.xlsx) file!"
-            messages.error(request, msg)
-            return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
-        # if file is too large, return
-        if data_file.multiple_chunks():
-            filesize = data_file.size / (1000 * 1000)
-            msg = "Uploaded file is too big ({.2f} MB).".format(filesize)
-            messages.error(request, msg)
-            return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
+        if form.is_valid():
+            try:
+                data_file = form.cleaned_data["data_file"]
 
-        xls_events = xls2dicts(data_file)
+                # data_file = request.FILES["data_file"]
+                if not (
+                    data_file.name.endswith(".xlsx") or data_file.name.endswith(".xls")
+                ):
+                    msg = "Choosen file is not an Excel (*.xls or *.xlsx) file!"
+                    messages.error(request, msg)
+                    return HttpResponseRedirect(
+                        reverse("stocking:upload-stocking-events")
+                    )
+                # if file is too large, return
+                if data_file.multiple_chunks():
+                    filesize = data_file.size / (1000 * 1000)
+                    msg = "Uploaded file is too big ({.2f} MB).".format(filesize)
+                    messages.error(request, msg)
+                    return HttpResponseRedirect(
+                        reverse("stocking:upload-stocking-events")
+                    )
 
-        valid, msg = validate_upload(xls_events, request.user)
-        if not valid:
-            messages.error(request, msg)
-            return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
+                xls_events = xls2dicts(data_file)
 
-        for i, event in enumerate(xls_events):
-            val = event.get("site")
-            if val:
-                event["site"] = val.title()
-            val = event.get("st_site")
-            if val:
-                event["st_site"] = val.title()
-            xls_events[i] = event
+                valid, msg = validate_upload(xls_events, request.user)
+                if not valid:
+                    messages.error(request, msg)
+                    return HttpResponseRedirect(
+                        reverse("stocking:upload-stocking-events")
+                    )
 
-        # xls_errors = validate_events(xls_events)
-        request.session["data"] = xls_events
-        # request.session["errors"] = xls_errors
+                for i, event in enumerate(xls_events):
+                    val = event.get("site")
+                    if val:
+                        event["site"] = val.title()
+                    val = event.get("st_site")
+                    if val:
+                        event["st_site"] = val.title()
+                    xls_events[i] = event
 
-        return HttpResponseRedirect(reverse("stocking:xls-events-form"))
+                # xls_errors = validate_events(xls_events)
+                request.session["data"] = xls_events
+                request.session["upload_comment"] = form.cleaned_data.get(
+                    "upload_comment"
+                )
+                # request.session["errors"] = xls_errors
 
-    except Exception as e:
-        messages.error(request, "Unable to upload file. " + repr(e))
-        return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
+                return HttpResponseRedirect(reverse("stocking:xls-events-form"))
+
+            except Exception as e:
+                messages.error(request, "Unable to upload file. " + repr(e))
+                return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
+
+    else:
+        form = DataUploadForm()
+    return render(
+        request,
+        "stocking/upload_stocking_events.html",
+        {"maxEvents": maxEvents, "form": form},
+    )
 
 
 def xls_events(request):
@@ -127,11 +147,11 @@ def xls_events(request):
 
     EventFormSet = formset_factory(XlsEventForm, extra=0)
     formset_errors = {}
-    choices = get_choices()
     choices = get_choices(active_only=True)
 
     # get the data from our session
     xls_events = request.session.get("data", {})
+    upload_comment = request.session.get("upload_comment", "")
     event_count = len(xls_events)
 
     agency = Agency.objects.get(abbrev=xls_events[0].get("agency"))
@@ -243,7 +263,7 @@ def xls_events(request):
             grids = Grid10.objects.filter(lake=lake).values_list("id", "slug")
             grid_id_lookup = toLookup(grids)
 
-            species = Species.objects.values_list("id", "abbrev")
+            species = Species.objects.filter(active=True).values_list("id", "abbrev")
             species_id_lookup = toLookup(species)
 
             # strains = StrainRaw.objects.filter(active=True).values_list(
@@ -276,6 +296,7 @@ def xls_events(request):
                     uploaded_by=request.user,
                     lake_id=lake.abbrev,
                     agency_id=agency.abbrev,
+                    comment=upload_comment,
                 )
                 data_upload_event.save()
 

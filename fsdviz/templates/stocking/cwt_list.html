@@ -135,8 +135,8 @@
                   <td>{{ object.year_class}}</td>
                   <td>{{ object.stage}}</td>
                   <td>{{ object.method}}</td>
-                  <td>{{ object.clipcode}}</td>
-                  <td>{{ object.mark}}</td>
+                  <td>{{ object.clipcode|default:"---"}}</td>
+                  <td>{{object.mark|default:"---"}}</td>
                 </tr>
                 {% endfor %}
               </tbody>

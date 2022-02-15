@@ -189,12 +189,15 @@ def test_authorized_users_can_upload(client, user):
     assertTemplateUsed("stocking/upload_stocking_events.html")
 
     assertContains(response, "<h1>Upload Stocking Events</h1>", html=True)
-    assertContains(response, '<label for="name">File: </label>', html=True)
+    assertContains(
+        response, '<label for="upload_comment">Comment (optional):</label>', html=True
+    )
+    assertContains(response, '<label for="data_file">File: </label>', html=True)
     assertContains(
         response,
         (
-            '<input type="file" name="data_file" id="data_file" '
-            + 'required="True" accept=".xls, .xlsx" >'
+            '<input type="file" name="data_file" accept=".xlsx, .xls"'
+            + ' id="data_file" name="data_file" required>'
         ),
         html=True,
     )
