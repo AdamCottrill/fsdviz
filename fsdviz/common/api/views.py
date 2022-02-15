@@ -613,6 +613,7 @@ class CommonLookUpsAPIView(APIView):
             "species_code",
             "speciescommon",
             "color",
+            "active",
         )
         species_dict = {x["abbrev"]: x for x in species}
 
@@ -625,6 +626,7 @@ class CommonLookUpsAPIView(APIView):
                 "slug",
                 "strain_species__abbrev",
                 "color",
+                "active",
             )
             .distinct()
         )
@@ -640,6 +642,7 @@ class CommonLookUpsAPIView(APIView):
                 "species__abbrev",
                 "strain__slug",
                 "color",
+                "active",
             )
         )
 

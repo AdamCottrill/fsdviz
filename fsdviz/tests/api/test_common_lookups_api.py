@@ -92,6 +92,7 @@ class TestCommonLookupAPI(APITestCase):
             "scientific_name": "Salvelinus namaycush",
             "species_code": 81,
             "speciescommon": "1230101098",
+            "active": True,
             "color": "#808080",
         }
 
@@ -102,6 +103,7 @@ class TestCommonLookupAPI(APITestCase):
             "strain_code": "SN",
             "strain_label": "Seneca",
             "strain_species": self.species,
+            "active": True,
             "color": "#808080",
         }
 
@@ -113,6 +115,7 @@ class TestCommonLookupAPI(APITestCase):
             "description": "Seneca One",
             "species": self.species,
             "strain": self.strain,
+            "active": True,
             "color": "#808080",
         }
 

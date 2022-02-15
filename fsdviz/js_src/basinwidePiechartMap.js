@@ -652,7 +652,7 @@ Promise.all([
 
     let bbox = get_feature_bbox(topodata, feature_type, slug);
     bbox = turfbbToLeafletbb(bbox[0]);
-    mymap.fitBounds(bbox, { padding: [50, 50] });
+    mymap.fitBounds(bbox, { padding: [150, 150] });
 
     // add the breadcrumbs for any parents of our seleted objects
     // addBreakcrumb take a feature type name and a slug.

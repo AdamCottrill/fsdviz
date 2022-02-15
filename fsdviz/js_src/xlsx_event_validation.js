@@ -19,7 +19,6 @@ import {
 // // day month and year must form valid data if populated
 
 const render_field_errors = (form_errors) => {
-  console.log("form_errors:", form_errors);
   for (const [fld, err] of Object.entries(form_errors)) {
     // set the error class on the field:
     let selector = `#${fld}-field`;
@@ -147,7 +146,9 @@ Promise.all([
     mu_grids.map((d) => [d[0], { value: d[1], text: d[1] }])
   );
 
-  species_choices = common["species"].map((x) => x.abbrev);
+  species_choices = common["species"]
+    .filter((d) => d.active === true)
+    .map((x) => x.abbrev);
   clipcode_choices = common["clipcodes"].map((x) => x.clip_code);
 
   stocking_method_choices = stocking["stockingmethods"].map((x) => x.stk_meth);
@@ -156,10 +157,12 @@ Promise.all([
   strain_choices = make_choices(
     // object keyed by species with array of 2 element arrays
     // strain code (strain label)
-    common.raw_strains.map((x) => {
-      //const label = `${x.raw_strain} (${x.description})`;
-      return [x.species__abbrev, { value: x.raw_strain, text: x.raw_strain }];
-    })
+    common.raw_strains
+      .filter((d) => d.active === true)
+      .map((x) => {
+        //const label = `${x.raw_strain} (${x.description})`;
+        return [x.species__abbrev, { value: x.raw_strain, text: x.raw_strain }];
+      })
   );
 
   // choices for hatcheries, finclips, physchem_marks and tag_types can come from the first row

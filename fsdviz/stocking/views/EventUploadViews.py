@@ -128,6 +128,7 @@ def xls_events(request):
     EventFormSet = formset_factory(XlsEventForm, extra=0)
     formset_errors = {}
     choices = get_choices()
+    choices = get_choices(active_only=True)
 
     # get the data from our session
     xls_events = request.session.get("data", {})
@@ -167,7 +168,9 @@ def xls_events(request):
 
     hatcheries = [
         (x[0], f"{x[1]} [{x[0]}]")
-        for x in Hatchery.objects.values_list("abbrev", "hatchery_name")
+        for x in Hatchery.objects.filter(active=True).values_list(
+            "abbrev", "hatchery_name"
+        )
     ]
 
     choices["hatcheries"] = sorted(hatcheries, key=lambda x: x[1])
@@ -257,7 +260,9 @@ def xls_events(request):
             lifestages = LifeStage.objects.values_list("id", "abbrev")
             lifestage_id_lookup = toLookup(lifestages)
 
-            hatcheries = Hatchery.objects.values_list("id", "abbrev")
+            hatcheries = Hatchery.objects.filter(active=True).values_list(
+                "id", "abbrev"
+            )
             hatchery_id_lookup = toLookup(hatcheries)
 
             finclip_lookup = {x.abbrev: x for x in FinClip.objects.all()}

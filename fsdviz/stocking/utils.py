@@ -461,7 +461,7 @@ def form2params(formdata):
         return ""
 
 
-def get_choices():
+def get_choices(active_only=True):
     """a helper function used to create a dictionary of dictionaries
     containing the choices for each field in a stocking event form."""
 
@@ -495,13 +495,13 @@ def get_choices():
     agencies = [x for x in Agency.objects.values_list("id", "abbrev")]
     agency_choices = toChoices(agencies)
 
-    species = [x for x in Species.objects.values_list("id", "abbrev", "common_name")]
-    species_choices = toChoices(species)
+    species_qs = Species.objects.all()
+    if active_only:
+        species_qs = species_qs.filter(active=True)
 
-    # TODO - add strains to lookup.
-    strains = StrainRaw.objects.select_related("species").values_list(
-        "id", "species__abbrev", "raw_strain"
-    )
+    species = [x for x in species_qs.values_list("id", "abbrev", "common_name")]
+
+    species_choices = toChoices(species)
 
     lifestages = [
         x for x in LifeStage.objects.values_list("id", "abbrev", "description")

@@ -74,8 +74,15 @@ class XlsEventForm(forms.Form):
                 # labels, reset the intial value to the corresponding
                 # slug/id
                 initial = self.initial[fld]
+
+                if isinstance(initial, str) and fld in ("stage", "stock_meth"):
+                    initial = initial.lower()
+
                 if initial in [x[1] for x in self.fields[fld].choices]:
                     val = [x[0] for x in self.fields[fld].choices if x[1] == initial][0]
+                    self.initial[fld] = val
+                elif initial in [x[0] for x in self.fields[fld].choices]:
+                    val = [x[0] for x in self.fields[fld].choices if x[0] == initial][0]
                     self.initial[fld] = val
                 else:
                     val = initial
@@ -315,6 +322,24 @@ class XlsEventForm(forms.Form):
         """make sure that the day value is an integer or None"""
         val = self.cleaned_data["day"]
         return int_or_none(val)
+
+    def clean_site(self):
+        """make sure the site name is title case, not all caps"""
+        val = self.cleaned_data["site"]
+
+        if val:
+            return val.title()
+        else:
+            return val
+
+    def clean_st_site(self):
+        """make sure the st_site name is title case, not all caps"""
+        val = self.cleaned_data["st_site"]
+
+        if val:
+            return val.title()
+        else:
+            return val
 
     def clean_month(self):
         """make sure that the month value is an integer or None"""
