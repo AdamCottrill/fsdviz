@@ -2,6 +2,7 @@
 {% load humanize %}
 {% load fsdviz_tags %}
 {% load static %}
+{% load tz %}
 
 {% block extra_head %}
 
@@ -49,7 +50,7 @@
                         </tr>
                         <tr>
                             <td>Uploaded On:</td>
-                            <td>{{ object.timestamp }}</td>
+                            <td>{{ object.timestamp|timezone:"America/Detroit" }} (EST)</td>
                         </tr>
                         <tr>
                             <td>Agency:</td>
@@ -98,7 +99,6 @@
                 </div>
             </div>
 
-
             <div class="ui row" id="stocking-events">
 
                 <div class="ui  basic segment">
@@ -110,6 +110,7 @@
                             <thead>
                                 <tr>
                                     <th scope="col">Stock ID</th>
+                                    <th scope="col">Agency Stock ID</th>
                                     <th scope="col">Stocking Site</th>
                                     <th scope="col">Date</th>
                                     <th scope="col">Species</th>
@@ -126,6 +127,7 @@
                                 {% for event in events %}
                                     <tr data-coord="{{event.geom_lat}}; {{ event.geom_lon }}" >
                                         <td> <a href="{% url 'stocking:stocking-event-detail' event.stock_id %}">{{ event.stock_id }}</a></td>
+                                        <td> {{ event.agency_stock_id|default:"---" }}</td>
                                         <td title="{{ event.site }}"> {{ event.site }}</td>
                                         <td> {{ event.date|date:"M-d-y" }}</td>
                                         <td> {{ event.species.common_name | title}}</td>

@@ -1,6 +1,7 @@
 {% extends 'fsdviz_base.html' %}
 
 {% load humanize %}
+{% load tz %}
 
 {% block content %}
 
@@ -21,7 +22,7 @@
                         <th>Timestamp</th>
                         <th>Events (N)</th>
                         <th>Total Stocked</th>
-                    </tr>                
+                    </tr>
                 </thead>
                 <tbody>
 
@@ -30,32 +31,41 @@
                             <td><a href="{% url 'stocking:data-upload-event-detail' object.slug %}"><i class="list icon"></i></a></td>
 
                             <td>{{ object.lake }} </td>
-                            <td>{{ object.agency }} </td>                            
+                            <td>{{ object.agency }} </td>
                             <td>{{object.uploaded_by }} </td>
-                            <td>{{object.timestamp}}</td>
+                            <td>{{object.timestamp |timezone:"America/Detroit"}} (EST)</td>
                             <td>{{ object.event_count }}</td>
                             <td>{{ object.total_stocked | intcomma  }}</td>
                         </tr>
                     {% endfor %}
-                    
-                    
+
+
                 </tbody>
-                
-                
+
+
             </table>
 
 
-                
+
 
             {% else %}
 
-            <h5>oops - no upload events are currently available.</h5>
-            
+            <div class="ui segment">
+
+                <div class="ui warning message">
+                    Oops. No upload events are currently available.
+                </div>
+
+            </div>
+
+
+
+
             {% endif %}
 
-            
 
-        
+
+
     </div>
 
 {% endblock %}

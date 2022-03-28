@@ -338,16 +338,19 @@ def xls_events(request):
 
                     cwts = data.pop("tag_no", "")
                     if cwts != "":
-                        cwts = cwts.replace(";", ",").split(",")
-
+                        cwts = cwts.replace(" ", "").replace(";", ",").split(",")
                     tag_list = data.pop("tag_type")
                     if tag_list:
-                        tag_list = tag_list.replace(";", ",").split(",")
+                        tag_list = (
+                            tag_list.replace(" ", "").replace(";", ",").split(",")
+                        )
                     tags = [fishtag_lookup.get(x) for x in tag_list]
 
                     mark_list = data.pop("physchem_mark")
                     if mark_list:
-                        mark_list = mark_list.replace(";", ",").split(",")
+                        mark_list = (
+                            mark_list.replace(" ", "").replace(";", ",").split(",")
+                        )
                     marks = [mark_lookup.get(x) for x in mark_list]
 
                     if data.get("day") and data.get("month"):

@@ -96,6 +96,7 @@
                     <tr>
                         <th scope="col">Stock ID</th>
                         <th scope="col">Agency</th>
+                        <th scope="col">Agency Stock ID</th>
                         <th scope="col">Lake</th>
                         <th scope="col">Site</th>
                         <th scope="col">Date</th>
@@ -115,6 +116,7 @@
                         <tr>
                             <td> <a href="{% url 'stocking:stocking-event-detail' event.stock_id %}">{{ event.stock_id }}</a></td>
                             <td> {{ event.agency.abbrev }}</td>
+                            <td> {{ event.agency_stock_id|default:"---" }}</td>
                             <td> {{ event.jurisdiction.lake.lake_name }}</td>
                             <td title="{{ event.site }}"> {{ event.site }}</td>
                             <td> {{ event.date|date:"M-d-y" }}</td>

@@ -215,7 +215,16 @@
                     <h1>Filtered CWT Stocking Events</h1>
                 </div>
                 <div class="ui four wide column">
-                    <a href="{% url 'stocking:find-cwt-stocking-events' %}">Back to Find CWT Events</a>
+                    <div style="padding-top:15px">
+                        {% if object|length %}
+                            <a href="{% url 'stocking:find-cwt-stocking-events' %}">Back to Find CWT Events</a>
+                        {% else %}
+                            <div class="ui negative message">
+                                No CWT stocking events match that criteria! Please refine your filters and try again.
+                                (<a href="{% url 'stocking:find-cwt-stocking-events' %}">Back to Find CWT Events</a>)
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
 
 
@@ -292,6 +301,11 @@
                 </div>
 
 
+
+            {% if object_list %}
+
+
+
             <table id="event-list" class="ui very compact celled table tablesorter" style="font-size: 0.9em">
                 <thead>
                     <tr>
@@ -336,6 +350,17 @@
 
                 </tbody>
             </table>
+
+            {% else %}
+
+                <div class="ui negative message">
+                    No CWT stocking events match that criteria! Please refine your filters and try again.
+                    (<a href="{% url 'stocking:find-cwt-stocking-events' %}">Back to Find CWT Events</a>)
+                </div>
+
+            {% endif %}
+
+
         </div>
     </div>
     </div>
