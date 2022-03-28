@@ -332,8 +332,20 @@
      $(".select.dropdown").dropdown();
 
 
+     $(document).ready(function(){
+         let mapDiv = document.getElementById("id_roi-map").parentElement;
+         let toggleLink = document.getElementById("toggle-map-link");
+         mapDiv.style.display = 'block';
+         toggleLink.innerHTML = 'Hide Map';
+
+         const loader = document.getElementById("event-loader");
+         loader.classList.remove("active");
+     });
+
+
+
      $('#find-events-form').form({
-         onSuccess: function(e) {
+         onSubmit: function(e) {
              $('#event-loader').addClass('active');
          }
      });
@@ -470,14 +482,6 @@
              mapReferences[0].invalidateSize();
          }
      };
-
-
-     $(document).ready(function(){
-         let mapDiv = document.getElementById("id_roi-map").parentElement;
-         let toggleLink = document.getElementById("toggle-map-link");
-         mapDiv.style.display = 'block';
-         toggleLink.innerHTML = 'Hide Map';
-     });
 
     </script>
 

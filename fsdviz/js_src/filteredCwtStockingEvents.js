@@ -148,13 +148,17 @@ Promise.all([
   if (!roi) {
     const latbounds = extent(data, (d) => d.latitude);
     const longbounds = extent(data, (d) => d.longitude);
-    mymap.fitBounds(
-      [
-        [latbounds[0], longbounds[0]],
-        [latbounds[1], longbounds[1]],
-      ],
-      { padding: [50, 50] }
-    );
+    if ((latbounds[0] == latbounds[1]) & (longbounds[0] == longbounds[1])) {
+      mymap.flyTo([latbounds[0], longbounds[0]], 10);
+    } else {
+      mymap.fitBounds(
+        [
+          [latbounds[0], longbounds[0]],
+          [latbounds[1], longbounds[1]],
+        ],
+        { padding: [50, 50] }
+      );
+    }
   }
 
   // //=======================================================================

@@ -146,6 +146,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+
 # the maximum number of records returned by our find_events view
 # keep it small for performance and warn if the max is reached.
 MAX_FILTERED_EVENT_COUNT = 10000

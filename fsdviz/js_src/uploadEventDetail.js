@@ -19,10 +19,13 @@ let selectedPt;
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
   zoomSnap: 0,
-}).fitBounds([
-  [bbox[1], bbox[0]],
-  [bbox[3], bbox[2]],
-]);
+}).fitBounds(
+  [
+    [bbox[1], bbox[0]],
+    [bbox[3], bbox[2]],
+  ],
+  { padding: [50, 50] }
+);
 
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:

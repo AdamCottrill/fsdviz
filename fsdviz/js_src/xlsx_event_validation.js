@@ -149,6 +149,7 @@ Promise.all([
   species_choices = common["species"]
     .filter((d) => d.active === true)
     .map((x) => x.abbrev);
+
   clipcode_choices = common["clipcodes"].map((x) => x.clip_code);
 
   stocking_method_choices = stocking["stockingmethods"].map((x) => x.stk_meth);

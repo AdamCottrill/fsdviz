@@ -146,3 +146,5 @@ select slug from common_managementunit where geom is null ;
 
 select slug from man_units order by slug;
 select slug from common_managementunit order by slug;
+
+

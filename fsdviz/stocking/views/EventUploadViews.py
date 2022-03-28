@@ -502,7 +502,7 @@ class DataUploadEventDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailV
         context["events"] = StockingEvent.objects.filter(
             upload_event=self.get_object()
         ).select_related(
-            "species", "lifestage", "strain_raw__strain", "stocking_method"
+            "species", "lifestage", "strain_raw__strain", "stocking_method", "clip_code"
         )
 
         return context
@@ -536,7 +536,10 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
 
         queryset = (
-            DataUploadEvent.objects.prefetch_related("stocking_events__species")
+            DataUploadEvent.objects.select_related("agency", "lake", "uploaded_by")
+            .prefetch_related(
+                "stocking_events__species",
+            )
             .annotate(
                 event_count=Count("stocking_events"),
                 total_stocked=Sum("stocking_events__no_stocked"),

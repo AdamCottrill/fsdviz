@@ -216,14 +216,20 @@ Promise.all([
   if (!roi) {
     const latbounds = extent(data, (d) => d.latitude);
     const longbounds = extent(data, (d) => d.longitude);
-    mymap.fitBounds(
-      [
-        [latbounds[0], longbounds[0]],
-        [latbounds[1], longbounds[1]],
-      ],
-      { padding: [50, 50] }
-    );
+    if ((latbounds[0] == latbounds[1]) & (longbounds[0] == longbounds[1])) {
+      // if there is only one point, zoom to it and use a reasonable zoom.
+      mymap.flyTo([latbounds[0], longbounds[0]], 10);
+    } else {
+      mymap.fitBounds(
+        [
+          [latbounds[0], longbounds[0]],
+          [latbounds[1], longbounds[1]],
+        ],
+        { padding: [50, 50] }
+      );
+    }
   }
+
   // see if we have the maximum number of stocking events. If so, we
   // have truncated the data and should show a warning.
   select("#record-count-warning").classed(
