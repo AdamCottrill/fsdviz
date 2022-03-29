@@ -128,8 +128,8 @@ class StrainRawModelAdmin(admin.ModelAdmin):
             qs = Strain.objects.prefetch_related("species")
 
             if object_id:
-                strain = self.get_object(request, object_id)
-                qs = qs.filter(species=strain.species).distinct()
+                raw_strain = self.get_object(request, object_id)
+                qs = qs.filter(strain_species=raw_strain.species)
 
             kwargs["queryset"] = qs.distinct()
 

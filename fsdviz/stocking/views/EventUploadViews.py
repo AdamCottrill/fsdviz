@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -445,6 +444,11 @@ def xls_events(request):
                 event.save()
                 delta_time = str(datetime.now() - START_TIME)
                 print("event upload elapsed time:", delta_time)
+                msg = (
+                    "Congratulations! Your stocking events have been successfully  "
+                    + "inserted into the Great Lakes Fish Stocking Database."
+                )
+                messages.success(request, msg)
                 url = data_upload_event.get_absolute_url()
                 return HttpResponseRedirect(url)
         else:
