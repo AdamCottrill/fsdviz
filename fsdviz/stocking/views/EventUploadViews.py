@@ -438,9 +438,8 @@ def xls_events(request):
 
                         event.save()
 
-                # enable trigger
-                # cursor.execute(enable_trigger)
-                # re-save last event to run trigger -
+                # re-save last event to run reused-cwt trigger which
+                # will now be enabled again
                 event.save()
                 delta_time = str(datetime.now() - START_TIME)
                 print("event upload elapsed time:", delta_time)

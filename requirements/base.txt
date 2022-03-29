@@ -39,7 +39,7 @@ django-rest-auth==0.9.5
     # via -r base.in
 django-taggit==1.1.0
     # via -r base.in
-django==2.2.24
+django==2.2.27
     # via
     #   -r base.in
     #   django-cors-headers
