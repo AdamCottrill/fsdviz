@@ -328,8 +328,14 @@ Promise.all([
       stage: string()
         .oneOf(["", ...lifestage_choices], "Unknown Lifestage.")
         .required(),
-      agemonth: number().positive().integer(),
-
+      agemonth: number()
+        .integer()
+        .when("stage", {
+          is: (val) => val === "e" || val === "f",
+          then: (schema) => schema.min(0, "Must be greater than or equal to 0"),
+          otherwise: (schema) =>
+            schema.min(1, "Must be greater than or equal to 1"),
+        }),
       tag_no: string().matches(cwt_regex, {
         excludeEmptyString: true,
         message:
