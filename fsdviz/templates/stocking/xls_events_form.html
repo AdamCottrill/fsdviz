@@ -40,6 +40,13 @@
          color: green;
      }
 
+     .horizontal-scroll {
+         max-height: 1200px;
+         overflow-y: auto;
+     }
+
+
+
     </style>
 
 {% endblock %}
@@ -55,6 +62,10 @@
 
 
     <div class="table-container">
+
+
+        <div class="horizontal-scroll">
+
         <form class="ui form" method="post"  id="upload-form" action="{% url "stocking:xls-events-form" %}" >
 
             <div class="ui inverted dimmer" id="event-loader">
@@ -136,6 +147,8 @@
                 </tfoot>
             </table>
         </form>
+
+        </div>
     </div>
 
 {% endblock %}
@@ -165,11 +178,18 @@
          .dropdown()
      ;
 
-     $('#upload-form').form({
-         onSubmit: function(e) {
-             $('#event-loader').addClass('active');
-         }
-     });
+     $('#upload-form').on("submit",
+                          function(e) {
+                              e.preventDefault();
+                              const validationErrors = document.getElementById('upload-events-button').disabled;
+                              if (validationErrors) {
+                                  return false;
+                              } else {
+                                  $('#event-loader').addClass('active');
+                                  this.submit();
+                              }
+                          }
+     );
 
      const form_errors = JSON.parse(document.getElementById('formset-error-data').textContent);
      const mu_grids = JSON.parse(document.getElementById('mu-grids-data').textContent);

@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db import transaction
+from django.db import transaction, connection
 from django.db.models import Count, Sum
 from django.forms import formset_factory, ValidationError
 from django.http import HttpResponseRedirect
@@ -290,134 +290,161 @@ def xls_events(request):
             fishtag_lookup = {x.tag_code: x for x in FishTag.objects.all()}
             mark_lookup = {x.mark_code: x for x in PhysChemMark.objects.all()}
 
-            with transaction.atomic():
+            disable_trigger = """ALTER TABLE stocking_stockingevent
+            DISABLE TRIGGER update_reused_cwt_flags_trigger"""
 
-                data_upload_event = DataUploadEvent(
-                    uploaded_by=request.user,
-                    lake_id=lake.abbrev,
-                    agency_id=agency.abbrev,
-                    comment=upload_comment,
-                )
-                data_upload_event.save()
+            START_TIME = datetime.now()
 
-                for form in formset:
-                    data = form.cleaned_data
-                    # agency_abbrev = data.pop("agency")
-                    spc_abbrev = data.pop("species")
-                    species = species_id_lookup[spc_abbrev]
-                    lifestage = lifestage_id_lookup[data.pop("stage")]
-                    stocking_method = stocking_method_id_lookup[data.pop("stock_meth")]
+            with connection.cursor() as cursor:
+                with transaction.atomic():
 
-                    condition = condition_id_lookup.get(
-                        int_or_none(data.pop("condition"))
+                    def restore_trigger():
+                        """A function to be called after the transaction is complete.  Cannot
+                        take arguments and must use the same cursor as our transaction"""
+
+                        enable_trigger = """ALTER TABLE stocking_stockingevent
+                        ENABLE TRIGGER update_reused_cwt_flags_trigger"""
+                        cursor.execute(enable_trigger)
+
+                    transaction.on_commit(restore_trigger)
+
+                    cursor.execute(disable_trigger)
+                    data_upload_event = DataUploadEvent(
+                        uploaded_by=request.user,
+                        lake_id=lake.abbrev,
+                        agency_id=agency.abbrev,
+                        comment=upload_comment,
                     )
-                    if condition is None:
-                        condition = condition_id_lookup[99]
+                    data_upload_event.save()
 
-                    hatchery = hatchery_id_lookup.get(data.pop("hatchery"))
-                    grid_slug = "{}_{}".format(lake.abbrev.lower(), data.pop("grid"))
-                    grid = grid_id_lookup[grid_slug]
-                    stat_dist = data.pop("stat_dist")
-                    mu = mu_id_lookup.get(lake.abbrev).get(stat_dist)
+                    for form in formset:
+                        data = form.cleaned_data
+                        # agency_abbrev = data.pop("agency")
+                        spc_abbrev = data.pop("species")
+                        species = species_id_lookup[spc_abbrev]
+                        lifestage = lifestage_id_lookup[data.pop("stage")]
+                        stocking_method = stocking_method_id_lookup[
+                            data.pop("stock_meth")
+                        ]
 
-                    lakeState_slug = "{}_{}".format(
-                        lake.abbrev.lower(), data.pop("state_prov").lower()
-                    )
-                    lakeState = lakeState_id_lookup[lakeState_slug]
-
-                    strain_id = data.pop("strain")
-                    # strain_label = data.pop("strain")
-                    # strain_id = strain_id_lookup.get(spc_abbrev).get(strain_label)
-
-                    finclip_list = parseFinClip(data.pop("finclip", ""))
-                    finclips = [
-                        finclip_lookup.get(x)
-                        for x in finclip_list
-                        if finclip_lookup.get(x) is not None
-                    ]
-
-                    cwts = data.pop("tag_no", "")
-                    if cwts != "":
-                        cwts = cwts.replace(" ", "").replace(";", ",").split(",")
-                    tag_list = data.pop("tag_type")
-                    if tag_list:
-                        tag_list = (
-                            tag_list.replace(" ", "").replace(";", ",").split(",")
+                        condition = condition_id_lookup.get(
+                            int_or_none(data.pop("condition"))
                         )
-                    tags = [fishtag_lookup.get(x) for x in tag_list]
+                        if condition is None:
+                            condition = condition_id_lookup[99]
 
-                    mark_list = data.pop("physchem_mark")
-                    if mark_list:
-                        mark_list = (
-                            mark_list.replace(" ", "").replace(";", ",").split(",")
+                        hatchery = hatchery_id_lookup.get(data.pop("hatchery"))
+                        grid_slug = "{}_{}".format(
+                            lake.abbrev.lower(), data.pop("grid")
                         )
-                    marks = [mark_lookup.get(x) for x in mark_list]
+                        grid = grid_id_lookup[grid_slug]
+                        stat_dist = data.pop("stat_dist")
+                        mu = mu_id_lookup.get(lake.abbrev).get(stat_dist)
 
-                    if data.get("day") and data.get("month"):
-                        event_date = None
-                        try:
-                            event_date = datetime(
-                                data.get("year"),
-                                int(data.get("month", "0")),
-                                int(data.get("day", "0")),
+                        lakeState_slug = "{}_{}".format(
+                            lake.abbrev.lower(), data.pop("state_prov").lower()
+                        )
+                        lakeState = lakeState_id_lookup[lakeState_slug]
+
+                        strain_id = data.pop("strain")
+                        # strain_label = data.pop("strain")
+                        # strain_id = strain_id_lookup.get(spc_abbrev).get(strain_label)
+
+                        finclip_list = parseFinClip(data.pop("finclip", ""))
+                        finclips = [
+                            finclip_lookup.get(x)
+                            for x in finclip_list
+                            if finclip_lookup.get(x) is not None
+                        ]
+
+                        cwts = data.pop("tag_no", "")
+                        if cwts != "":
+                            cwts = cwts.replace(" ", "").replace(";", ",").split(",")
+                        tag_list = data.pop("tag_type")
+                        if tag_list:
+                            tag_list = (
+                                tag_list.replace(" ", "").replace(";", ",").split(",")
                             )
-                        except ValueError:
-                            pass
-                        if event_date:
-                            data["date"] = event_date
+                        tags = [fishtag_lookup.get(x) for x in tag_list]
 
-                    # ForeigmKeyFields
-                    # data["agency_id"] = agency
-                    data["lifestage_id"] = lifestage
-                    data["stocking_method_id"] = stocking_method
-                    data["grid_10_id"] = grid
-                    data["management_unit_id"] = mu
-                    data["species_id"] = species
-                    data["strain_raw_id"] = strain_id
-                    data["jurisdiction_id"] = lakeState
-                    data["condition_id"] = condition
-                    data["hatchery_id"] = hatchery
-                    data["upload_event"] = data_upload_event
+                        mark_list = data.pop("physchem_mark")
+                        if mark_list:
+                            mark_list = (
+                                mark_list.replace(" ", "").replace(";", ",").split(",")
+                            )
+                        marks = [mark_lookup.get(x) for x in mark_list]
 
-                    # rename some of our fields (this is not very elegant,
-                    # but works for now)
-                    data["dd_lat"] = data.pop("latitude")
-                    data["dd_lon"] = data.pop("longitude")
-                    data["lotcode"] = data.pop("lot_code")
-
-                    data["agency"] = agency
-
-                    event = StockingEvent(**data)
-                    event.save()
-
-                    # add any finclips, marks, and tags here:
-                    if finclips:
-                        event.fin_clips.add(*finclips)
-                    if marks:
-                        event.physchem_marks.add(*marks)
-                    if tags:
-                        event.fish_tags.add(*tags)
-
-                    if cwts:
-                        cwt_list = []
-                        for cwt in cwts:
+                        if data.get("day") and data.get("month"):
+                            event_date = None
                             try:
-                                cwt_series = get_or_create_cwt_sequence(
-                                    cwt_number=cwt,
-                                    tag_type="cwt",
-                                    manufacturer="nmt",
-                                    sequence=(0, 1),
+                                event_date = datetime(
+                                    data.get("year"),
+                                    int(data.get("month", "0")),
+                                    int(data.get("day", "0")),
                                 )
-                            except ValidationError as err:
-                                cwt_series = None
-                                raise err
-                            if cwt_series is not None:
-                                cwt_list.append(cwt_series)
+                            except ValueError:
+                                pass
+                            if event_date:
+                                data["date"] = event_date
 
-                        event.cwt_series.set(cwt_list)
+                        # ForeigmKeyFields
+                        # data["agency_id"] = agency
+                        data["lifestage_id"] = lifestage
+                        data["stocking_method_id"] = stocking_method
+                        data["grid_10_id"] = grid
+                        data["management_unit_id"] = mu
+                        data["species_id"] = species
+                        data["strain_raw_id"] = strain_id
+                        data["jurisdiction_id"] = lakeState
+                        data["condition_id"] = condition
+                        data["hatchery_id"] = hatchery
+                        data["upload_event"] = data_upload_event
 
-                    event.save()
+                        # rename some of our fields (this is not very elegant,
+                        # but works for now)
+                        data["dd_lat"] = data.pop("latitude")
+                        data["dd_lon"] = data.pop("longitude")
+                        data["lotcode"] = data.pop("lot_code")
 
+                        data["agency"] = agency
+
+                        event = StockingEvent(**data)
+                        event.save()
+
+                        # add any finclips, marks, and tags here:
+                        if finclips:
+                            event.fin_clips.add(*finclips)
+                        if marks:
+                            event.physchem_marks.add(*marks)
+                        if tags:
+                            event.fish_tags.add(*tags)
+
+                        if cwts:
+                            cwt_list = []
+                            for cwt in cwts:
+                                try:
+                                    cwt_series = get_or_create_cwt_sequence(
+                                        cwt_number=cwt,
+                                        tag_type="cwt",
+                                        manufacturer="nmt",
+                                        sequence=(0, 1),
+                                    )
+                                except ValidationError as err:
+                                    cwt_series = None
+                                    raise err
+                                if cwt_series is not None:
+                                    cwt_list.append(cwt_series)
+
+                            event.cwt_series.set(cwt_list)
+
+                        event.save()
+
+                # enable trigger
+                # cursor.execute(enable_trigger)
+                # re-save last event to run trigger -
+                event.save()
+                delta_time = str(datetime.now() - START_TIME)
+                print("event upload elapsed time:", delta_time)
                 url = data_upload_event.get_absolute_url()
                 return HttpResponseRedirect(url)
         else:

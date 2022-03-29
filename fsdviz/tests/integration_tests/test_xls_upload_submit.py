@@ -64,7 +64,7 @@ from fsdviz.tests.stocking_factories import (
 class XLS_Submission(TestCase):
     """"""
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def setUp(self):
         """ "The xls_submittsion process requires a lot of state setup to
         emulate the real database - many of the values in the simple
@@ -291,7 +291,7 @@ class XLS_Submission(TestCase):
             },
         ]
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_good_data(self):
         """If we submit good data with all of the fields populated with
         appripriately, the stocking events should be created and have the
@@ -365,7 +365,7 @@ class XLS_Submission(TestCase):
         # assert event.physchem_mark ==  ""
         # assert event.tag_type ==  ""
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_event_upload_object(self):
         """When events are uploaded by spreadsheet a stocking event
         upload record is created. Verify that event_upload object is created,
@@ -395,7 +395,7 @@ class XLS_Submission(TestCase):
         assert upload_event.uploaded_by.username == "hsimpson"
         assert len(upload_event.stocking_events.all()) == 2
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_unknown_values(self):
         """Verify that all of the fields that are choice fields raise an error
         if the data is not one of the available choices."""
@@ -437,7 +437,7 @@ class XLS_Submission(TestCase):
             content = str(response.content)
             assert msg.format(field) in content
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_jurisdiction(self):
         """Jurisdiction isn't sumbitted directly in the xls form, but
         is calculated based on the lake and province associated with the
@@ -467,7 +467,7 @@ class XLS_Submission(TestCase):
 
         assert event.jurisdiction == ontario_huron
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_finclips(self):
         """Fin clips come in a composite fin clip string - these need to be
         parsed and associated with fin clip objects. Composite fin
@@ -497,7 +497,7 @@ class XLS_Submission(TestCase):
         for clip in event.fin_clips.all():
             assert clip in clips
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_fishtags(self):
         """Fin tags come in a composite string - these need to be
         parsed and associated with fish tag objects."""
@@ -524,7 +524,7 @@ class XLS_Submission(TestCase):
         assert len(tags) == 1
         assert tags[0] == tag
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_physchem_mark(self):
         """Marks are passed in as a string - these need to
         be parsed and assocaited with their respective mark entities."""
@@ -551,7 +551,7 @@ class XLS_Submission(TestCase):
         assert len(marks) == 1
         assert marks[0] == mark
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_existing_cwts(self):
         """If the stocking event includes cwts that already exist, the new
         stocking events should be associated with the existing cwt
@@ -579,7 +579,7 @@ class XLS_Submission(TestCase):
         assert len(obs) == 1
         assert obs == ["111111"]
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_new_cwts(self):
         """If the stocking event includes cwts that do not exist, they should
         be created and asscoiated with the events."""
@@ -606,7 +606,7 @@ class XLS_Submission(TestCase):
 
         assert len(CWT.objects.filter(cwt_number="222222")) == 1
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_multiple_cwts(self):
         """cwts can be separated by either comma's or semi colons - make sure
         that we can parse them correctly either way. Existing cwt
@@ -640,7 +640,7 @@ class XLS_Submission(TestCase):
             assert len(obs) == 2
             assert set(expected) == set(obs)
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_grid_flag_if_latlon_null(self):
         """Grid flag should be set appropriate for each event depending on
         whether or not it has dd-lat and dd-lon populated.
@@ -668,7 +668,7 @@ class XLS_Submission(TestCase):
         event = StockingEvent.objects.get(agency_stock_id="42703")
         assert event.latlong_flag.value == 4
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_yearling_equivalents(self):
         """When events are successfully uploaded, the yearling equivalent
         field should be correctly caclulated for each event based on
@@ -699,7 +699,7 @@ class XLS_Submission(TestCase):
         event = StockingEvent.objects.get(agency_stock_id="42703")
         assert event.yreq_stocked == int(event.no_stocked * 0.90)
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db(transaction=True)
     def test_xls_submit_missing_condition(self):
         """Condition is not a required field in our xls form but has default
         value '99' if it is not repored.  Verify that condition is
