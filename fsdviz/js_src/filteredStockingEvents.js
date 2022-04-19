@@ -49,9 +49,11 @@ import { month_lookup } from "./components/constants";
 
 let commaFormat = format(",");
 
-const width1 = 425;
+const fullwidth = $("#stackedbar-chart-card").innerWidth();
+const padding = 20;
+const width1 = fullwidth / 2 - padding;
+const width2 = fullwidth / 3 - padding;
 const height1 = 400;
-const width2 = 300;
 const height2 = 300;
 
 let roi = getUrlSearchValue("roi") || false;
@@ -180,18 +182,13 @@ const pie_size_selector = selectAll("#pie-size-selector input");
 
 // TEMPORARY:
 const centroidsURL = "/static/data/centroids.json";
-const slugURL = "/static/data/slugs.csv";
 
 Promise.all([
   json(dataURL),
   json("/api/v1/stocking/lookups"),
   json("/api/v1/common/lookups"),
   json(centroidsURL),
-  csv(slugURL),
-]).then(([data, stocking, common, centroids, slugs]) => {
-  // slugs.forEach((d) => (labelLookup[d.slug] = d.label));
-  // piecharts.labelLookup(labelLookup);
-
+]).then(([data, stocking, common, centroids]) => {
   data.forEach((d) => prepare_filtered_stocking_data(d));
 
   // pie chart and slice labesl
@@ -586,10 +583,10 @@ Promise.all([
   ]);
 
   stackedByYearBarChart
-    .width(width1 * 2.4)
+    .width(fullwidth)
     .height(height1)
     .x(stackedByYearBarChartXScale)
-    .margins({ left: 60, top: 20, right: 10, bottom: 30 })
+    .margins({ left: 60, top: 20, right: 20, bottom: 33 })
     .brushOn(true)
     .centerBar(true)
     .alwaysUseRounding(true)
@@ -1176,8 +1173,6 @@ Promise.all([
         pts = Object.values(geomMapGroup.all());
         break;
     }
-
-    console.log("pts = ", pts);
 
     if (spatialUnit === "geom") {
       pts.forEach((d) => (d["coordinates"] = get_coordinates(d.key)));

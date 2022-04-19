@@ -26,7 +26,7 @@ admin.site.empty_value_display = "(None)"
 @admin.register(Agency)
 class AgencyModelAdmin(admin.ModelAdmin):
     list_display = ("agency_name", "abbrev", "fill_color")
-    search_fields = ("agency_name",)
+    search_fields = ("agency_name", "abbrev")
 
     def fill_color(self, obj):
         return fill_color_widget(obj.color)
@@ -97,7 +97,7 @@ class StrainModelAdmin(admin.ModelAdmin):
     )
     # list_select_related = ('strain_species',)
     list_filter = ("active", "strain_species", "strain_code")
-    search_fields = ("strain_label",)
+    search_fields = ("strain_label", "strain_code")
 
     def get_queryset(self, request):
         qs = super(StrainModelAdmin, self).get_queryset(request)
@@ -143,7 +143,7 @@ class StrainRawModelAdmin(admin.ModelAdmin):
 class MarkModelAdmin(admin.ModelAdmin):
     list_display = ("mark_code", "mark_type", "clip_code", "description")
     list_filter = ("mark_type",)
-    search_fields = ("description",)
+    search_fields = ("description", "mark_code")
 
 
 @admin.register(PhysChemMark)

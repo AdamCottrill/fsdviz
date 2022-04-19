@@ -60,7 +60,7 @@ class HatcheryModelAdmin(admin.ModelAdmin):
         "hatchery_type",
         "agency",
     )
-    search_fields = ["hatchery_name"]
+    search_fields = ["hatchery_name", "abbrev"]
 
 
 @admin.register(StockingEvent)
@@ -86,7 +86,7 @@ class StockingEventModelAdmin(admin.ModelAdmin):
         "jurisdiction__stateprov",
     )
     list_filter = ("jurisdiction__lake", "lifestage", "species", "agency", "year")
-    search_fields = ["site", "stock_id"]
+    search_fields = ["site", "stock_id", "agency_stock_id"]
     exclude = ["marks", "upload_event", "clip_code"]
     fields = [
         "stock_id",
