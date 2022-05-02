@@ -28,6 +28,14 @@ if not os.path.exists(PROJ_LIB):
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# whitenoise settings - only used in development
+INSTALLED_APPS = [
+    "whitenoise.runserver_nostatic",
+] + INSTALLED_APPS
+MIDDLEWARE.insert(4, "whitenoise.middleware.WhiteNoiseMiddleware")
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+
 INTERNAL_IPS = ("127.0.0.1",)
 
 MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE

@@ -55,7 +55,6 @@ ALLOWED_HOSTS = []
 
 # Application definition
 DJANGO_APPS = [
-    "whitenoise.runserver_nostatic",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -91,7 +90,6 @@ MIDDLEWARE = [
     "config.middleware.mutiple_proxy_middleware.MultipleProxyMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -160,8 +158,6 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [os.path.join(PROJECT_ROOT, "fsdviz/static")]
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, "static/")
-
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 AUTH_USER_MODEL = "myusers.CustomUser"
 
