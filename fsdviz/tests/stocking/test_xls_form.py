@@ -353,16 +353,19 @@ def test_latlon_out_of_bounds_lake(
         assert msg in error_messages
 
 
+@pytest.mark.xfail
 def test_latlong_wrong_jurisdiction():
     """"""
     assert 0 == 1
 
 
+@pytest.mark.xfail
 def test_latlong_wrong_stat_dist():
     """"""
     assert 0 == 1
 
 
+@pytest.mark.xfail
 def test_latlong_wrong_grid():
     """"""
     assert 0 == 1

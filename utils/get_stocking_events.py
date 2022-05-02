@@ -12,6 +12,7 @@ line:
 
 """
 
+
 import datetime
 import logging
 import pyodbc
@@ -22,7 +23,7 @@ import re
 import django_settings
 
 from django.contrib.gis.geos import Point
-
+from django.db import transaction, connection
 
 # import utils.common_lookups as common
 
@@ -75,10 +76,7 @@ console.setLevel(logging.DEBUG)
 logging.getLogger().addHandler(console)
 
 
-FIRST_YEAR = 1900
-LAST_YEAR = 2019
-
-MDB = "F:/1work/LakeTrout/Stocking/GLFSD_Datavis/data/GLFSD_Jan2021.accdb"
+MDB = "C:/1work/Scrapbook/fsdviz_April2022/GLFSD_April_2022.accdb"
 
 
 # ==============================================
@@ -129,172 +127,213 @@ constring = "DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%s"
 mdbcon = pyodbc.connect(constring % MDB)
 mdbcur = mdbcon.cursor()
 
+FIRST_YEAR = 1950
+LAST_YEAR = 2022
+
 
 mdbcur.execute("SELECT MIN([year]), MAX(YEAR) FROM [GLFSD]")
 rs = mdbcur.fetchall()[0]
 years = [int(x) for x in rs]
 
+
 # subset our years array depend the provided first and last year parameters:
 years = build_years_array(years, FIRST_YEAR, LAST_YEAR)
-years.sort(reverse=True)
+years.sort()
 
 # clear out the associated records from the FSDVIZ datbase:
-StockingEvent.objects.filter(year__in=years).delete()
 
+
+disable_trigger = """ALTER TABLE stocking_stockingevent
+            DISABLE TRIGGER update_reused_cwt_flags_trigger"""
 
 # ========================================  YEAR LOOP
+
 for yr in years:
 
-    sql = "exec [get_GLFSD_for_django] @yr={}".format(yr)
-    mdbcur.execute(sql)
-    rs = mdbcur.fetchall()
+    with connection.cursor() as cursor:
+        with transaction.atomic():
 
-    colnames = [x[0].lower() for x in mdbcur.description]
+            def restore_trigger():
+                """A function to be called after the transaction is complete.  Cannot
+                take arguments and must use the same cursor as our transaction"""
 
-    print("Getting records for {:d}: {:4d} records found".format(int(yr), len(rs)))
+                enable_trigger = """ALTER TABLE stocking_stockingevent
+                ENABLE TRIGGER update_reused_cwt_flags_trigger"""
+                cursor.execute(enable_trigger)
 
-    for row in rs:
+            transaction.on_commit(restore_trigger)
 
-        # convert our row into a dictionary so we can access elements by
-        # column name
-        record = {k: v for k, v in zip(colnames, row)}
+            cursor.execute(disable_trigger)
 
-        # these objects are needed to find other objects with compund foreign keys
-        # in source data - strains and grids
-        species = species_lookup.get(record["species"].strip())
+            StockingEvent.objects.filter(year=yr).delete()
 
-        # strain_raw = get_or_create_rawStrain(species, raw_strain=record["strain"])
+            sql = "exec [get_GLFSD_for_django] @yr={}".format(yr)
+            mdbcur.execute(sql)
+            rs = mdbcur.fetchall()
 
-        strain_raw = raw_strain_lookup.get_strain(species.abbrev, record["strain"])
+            colnames = [x[0].lower() for x in mdbcur.description]
 
-        if strain_raw is None:
-            logging.warning(
-                "Unknown Strain: {stock_id} - {species} ({strain})".format(**record)
+            print(
+                "Getting records for {:d}: {:4d} records found".format(int(yr), len(rs))
             )
-            continue
 
-        lake = lake_lookup.get(record["lake"].strip())
-        stateprov = stateprov_lookup.get(record["state_prov"].strip())
+            for row in rs:
 
-        jurisdiction = Jurisdiction.objects.get(stateprov=stateprov, lake=lake)
+                # convert our row into a dictionary so we can access elements by
+                # column name
+                record = {k: v for k, v in zip(colnames, row)}
 
-        managementUnit = mu_lookup.get(record["stat_dist"].upper())
+                # these objects are needed to find other objects with compund foreign keys
+                # in source data - strains and grids
+                species = species_lookup.get(record["species"].strip())
 
-        # temporal pre-processing:
-        yr = int_or_None(record["year"])
-        mo = int_or_None(record["month"])
-        day = int_or_None(record["day"])
-        try:
-            event_date = datetime.datetime(yr, mo, day)
-        except (TypeError, ValueError):
-            event_date = None
+                # strain_raw = get_or_create_rawStrain(species, raw_strain=record["strain"])
 
-        grid_number = str(int(record["grid"]))
-        grid10 = grid_lookup.get_grid(record["lake"], grid_number)
-
-        if grid10 is None:
-            logging.warning(
-                "Unknown Grid10: {} - {} ({})".format(
-                    record["stock_id"], grid_number, record["lake"]
+                strain_raw = raw_strain_lookup.get_strain(
+                    species.abbrev, record["strain"]
                 )
-            )
-            continue
 
-        event = StockingEvent(
-            # Required related objects:
-            species=species,
-            strain_raw=strain_raw,
-            jurisdiction=jurisdiction,
-            management_unit=managementUnit,
-            grid_10=grid10,
-            agency=agency_lookup.get(record["agency"]),
-            day=day,
-            month=mo,
-            year=yr,
-            date=event_date,
-            dd_lat=record["latitude"],
-            dd_lon=record["longitude"],
-            geom=Point(record["_dd_lon"], record["_dd_lat"]),
-            latlong_flag=latlon_flags.get(record["latlong_flag"]),
-            site=clean_title(record["site"]),
-            st_site=clean_title(record["st_site"]),
-            stock_id=int(record["stock_id"]),
-            lifestage=lifestage_lookup.get(record["stage"], lifestage_default),
-            stocking_method=stk_meth_lookup.get(record["stock_meth"], STOCKING_METHOD),
-            no_stocked=int_or_None(record["no_stocked"]),
-            yreq_stocked=int_or_None(record["no_stocked"]),
-            year_class=int_or_None(record["year_class"]),
-            agemonth=int_or_None(record["agemonth"]),
-            length=int_or_None(record["length"]),
-            weight=int_or_None(record["weight"]),
-            lotcode=record["lot_code"],
-            tag_ret=float_or_None(record["tag_ret"]),
-            validation=int_or_None(record["validation"]),
-            hatchery=hatchery_lookup.get(record["hatchery"]),
-            # stocking mortality
-            condition=condition_lookup.get(
-                int_or_None(record["stock_mortality"]), CONDITION
-            ),
-            notes=record["notes"],
-            agency_stock_id=record["agency_stock_id"],
-        )
+                if strain_raw is None:
+                    logging.warning(
+                        "Unknown Strain: {stock_id} - {species} ({strain})".format(
+                            **record
+                        )
+                    )
+                    continue
 
-        event.save()
-        # many to many things here
-        # clips, marks and tag types
+                lake = lake_lookup.get(record["lake"].strip())
+                stateprov = stateprov_lookup.get(record["state_prov"].strip())
 
-        event_tags = get_mark_codes(record["tag_type"], list(fishtags.keys()))
-        if event_tags.get("codes"):
-            for code in event_tags.get("codes"):
-                event.fish_tags.add(fishtags[code])
+                jurisdiction = Jurisdiction.objects.get(stateprov=stateprov, lake=lake)
 
-        event_clips = get_mark_codes(record["clip"], list(clips.keys()))
-        if event_clips.get("codes"):
-            for code in event_clips.get("codes"):
-                event.fin_clips.add(clips[code])
+                managementUnit = mu_lookup.get(record["stat_dist"].upper())
 
-        event_marks = get_mark_codes(record["phys_chem_mark"], list(marks.keys()))
-        if event_marks.get("codes"):
-            for code in event_marks.get("codes"):
-                event.physchem_marks.add(marks[code])
+                # temporal pre-processing:
+                yr = int_or_None(record["year"])
+                mo = int_or_None(record["month"])
+                day = int_or_None(record["day"])
+                try:
+                    event_date = datetime.datetime(yr, mo, day)
+                except (TypeError, ValueError):
+                    event_date = None
 
-        event.save()
+                grid_number = str(int(record["grid"]))
+                grid10 = grid_lookup.get_grid(record["lake"], grid_number)
 
-        if record["cwt_number"]:
-            cwt_nums = re.split("[;,\W]+", record["cwt_number"])
-            for cwt_number in cwt_nums:
-                associate_cwt(event, cwt_number)
+                if grid10 is None:
+                    logging.warning(
+                        "Unknown Grid10: {} - {} ({})".format(
+                            record["stock_id"], grid_number, record["lake"]
+                        )
+                    )
+                    continue
 
-        event.save()
+                event = StockingEvent(
+                    # Required related objects:
+                    species=species,
+                    strain_raw=strain_raw,
+                    jurisdiction=jurisdiction,
+                    management_unit=managementUnit,
+                    grid_10=grid10,
+                    agency=agency_lookup.get(record["agency"]),
+                    day=day,
+                    month=mo,
+                    year=yr,
+                    date=event_date,
+                    dd_lat=record["latitude"],
+                    dd_lon=record["longitude"],
+                    geom=Point(float(record["_dd_lon"]), float(record["_dd_lat"])),
+                    latlong_flag=latlon_flags.get(record["latlong_flag"]),
+                    site=clean_title(record["site"]),
+                    st_site=clean_title(record["st_site"]),
+                    stock_id=str(record["stock_id"]),
+                    lifestage=lifestage_lookup.get(record["stage"], lifestage_default),
+                    stocking_method=stk_meth_lookup.get(
+                        record["stock_meth"], STOCKING_METHOD
+                    ),
+                    no_stocked=int_or_None(record["no_stocked"]),
+                    yreq_stocked=int_or_None(record["no_stocked"]),
+                    year_class=int_or_None(record["year_class"]),
+                    agemonth=int_or_None(record["agemonth"]),
+                    length=int_or_None(record["length"]),
+                    weight=int_or_None(record["weight"]),
+                    lotcode=record["lot_code"],
+                    tag_ret=float_or_None(record["tag_ret"]),
+                    validation=int_or_None(record["validation"]),
+                    hatchery=hatchery_lookup.get(record["hatchery"]),
+                    # stocking mortality
+                    condition=condition_lookup.get(
+                        int_or_None(record["stock_mortality"]), CONDITION
+                    ),
+                    notes=record["notes"],
+                    agency_stock_id=record["agency_stock_id"],
+                )
 
-    logging.info("Done adding {}".format(yr))
+                event.save()
+                # many to many things here
+                # clips, marks and tag types
+
+                event_tags = get_mark_codes(record["tag_type"], list(fishtags.keys()))
+                if event_tags.get("codes"):
+                    for code in event_tags.get("codes"):
+                        event.fish_tags.add(fishtags[code])
+
+                event_clips = get_mark_codes(record["clip"], list(clips.keys()))
+                if event_clips.get("codes"):
+                    for code in event_clips.get("codes"):
+                        event.fin_clips.add(clips[code])
+
+                event_marks = get_mark_codes(
+                    record["phys_chem_mark"], list(marks.keys())
+                )
+                if event_marks.get("codes"):
+                    for code in event_marks.get("codes"):
+                        event.physchem_marks.add(marks[code])
+
+                event.save()
+
+                if record["cwt_number"]:
+                    cwt_nums = re.split("[;,\W]+", record["cwt_number"])
+                    for cwt_number in cwt_nums:
+                        associate_cwt(event, cwt_number)
+
+                event.save()
+
+            logging.info("Done adding {}".format(yr))
 
 
 # # ========================================  YEAR LOOP
 
-# logging.info("Done adding all stocking events!")
+# save the last event to run the cwt trigger
+event.save()
+
+logging.info("Done adding all stocking events!")
+
+# now update the Ontario Lake Huron cwts.
+# /update_ontario_stocking.py
+
 
 # # mdbcon.close()
 
 
-years = StockingEvent.objects.order_by("-year").values_list("year").distinct()
-years = [x[0] for x in years if x[0] <= 2015]
-problems = []
+# years = StockingEvent.objects.order_by("-year").values_list("year").distinct()
+# years = [x[0] for x in years if x[0] <= 2015]
+# problems = []
 
-for yr in years:
-    events = StockingEvent.objects.filter(year=yr)
-    print("Updating events from {}".format(yr))
+# for yr in years:
+#     events = StockingEvent.objects.filter(year=yr)
+#     print("Updating events from {}".format(yr))
 
-    for event in events:
-        if event.grid_10.geom is None:
-            logging.warning("No geometry found for {}".format(event.grid_10))
-        else:
-            mu = get_closest_ManagementUnit(event)
-            if mu:
-                event.management_unit = mu
-                event.save()
-            else:
-                problems.push(event.stock_id)
+#     for event in events:
+#         if event.grid_10.geom is None:
+#             logging.warning("No geometry found for {}".format(event.grid_10))
+#         else:
+#             mu = get_closest_ManagementUnit(event)
+#             if mu:
+#                 event.management_unit = mu
+#                 event.save()
+#             else:
+#                 problems.push(event.stock_id)
 
 print("Done!")
 print("Found {} problems.".format(len(problems)))

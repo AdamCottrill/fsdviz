@@ -94,7 +94,10 @@ for event in seqcwt_events:
 oops = []
 for event in seqcwt_events:
 
-    cwt = CWT.objects.filter(cwt_number=event.cwt_number).first()
+    cwt = CWT.objects.filter(cwt_number=event.cwt_number, tag_type="sequential").first()
+    if cwt is None:
+        cwt = CWT.objects.filter(cwt_number=event.cwt_number).first()
+
     if cwt is None:
         print(event)
         oops.append(event)
@@ -123,7 +126,7 @@ if oops:
 # sequential cwts series that end with 1 - they should have all been
 # fixed in the last step.
 oops = StockingEvent.objects.filter(
-    cwt_series__seq_end=1, cwt_series__cwt__tag_type="sequental"
+    cwt_series__seq_upper=0, cwt_series__cwt__tag_type="sequental"
 )
 assert len(oops) == 0
 
@@ -166,11 +169,17 @@ omnr = Agency.objects.get(abbrev="OMNR")
 
 for cwt_num in mm_cwts:
 
+    # see if our cwt already exists, if so use it.
+    # if a cwt with the sam
+
     qs = CWT.objects.filter(
         cwt_number=cwt_num, cwt_series__events__agency=omnr
     ).distinct()
     assert len(qs) == 1
     cwt = qs[0]
+    # cwt, created = CWT.objects.get_or_create(
+    #     cwt_number=cwt_num, cwt_series__events__agency=omnr, manufacturer="mm"
+    # )
     cwt.manufacturer = "mm"
     cwt.save()
 

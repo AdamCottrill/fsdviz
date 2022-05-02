@@ -142,14 +142,16 @@
                                     <form class="ui form">
                                         <div class="inline fields">
                                             <div class="field">
-                                                <div class="ui radio checkbox">
-                                                    <input class="stackedbar-brush-toggle" type="radio" name="brush-toggle" checked="" value="brush" tabindex="0" class="hidden">
+                                                <div class="ui radio checkbox" data-content="Drag to select or change the year(s) to view">
+                                                    <input class="stackedbar-brush-toggle"
+                                                           id="stackedbar-brush-toggle" type="radio" name="brush-toggle" checked="true" value="brush" tabindex="0" class="hidden">
                                                     <label>Brush</label>
                                                 </div>
                                             </div>
                                             <div class="field">
-                                                <div class="ui radio checkbox">
-                                                    <input class="stackedbar-brush-toggle" type="radio" name="brush-toggle"  value="tooltip" tabindex="0" class="hidden">
+                                                <div class="ui radio checkbox" data-content="Hover over each bar to see its details">
+
+                                                    <input class="stackedbar-brush-toggle" id="stackedbar-brush-toggle-tooltip" type="radio" name="brush-toggle" value="tooltip" tabindex="0" class="hidden">
                                                     <label>Tooltip</label>
                                                 </div>
                                             </div>
@@ -581,6 +583,7 @@
      $(".menu .item").tab();
      $('.ui.radio.checkbox')
          .checkbox()
+     .popup()
      ;
 
      $('.ui.sticky')

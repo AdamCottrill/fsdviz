@@ -7,7 +7,7 @@ django-debug-toolbar==3.2.1
 Sphinx==3.5.1
 docutils==0.16
 pip-tools==5.3.1
-pyodbc==4.0.30
+pyodbc==4.0.31
 pylint==2.7.4
 pylint-django==2.4.3
 httpie==2.4.0

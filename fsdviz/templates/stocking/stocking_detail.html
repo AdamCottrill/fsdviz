@@ -278,8 +278,8 @@
                                                     <td>{{ cwt.cwt.get_tag_type_display }}</td>
 
                                                     {% if object.has_sequential_cwts %}
-                                                        <td>{{ cwt.seq_start}}</td>
-                                                        <td>{{ cwt.seq_end }}</td>
+                                                        <td>{{ cwt.sequence.lower}}</td>
+                                                        <td>{{ cwt.sequence.upper }}</td>
                                                     {% endif%}
 
                                                     <td>{{ cwt.cwt.get_manufacturer_display }}</td>

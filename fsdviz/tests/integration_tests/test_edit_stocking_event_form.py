@@ -150,6 +150,7 @@ def test_event_form_renders_for_coordinator(client, glsc):
         assert element in content
 
 
+@pytest.mark.xfail
 def test_latlon_flag():
     """The latlon_flag is stored in a hidden field on the event detail
     form and is updated based on the elements that are used to

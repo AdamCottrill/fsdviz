@@ -48,6 +48,7 @@ from datetime import datetime
 
 import os
 
+os.chdir("c:/1work/fsdviz/")
 
 import django_settings
 
@@ -83,8 +84,8 @@ from utils.common_lookups import MARK_SHOULDBE, CLIP2MARK
 pyodbc.lowercase = True
 
 REPORT_WIDTH = 80
-CWT_REGEX = "[0-9]{6}|999"  # ignores tags '999'
-# CWT_REGEX = '[0-9]{6}'      #flags tags '999' as being a problem
+# CWT_REGEX = "[0-9]{6}|999"  # ignores tags '999'
+CWT_REGEX = "[0-9]{6}"  # flags tags '999' as being a problem
 
 
 # MDB = ("C:/Users/COTTRILLAD/Documents/1work/LakeTrout/Stocking" +
@@ -105,8 +106,8 @@ CWT_REGEX = "[0-9]{6}|999"  # ignores tags '999'
 #     + "fsdviz/utils/PrepareGLFSDB.accdb"
 # )
 
-MDB = "F:/1work/LakeTrout/Stocking/GLFSD_Datavis/data/GLFSD_Jan2021.accdb"
-
+# MDB = "F:/1work/LakeTrout/Stocking/GLFSD_Datavis/data/GLFSD_Jan2021.accdb"
+MDB = "C:/1work/Scrapbook/fsdviz_April2022/GLFSD_April_2022.accdb"
 
 TABLE_NAME = "GLFSD"
 
@@ -117,7 +118,7 @@ mdbcur = mdbcon.cursor()
 
 # the maximum number of problem records to show
 
-RECORD_COUNT = 15
+RECORD_COUNT = 50
 
 
 # ==============================================================
@@ -162,7 +163,7 @@ required_fields = [
     "longitude",
     "grid",
     "stat_dist",
-    "ls_mgmt",
+    # "ls_mgmt",
     "species",
     "strain",
     "no_stocked",
@@ -430,8 +431,7 @@ else:
 # distinct rows.
 
 # get the distcinct combinations of species and strains
-sql = """select distinct SPECIES, iif(isnull([STRAIN]),'',
-         [STRAIN]) as strain2 from [{}]
+sql = """select distinct SPECIES, [glfsd_strain] as strain2 from [{}]
 order by [SPECIES]
 ;"""
 mdbcur.execute(sql.format(TABLE_NAME))
@@ -862,10 +862,16 @@ else:
 # this query might have to be re-considered.
 
 sql = """select stock_id, [year],
-         iif([calcYearclass]=9999, [year_class], [calcYearclass]) as yr_class,
-         [stage] from [{}]
+         [stage],
+[year_class]
+ from [GLFSD]
          where
-         iif([calcYearclass]=9999, [year_class], [calcYearclass]) >int([year]);"""
+          year_class <> 9999 and (
+iif([stage]='e',
+year_class>(int([year]) + 1),
+year_class>int([year])
+));
+"""
 
 mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()
@@ -934,10 +940,8 @@ else:
 #
 
 sql = """
-SELECT [{0}].HATCHERY, hatchery_abbrev
-FROM [{0}] LEFT JOIN TL_Hatcheries ON [{0}].HATCHERY = TL_Hatcheries.HATCHERY
-GROUP BY [{0}].HATCHERY, TL_Hatcheries.hatchery_abbrev
-HAVING [{0}].HATCHERY Is Not Null And Not [{0}].HATCHERY='';
+SELECT DISTINCT HATCHERY FROM [{0}]
+WHERE [{0}].HATCHERY Is Not Null And Not [{0}].HATCHERY='';
 """
 
 mdbcur.execute(sql.format(TABLE_NAME))
@@ -946,12 +950,12 @@ rs = mdbcur.fetchall()
 
 known_hatcheries = [x.abbrev for x in Hatchery.objects.all()]
 
-missing = [x for x in rs if x[1] not in known_hatcheries]
+missing = [x for x in rs if x[0] not in known_hatcheries]
 
 
 if missing:
     msg = (
-        "Oh-oh! there are {} hatcheries that do not appear to be documented"
+        "Oh-oh! there are {} hatcheries that do not appear to be documented "
         "in the hatcheries lookup table : \n\t"
         "GLFSD.HATCHERY, FSDVIZ.[HATCHERY_ABBREV"
     )

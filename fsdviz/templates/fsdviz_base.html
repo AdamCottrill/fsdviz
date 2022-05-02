@@ -82,24 +82,6 @@
                     </div>
                 </div>
 
-                <div class="ui dropdown icon item">
-                    Resources
-                    <div class="menu">
-                        <div class="item">
-                            <span class="text">Documentation</span>
-                        </div>
-                        <div class="item">
-                            <span class="text">Tutorials</span>
-                        </div>
-                        <div class="item">
-                            <span class="text">About</span>
-                        </div>
-                        <div class="item">
-                            <span class="text">Report A problem</span>
-                        </div>
-                    </div>
-                </div>
-
                 {% if user.is_authenticated %}
 
                     <div class="ui dropdown icon item">
@@ -183,19 +165,15 @@
                 </div>
             </div>
 
-            <div class="ui negative icon message">
-                <i class="exclamation circle icon"></i>
-                <i class="close icon"></i>
-                <div class="content">
-                    <div class="header">
-                        For Demonstration Purposes Only.
-                    </div>
-                    <p>This application is currently under active development and is known to be incomplete.</p>
-                </div>
-            </div>
+
 
 
         {% endblock %}
+
+
+        <div class="ui basic segment">
+
+        </div>
 
 
         {% block content %}
