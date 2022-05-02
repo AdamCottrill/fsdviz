@@ -674,10 +674,15 @@ Promise.all([
     selection.classed("pass-through", tooltip);
   };
 
+  // get intitial state of our brush tool tip from the selected check box:
+
+  let tooltip = select('input[name="brush-toggle"]:checked').node().value;
+  setBrushTooltip(tooltip == "tooltip");
+
   // toggle the css
   let brushtoggle = selectAll(".stackedbar-brush-toggle");
   brushtoggle.on("change", function () {
-    let tooltip = true ? this.value == "tooltip" : false;
+    let tooltip = this.value == "tooltip";
     setBrushTooltip(tooltip);
   });
 
@@ -1245,8 +1250,8 @@ Promise.all([
 
     // make sure the behaviour of the stacked bar plot matches
     // the currently selected option:
-    let tmp = select('input[name="brush-toggle"]:checked').node().value;
-    setBrushTooltip(tmp === "tooltip");
+    let tooltip = select('input[name="brush-toggle"]:checked').node().value;
+    setBrushTooltip(tooltip === "tooltip");
   });
 
   //==========================================================
@@ -1281,8 +1286,8 @@ Promise.all([
     //stackedByYearBarChart.redraw();
     stackedByYearBarChart.render();
 
-    let tmp = select('input[name="brush-toggle"]:checked').node().value;
-    setBrushTooltip(tmp === "tooltip");
+    let tooltip = select('input[name="brush-toggle"]:checked').node().value;
+    setBrushTooltip(tooltip === "tooltip");
   });
 
   mymap.on("moveend", function () {
