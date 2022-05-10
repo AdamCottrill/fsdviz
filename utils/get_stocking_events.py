@@ -336,4 +336,4 @@ logging.info("Done adding all stocking events!")
 #                 problems.push(event.stock_id)
 
 print("Done!")
-print("Found {} problems.".format(len(problems)))
+# print("Found {} problems.".format(len(problems)))

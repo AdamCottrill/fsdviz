@@ -139,9 +139,9 @@ childless_cwts = CWTsequence.objects.filter(
 
 childless_cwts.delete()
 
-
-foo = CWTsequence.objects.filter(sequence__isnull=True)
-
+# remove empty series created when the sequent cwt was make
+# not needed now.
+# CWTsequence.objects.filter(cwt__tag_type="sequential", sequence__isempty=True).delete()
 
 #
 
