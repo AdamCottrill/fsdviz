@@ -129,6 +129,8 @@ class StockingEventFactory(factory.django.DjangoModelFactory):
 
     latlong_flag = factory.SubFactory(LatLonFlagFactory)
 
+    tag_no = None
+
     # event attributes:
     # stock_id = factory.Sequence(lambda n: "2019-%04d" % n)
 

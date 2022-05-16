@@ -59,6 +59,7 @@ FIELD_NAMES = [
     "stage",
     "method",
     "no_stocked",
+    "event_tag_numbers",
 ]
 
 

@@ -282,3 +282,4 @@ class CWTEventXlsxSerializer(serializers.Serializer):
     stage = serializers.CharField()
     method = serializers.CharField()
     no_stocked = serializers.CharField()
+    event_tag_numbers = serializers.CharField()

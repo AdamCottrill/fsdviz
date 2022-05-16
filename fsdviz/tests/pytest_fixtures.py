@@ -453,6 +453,7 @@ def cwt_stocking_events(db):
         hatchery=mnrf_hatcheryA,
         dd_lon=pt1.x,
         dd_lat=pt1.y,
+        tag_no="111111",
     )
     cwtseq1.events.add(event1)
     cwtseq1.save()
@@ -480,6 +481,7 @@ def cwt_stocking_events(db):
         hatchery=mdnr_hatchery,
         dd_lon=pt1.x,
         dd_lat=pt1.y,
+        tag_no="222222",
     )
 
     cwtseq2.events.add(event2)
@@ -536,6 +538,7 @@ def cwt_stocking_events(db):
         hatchery=odnr_hatchery,
         dd_lon=pt2.x,
         dd_lat=pt2.y,
+        tag_no="444444",
     )
 
     cwtseq4.events.add(event4)
@@ -565,6 +568,7 @@ def cwt_stocking_events(db):
         hatchery=mnrf_hatcheryB,
         dd_lon=pt2.x,
         dd_lat=pt2.y,
+        tag_no="551111",
     )
     cwtseq5.events.add(event5)
     cwtseq5.save()
@@ -593,6 +597,7 @@ def cwt_stocking_events(db):
         hatchery=mnrf_hatcheryB,
         dd_lon=pt2.x,
         dd_lat=pt2.y,
+        tag_no="111166",
     )
 
     cwtseq6.events.add(event6)

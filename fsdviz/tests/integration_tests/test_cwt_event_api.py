@@ -75,6 +75,7 @@ def test_cwt_list_elements(client, cwt_stocking_events):
         "stage",
         "method",
         "no_stocked",
+        "event_tag_numbers",
     ]
 
     assert set(expected_fields) == set(observed_fields)

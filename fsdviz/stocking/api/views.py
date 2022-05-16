@@ -614,6 +614,7 @@ class CWTEventListAPIView(generics.ListAPIView):
             "clipcode": F("clip_code__clip_code"),
             "stage": F("lifestage__description"),
             "method": F("stocking_method__description"),
+            "event_tag_numbers": F("tag_no"),
         }
 
         # use our shorter field names in the list of fields to select:
@@ -652,6 +653,7 @@ class CWTEventListAPIView(generics.ListAPIView):
             "stage",
             "method",
             "no_stocked",
+            "event_tag_numbers",
         ]
 
         defered_fields = [
@@ -855,6 +857,7 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
             "clipcode": F("clip_code__clip_code"),
             "stage": F("lifestage__description"),
             "method": F("stocking_method__description"),
+            "event_tag_numbers": F("tag_no"),
         }
 
         # use our shorter field names in the list of fields to select:
@@ -893,6 +896,7 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
             "stage",
             "method",
             "no_stocked",
+            "event_tag_numbers",
         ]
 
         related_tables = [

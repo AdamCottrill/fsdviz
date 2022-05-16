@@ -385,7 +385,7 @@ class StockingEvent(models.Model):
     )
 
     tag_no = models.CharField(
-        "CWT numbers", max_length=100, blank=True, null=True, db_index=True
+        "CWT numbers", max_length=150, blank=True, null=True, db_index=True
     )
     tag_ret = models.FloatField("CWT retention as a percentage", blank=True, null=True)
 

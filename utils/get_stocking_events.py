@@ -313,7 +313,7 @@ logging.info("Done adding all stocking events!")
 # /update_ontario_stocking.py
 
 
-# # mdbcon.close()
+# # mdbcon.close(
 
 
 # years = StockingEvent.objects.order_by("-year").values_list("year").distinct()

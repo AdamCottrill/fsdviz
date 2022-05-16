@@ -217,16 +217,16 @@ required_elements = [
     ("strain", "Seneca (SEN)"),
     ("raw strain", '<td id="strain-raw">Special Strain(Sp. Strain)</td>'),
     ("agency ", "Ontario Ministry of Natural Resources and Forestry (OMNRF)"),
-    ("lake", "<td>Huron (HU)</td>"),
-    ("state/province", "<td>Ontario (ON)</td>"),
+    ("lake", '<td class="capitalize">Huron (HU)</td>'),
+    ("state/province", '<td class="capitalize">Ontario (ON)</td>'),
     ("site name", "The Spawning Reef"),
-    ("10 minute grid", "<td>1234 (HU)</td>"),
+    ("10 minute grid", '<td class="capitalize">1234 (HU)</td>'),
     ("latlong flag", "1 - Reported"),
     ("stocking date (if known)", "April 15, 2019"),
     ("stocking method", "boat, offshore stocking (b)"),
     ("lifestage", "Yearling (y)"),
-    ("age of stocked fish", "<td>15</td>"),
-    ("year class", "<td>2018</td>"),
+    ("age of stocked fish", '<td class="capitalize">15</td>'),
+    ("year class", '<td class="capitalize">2018</td>'),
 ]
 
 

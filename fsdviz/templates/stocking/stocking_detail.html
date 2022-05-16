@@ -11,7 +11,7 @@
          font-size: 0.8rem;
      }
 
-     td {
+     td .capitalize {
          text-transform: capitalize;
      }
 
@@ -45,7 +45,7 @@
                                 <table class="ui very basic compact  table" id="details-table">
                                     <tr>
                                         <td><strong>Stock Id:</strong></td>
-                                        <td>{{ object.stock_id}}</td>
+                                        <td class="capitalize">{{ object.stock_id}}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Agency Stock Id:</strong></td>
@@ -53,12 +53,12 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Species:</strong></td>
-                                        <td>{{ object.species.common_name|title}} ({{ object.species.abbrev }})</td>
+                                        <td class="capitalize">{{ object.species.common_name|title}} ({{ object.species.abbrev }})</td>
                                     </tr>
 
                                     <tr>
                                         <td><strong>Strain:</strong></td>
-                                        <td>{{ object.strain_raw.strain.strain_label}}
+                                        <td class="capitalize">{{ object.strain_raw.strain.strain_label}}
                                             ({{ object.strain_raw.strain.strain_code}})</td>
                                     </tr>
 
@@ -70,7 +70,7 @@
 
                                     <tr>
                                         <td><strong>Agency:</strong></td>
-                                        <td>{{ object.agency }}</td>
+                                        <td class="capitalize">{{ object.agency }}</td>
                                     </tr>
 
                                     <tr>
@@ -81,45 +81,59 @@
 
                                     <tr>
                                         <td><strong>Lake:</strong></td>
-                                        <td>{{ object.lake }}</td>
+                                        <td class="capitalize">{{ object.lake }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>State/Prov:</strong></td>
-                                        <td>{{ object.stateprov }}</td>
+                                        <td class="capitalize">{{ object.stateprov }}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Site:</strong></td>
-                                        <td>{{ object.site|title }}</td>
+                                        <td><strong>General Location:</strong></td>
+                                        <td class="capitalize">{{ object.site|title }}</td>
                                     </tr>
+
                                     <tr>
+                                        <td><strong>Specific Location:</strong></td>
+                                        <td class="capitalize">{{ object.st_site|default_if_none:'Not Specified' }}</td>
+                                    </tr>
+
+                                    <tr>
+
+
                                         <td><strong>10-Min. Grid:</strong></td>
-                                        <td>{{ object.grid_10 }}</td>
+                                        <td class="capitalize">{{ object.grid_10 }}</td>
                                     </tr>
+
+                                    <tr class="extra-detail">
+                                        <td><strong>Coordinates:</strong></td>
+                                        <td class="capitalize">{{ object.geom.y|floatformat:4 }}&#176;N; {{ object.geom.x|floatformat:4 }}&#176;W</td>
+                                    </tr>
+
                                     <tr class="extra-detail">
                                         <td><strong>LatLon Flag:</strong></td>
-                                        <td>{{ object.latlong_flag }}</td>
+                                        <td class="capitalize">{{ object.latlong_flag }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Date:</strong></td>
-                                        <td>{{ object.best_date_str }}</td>
+                                        <td class="capitalize">{{ object.best_date_str }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Method:</strong></td>
-                                        <td>{{ object.stocking_method }}</td>
+                                        <td class="capitalize">{{ object.stocking_method }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Life Stage:</strong></td>
-                                        <td>{{ object.lifestage }}</td>
+                                        <td class="capitalize">{{ object.lifestage }}</td>
                                     </tr>
 
                                     <tr>
                                         <td><strong>Age(months):</strong></td>
-                                        <td>{{ object.agemonth }}</td>
+                                        <td class="capitalize">{{ object.agemonth }}</td>
                                     </tr>
 
                                     <tr>
                                         <td><strong>Year Class:</strong></td>
-                                        <td>{{ object.year_class }}</td>
+                                        <td class="capitalize">{{ object.year_class }}</td>
                                     </tr>
 
                                     <tr class="extra-detail">
@@ -179,16 +193,16 @@
 
                                     <tr>
                                         <td><strong>Condition:</strong></td>
-                                        <td>{{ object.condition }}</td>
+                                        <td class="capitalize">{{ object.condition }}</td>
                                     </tr>
 
                                     <tr>
                                         <td><strong>Number Stocked:</strong></td>
-                                        <td>{{ object.no_stocked|intcomma }}</td>
+                                        <td class="capitalize">{{ object.no_stocked|intcomma }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Yearling Equiv.:</strong></td>
-                                        <td>{{ object.yreq_stocked|intcomma }}</td>
+                                        <td class="capitalize">{{ object.yreq_stocked|intcomma }}</td>
                                     </tr>
 
 
@@ -275,15 +289,15 @@
                                                 <tr>
                                                     <td><a href="{% url 'stocking:cwt-detail' cwt_number=cwt.cwt.cwt_number%}">{{ cwt.cwt.cwt_number|format_cwt }}</a></td>
 
-                                                    <td>{{ cwt.cwt.get_tag_type_display }}</td>
+                                                    <td class="capitalize">{{ cwt.cwt.get_tag_type_display }}</td>
 
                                                     {% if object.has_sequential_cwts %}
-                                                        <td>{{ cwt.sequence.lower}}</td>
-                                                        <td>{{ cwt.sequence.upper }}</td>
+                                                        <td class="capitalize">{{ cwt.sequence.lower}}</td>
+                                                        <td class="capitalize">{{ cwt.sequence.upper }}</td>
                                                     {% endif%}
 
-                                                    <td>{{ cwt.cwt.get_manufacturer_display }}</td>
-                                                    <td>{{ cwt.events.count }}</td>
+                                                    <td class="capitalize">{{ cwt.cwt.get_manufacturer_display }}</td>
+                                                    <td class="capitalize">{{ cwt.events.count }}</td>
                                                 </tr>
                                             {% endfor %}
                                         </tbody>
