@@ -27,11 +27,16 @@
 {% block navbar_search %}
 
     <div class="right menu" id="cwt-menu-search" >
-        <form class="item"  action="{% url 'stocking:cwt-list' %}" method="get">
+        <form id="menu-search-form" class="item"  action="{% url 'stocking:cwt-list' %}" method="get">
             <div class="ui right aligned category search item">
                 <div class="ui transparent icon input">
-                    <input class="prompt" type="text" placeholder="CWT contains..." name="contains">
-                    <i class="search link icon"></i>
+                    <input
+                        class="prompt"
+                        type="text"
+                        placeholder="CWT contains..."
+                        required
+                        name="contains">
+                    <i id="menu-search-icon" class="search link icon"></i>
                 </div>
             </div>
         </form>

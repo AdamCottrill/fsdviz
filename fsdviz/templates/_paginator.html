@@ -2,10 +2,10 @@
 
 {% if page_obj.paginator.num_pages > 1 %}
 
-    <div class="ui pagination menu">
+    <div class="ui pagination menu"  style="margin-top:10px">
 
         {% if page_obj.has_previous %}
-            <a class="item " href="?{% query_transform True page=page_obj.previous_page_number %}" >Previous</a>
+            <a class="item" href="?{% query_transform True page=page_obj.previous_page_number %}" >Previous</a>
         {% else %}
             <a class="disabled item ">Previous Page</a>
         {% endif %}
@@ -17,7 +17,7 @@
         {% endfor %}
 
         {% if page_obj.has_next %}
-            <a class="item " href="?{% query_transform True page=page_obj.next_page_number %}" >Next</a>
+            <a class="item" href="?{% query_transform True page=page_obj.next_page_number %}" >Next</a>
         {% else %}
             <a class="disabled item">Next Page</a>
         {% endif %}

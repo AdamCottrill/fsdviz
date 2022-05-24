@@ -124,11 +124,11 @@
 
 
                     <div class="right menu">
-                        <form class="item" action="{% url 'stocking:stocking-event-list' %}" method="get">
+                        <form id="menu-search-form" class="item" action="{% url 'stocking:stocking-event-list' %}" method="get">
                             <div class="ui right aligned category search item">
                                 <div class="ui transparent icon input">
                                     <input class="prompt" type="text" required placeholder="Search By Event id..." name="q">
-                                    <i class="search link icon"></i>
+                                    <i id="menu-search-icon" class="search link icon"></i>
                                 </div>
                             </div>
                         </form>
@@ -227,6 +227,15 @@
                  })
              ;
 
+         });
+
+
+         $( "#menu-search-icon" ).click(function(event){
+             event.preventDefault();
+             if ($('#menu-search-form')[0].checkValidity())
+                 $('#menu-search-form').submit();
+             else
+                 $('#menu-search-form')[0].reportValidity()
          });
 
         </script>

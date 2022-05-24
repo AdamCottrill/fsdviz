@@ -391,10 +391,18 @@ class StockingEventListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(StockingEventListView, self).get_context_data(**kwargs)
 
-        filters = self.request.GET
+        filters = self.request.GET.copy()
         context["filters"] = filters
-        search_q = self.request.GET.get("q")
-        context["search_criteria"] = search_q
+        search_q = filters.get("q")
+        if search_q:
+            filters.pop("q")
+            filters["stock_id__contains"] = search_q
+            filters["agency_stock_id__contains"] = search_q
+
+        self.request.GET = filters
+
+        context["stock_id__contains"] = search_q
+        context["agency_stock_id__contains"] = search_q
 
         basequery = StockingEventFilter(
             self.request.GET, StockingEvent.objects.all()
@@ -403,7 +411,7 @@ class StockingEventListView(ListView):
         # add the contains filter to make sure our tallies are right
         if search_q:
             basequery = basequery.filter(
-                Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q)
+                Q(stock_id__icontains=search_q) | Q(agency_stock_id__icontains=search_q)
             )
 
         lake_list = (
@@ -563,6 +571,8 @@ class StockingEventListView(ListView):
         context["physchem_marks_list"] = add_is_checked(
             physchem_marks_list, filters.get("physchem_marks")
         )
+
+        context["event_count"] = basequery.count()
 
         return context
 

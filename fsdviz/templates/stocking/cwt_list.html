@@ -29,16 +29,17 @@
 {% block navbar_search %}
 
 <div class="right menu" id="cwt-menu-search">
-  <form class="item">
+    <form id="menu-search-form" class="item">
     <div class="ui right aligned category search item">
       <div class="ui transparent icon input">
         <input
           class="prompt"
           type="text"
           placeholder="CWT contains..."
-          name="contains"
+            name="contains"
+            required
         />
-        <i class="search link icon"></i>
+        <i id="menu-search-icon" class="search link icon"></i>
       </div>
     </div>
   </form>
@@ -59,17 +60,19 @@
           <div class="ui column">
             {% if filters %}
 
-{% for filter, values in filters.items %}
+                {% for filter, values in filters.items %}
 
             <a
               href="{% strip_parameter param=filter %}"
               class="mini ui icon {{ filter | filter_colour }} button"
             >
               {{ filter }} = {{values}}
-              <i class="times icon"></i>
+                <i class="times icon"></i>
             </a>
 
             {% endfor %}
+
+            {% if  event_count < max_event_count %}
 
             <a
               href="#"
@@ -88,6 +91,8 @@
               Download CWT Events
               <i class="arrow alternate circle down icon"></i>
             </a>
+
+            {% endif %}
 
             {% endif %}
 

@@ -34,11 +34,11 @@
 {% block navbar_search %}
 
     <div class="right menu">
-        <form class="item">
+        <form id="menu-search-form" class="item">
             <div class="ui right aligned category search item">
                 <div class="ui transparent icon input">
                     <input class="prompt" type="text" required placeholder="Search By Event id..." name="q">
-                    <i class="search link icon"></i>
+                    <i id="menu-search-icon" class="search link icon"></i>
                 </div>
             </div>
         </form>
@@ -74,6 +74,9 @@
 
                                 {% endfor %}
 
+
+                                {% if  event_count < max_event_count %}
+
                                 <a href="#" id="visualize-events-btn" class="mini ui icon right floated green button">
                                     Visualize Events
                                     <i class="map marked alternate icon"></i>
@@ -85,7 +88,7 @@
                                     <i class="arrow alternate circle down icon"></i>
                                 </a>
 
-
+                                {% endif %}
 
                             {% endif %}
 

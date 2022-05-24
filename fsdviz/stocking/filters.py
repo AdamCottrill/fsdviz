@@ -43,6 +43,14 @@ class StockingEventFilter(django_filters.FilterSet):
             pass
         return queryset
 
+    stock_id__contains = django_filters.CharFilter(
+        field_name="stock_id", lookup_expr="icontains"
+    )
+
+    agency_stock_id__contains = django_filters.CharFilter(
+        field_name="agency_stock_id", lookup_expr="icontains"
+    )
+
     # CWT tag attributes
     cwt_number = ValueInFilter(
         label="comma separated list of 6-digit cwt numbers",

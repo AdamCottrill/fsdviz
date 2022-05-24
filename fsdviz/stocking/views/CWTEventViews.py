@@ -2,7 +2,7 @@
 Views associated with our stocking application.
 """
 
-
+from django.conf import settings
 from django.contrib.gis.db.models import Extent
 from django.db.models import Count, F
 from django.shortcuts import redirect, render
@@ -265,6 +265,9 @@ class CWTListView(ListView):
         context["physchem_marks_list"] = add_is_checked(
             physchem_marks_list, filters.get("physchem_marks")
         )
+
+        context["event_count"] = basequery.count()
+        context["max_event_count"] = settings.MAX_FILTERED_EVENT_COUNT
 
         return context
 
