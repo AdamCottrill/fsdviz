@@ -573,6 +573,7 @@ class StockingEventListView(ListView):
         )
 
         context["event_count"] = basequery.count()
+        context["max_event_count"] = settings.MAX_FILTERED_EVENT_COUNT
 
         return context
 

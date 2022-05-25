@@ -147,7 +147,7 @@ USE_TZ = True
 
 # the maximum number of records returned by our find_events view
 # keep it small for performance and warn if the max is reached.
-MAX_FILTERED_EVENT_COUNT = 10000
+MAX_FILTERED_EVENT_COUNT = 15000
 
 
 # Static files (CSS, JavaScript, Images)

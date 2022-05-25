@@ -43,6 +43,8 @@ class StockingEventFilter(django_filters.FilterSet):
             pass
         return queryset
 
+    stock_id__in = ValueInFilter(field_name="stock_id", lookup_expr="in")
+
     stock_id__contains = django_filters.CharFilter(
         field_name="stock_id", lookup_expr="icontains"
     )

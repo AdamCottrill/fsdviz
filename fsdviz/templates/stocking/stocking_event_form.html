@@ -14,6 +14,7 @@
      }
 
 
+
     </style>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
@@ -27,7 +28,7 @@
     <div  class="ui container" >
         <h2>Edit Stocking Event {{ stock_id }}</h2>
 
-        <form class="ui form" action="" method="post">
+        <form class="ui form" action="" method="post" style="padding-bottom:50px">
             {% csrf_token %}
             {% if form.errors or cwt_formset.errors %}
                 <div class="ui error visible message">
@@ -139,9 +140,11 @@
                         </div>
                         <div class="twelve wide column">
                             <div class="ui segment">
-                                <div class="ui negative message">
-                                    Set coordinates of event using form on the left or clicking on the map.
-                                </div>
+
+                                    <div  class="ui warning visible message">
+                                    Set the coordinates of the event using the form on the left or clicking on the map.
+                                    </div>
+
                                 <div id="mapid" style='width: 750px; height: 700px;'></div>
                             </div>
                         </div>
@@ -267,6 +270,9 @@
             </div>
 
         </form>
+
+
+
 
 
     </div>
