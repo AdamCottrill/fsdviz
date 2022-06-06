@@ -304,12 +304,13 @@ numeric_fields = [
     ),
     (
         "weight",
-        [-10, -1, "foo", "8,9"],
+        [-10, -1, 0, "foo", "8,9"],
         [
-            "Ensure this value is greater than or equal to 0.01.",
-            "Ensure this value is greater than or equal to 0.01.",
-            "Enter a number.",
-            "Enter a number.",
+            "Weight is optional, but must be greater than or equal to 0.01.",
+            "Weight is optional, but must be greater than or equal to 0.01.",
+            "Weight is optional, but must be greater than or equal to 0.01.",
+            "Enter a number greater than or equal to 0.01.",
+            "Enter a number greater than or equal to 0.01.",
         ],
     ),
 ]
@@ -336,6 +337,7 @@ def test_invalid_field_values(event, field, glsc):
         event_dict[field_name] = val
         form = StockingEventForm(event_dict, choices=choices, user=glsc)
         status = form.is_valid()
+
         assert status is False
         error_message = form.errors[field_name]
         assert msg in error_message

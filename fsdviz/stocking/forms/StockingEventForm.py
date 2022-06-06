@@ -1,17 +1,12 @@
-from django import forms
-
-from django.forms import ValidationError
 from datetime import datetime
 
-from fsdviz.stocking.models import (
-    StockingEvent,
-    FinClip,
-    FishTag,
-)
+from django import forms
+from django.forms import ValidationError
 from fsdviz.common.models import Jurisdiction
-from fsdviz.common.widgets import SemanticDatePicker, MySelect
-from fsdviz.common.validators import validate_cwt
 from fsdviz.common.utils import int_or_none
+from fsdviz.common.validators import validate_cwt
+from fsdviz.common.widgets import MySelect, SemanticDatePicker
+from fsdviz.stocking.models import FinClip, FishTag, StockingEvent
 
 from ..utils import get_or_create_cwt_sequence
 
@@ -197,7 +192,15 @@ class StockingEventForm(forms.Form):
         label="Tag Retention", min_value=0, max_value=100, required=False
     )
     length = forms.IntegerField(label="Avg. Length (mm)", min_value=1, required=False)
-    weight = forms.FloatField(label="Avg. Weight (g)", min_value=0.01, required=False)
+    weight = forms.FloatField(
+        label="Avg. Weight (g)",
+        error_messages={
+            "invalid": "Enter a number greater than or equal to 0.01.",
+            "min_value": "Weight is optional, but must be greater than or equal to 0.01.",
+        },
+        min_value=0.01,
+        required=False,
+    )
     condition_id = forms.ChoiceField(
         label="General Condition", choices=[], required=False, widget=MySelect
     )
