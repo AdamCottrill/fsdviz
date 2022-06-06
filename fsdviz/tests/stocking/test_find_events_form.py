@@ -29,12 +29,11 @@
 
 """
 
-import pytest
 from datetime import datetime
 
+import pytest
 
-from ...stocking.forms import FindEventsForm, FindCWTEventsForm
-
+from ...stocking.forms import FindCWTEventsForm, FindEventsForm
 
 choice_fields = [
     # (field_id, choice_key),
@@ -123,6 +122,42 @@ def test_find_events_first_year_after_last_year():
     assert expected in error_message
 
 
+def test_find_events_with_first_and_last_year():
+    """There was a bug identified where other parameters where dropped
+    from the resulting url if both first and last year were
+    provided. This test was written to catch that issue, and ensure
+    that it doesn't happen again. It source of the bug was in the
+    form.clean() method.
+
+    """
+
+    data = {}
+    data["lake"] = [
+        "MI",
+    ]
+
+    data["agency"] = [
+        "LTBB",
+    ]
+
+    data["first_year"] = 2010
+    data["last_year"] = 2012
+
+    form = FindEventsForm(data)
+    form.fields["lake"].choices = [("HU", "Lake Huron"), ("MI", "Lake Michigan")]
+    form.fields["agency"].choices = [
+        ("LTBB", "Little Traverse Bay Band"),
+    ]
+
+    status = form.is_valid()
+    assert status is True
+
+    assert form.cleaned_data["lake"] == ["MI"]
+    assert form.cleaned_data["agency"] == ["LTBB"]
+    assert form.cleaned_data["first_year"] == 2010
+    assert form.cleaned_data["last_year"] == 2012
+
+
 @pytest.mark.parametrize("field", choice_fields)
 @pytest.mark.django_db
 def test_find_cwt_events_invalid_choices(field):
@@ -180,8 +215,6 @@ def test_find_cwt_events_invalid_cwt_list(cwt_number):
         + "leading 0's. Multiple cwts must be separated by a comma or semicolon"
     )
 
-    print(expected)
-    print(error_message)
     assert expected in error_message
 
 

@@ -1,12 +1,11 @@
-from django import forms
-
-from django.forms import ValidationError
-from django.contrib.gis.forms.fields import PolygonField
-from leaflet.forms.widgets import LeafletWidget
 from datetime import datetime
 
-from fsdviz.common.validators import cwt_list_validator
+from django import forms
+from django.contrib.gis.forms.fields import PolygonField
+from django.forms import ValidationError
 from fsdviz.common.constants import MONTHS
+from fsdviz.common.validators import cwt_list_validator
+from leaflet.forms.widgets import LeafletWidget
 
 
 class FindEventsForm(forms.Form):
@@ -117,14 +116,13 @@ class FindEventsForm(forms.Form):
     stocking_method.widget.attrs["class"] = "ui dropdown"
 
     def clean(self):
-
-        first_year = self.cleaned_data.get("first_year")
-        last_year = self.cleaned_data.get("last_year")
+        cleaned_data = super().clean()
+        first_year = cleaned_data.get("first_year")
+        last_year = cleaned_data.get("last_year")
 
         if first_year and last_year:
             if first_year > last_year:
                 raise ValidationError("Earliest year occurs after latest year.")
-        return self.cleaned_data
 
 
 class FindCWTEventsForm(FindEventsForm):

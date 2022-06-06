@@ -2,47 +2,41 @@
 Views associated with our stocking application.
 """
 
-from django.conf import settings
+import json
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q, Min, Max, F
+from django.db.models import Count, F, Max, Min, Q
+from django.forms import formset_factory
 from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
-
-from django.forms import formset_factory
-
-import json
-
-from ..utils import (
-    form2params,
-    get_event_model_form_choices,
-    get_cwt_sequence_dict,
-)
-
-from fsdviz.common.forms import CWTSequenceForm, BaseCWTSequenceFormSet
-
+from fsdviz.common.forms import BaseCWTSequenceFormSet, CWTSequenceForm
 from fsdviz.common.models import (
-    Lake,
-    Jurisdiction,
-    Species,
-    Strain,
-    StateProvince,
     Agency,
     FinClip,
     FishTag,
+    Jurisdiction,
+    Lake,
     PhysChemMark,
+    Species,
+    StateProvince,
+    Strain,
 )
-from ..filters import StockingEventFilter
-from ..forms import FindEventsForm, StockingEventForm
-from ..models import StockingEvent, StockingMethod, LifeStage
-from ..utils import add_is_checked
-
 from fsdviz.myusers.permissions import user_can_create_edit_delete
 
+from ..filters import StockingEventFilter
+from ..forms import FindEventsForm, StockingEventForm
+from ..models import LifeStage, StockingEvent, StockingMethod
+from ..utils import (
+    add_is_checked,
+    form2params,
+    get_cwt_sequence_dict,
+    get_event_model_form_choices,
+)
 
 # CWTViews
 # EventViews
