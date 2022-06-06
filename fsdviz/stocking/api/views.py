@@ -180,12 +180,16 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "life_stage": F("lifestage__abbrev"),
             "age_months": F("agemonth"),
             "_clip": F("clip_code__clip_code"),
-            "phys_chem_mark": F("physchem_marks"),
+            "phys_chem_mark": StringAgg(
+                "physchem_marks__mark_code",
+                delimiter=";",
+                ordering="physchem_marks__mark_code",
+            ),
             "cwt_number": F("tag_no"),
             "tag_retention": F("tag_ret"),
             "mean_length_mm": F("length"),
             "total_weight_kg": F("weight"),
-            "stocking_mortality": F("condition__condition"),
+            "stocking_mortality": F("condition__description"),
             "lot_code": F("lotcode"),
             "hatchery_abbrev": F("hatchery__abbrev"),
             "number_stocked": F("no_stocked"),
@@ -471,12 +475,11 @@ class StockingEventListAPIView(APIView):
             "_tags": StringAgg(
                 "fish_tags__tag_code", delimiter=";", ordering="fish_tags__tag_code"
             ),
-            "_marks": F("physchem_marks__mark_code"),
-            # "_marks": StringAgg(
-            #     "physchem_marks__mark_code",
-            #     delimiter=";",
-            #     ordering="physchem_marks__mark_code",
-            # ),
+            "_marks": StringAgg(
+                "physchem_marks__mark_code",
+                delimiter=";",
+                ordering="physchem_marks__mark_code",
+            ),
         }
 
         fields = [

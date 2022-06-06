@@ -237,7 +237,7 @@ class StockingEventXlsxSerializer(serializers.Serializer):
     tag_retention = serializers.FloatField()
     mean_length_mm = serializers.FloatField()
     total_weight_kg = serializers.FloatField()
-    stocking_mortality = serializers.FloatField()
+    stocking_mortality = serializers.CharField()
     lot_code = serializers.CharField()
     hatchery_abbrev = serializers.CharField()
     number_stocked = serializers.IntegerField()

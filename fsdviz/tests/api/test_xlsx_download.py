@@ -18,11 +18,13 @@
 """
 
 
-import pytest
+from json.encoder import py_encode_basestring
 
+import pytest
 from django.urls import reverse
 from rest_framework import status
-from ..pytest_fixtures import usfws, mdnr, superior, huron, stocking_events
+
+from ..pytest_fixtures import huron, mdnr, stocking_events, superior, usfws
 
 # here are the fields we expect to see in our downloaded spreadsheets or api
 # resposnes used to poplulate spreadsheets:
@@ -128,6 +130,26 @@ def test_xlsx_download_events_json(client, stocking_events):
     observed_fields = set(response.data[0].keys())
 
     assert expected_fields == observed_fields
+
+
+def test_xlsx_multiple_marks(client, stocking_events):
+    """If a stocking event has multiple marks assocaited with it, the
+    response should contain a string containing the mark abbreviation
+    concentated together, separtated by a semi-colon.
+
+    """
+
+    url = reverse("api:api-stocking-event-list-xlsx")
+
+    stock_id = stocking_events[0].stock_id
+
+    response = client.get(url, {"format": "json", "stock_id__in": stock_id})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.accepted_media_type == "application/json"
+    assert len(response.data) == 1
+
+    data = response.data[0]
+    assert data["phys_chem_mark"] == "CA;OX"
 
 
 def test_xlsx_download_events_json_event_filters(client, stocking_events):

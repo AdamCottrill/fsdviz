@@ -18,7 +18,6 @@ here because they are used in several other places.
 
 import pytest
 from django.contrib.gis.geos import GEOSGeometry
-
 from fsdviz.common.choices import LATLON_FLAGS
 
 # from .user_factory import UserFactory
@@ -168,7 +167,12 @@ def stocking_events(usfws, mdnr, superior, huron):
     su_mi = JurisdictionFactory(stateprov=mich, lake=superior, slug="su_mi")
     hu_mi = JurisdictionFactory(stateprov=mich, lake=huron, slug="hu_mi")
 
+    ox_mark = PhysChemMarkFactory(mark_code="OX")
+    ca_mark = PhysChemMarkFactory(mark_code="CA")
+
     event1 = StockingEventFactory(agency=mdnr, jurisdiction=hu_mi)
+    event1.physchem_marks.set([ox_mark, ca_mark])
+
     event2 = StockingEventFactory(agency=usfws, jurisdiction=hu_mi)
     event3 = StockingEventFactory(agency=mdnr, jurisdiction=su_mi)
     event4 = StockingEventFactory(agency=usfws, jurisdiction=su_mi)
