@@ -638,10 +638,11 @@ def test_missing_latlon(event, glsc):
     assert status is True
 
 
-min_lat = 41.3
+min_lat = 41.39
 max_lat = 49.1
-min_lon = -92.0
-max_lon = -76.0
+min_lon = -92.3
+max_lon = -74.35
+
 
 coordinates = [
     # (ddlat, ddlon, error messages)
@@ -682,7 +683,7 @@ coordinates = [
     ),
     (
         45.5,
-        -75.5,
+        -72.5,
         {"dd_lon": "Ensure this value is less than or equal to {}.".format(max_lon)},
     ),
     (

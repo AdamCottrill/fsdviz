@@ -143,15 +143,15 @@ class StockingEventForm(forms.Form):
     )
     dd_lat = forms.FloatField(
         label="Latitude (Decimal Degrees)",
-        min_value=41.3,
+        min_value=41.39,
         max_value=49.1,
         required=False,
         widget=forms.TextInput(),
     )
     dd_lon = forms.FloatField(
         label="Longitude (Decimal Degrees)",
-        min_value=-92.0,
-        max_value=-76.0,
+        min_value=-92.3,
+        max_value=-74.35,
         required=False,
         widget=forms.TextInput(),
     )
@@ -175,13 +175,6 @@ class StockingEventForm(forms.Form):
         label="Life Stage", choices=[], required=True, widget=MySelect
     )
     agemonth = forms.IntegerField(label="Age (months)", min_value=0, required=False)
-
-    # cwt_numbers = forms.CharField(
-    #     label="CWT Numbers",
-    #     help_text="Comma separated list of 6-digit cwt numbers",
-    #     required=False,
-    #     # validators=[validate_cwt],
-    # )
 
     tag_no = forms.CharField(
         label="CWT Numbers",
