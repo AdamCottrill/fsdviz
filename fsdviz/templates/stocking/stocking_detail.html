@@ -318,8 +318,8 @@
 {% block extra_js %}
 
 
-    {{ object.lake.geom.extent|json_script:"map-bounds" }}
 
+    {{ object.lake.coordinate_limits|json_script:"map-bounds" }}
 
     <script type="text/javascript">
 

@@ -451,7 +451,7 @@
 
     </script>
 
-    {{ lake.geom.extent|json_script:"map-bounds" }}
+    {{ lake.coordinate_limits|json_script:"map-bounds" }}
 
     <script src="{% static "js/stocking_event_form.js" %}"></script>
 

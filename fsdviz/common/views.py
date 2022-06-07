@@ -20,7 +20,9 @@ from .models import (
 
 
 def spatial_lookup(request):
-    """a simple view to load our spatial lookup interface."""
+    """a simple view to load our spatial lookup interface.  Calculate
+    the extent of the lake geometries and return it in a variable
+    'map-bounds' that will be used by leaflet to center the map."""
 
     map_bounds = Lake.objects.aggregate(Extent("geom"))
 

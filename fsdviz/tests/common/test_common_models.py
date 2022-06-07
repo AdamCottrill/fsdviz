@@ -8,25 +8,24 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from ...common.models import CWTsequence
-
 from ..common_factories import (
-    LakeFactory,
     AgencyFactory,
-    StateProvinceFactory,
-    JurisdictionFactory,
-    ManagementUnitFactory,
-    Grid10Factory,
-    SpeciesFactory,
-    StrainFactory,
-    StrainRawFactory,
-    MarkFactory,
-    LatLonFlagFactory,
+    CompositeFinClipFactory,
     CWTFactory,
     CWTsequenceFactory,
-    CompositeFinClipFactory,
     FinClipFactory,
     FishTagFactory,
+    Grid10Factory,
+    JurisdictionFactory,
+    LakeFactory,
+    LatLonFlagFactory,
+    ManagementUnitFactory,
+    MarkFactory,
     PhysChemMarkFactory,
+    SpeciesFactory,
+    StateProvinceFactory,
+    StrainFactory,
+    StrainRawFactory,
 )
 
 
@@ -50,6 +49,66 @@ def test_lake_short_name():
 
     lake = LakeFactory(lake_name="Lake Huron", abbrev="HU")
     assert lake.short_name() == "Huron"
+
+
+invalid_bounds = [
+    (
+        {
+            "max_lat": 43.0,
+            "min_lat": 45.0,
+            "max_lon": -81.0,
+            "min_lon": -83.0,
+        },
+        "Maximum Latitude must be greater than minimum Latitude.",
+    ),
+    (
+        {
+            "max_lat": 45.0,
+            "min_lat": 43.0,
+            "max_lon": -83.0,
+            "min_lon": -81.0,
+        },
+        "Maximum Longitude must be greater than minimum Longitude.",
+    ),
+]
+
+
+@pytest.mark.parametrize("args, errmsg", invalid_bounds)
+@pytest.mark.django_db
+def test_lake_bounds(args, errmsg):
+    """Verify that the clean method raises an excpetion if we pass in
+    bounds that are switched.
+
+    """
+    with pytest.raises(ValidationError) as excinfo:
+        lake = LakeFactory(lake_name="Lake Huron", abbrev="HU", **args)
+        lake.save()
+    assert errmsg in str(excinfo.value)
+
+
+@pytest.mark.django_db
+def test_lake_coordinate_limits():
+    """Verify that the coordinate limits method on the Lake model
+    returns the correct values in the correct order.
+
+    """
+
+    min_lat = 42.1
+    max_lat = 45.2
+    min_lon = -79.2
+    max_lon = -77.6
+    expected = [min_lon, min_lat, max_lon, max_lat]
+
+    lake = LakeFactory(
+        lake_name="Lake Huron",
+        abbrev="HU",
+        min_lat=min_lat,
+        max_lat=max_lat,
+        min_lon=min_lon,
+        max_lon=max_lon,
+    )
+
+    assert lake.coordinate_limits() == expected
 
 
 @pytest.mark.django_db

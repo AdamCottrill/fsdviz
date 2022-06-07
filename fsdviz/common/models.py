@@ -4,15 +4,16 @@ be shared across both the stocking and cwt recovery applications.
 
 """
 
+from colorfield.fields import ColorField
 from django.contrib.gis.db import models
 
 # consider add range field and constraint to CWTSequence when we upgrade to Django 3.0+
 # from django.contrib.postgres.constraints import ExclusionConstraint
 from django.contrib.postgres.fields import IntegerRangeField
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.template.defaultfilters import slugify
-
-from colorfield.fields import ColorField
+from django.utils.translation import gettext_lazy
 
 from .validators import validate_cwt_sequence_range
 
@@ -88,12 +89,70 @@ class Lake(models.Model):
     # geom including associated watersheds
     # geom_plus = models.MultiPolygonField(srid=4326, blank=True, null=True)
 
+    max_lat = models.FloatField(
+        "Northern-most latitude for events in this lake",
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(41.3), MaxValueValidator(49.1)],
+    )
+
+    min_lat = models.FloatField(
+        "Southern-most latitude for events in this lake",
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(41.3), MaxValueValidator(49.1)],
+    )
+
+    max_lon = models.FloatField(
+        "Eastern-most longitude for events in this lake",
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(-92.4), MaxValueValidator(-74.3)],
+    )
+
+    min_lon = models.FloatField(
+        "Western-most longitude for events in this lake",
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(-92.4), MaxValueValidator(-74.3)],
+    )
+
     class Meta:
         ordering = ["abbrev"]
 
     def __str__(self):
         """String representation for a lake."""
         return "{} ({})".format(self.lake_name, self.abbrev)
+
+    def save(self, *args, **kwargs):
+        """ """
+
+        self.full_clean()
+        super(Lake, self).save(*args, **kwargs)
+
+    def clean(self):
+        """Make sure that if the min and max lat and lon are
+        populated, that they represent plausible values."""
+
+        if self.min_lat and self.max_lat:
+            if self.min_lat >= self.max_lat:
+                msg = "Maximum Latitude must be greater than minimum Latitude."
+                raise ValidationError(gettext_lazy(msg))
+
+        if self.min_lon and self.max_lon:
+            if self.min_lon >= self.max_lon:
+                msg = "Maximum Longitude must be greater than minimum Longitude."
+                raise ValidationError(gettext_lazy(msg))
+
+    def coordinate_limits(self):
+        """Return the min and max, lat and lon in the format expected
+        by our template.  The same format is returned from extents -
+        but it is calculated from the polygon geometry.  These are the
+        hard-coded values that include events in tributaries that
+        might be outside of a bounding box around the lake.
+
+        """
+        return [self.min_lon, self.min_lat, self.max_lon, self.max_lat]
 
     def short_name(self):
         """The name of the lake without 'Lake ..'.
