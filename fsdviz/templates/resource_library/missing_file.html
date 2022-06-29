@@ -1,0 +1,21 @@
+{% extends "fsdviz_base.html" %}
+
+{% block title  %} Missing File  {% endblock %}
+
+{% block content  %}
+
+    <div class="ui container" >
+        <div class="ui center aligned negative message">
+            <div class="content">
+                <div class="header">
+                    Oops!
+                </div>
+                <p>This is embarrassing.  I can't seem the find a file
+                    named "{{ filename }}". It is possible that the file has been moved,
+                    renamed or deleted.</p>
+                <p>Please notify the system administrator.  Click <a href="{% url 'resource_library:resource_list'%}">here</a> to return the resource list.</p>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

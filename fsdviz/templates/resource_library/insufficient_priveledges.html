@@ -1,0 +1,22 @@
+{% extends "fsdviz_base.html" %}
+
+{% block title  %} Insufficient Priveledges  {% endblock %}
+
+{% block content  %}
+
+    <div class="ui container" >
+        <div class="ui center aligned negative message">
+            <div class="content">
+                <div class="header">
+                    Oops!
+                </div>
+                <p>It doesn't look like you currently have permission to download the selected file
+                    "{{ filename }}".</p>
+                <p>Please login (<a href="{% url 'login'%}">here</a>) and try again.
+                    Click <a href="{% url 'resource_library:resource_list'%}">here</a>
+                    to return the resource list.</p>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

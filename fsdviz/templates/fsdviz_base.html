@@ -13,6 +13,24 @@
 
         <style type="text/css" media="screen">
 
+
+         body {
+             min-width: 100%;
+         }
+
+         .container{
+             position: relative;
+             min-height: 100vh;
+         }
+
+         .footer {
+             position: absolute;
+             bottom: 0;
+             width: 100%;
+             height: 75px;
+         }
+
+
          .ui.grid {
              margin-top: .2rem;
          }
@@ -29,6 +47,10 @@
         <link rel="shortcut icon" type="image/jpg" href="{% static "favicon.ico" %}"/>
     </head>
     <body>
+
+        <div class="container">
+
+
 
         {% block navbar %}
 
@@ -71,6 +93,7 @@
                         {% endif %}
                         <div class="item"><a href="{% url 'common:spatial-lookup' %}" >Spatial Lookup</a></div>
                         <div class="item"><a href="{% url 'common:lookup-tables' %}" >Lookup Tables</a></div>
+                        <div class="item"><a href="{% url 'resource_library:resource_list' %}" >Reference Material</a></div>
                         {% if user.is_authenticated %}
                             <div class="ui divider"></div>
                             {% block create_bookmark %}
@@ -183,8 +206,10 @@
 
         {% block footer %}
 
-            <div class="ui segment" style="height:75px">            </div>
+            <div class="ui segment footer">            </div>
         {% endblock footer %}
+
+
 
 
         <script

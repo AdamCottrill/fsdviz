@@ -15,18 +15,17 @@ Including another URLconf
 """
 
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, re_path, include
-
-from rest_framework.documentation import include_docs_urls
-from rest_framework.permissions import AllowAny
-
-from drf_yasg.views import get_schema_view
+from django.urls import include, path, re_path
 from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from fsdviz.myusers.views import account_redirect
 
 # our homepage:  TEMP!!
 from fsdviz.stocking.views import PieChartMapViewLatestYear
-from fsdviz.myusers.views import account_redirect
+from rest_framework.documentation import include_docs_urls
+from rest_framework.permissions import AllowAny
 
 
 from fsdviz.common.api.views import (
@@ -110,6 +109,7 @@ urlpatterns = [
     path("users/", include("django.contrib.auth.urls")),
     path("shared/", include("fsdviz.common.urls", namespace="common")),
     path("stocking/", include("fsdviz.stocking.urls", namespace="stocking")),
+    path("resource_library/", include("resource_library.urls", "resource_library")),
     # path("cwt/", include("cwt.urls")),
     # API's
     path("tickets/", include(("tickets.urls", "tickets"), namespace="tickets")),
@@ -146,6 +146,10 @@ urlpatterns = [
 if settings.DEBUG:
     import debug_toolbar
 
-    urlpatterns = [
-        path("__debug__/", include(debug_toolbar.urls)),
-    ] + urlpatterns
+    urlpatterns = (
+        [
+            path("__debug__/", include(debug_toolbar.urls)),
+        ]
+        + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+        + urlpatterns
+    )

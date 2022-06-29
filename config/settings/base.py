@@ -79,6 +79,7 @@ THIRD_PARTY_APPS = [
     "taggit",
     "tickets",
     "bookmark_it",
+    "resource_library",
 ]
 
 MY_APPS = ["fsdviz.myusers", "fsdviz.common", "fsdviz.stocking", "fsdviz.recovery"]
@@ -219,3 +220,18 @@ LEAFLET_CONFIG = {
     # "RESET_VIEW": True,
     "DEFAULT_PRECISION": 5,
 }
+
+
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, "media")
+MEDIA_URL = "/media/"
+
+RESOURCE_LIBRARY_ALLOWED_EXTENTIONS = [
+    "pdf",
+    "doc",
+    "docx",
+    "xlsx",
+    "xls",
+    "pptx",
+    "r",
+    "rmd",
+]

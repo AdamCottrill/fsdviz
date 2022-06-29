@@ -66,6 +66,7 @@ class HatcheryModelAdmin(admin.ModelAdmin):
 @admin.register(StockingEvent)
 class StockingEventModelAdmin(admin.ModelAdmin):
     list_display = (
+        "stock_id",
         "species",
         "agency",
         "lake",
