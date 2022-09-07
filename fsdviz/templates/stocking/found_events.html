@@ -480,7 +480,7 @@
                             Statistics
                         </a>
                         <a class="item" data-tab="settings">
-                            Settings
+                            Map Settings
                         </a>
                     </div>
 
@@ -566,6 +566,16 @@
      let download_url = "{% url 'api:api-stocking-event-list-xlsx' %}";
      document.getElementById("download-events-btn").href = download_url + search;
      //document.getElementById("download-events-button").href();
+
+
+     $(document).ready(function(){
+         let msg = "The waters of each lake within the bounds of the state or province"
+         document.getElementById("strata-selector-jurisdiction").parentElement.setAttribute('data-tooltip', msg)
+
+     });
+
+
+
 
     </script>
 

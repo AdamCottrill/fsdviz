@@ -205,7 +205,7 @@
                                     Statistics
                                 </a>
                                 <a class="item" data-tab="settings">
-                                    Settings
+                                    Map Settings
                                 </a>
                             </div>
 
@@ -302,6 +302,14 @@
 
      let spatialUnit = "jurisdiction";
      let sliceVar = "species_code";
+
+     $(document).ready(function(){
+         let msg = "The waters of each lake within the bounds of the state or province"
+         document.getElementById("strata-selector-jurisdiction").parentElement.setAttribute('data-tooltip', msg)
+
+     });
+
+
     </script>
 
     <script type="text/javascript" src="{% static "js/mainPieChartMap.js" %}"></script>

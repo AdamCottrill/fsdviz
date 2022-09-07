@@ -113,6 +113,7 @@ const mapState2FeatureType = {
 
 // setup the map with rough bounds (need to get pies to plot first,
 // this will be tweaked later):
+
 const mymap = Leaflet.map("mapid", {
   zoomDelta: 0.25,
   zoomSnap: 0,
@@ -158,7 +159,7 @@ let piecharts = piechart_overlay(mymap)
 
 let strata = [
   { name: "lake", label: "Lake" },
-  { name: "stateProv", label: "State/Province" },
+  // { name: "stateProv", label: "State/Province" },
   { name: "jurisdiction", label: "Jurisdiction" },
   { name: "manUnit", label: "Managment Unit" },
   { name: "grid10", label: "10-minute Grid" },
@@ -667,10 +668,10 @@ Promise.all([
 
     let bbox = get_feature_bbox(topodata, feature_type, slug);
     bbox = turfbbToLeafletbb(bbox[0]);
-    mymap.fitBounds(bbox, { padding: [150, 150] });
+    mymap.fitBounds(bbox, { padding: [100, 100] });
 
     // add the breadcrumbs for any parents of our seleted objects
-    // addBreakcrumb take a feature type name and a slug.
+    // addBreakcrumb takes a feature type name and a slug.
     switch (splitState[0]) {
       case "manUnit":
         polygons.addBreadcrumb(
