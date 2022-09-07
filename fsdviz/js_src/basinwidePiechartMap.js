@@ -222,6 +222,21 @@ Promise.all([
   // prepare our stocking data and set up our cross filters:
   data.forEach((d) => prepare_stocking_data(d));
 
+  // the api returns the common label for strains, not the slug.
+  // creeate a mapper of species and strain label to strain slug so
+  // we can update the data with the slug - so that everything works
+  // as expected. (TODO - update api and remove this block of code.)
+  const strainSlugs = common.strains.reduce(
+    (obj, x, i) => ({
+      ...obj,
+      [`${x.strain_species.abbrev}-${x.strain_label}`]: x.slug,
+    }),
+    {}
+  );
+  data.forEach(
+    (d) => (d.strain = strainSlugs[`${d.species_code}-${d.strain}`])
+  );
+
   // pie chart and slice labesl
   const pieLabels = makePieLabels(data, common);
   const sliceLabels = makeSliceLabels(common, stocking);
