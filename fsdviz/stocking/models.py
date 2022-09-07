@@ -435,7 +435,7 @@ class StockingEvent(models.Model):
         null=True,
     )
 
-    notes = models.CharField(max_length=500, blank=True, null=True)
+    notes = models.CharField(max_length=5000, blank=True, null=True)
 
     upload_event = models.ForeignKey(
         DataUploadEvent,
