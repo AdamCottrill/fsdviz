@@ -263,6 +263,7 @@ export const makeFillColours = (common, stocking) => {
   fillColours["lake"] = makeColorMap(common.lakes);
   fillColours["stateProv"] = makeColorMap(common.stateprov);
   fillColours["jurisdiction"] = makeColorMap(common.jurisdictions, "slug");
+  fillColours["manUnit"] = makeColorMap(common.manUnits, "slug");
   fillColours["agency_code"] = makeColorMap(common.agencies);
   fillColours["species_code"] = makeColorMap(common.species);
   fillColours["strain"] = makeColorMap(common.strains, "slug");

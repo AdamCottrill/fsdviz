@@ -121,7 +121,7 @@ let piecharts = piechart_overlay(mymap)
 
 let strata = [
   { name: "lake", label: "Lake" },
-  { name: "stateProv", label: "State/Province" },
+  //{ name: "stateProv", label: "State/Province" },
   { name: "jurisdiction", label: "Jurisdiction" },
   { name: "manUnit", label: "Statistical District" },
   { name: "grid10", label: "10-minute Grid" },
@@ -277,6 +277,7 @@ Promise.all([
   let lakeGroup;
   let agencyGroup;
   let stateProvGroup;
+  let manUnitGroup;
   let jurisdictionGroup;
   let grid10Group;
   let speciesGroup;
@@ -294,6 +295,7 @@ Promise.all([
     lakeGroup = lakeDim.group().reduceSum((d) => d[responseVar]);
     agencyGroup = agencyDim.group().reduceSum((d) => d[responseVar]);
     stateProvGroup = stateProvDim.group().reduceSum((d) => d[responseVar]);
+    manUnitGroup = manUnitDim.group().reduceSum((d) => d[responseVar]);
     jurisdictionGroup = jurisdictionDim
       .group()
       .reduceSum((d) => d[responseVar]);
@@ -316,6 +318,7 @@ Promise.all([
   const uniqueAgencies = agencyGroup.top(Infinity).map((d) => d.key);
   const uniqueStateProvs = stateProvGroup.top(Infinity).map((d) => d.key);
   const uniqueJurisdictions = jurisdictionGroup.top(Infinity).map((d) => d.key);
+  const uniqueManUnits = manUnitGroup.top(Infinity).map((d) => d.key);
   const uniqueSpecies = speciesGroup.top(Infinity).map((d) => d.key);
   const uniqueStrains = strainGroup.top(Infinity).map((d) => d.key);
   const uniqueLifestages = lifeStageGroup.top(Infinity).map((d) => d.key);
@@ -425,6 +428,7 @@ Promise.all([
   const stateProvChart = dc.pieChart("#state-province-plot");
   const agencyChart = dc.pieChart("#agency-plot");
   const jurisdictionChart = dc.pieChart("#jurisdiction-plot");
+  const manUnitChart = dc.pieChart("#management-unit-plot");
 
   const speciesChart = dc.pieChart("#species-plot");
   const strainChart = dc.pieChart("#strain-plot");
@@ -447,6 +451,7 @@ Promise.all([
     stateProvChart.group(stateProvGroup);
     agencyChart.group(agencyGroup);
     jurisdictionChart.group(jurisdictionGroup);
+    manUnitChart.group(manUnitGroup);
     speciesChart.group(speciesGroup);
     strainChart.group(strainGroup);
     lifestageChart.group(lifeStageGroup);
@@ -736,8 +741,8 @@ Promise.all([
 
   const agencyColorScale = getColorScale(fillColours["agency_code"]);
   agencyChart
-    .width(width1)
-    .height(height1)
+    .width(width2)
+    .height(height2)
     .dimension(agencyDim)
     .group(agencyGroup)
     .colors(agencyColorScale)
@@ -772,8 +777,8 @@ Promise.all([
   const jurisdictionColorScale = getColorScale(fillColours["jurisdiction"]);
 
   jurisdictionChart
-    .width(width1)
-    .height(height1)
+    .width(width2)
+    .height(height2)
     .dimension(jurisdictionDim)
     .group(jurisdictionGroup)
     .colors(jurisdictionColorScale)
@@ -800,6 +805,43 @@ Promise.all([
   select("#jurisdiction-plot-reset").on("click", () => {
     event.preventDefault();
     jurisdictionChart.filterAll();
+    dc.redrawAll();
+  });
+
+  //==============================================
+  //            Management Units
+
+  const manUnitColorScale = getColorScale(fillColours["manUnit"]);
+
+  manUnitChart
+    .width(width2)
+    .height(height2)
+    .dimension(manUnitDim)
+    .group(manUnitGroup)
+    .colors(manUnitColorScale)
+    .label((d) => pluckLabel(d.key, sliceLabels["manUnit"]))
+    .title((d) => {
+      const label = pluckLabel(d.key, sliceLabels["manUnit"]);
+      const what = pluralize(responseVarLabels[responseVar], d.value);
+      return `${label}: ${commaFormat(d.value)} ${what}`;
+    });
+
+  manUnitChart.on("renderlet", function (chart) {
+    dc.events.trigger(function () {
+      let filters = manUnitChart.filters();
+      if (!filters || !filters.length) {
+        select("#manUnit-filter").text("All").classed("filtered", false);
+      } else {
+        select("#manUnit-filter").text(filters).classed("filtered", true);
+      }
+    });
+  });
+
+  // javascript:manUnitChart.filterAll();dc.redrawAll();
+  // set up our reset listener
+  select("#management-unit-plot-reset").on("click", () => {
+    event.preventDefault();
+    manUnitChart.filterAll();
     dc.redrawAll();
   });
 

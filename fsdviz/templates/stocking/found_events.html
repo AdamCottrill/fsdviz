@@ -69,103 +69,95 @@
     <div class="ui fluid container">
 
         <div class="ui grid">
-            <div class="row">
-                <div class="ui container">
-                    <div class="twelve wide column">
-                        <h1>Filtered Stocking Events</h1>
-                    </div>
-                    <div class="four wide column">
-                        <a href="{% url 'stocking:find-stocking-events' %}">Back to Find Events</a>
-                    </div>
-                </div>
-            </div>
-
-
-
             <div class="two wide column" id="left-sidebar">
                 <!-- Left SideBar -->
             </div>
-
             <div class="eleven wide column" id="center-column">
 
                 <div class="row">
-                    <div class="sixteen wide column">
-                        <div class="ui hidden warning message" id="record-count-warning">
-                            <i class="close icon"></i>
-                            <div class="header">
-                                Too many stocking events returned!
+                    <div id="some_id" class="some_class" ></div>
+                    <div class="twelve wide column">
+                        <h1>Filtered Stocking Events</h1>
+                    </div>
+                </div>
+
+                <div class="row" id="limit-exceeded-row">
+                        <div class="sixteen wide column">
+                            <div class="ui hidden warning message" id="record-count-warning">
+                                <i class="close icon"></i>
+                                <div class="header">
+                                    Too many stocking events returned!
+                                </div>
+                                The number of records returned by your selections exceeds
+                                the maximum number of stocking events that can be displayed
+                                by this view. You should return to
+                                <a href="{% url 'stocking:find-stocking-events' %}">Find Stocking Events</a> and refine your search criteria.
                             </div>
-                            The number of records returned by your selections exceeds
-                            the maximum number of stocking events that can be displayed
-                            by this view. You should return to
-                            <a href="{% url 'stocking:find-stocking-events' %}">Find Stocking Events</a> and refine your search criteria.
                         </div>
-                    </div>
                 </div>
 
-                <div class="ui fluid card">
-                    <div class="content">
-                        <div class="header">Map</div>
-                    </div>
-                    <div class="content">
-                        <div id="mapid" style="width: 100%; height: 700px"></div>
-                    </div>
+                <div class="ui fluid card" id="map-card">
+                        <div class="content">
+                            <div class="header">Map</div>
+                        </div>
+                        <div class="content">
+                            <div id="mapid" style="width: 100%; height: 700px"></div>
+                        </div>
                 </div>
-
 
 
                 <div class="ui fluid card" id="stackedbar-chart-card">
-                    <div class="content">
-                        <div class="header">Stocking Over Time</div>
-                    </div>
-                    <div class="content">
+                        <div class="content">
+                            <div class="header">Stocking Over Time</div>
+                        </div>
+                        <div class="content">
 
-                        <div id="stackedbar-chart">
+                            <div id="stackedbar-chart">
 
-                            <div class="ui grid">
-                                <div class="ten wide column">
-                                    <h5> <span id="stackedbar-chart-heading"></span>
-                                        <span>
-                                            <a class="reset" id="stackedbar-chart-reset" href="#" style="display: none;">reset</a>
-                                            <div class="clearfix"></div>
-                                        </span>
-                                    </h5>
-                                </div>
-                                <div class="centered two wide column">
-                                    <div class="ui icon buttons ">
-                                        <button class="mini ui primary button brush-control"  id="stackedbar-previous-year"><i class="left angle icon"></i></button>
-                                        <button class="mini ui primary button brush-control" id="stackedbar-next-year"><i class="right angle icon"></i></button>
+                                <div class="ui grid">
+                                    <div class="ten wide column">
+                                        <h5> <span id="stackedbar-chart-heading"></span>
+                                            <span>
+                                                <a class="reset" id="stackedbar-chart-reset" href="#" style="display: none;">reset</a>
+                                                <div class="clearfix"></div>
+                                            </span>
+                                        </h5>
                                     </div>
-
-                                </div>
-                                <div class="right floated left aligned four wide column">
-                                    <form class="ui form">
-                                        <div class="inline fields">
-                                            <div class="field">
-                                                <div class="ui radio checkbox" data-content="Drag to select or change the year(s) to view">
-                                                    <input class="stackedbar-brush-toggle"
-                                                           id="stackedbar-brush-toggle" type="radio" name="brush-toggle" checked="true" value="brush" tabindex="0" class="hidden">
-                                                    <label>Brush</label>
-                                                </div>
-                                            </div>
-                                            <div class="field">
-                                                <div class="ui radio checkbox" data-content="Hover over each bar to see its details">
-
-                                                    <input class="stackedbar-brush-toggle" id="stackedbar-brush-toggle-tooltip" type="radio" name="brush-toggle" value="tooltip" tabindex="0" class="hidden">
-                                                    <label>Tooltip</label>
-                                                </div>
-                                            </div>
+                                    <div class="centered two wide column">
+                                        <div class="ui icon buttons ">
+                                            <button class="mini ui primary button brush-control"  id="stackedbar-previous-year"><i class="left angle icon"></i></button>
+                                            <button class="mini ui primary button brush-control" id="stackedbar-next-year"><i class="right angle icon"></i></button>
                                         </div>
 
-                                    </form>
+                                    </div>
+                                    <div class="right floated left aligned four wide column">
+                                        <form class="ui form">
+                                            <div class="inline fields">
+                                                <div class="field">
+                                                    <div class="ui radio checkbox" data-content="Drag to select or change the year(s) to view">
+                                                        <input class="stackedbar-brush-toggle"
+                                                               id="stackedbar-brush-toggle" type="radio" name="brush-toggle" checked="true" value="brush" tabindex="0" class="hidden">
+                                                        <label>Brush</label>
+                                                    </div>
+                                                </div>
+                                                <div class="field">
+                                                    <div class="ui radio checkbox" data-content="Hover over each bar to see its details">
+
+                                                        <input class="stackedbar-brush-toggle" id="stackedbar-brush-toggle-tooltip" type="radio" name="brush-toggle" value="tooltip" tabindex="0" class="hidden">
+                                                        <label>Tooltip</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                 </div>
 
 
-                <div class="ui fluid card accordion">
+                <div class="ui fluid card accordion" id="filter-row">
                     <div class="content">
                         <div class="header title active">
                             <div class="ui grid">
@@ -198,13 +190,15 @@
                                                 <td><strong>Jurisdiction(s)</strong></td>
                                                 <td id="jurisdiction-filter">All</td>
                                             </tr>
-
+                                            <tr>
+                                                <td><strong>Management Unit(s)</strong></td>
+                                                <td id="management-unit-filter">All</td>
+                                            </tr>
                                             <tr>
                                                 <td><strong>Agency(ies)</strong></td>
                                                 <td id="agency-filter">All</td>
                                             </tr>
                                         </table>
-
                                     </div>
                                     <div class="ui segment">
                                         <h4>Species And Strain(s)</h4>
@@ -218,7 +212,6 @@
                                                 <td id="strain-filter">All</td>
                                             </tr>
                                         </table>
-
                                     </div>
                                     <div class="ui segment">
                                         <h4>Stocking Method(s)</h4>
@@ -262,7 +255,7 @@
                 </div>
 
 
-                <div class="ui fluid card accordion">
+                <div class="ui fluid card accordion" id="spatial-admin-row">
                     <div class="content">
                         <div class="header title active">
                             <h3>Spatial And Administrative Filters
@@ -310,6 +303,16 @@
                                             </div>
                                         </div>
                                         <div class="column">
+                                            <div id="management-unit-plot">
+                                                <h5>Management Unit
+                                                    <span>
+                                                        <a class="reset" id="management-unit-plot-reset" href="#" style="display: none;">reset</a>
+                                                        <div class="clearfix"></div>
+                                                    </span>
+                                                </h5>
+                                            </div>
+                                        </div>
+                                        <div class="column">
                                             <div id="agency-plot">
                                                 <h5>Agency
                                                     <span>
@@ -327,7 +330,7 @@
                 </div>
 
 
-                <div class="ui fluid card accordion">
+                <div class="ui fluid card accordion" id="species-strain-row">
                     <div class="content">
                         <div class="header title active">
                             <h3>Species And Strains
@@ -367,7 +370,7 @@
 
 
 
-                <div class="ui fluid card accordion">
+                <div class="ui fluid card accordion" id="lifestage-method-month-row">
                     <div class="content">
                         <div class="header title active">
                             <h3>Lifestage, Stocking Method and Month
@@ -418,7 +421,7 @@
                 </div>
 
 
-                <div class="ui fluid card accordion">
+                <div class="ui fluid card accordion" id="clips-marks-tags-row">
                     <div class="content">
                         <div class="header title active">
                             <h3>Clips, Marks, and Tags
@@ -466,8 +469,9 @@
                     </div>
 
                 </div>
-            </div>
 
+
+            </div>
             <div class="three wide column" id="right-sidebar">
                 <div class="ui sticky">
 
