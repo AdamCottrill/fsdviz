@@ -216,12 +216,9 @@
                 </div>
                 <div class="ui four wide column">
                     <div style="padding-top:15px">
-                        {% if object_list %}
-                            <a href="{% url 'stocking:find-cwt-stocking-events' %}">Back to Find CWT Events</a>
-                        {% else %}
+                        {% if not object_list %}
                             <div class="ui negative message">
                                 No CWT stocking events match that criteria! Please refine your filters and try again.
-                                (<a href="{% url 'stocking:find-cwt-stocking-events' %}">Back to Find CWT Events</a>)
                             </div>
                         {% endif %}
                     </div>
