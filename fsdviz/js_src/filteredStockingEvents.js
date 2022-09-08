@@ -1337,8 +1337,6 @@ Promise.all([
     pieg.call(piecharts);
   });
 
-  //
-
   // page load
   dc.renderAll();
   apply_url_filters();

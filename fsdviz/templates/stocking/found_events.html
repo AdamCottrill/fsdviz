@@ -63,15 +63,19 @@
 
 {% endblock %}
 
+{% block title %} Filtered Stocking Events {% endblock title %}
+
 
 {% block content %}
 
     <div class="ui fluid container">
 
         <div class="ui grid">
+
             <div class="two wide column" id="left-sidebar">
                 <!-- Left SideBar -->
             </div>
+
             <div class="eleven wide column" id="center-column">
 
                 <div class="row">
@@ -568,10 +572,10 @@
      //document.getElementById("download-events-button").href();
 
 
-     $(document).ready(function(){
+    $(document).ready(function(){
          let msg = "The waters of each lake within the bounds of the state or province"
          document.getElementById("strata-selector-jurisdiction").parentElement.setAttribute('data-tooltip', msg)
-
+         document.getElementById("category-selector-jurisdiction").parentElement.setAttribute('data-tooltip', msg)
      });
 
 
