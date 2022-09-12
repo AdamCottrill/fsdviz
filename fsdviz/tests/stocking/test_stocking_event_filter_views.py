@@ -150,7 +150,10 @@ class TestStockingEventFilterView:
         response = client.get(url, filter)
         assert response.status_code == 200
 
-        html = '<td> <a href="/stocking/event_detail/{0}/">{0}</a></td>'
+        html = (
+            '<td> <a href="/stocking/event_detail/{0}/" target="_blank" '
+            'rel="noopener noreferrer">{0}</a></td>'
+        )
 
         for value in expected:
             assertContains(response, html.format(value), html=True)
@@ -177,7 +180,10 @@ class TestStockingEventFilterView:
         response = client.get(url, filter)
         assert response.status_code == 200
 
-        html = '<td> <a href="/stocking/event_detail/{0}/">{0}</a></td>'
+        html = (
+            '<td> <a href="/stocking/event_detail/{0}/" target="_blank" '
+            'rel="noopener noreferrer">{0}</a></td>'
+        )
 
         for value in ["1111", "3333"]:
             assertContains(response, html.format(value), html=True)
@@ -200,7 +206,10 @@ class TestStockingEventFilterView:
         response = client.get(url, filter)
         assert response.status_code == 200
 
-        html = '<td> <a href="/stocking/event_detail/{0}/">{0}</a></td>'
+        html = (
+            '<td> <a href="/stocking/event_detail/{0}/"target="_blank" '
+            'rel="noopener noreferrer">{0}</a></td>'
+        )
 
         # these are the RBT and COS:
         for value in ["2222", "4444"]:
