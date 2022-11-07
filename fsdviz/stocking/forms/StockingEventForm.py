@@ -186,7 +186,7 @@ class StockingEventForm(forms.Form):
     )
     length = forms.IntegerField(label="Avg. Length (mm)", min_value=1, required=False)
     weight = forms.FloatField(
-        label="Avg. Weight (g)",
+        label="Total Weight (kg)",
         error_messages={
             "invalid": "Enter a number greater than or equal to 0.01.",
             "min_value": "Weight is optional, but must be greater than or equal to 0.01.",
