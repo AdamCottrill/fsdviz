@@ -14,5 +14,5 @@ pyodbc==4.0.31
 pylint==2.7.4
 pylint-django==2.4.3
 httpie==2.4.0
-Werkzeug==1.0.1
+Werkzeug==2.2.3
 pyshp==2.1.3
