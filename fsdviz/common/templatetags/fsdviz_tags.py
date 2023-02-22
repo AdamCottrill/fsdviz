@@ -39,6 +39,7 @@ def format_cwt(x):
     """
     format cwts as 63-03-99
     """
+
     x = str(x)
     cwt = "-".join([x[:2], x[2:4], x[4:6]])
     return cwt
