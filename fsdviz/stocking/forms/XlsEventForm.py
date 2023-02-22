@@ -106,7 +106,7 @@ class XlsEventForm(forms.Form):
 
     ## {'bbox': (-92.094077, 41.38080, -76.059172, 49.0158109)}
     latitude = forms.FloatField(required=False, min_value=41.3, max_value=49.1)
-    longitude = forms.FloatField(required=False, min_value=-92.0, max_value=-76.0)
+    longitude = forms.FloatField(required=False, min_value=-92.4, max_value=-76.0)
     site = forms.CharField(required=True)
     st_site = forms.CharField(required=False)
 

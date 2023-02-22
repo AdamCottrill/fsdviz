@@ -647,10 +647,10 @@ class StockingEvent(models.Model):
         )
 
         if len(fin_clips):
-
+            # TODO: change NO to NC
             if "NO" in [x[0] for x in fin_clips]:
                 fin_clip, created = FinClip.objects.get_or_create(
-                    abbrev="UN", defaults={"description": "No Clip"}
+                    abbrev="NO", defaults={"description": "No Clip"}
                 )
                 abbrev = "NO"
                 description = fin_clip.description

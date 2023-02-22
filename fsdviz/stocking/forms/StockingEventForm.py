@@ -367,9 +367,18 @@ class StockingEventForm(forms.Form):
 
         fin_clips = self.cleaned_data.get("fin_clips", [])
 
-        if ("NO" in fin_clips or "UN" in fin_clips) and len(fin_clips) > 1:
+        single_clips = ["NO", "NC", "UN"]
+
+        if any(x in single_clips for x in fin_clips) and len(fin_clips) > 1:
+            # delete this block when NO has been purged.
             if "NO" in fin_clips:
                 msg = '"No fin clip (NO)" cannot be combined with another fin clip.'
+                raise forms.ValidationError(
+                    msg, code="invalid_finclip_includes_no_clip"
+                )
+
+            if "NC" in fin_clips:
+                msg = '"No fin clip (NC)" cannot be combined with another fin clip.'
                 raise forms.ValidationError(
                     msg, code="invalid_finclip_includes_no_clip"
                 )

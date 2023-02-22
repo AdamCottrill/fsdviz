@@ -22,7 +22,7 @@
 
 {% endblock %}
 
-{% block title %}  {{cwt.cwt_number | format_cwt}} CWT Detail {% endblock title %}
+{% block title %}  {{cwts.0.cwt_number|format_cwt}} CWT Detail {% endblock title %}
 
 {% block navbar_search %}
 
@@ -41,9 +41,7 @@
             </div>
         </form>
     </div>
-
 {% endblock navbar_search%}
-
 
 
 {% block content %}
