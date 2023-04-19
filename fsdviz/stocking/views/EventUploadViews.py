@@ -388,6 +388,8 @@ def xls_events(request):
 
                         # ForeigmKeyFields
                         # data["agency_id"] = agency
+                        stock_id = data.pop("stock_id")
+                        data["stock_id"] = str(stock_id)
                         data["lifestage_id"] = lifestage
                         data["stocking_method_id"] = stocking_method
                         data["grid_10_id"] = grid
@@ -407,7 +409,15 @@ def xls_events(request):
 
                         data["agency"] = agency
 
-                        event = StockingEvent(**data)
+                        try:
+                            event = StockingEvent.objects.get(stock_id=stock_id)
+                        except StockingEvent.DoesNotExist:
+                            event = None
+                        if event:
+                            for attr, value in data.items():
+                                setattr(event, attr, value)
+                        else:
+                            event = StockingEvent(**data)
                         event.save()
 
                         # add any finclips, marks, and tags here:
