@@ -136,7 +136,10 @@ def xls2dicts(data_file):
     first_data_row = settings.UPLOAD_FIRST_DATA_ROW - 1
     data_sheet_name = settings.DATA_WORKSHEET_NAME
 
-    wb = load_workbook(filename=data_file.open(), data_only=True)
+    if hasattr(data_file, "open"):
+        wb = load_workbook(filename=data_file.open(), data_only=True)
+    else:
+        wb = load_workbook(filename=data_file, data_only=True)
     ws = wb[data_sheet_name]
 
     data = []

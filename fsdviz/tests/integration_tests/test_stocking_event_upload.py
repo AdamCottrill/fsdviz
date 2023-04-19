@@ -149,6 +149,7 @@ def test_xls_or_xlsx_files(client, glsc, fname):
     assertTemplateUsed("stocking/upload_stocking_events.html")
 
 
+@pytest.mark.django_db
 def test_unauthorized_users_redirected(client):
     """If an *UN*authorized user accesses the upload url, they will be
     redircted to the login page.

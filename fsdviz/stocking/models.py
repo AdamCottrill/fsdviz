@@ -635,7 +635,7 @@ class StockingEvent(models.Model):
         already exists associated it with the existing stocking event,
         otherwise created it.
 
-        If the fin clip includes NO or UN return just those, unknown
+        If the fin clip includes NC or UN return just those, unknown
         and no clip are exclusive of all other clip codes.
 
         Arguments: - `self`: a stocking event object
@@ -647,12 +647,11 @@ class StockingEvent(models.Model):
         )
 
         if len(fin_clips):
-            # TODO: change NO to NC
-            if "NO" in [x[0] for x in fin_clips]:
+            if "NC" in [x[0] for x in fin_clips]:
                 fin_clip, created = FinClip.objects.get_or_create(
-                    abbrev="NO", defaults={"description": "No Clip"}
+                    abbrev="NC", defaults={"description": "No Clip"}
                 )
-                abbrev = "NO"
+                abbrev = "NC"
                 description = fin_clip.description
             elif "UN" in [x[0] for x in fin_clips]:
                 fin_clip, created = FinClip.objects.get_or_create(
