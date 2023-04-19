@@ -64,6 +64,8 @@ DJANGO_APPS = [
     "django.contrib.gis",
     "django.contrib.admindocs",
     "django.contrib.humanize",
+    "django.contrib.sites",
+    "django.contrib.flatpages",
 ]
 
 THIRD_PARTY_APPS = [
@@ -85,6 +87,8 @@ THIRD_PARTY_APPS = [
 MY_APPS = ["fsdviz.myusers", "fsdviz.common", "fsdviz.stocking", "fsdviz.recovery"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + MY_APPS
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",

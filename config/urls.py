@@ -18,6 +18,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
+from django.contrib.flatpages import views as flatpage_views
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from fsdviz.myusers.views import account_redirect
@@ -107,6 +108,13 @@ urlpatterns = [
     path("login/", account_redirect, name="account-redirect"),
     path("users/", include("fsdviz.myusers.urls")),
     path("users/", include("django.contrib.auth.urls")),
+    path(
+        "about/",
+        flatpage_views.flatpage,
+        {"url": "/about/"},
+        name="about",
+    ),
+    path("pages/", include("django.contrib.flatpages.urls")),
     path("shared/", include("fsdviz.common.urls", namespace="common")),
     path("stocking/", include("fsdviz.stocking.urls", namespace="stocking")),
     path("resource_library/", include("resource_library.urls", "resource_library")),
