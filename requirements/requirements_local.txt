@@ -112,7 +112,7 @@ pytz==2022.1
     # via
     #   babel
     #   django
-requests[socks]==2.27.1
+requests[socks]==2.31.0
     # via
     #   httpie
     #   requests-toolbelt
