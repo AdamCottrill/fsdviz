@@ -17,7 +17,7 @@ from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.geos import GEOSGeometry, Point, Polygon
 from django.contrib.gis.geos.error import GEOSException
 from django.db.models import Q
-from django.utils.html import format_html
+
 
 from django_filters import BaseInFilter, CharFilter, NumberFilter
 
@@ -520,22 +520,3 @@ def parseFinClip(clip):
     """
 
     return [clip[i : i + 2] for i in range(0, len(clip), 2)]
-
-
-def fill_color_widget(color):
-    """Return an html div formatted as a rectangle, filled with the
-    specifed color. Used to display the fill colour on the django
-    admin list views.
-
-    """
-    html = format_html(
-        """<div id="rectangle"
-            style="width:20px;
-            height:20px;
-            border-style:solid;
-            border-width:1px;
-            border-color:#808080;
-            background-color:{0}"></div>""",
-        color,
-    )
-    return html
