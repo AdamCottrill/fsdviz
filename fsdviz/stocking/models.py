@@ -12,6 +12,7 @@ from django.urls import reverse
 from colorfield.fields import ColorField
 
 from fsdviz.common.models import (
+    BaseModel,
     Agency,
     CompositeFinClip,
     FinClip,
@@ -24,15 +25,13 @@ from fsdviz.common.models import (
     Mark,
     PhysChemMark,
     Species,
-    StateProvince,
-    Strain,
     StrainRaw,
 )
 from fsdviz.common.utils import is_uuid4, unique_string
 from fsdviz.myusers.models import CustomUser
 
 
-class DataUploadEvent(models.Model):
+class DataUploadEvent(BaseModel):
     """
     A model to capture data upload events - who, when, which events...
     """
@@ -99,11 +98,10 @@ class DataUploadEvent(models.Model):
         return "{}-{} ({})".format(lake, agency, date_string)
 
     def get_absolute_url(self):
-
         return reverse("stocking:data-upload-event-detail", kwargs={"slug": self.slug})
 
 
-class LifeStage(models.Model):
+class LifeStage(BaseModel):
     """
     A model to capture the lifestage of the stocked fish.
     """
@@ -119,7 +117,7 @@ class LifeStage(models.Model):
         return "{} ({})".format(self.description, self.abbrev)
 
 
-class YearlingEquivalent(models.Model):
+class YearlingEquivalent(BaseModel):
     """A model to capture the species and lifestage specific factors used
     to convert the number of fish stocked to yearling equivalents
 
@@ -147,9 +145,13 @@ class YearlingEquivalent(models.Model):
 
 
 class Condition(models.Model):
-    """
-    A model to capture the condition of the stocked when they were
+    """A model to capture the condition of the stocked when they were
     stocked.
+
+    *NOTE:* This model does not inherit form the base model (with
+     created and modified timestamps).  Inheriting from that model
+     corrupted tests (- migrations during database creation.)
+
     """
 
     condition = models.IntegerField(unique=True)
@@ -173,7 +175,7 @@ def get_default_condition():
     return condition.id
 
 
-class StockingMethod(models.Model):
+class StockingMethod(BaseModel):
     """
     A model to capture the method used to the stock the fish.
     """
@@ -189,7 +191,7 @@ class StockingMethod(models.Model):
         return "{} ({})".format(self.description, self.stk_meth)
 
 
-class Hatchery(models.Model):
+class Hatchery(BaseModel):
     """
     A model to capture the last hatchery that reared the fish.
     """
@@ -240,10 +242,10 @@ class Hatchery(models.Model):
 
 # TODO: Add table for known stocking sites - this may have to be a many-to-many
 # to accomodate site aliases similar to strains-strainsRaw.
-# class StockingSite(models.Model):
+# class StockingSite(BaseModel):
 
 
-class StockingEvent(models.Model):
+class StockingEvent(BaseModel):
     """
     A model to capture actual stocking events - 'a pipe in the water'.
     """
@@ -487,7 +489,6 @@ class StockingEvent(models.Model):
             self.date = None
 
         if self.id:
-
             self.mark = self.get_physchem_code()
             self.clip_code = self.get_composite_clip_code()
 

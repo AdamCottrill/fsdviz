@@ -218,6 +218,17 @@
                                         <td id="validation">{{ object.get_validation_display|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
+                                    <tr class="extra-detail">
+                                        <td><strong>Record Created:</strong></td>
+                                        <td id="record-created">{{ object.created_timestamp|date:"F j, Y, g:i a" }}</td>
+                                    </tr>
+                                    <tr class="extra-detail">
+                                        <td><strong>Record Last Modified:</strong></td>
+                                        <td id="record-modified">{{ object.modified_timestamp|date:"F j, Y, g:i a" }}</td>
+                                    </tr>
+
+
+
                                 </table>
 
 
