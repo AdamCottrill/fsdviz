@@ -7,4 +7,8 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(LatLonFlag)
 class LatLonFlagModelAdmin(admin.ModelAdmin):
-    list_display = ("value", "description")
+    list_display = (
+        "value",
+        "description",
+        "modified_timestamp",
+    )

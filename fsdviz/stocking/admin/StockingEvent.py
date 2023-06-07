@@ -19,6 +19,7 @@ class StockingEventModelAdmin(admin.ModelAdmin):
         "date",
         "site",
         "no_stocked",
+        "modified_timestamp",
     )
     list_select_related = (
         "species",

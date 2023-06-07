@@ -8,7 +8,12 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(StockingMethod)
 class StockingMethodModelAdmin(admin.ModelAdmin):
-    list_display = ("stk_meth", "description", "fill_color")
+    list_display = (
+        "stk_meth",
+        "description",
+        "fill_color",
+        "modified_timestamp",
+    )
     search_fields = ("stk_meth", "description")
 
     def fill_color(self, obj):

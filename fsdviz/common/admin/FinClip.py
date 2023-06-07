@@ -7,7 +7,12 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(FinClip)
 class FinClipModelAdmin(admin.ModelAdmin):
-    list_display = ("abbrev", "description", "fill_color")
+    list_display = (
+        "abbrev",
+        "description",
+        "fill_color",
+        "modified_timestamp",
+    )
     list_filter = ("abbrev",)
     search_fields = ("abbrev", "description")
 

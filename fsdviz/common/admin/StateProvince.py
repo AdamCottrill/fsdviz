@@ -8,7 +8,13 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(StateProvince)
 class StateProvinceModelAdmin(admin.GeoModelAdmin):
-    list_display = ("name", "abbrev", "country", "fill_color")
+    list_display = (
+        "name",
+        "abbrev",
+        "country",
+        "fill_color",
+        "modified_timestamp",
+    )
 
     def fill_color(self, obj):
         return fill_color_widget(obj.color)

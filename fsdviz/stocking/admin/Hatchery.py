@@ -8,7 +8,14 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(Hatchery)
 class HatcheryModelAdmin(admin.ModelAdmin):
-    list_display = ("hatchery_name", "abbrev", "hatchery_type", "agency", "active")
+    list_display = (
+        "hatchery_name",
+        "abbrev",
+        "hatchery_type",
+        "agency",
+        "active",
+        "modified_timestamp",
+    )
     list_select_related = ("agency",)
     list_filter = (
         "active",

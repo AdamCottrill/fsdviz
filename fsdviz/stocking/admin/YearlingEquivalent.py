@@ -7,7 +7,13 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(YearlingEquivalent)
 class YearlingEquivalentModelAdmin(admin.ModelAdmin):
-    list_display = ("species", "lifestage", "yreq_factor", "comment")
+    list_display = (
+        "species",
+        "lifestage",
+        "yreq_factor",
+        "comment",
+        "modified_timestamp",
+    )
     list_filter = ("species", "lifestage")
     search_fields = ("species", "lifestage")
 

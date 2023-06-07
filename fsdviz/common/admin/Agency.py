@@ -6,7 +6,12 @@ from ..models import Agency
 
 @admin.register(Agency)
 class AgencyModelAdmin(admin.ModelAdmin):
-    list_display = ("agency_name", "abbrev", "fill_color")
+    list_display = (
+        "agency_name",
+        "abbrev",
+        "fill_color",
+        "modified_timestamp",
+    )
     search_fields = ("agency_name", "abbrev")
 
     def fill_color(self, obj):

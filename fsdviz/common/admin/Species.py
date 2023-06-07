@@ -7,7 +7,14 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(Species)
 class SpeciesModelAdmin(admin.ModelAdmin):
-    list_display = ("abbrev", "common_name", "scientific_name", "active", "fill_color")
+    list_display = (
+        "abbrev",
+        "common_name",
+        "scientific_name",
+        "active",
+        "fill_color",
+        "modified_timestamp",
+    )
     search_fields = ["abbrev", "common_name"]
     list_filter = [
         "active",

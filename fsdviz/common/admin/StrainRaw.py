@@ -14,6 +14,7 @@ class StrainRawModelAdmin(admin.ModelAdmin):
         "strain",
         "active",
         "fill_color",
+        "modified_timestamp",
     )
     list_filter = ("species", "active")
     search_fields = ("description", "raw_strain")

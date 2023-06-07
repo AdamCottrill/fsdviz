@@ -8,7 +8,14 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(Jurisdiction)
 class JurisdictionModelAdmin(admin.GeoModelAdmin):
-    list_display = ("name", "lake", "stateprov", "description", "fill_color")
+    list_display = (
+        "name",
+        "lake",
+        "stateprov",
+        "description",
+        "fill_color",
+        "modified_timestamp",
+    )
     list_filter = ("lake", "stateprov")
 
     def fill_color(self, obj):

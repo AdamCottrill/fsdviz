@@ -13,6 +13,7 @@ class StrainModelAdmin(admin.ModelAdmin):
         "strain_label",
         "active",
         "fill_color",
+        "modified_timestamp",
     )
     # list_select_related = ('strain_species',)
     list_filter = ("active", "strain_species", "strain_code")
