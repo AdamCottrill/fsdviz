@@ -65,6 +65,12 @@ class StockingEventModelAdmin(admin.ModelAdmin):
         "yreq_stocked",
         "notes",
     ]
+
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )
+
     date_hierarchy = "date"
     view_on_site = True
 

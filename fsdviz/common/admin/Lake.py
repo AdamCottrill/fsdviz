@@ -8,6 +8,11 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(Lake)
 class LakeModelAdmin(admin.GeoModelAdmin):
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )
+
     list_display = (
         "lake_name",
         "abbrev",

@@ -17,6 +17,11 @@ class YearlingEquivalentModelAdmin(admin.ModelAdmin):
     list_filter = ("species", "lifestage")
     search_fields = ("species", "lifestage")
 
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )
+
     ordering = ("species__common_name", "yreq_factor")
 
     def get_readonly_fields(self, request, obj=None):

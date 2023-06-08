@@ -19,6 +19,11 @@ class StrainModelAdmin(admin.ModelAdmin):
     list_filter = ("active", "strain_species", "strain_code")
     search_fields = ("strain_label", "strain_code")
 
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )
+
     def get_queryset(self, request):
         qs = super(StrainModelAdmin, self).get_queryset(request)
         return qs.distinct()

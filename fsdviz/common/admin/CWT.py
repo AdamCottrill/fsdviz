@@ -17,3 +17,7 @@ class CWTModelAdmin(admin.ModelAdmin):
     )
     search_fields = ("cwt_number",)
     list_filter = ("tag_type", "manufacturer")
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )

@@ -12,3 +12,8 @@ class LatLonFlagModelAdmin(admin.ModelAdmin):
         "description",
         "modified_timestamp",
     )
+
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )

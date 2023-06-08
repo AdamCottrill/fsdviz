@@ -8,6 +8,11 @@ admin.site.empty_value_display = "(None)"
 
 @admin.register(Jurisdiction)
 class JurisdictionModelAdmin(admin.GeoModelAdmin):
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )
+
     list_display = (
         "name",
         "lake",

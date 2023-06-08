@@ -16,3 +16,8 @@ class MarkModelAdmin(admin.ModelAdmin):
     )
     list_filter = ("mark_type",)
     search_fields = ("description", "mark_code")
+
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )

@@ -15,3 +15,9 @@ class Grid10Admin(admin.GeoModelAdmin):
     )
     list_filter = ("lake",)
     search_fields = ("grid",)
+
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )
+

@@ -21,6 +21,11 @@ class StrainRawModelAdmin(admin.ModelAdmin):
 
     list_select_related = ("strain", "species", "strain__strain_species")
 
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "strain":
             object_id = request.resolver_match.kwargs.get("object_id")

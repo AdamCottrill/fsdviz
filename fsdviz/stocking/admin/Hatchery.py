@@ -23,3 +23,7 @@ class HatcheryModelAdmin(admin.ModelAdmin):
         "agency",
     )
     search_fields = ["hatchery_name", "abbrev"]
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )
