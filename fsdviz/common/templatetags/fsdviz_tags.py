@@ -4,8 +4,10 @@ application.
 
 """
 
-from django import template
 import calendar
+
+from django import template
+from django.core.paginator import Paginator
 
 register = template.Library()
 
@@ -172,3 +174,52 @@ def month_name(month_number):
         return None
     else:
         return calendar.month_name[month_number]
+
+
+def get_elided_page_range(paginator, number=1, *, on_each_side=3, on_ends=2):
+    """Return a 1-based range of pages with some values elided.
+
+    If the page range is larger than a given size, the whole range is not
+    provided and a compact form is returned instead, e.g. for a paginator
+    with 50 pages, if page 43 were the current page, the output, with the
+    default arguments, would be:
+
+        1, 2,  , 40, 41, 42, 43, 44, 45, 46,  , 49, 50.
+
+    COPIED FROM DJANGO==3.2 source code.  This will no longer be
+    necessary when we upgrade to 3.2 or greater.
+
+    """
+    number = paginator.validate_number(number)
+
+    ELLIPSIS = "..."
+
+    if paginator.num_pages <= (on_each_side + on_ends) * 2:
+        yield from paginator.page_range
+        return
+
+    if number > (1 + on_each_side + on_ends) + 1:
+        yield from range(1, on_ends + 1)
+        yield ELLIPSIS
+        yield from range(number - on_each_side, number + 1)
+    else:
+        yield from range(1, number + 1)
+
+    if number < (paginator.num_pages - on_each_side - on_ends) - 1:
+        yield from range(number + 1, number + on_each_side + 1)
+        yield ELLIPSIS
+        yield from range(paginator.num_pages - on_ends + 1, paginator.num_pages + 1)
+    else:
+        yield from range(number + 1, paginator.num_pages + 1)
+
+
+@register.simple_tag
+def get_adjusted_elided_page_range(p, number, on_each_side=2, on_ends=2):
+    paginator = Paginator(p.object_list, p.per_page)
+    # DJANGO >=3.2:
+    # return paginator.get_elided_page_range(
+    #    number=number, on_each_side=on_each_side, on_ends=on_ends
+    # )
+    return get_elided_page_range(
+        paginator, number=number, on_each_side=on_each_side, on_ends=on_ends
+    )

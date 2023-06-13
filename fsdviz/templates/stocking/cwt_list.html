@@ -30,75 +30,85 @@
 
 {% block navbar_search %}
 
-<div class="right menu" id="cwt-menu-search">
-    <form id="menu-search-form" class="item">
-    <div class="ui right aligned category search item">
-      <div class="ui transparent icon input">
-        <input
-          class="prompt"
-          type="text"
-          placeholder="CWT contains..."
-            name="contains"
-            required
-        />
-        <i id="menu-search-icon" class="search link icon"></i>
-      </div>
+    <div class="right menu" id="cwt-menu-search">
+        <form id="menu-search-form" class="item">
+            <div class="ui right aligned category search item">
+                <div class="ui transparent icon input">
+                    <input
+                        class="prompt"
+                        type="text"
+                        placeholder="CWT contains..."
+                        name="contains"
+                        required
+                    />
+                    <i id="menu-search-icon" class="search link icon"></i>
+                </div>
+            </div>
+        </form>
     </div>
-  </form>
-</div>
 
 {% endblock navbar_search%}
 
 {% block content %}
 
-<div class="ui container fluid" id="content">
-  <div class="ui grid">
-    <div class="two wide column">
-      {% include 'stocking/_refine_events_sidebar.html' %}
-    </div>
-    <div class="fourteen wide column">
-      <div class="ui grid">
-        <div class="row">
-          <div class="ui column">
-            {% if filters %}
+    <div class="ui container fluid" id="content">
+        <div class="ui grid">
+            <div class="two wide column">
+                {% include 'stocking/_refine_events_sidebar.html' %}
+            </div>
+            <div class="fourteen wide column">
+                <div class="ui grid">
+                    <div class="row">
+                        <div class="ui column">
 
-                {% for filter, values in filters.items %}
+                            <h1>Coded Wire Tag Stocking Events</h1>
 
-            <a
-              href="{% strip_parameter param=filter %}"
-              class="mini ui icon {{ filter | filter_colour }} button"
-            >
-              {{ filter }} = {{values}}
-                <i class="times icon"></i>
-            </a>
+                            {% if filters %}
+                                <div class="row">
+                                    {% for filter, values in  filters.items %}
+                                        {% if filter != 'page' %}
+                                            <a href="{% strip_parameter param=filter %}" class="mini ui icon {{ filter | filter_colour }} button">
+                                                {{ filter }} = {{values}}
+                                                <i class="times icon"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
 
-            {% endfor %}
+                                </div>
+                            {% endif %}
 
-            {% if  event_count < max_event_count %}
 
-            <a
-              href="#"
-              id="visualize-events-btn"
-              class="mini ui icon right floated green button"
-            >
-              Visualize CWT Events
-              <i class="map marked alternate icon"></i>
-            </a>
 
-            <a
-              href="#"
-              id="download-events-btn"
-              class="mini ui icon right floated primary button"
-            >
-              Download CWT Events
-              <i class="arrow alternate circle down icon"></i>
-            </a>
+                            <div class="row">
 
-            {% endif %}
+                                {% include '_paginator.html' %}
 
-            {% endif %}
 
-{% include '_paginator.html' %}
+                                {% if  filters and event_count < max_event_count %}
+
+                                    <a
+                                        href="#"
+                                        id="visualize-events-btn"
+                                        class="mini ui icon right floated green button"
+                                    >
+                                        Visualize CWT Events
+                                        <i class="map marked alternate icon"></i>
+                                    </a>
+
+                                    <a
+                                        href="#"
+                                        id="download-events-btn"
+                                        class="mini ui icon right floated primary button"
+                                    >
+                                        Download CWT Events
+                                        <i class="arrow alternate circle down icon"></i>
+                                    </a>
+
+                                {% endif %}
+
+                            </div>
+
+
 
             <table
               id="cwt-list"
