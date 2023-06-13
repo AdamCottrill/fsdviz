@@ -31,6 +31,24 @@ class BaseModel(models.Model):
         abstract = True
 
 
+class Image(models.Model):
+    """A model to hold images uploaded by our super-users to that they can
+    be referenced in our documentation (data dictionary ect)."""
+
+    id = models.AutoField(primary_key=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+    title = models.CharField(max_length=255, unique=True)
+    file = models.ImageField(upload_to="uploaded_images")
+
+    def __str__(self):
+        """String representation for an image object."""
+        return f"{self.title}({self.file.url})"
+
+    def get_absolute_url(self):
+        return (self.file and self.file.url) or ""
+
+
 class BuildDate(BaseModel):
     """
     A database to hold the date that the database was last refreshed.

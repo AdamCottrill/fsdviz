@@ -6,6 +6,7 @@ from .CWT import CWTModelAdmin
 from .FinClip import FinClipModelAdmin
 from .FishTag import FishTagModelAdmin
 from .Grid10 import Grid10Admin
+from .Image import ImageModelAdmin
 from .Jurisdiction import JurisdictionModelAdmin
 from .Lake import LakeModelAdmin
 from .LatLonFlag import LatLonFlagModelAdmin
