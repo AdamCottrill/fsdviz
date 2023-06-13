@@ -234,4 +234,5 @@ RESOURCE_LIBRARY_ALLOWED_EXTENTIONS = [
     "pptx",
     "r",
     "rmd",
+    ".zip",
 ]

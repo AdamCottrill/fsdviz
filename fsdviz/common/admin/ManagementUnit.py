@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.gis import admin, geos
 
 from ..models import Grid10, ManagementUnit, Jurisdiction
+
 from .utils import (
     fill_color_widget,
     geom_file_field,
@@ -95,11 +96,6 @@ class ManagementUnitModelAdmin(admin.GeoModelAdmin):
         "created_timestamp",
         "modified_timestamp",
     )
-
-    # some day soon - change the geometry, and re-save all associated events:
-    # actions = [
-    #     update_spatial_relationships,
-    # ]
 
     def fill_color(self, obj):
         return fill_color_widget(obj.color)

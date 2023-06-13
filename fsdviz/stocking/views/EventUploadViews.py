@@ -69,7 +69,6 @@ def upload_events(request):
     # data = {}
     maxEvents = settings.MAX_UPLOAD_EVENT_COUNT
     if request.method == "POST":
-
         form = DataUploadForm(request.POST, request.FILES)
 
         if form.is_valid():
@@ -232,13 +231,11 @@ def xls_events(request):
     cache["point_polygons"] = point_polygons
 
     if request.method == "POST":
-
         formset = EventFormSet(
             request.POST, form_kwargs={"choices": choices, "cache": cache}
         )
         event_count = formset.total_form_count()
         if formset.is_valid():
-
             # create our lookup dicts that relate abbrev to django objects -
             # we will need them for our front end validation and for
             # processing the submitted form:
@@ -299,7 +296,8 @@ def xls_events(request):
 
                     def restore_trigger():
                         """A function to be called after the transaction is complete.  Cannot
-                        take arguments and must use the same cursor as our transaction"""
+                        take arguments and must use the same cursor as our transaction
+                        """
 
                         enable_trigger = """ALTER TABLE stocking_stockingevent
                         ENABLE TRIGGER update_reused_cwt_flags_trigger"""
@@ -462,7 +460,6 @@ def xls_events(request):
             print(formset_errors)
 
     else:
-
         formset = EventFormSet(
             initial=xls_events, form_kwargs={"choices": choices, "cache": cache}
         )
@@ -564,7 +561,6 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
         return super(DataUploadEventListView, self).get(*args, **kwargs)
 
     def get_queryset(self):
-
         queryset = (
             DataUploadEvent.objects.select_related("agency", "lake", "uploaded_by")
             .prefetch_related(

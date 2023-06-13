@@ -26,9 +26,10 @@ are upgraded, base.in should be edited and pip-compile re-run.
 This file contains all of the packages that are needed to run the
 application in production mode as well as several packages that are
 used during development for testing, documentation, or code checking.
-The pyshp library is required to read shapefiles of management units
-but isn't necessary if you are not interacting with spatial data.
-g
+For example, the ~pyshp~ library is required to read shapefiles of
+management units but isn't necessary if you are not interacting with
+spatial data.
+
 This file is created by pip-tools based on the contents of both
 `base.in` and `local.in`.  If new packages are required for the
 development, testing, or development of the application, or existing
