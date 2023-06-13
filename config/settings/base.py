@@ -88,6 +88,7 @@ MY_APPS = ["fsdviz.myusers", "fsdviz.common", "fsdviz.stocking", "fsdviz.recover
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + MY_APPS
 
+# default for flat pages app (/about/).
 SITE_ID = 1
 
 MIDDLEWARE = [
