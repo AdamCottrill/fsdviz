@@ -18,7 +18,7 @@ Centroid = namedtuple("Centroid", "ddlat, ddlon")
 MARKS = [
     # mark_code, clip_code, description, mark_type
     ("XX", "", "No Data", "unknown"),
-    ("NO", "0", "No Clip", "finclip"),
+    ("NC", "0", "No Clip", "finclip"),
     ("RP", "1", "Right Pectoral Fin Clip", "finclip"),
     ("LP", "2", "Left Pectoral Fin Clip", "finclip"),
     ("RV", "3", "Right Ventral Fin Clip", "finclip"),
@@ -43,7 +43,7 @@ MARKS = [
 ]
 
 MARK_SHOULDBE = {
-    "NONE": "NO",
+    "NONE": "NC",
     "BP": "LPRP",
     "BV": "LVRV",
     "FTG": "FT",
@@ -53,7 +53,7 @@ MARK_SHOULDBE = {
 }
 CLIP2MARK = {
     # ontario clip codes to US MARKS:
-    "0": "NO",
+    "0": "NC",
     "1": "RP",
     "2": "LP",
     "3": "RV",

@@ -61,3 +61,6 @@ DATABASES = {
 # CORS_ORIGIN_WHITELIST += [
 #     "localhost:3000",
 # ]
+
+
+MAX_UPLOAD_EVENT_COUNT = 1000

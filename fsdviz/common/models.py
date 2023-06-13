@@ -534,7 +534,7 @@ class Mark(BaseModel):
 class FinClip(BaseModel):
     """Stores a type of Fin clip - These are associated to Stocking Events
     through a many-to-many relationship. The reported clip codes are
-    composites of these values. With the exception of NO (no clips) and
+    composites of these values. With the exception of NC (no clips) and
     UN (unknown clip status) - these are mutually exclusive of each
     other and all other fin clips.
 

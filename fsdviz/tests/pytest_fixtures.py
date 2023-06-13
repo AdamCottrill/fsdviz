@@ -228,7 +228,7 @@ def finclips(db):
     """populate the database some finclips."""
 
     FIN_CLIPS = (
-        ("NO", "No Clip"),
+        ("NC", "No Clip"),
         ("UN", "Unknown Status"),
         ("AD", "Adipose"),
         ("LP", "Left Pectoral"),
