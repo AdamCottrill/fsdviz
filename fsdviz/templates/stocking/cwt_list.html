@@ -9,19 +9,25 @@
 {% block extra_head %}
 
     <style>
-     /* body { margin:0;
+        /* body { margin:0;
         position:fixed;
         top:0;
         right:0;
         bottom:0;
         left:0;
         }
-      */
+        */
 
-     #content {
-         padding-left: 10px;
-         padding-right: 10px;
+#content {
+        padding-left: 10px;
+        padding-right: 10px;
+        }
+        .segment > .button {
+         margin-top:10px;
+         margin-bottom: 0.5em;
      }
+
+
     </style>
 
 {% endblock %}
@@ -79,17 +85,16 @@
 
 
 
-                            <div class="row">
+                            <div class="ui basic segment">
 
                                 {% include '_paginator.html' %}
-
 
                                 {% if  filters and event_count < max_event_count %}
 
                                     <a
                                         href="#"
                                         id="visualize-events-btn"
-                                        class="mini ui icon right floated green button"
+                                        class="small ui icon right floated green button"
                                     >
                                         Visualize CWT Events
                                         <i class="map marked alternate icon"></i>
@@ -98,7 +103,7 @@
                                     <a
                                         href="#"
                                         id="download-events-btn"
-                                        class="mini ui icon right floated primary button"
+                                        class="small ui icon right floated primary button"
                                     >
                                         Download CWT Events
                                         <i class="arrow alternate circle down icon"></i>
