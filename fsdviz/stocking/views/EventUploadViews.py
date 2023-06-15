@@ -354,7 +354,7 @@ def xls_events(request):
                             if finclip_lookup.get(x) is not None
                         ]
 
-                        cwts = data.pop("tag_no", "")
+                        cwts = data.get("tag_no", "")
                         if cwts != "":
                             cwts = cwts.replace(" ", "").replace(";", ",").split(",")
                         tag_list = data.pop("tag_type")
@@ -415,6 +415,9 @@ def xls_events(request):
                             for attr, value in data.items():
                                 setattr(event, attr, value)
                         else:
+                            # we know stock_id doesn't exist and we
+                            # will need to create a new one:
+                            data.pop("stock_id")
                             event = StockingEvent(**data)
                         event.save()
 

@@ -5,6 +5,7 @@ application.
 """
 
 import calendar
+import re
 
 from django import template
 from django.core.paginator import Paginator
@@ -160,6 +161,26 @@ def last_year(context, year):
     if query:
         mypath += "?" + query.urlencode()
     return mypath
+
+
+@register.filter
+def humanize_error_label(label, zero_index=True):
+    """A helper function used to convert server errors returned from
+    formset validation into human readable label
+
+    converts: 'id_form-10-__all__' to 'Row 11'
+
+    """
+
+    regex = re.compile("id_form-(\d{1,3})")
+    match = regex.search(label)
+    if match:
+        value = int(match.group(1))
+        if zero_index:
+            value = value + 1
+        return f"Row {value}"
+    else:
+        return lable
 
 
 @register.filter
