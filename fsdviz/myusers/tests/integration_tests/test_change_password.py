@@ -28,15 +28,16 @@ from fsdviz.myusers.models import CustomUser
 from fsdviz.myusers.tests.fixtures import joe_user
 
 
+@pytest.mark.django_db
 def test_change_password_form_anonymous_user(client):
     """if someone who is not logged in tried to access the change-password
     url, they should be re-directed to the login page"""
 
-    response = client.get(reverse('password_change'), follow=True)
-    assert 'registration/login.html' in [t.name for t in response.templates]
+    response = client.get(reverse("password_change"), follow=True)
+    assert "registration/login.html" in [t.name for t in response.templates]
     assert response.status_code == 200
 
-    content = response.content.decode('utf-8')
+    content = response.content.decode("utf-8")
 
     assert "Login" in content
     assert "Email address:" in content
@@ -51,17 +52,17 @@ def test_change_password_form_user(client, joe_user):
     """
 
     email = joe_user.email
-    password = 'Abcd1234'
+    password = "Abcd1234"
 
     client.login(username=email, password=password)
 
-    response = client.get(reverse('password_change'), follow=True)
-    assert 'registration/password_change_form.html' in [
+    response = client.get(reverse("password_change"), follow=True)
+    assert "registration/password_change_form.html" in [
         t.name for t in response.templates
     ]
     assert response.status_code == 200
 
-    content = response.content.decode('utf-8')
+    content = response.content.decode("utf-8")
 
     assert "Change Your Password:" in content
     assert "Old password:" in content
@@ -75,30 +76,30 @@ def test_change_password_form_success(client, joe_user):
     """Verify that a logged in user can change their password."""
 
     email = joe_user.email
-    password = 'Abcd1234'
-    new_password = '1234Abcd!@#'
+    password = "Abcd1234"
+    new_password = "1234Abcd!@#"
 
     client.login(username=email, password=password)
 
     data = {
-        'old_password': password,
-        'new_password1': new_password,
-        'new_password2': new_password,
+        "old_password": password,
+        "new_password1": new_password,
+        "new_password2": new_password,
     }
 
-    url = reverse('password_change')
+    url = reverse("password_change")
     response = client.post(url, data=data, follow=True)
-    content = response.content.decode('utf-8')
+    content = response.content.decode("utf-8")
 
-    template = 'registration/password_change_done.html'
+    template = "registration/password_change_done.html"
     assert template in [t.name for t in response.templates]
     assert response.status_code == 200
-    assert response.context['user'].is_authenticated is True
+    assert response.context["user"].is_authenticated is True
 
     assert "Password Change Successful" in content
     assert "Your password has been changed." in content
 
-    #verify that the password for our user has been updated:
+    # verify that the password for our user has been updated:
     user = CustomUser.objects.get(email=email)
     assert user.check_password(new_password)
 
@@ -109,28 +110,28 @@ def test_change_password_missing_old_password(client, joe_user):
     a meaningful message and the user's password should be unchanged."""
 
     email = joe_user.email
-    password = 'Abcd1234'
-    new_password = '1234Abcd!@#'
+    password = "Abcd1234"
+    new_password = "1234Abcd!@#"
 
     client.login(username=email, password=password)
 
     data = {
-        'new_password1': new_password,
-        'new_password2': new_password,
+        "new_password1": new_password,
+        "new_password2": new_password,
     }
 
-    url = reverse('password_change')
+    url = reverse("password_change")
     response = client.post(url, data=data, follow=True)
 
-    template = 'registration/password_change_form.html'
+    template = "registration/password_change_form.html"
     assert template in [t.name for t in response.templates]
     assert response.status_code == 200
 
-    content = response.content.decode('utf-8')
+    content = response.content.decode("utf-8")
     assert "Please fix the errors in the form below." in content
     assert "This field is required." in content
 
-    #verify that the password for our user has *NOT* been updated:
+    # verify that the password for our user has *NOT* been updated:
     user = CustomUser.objects.get(email=email)
     assert user.check_password(password) is True
     assert user.check_password(new_password) is False
@@ -142,30 +143,30 @@ def test_change_password_incorrect_old_password(client, joe_user):
     a meaningful message and the user's password should be unchanged."""
 
     email = joe_user.email
-    password = 'Abcd1234'
-    new_password = '1234Abcd!@#'
+    password = "Abcd1234"
+    new_password = "1234Abcd!@#"
 
     client.login(username=email, password=password)
 
     data = {
-        'old_password': 'WrongPassword!@#',
-        'new_password1': new_password,
-        'new_password2': new_password,
+        "old_password": "WrongPassword!@#",
+        "new_password1": new_password,
+        "new_password2": new_password,
     }
 
-    url = reverse('password_change')
+    url = reverse("password_change")
     response = client.post(url, data=data, follow=True)
 
-    template = 'registration/password_change_form.html'
+    template = "registration/password_change_form.html"
     assert template in [t.name for t in response.templates]
     assert response.status_code == 200
 
-    content = response.content.decode('utf-8')
+    content = response.content.decode("utf-8")
     assert "Please fix the errors in the form below." in content
     msg = "Your old password was entered incorrectly. Please enter it again."
     assert msg in content
 
-    #verify that the password for our user has *NOT* been updated:
+    # verify that the password for our user has *NOT* been updated:
     user = CustomUser.objects.get(email=email)
     assert user.check_password(password) is True
     assert user.check_password(new_password) is False
@@ -178,34 +179,37 @@ def test_change_password_missing_new_passwords(client, joe_user):
     unchanged."""
 
     email = joe_user.email
-    password = 'Abcd1234'
-    new_password = '1234Abcd!@#'
+    password = "Abcd1234"
+    new_password = "1234Abcd!@#"
 
     client.login(username=email, password=password)
 
-    #dictionaries missing password1 and then password2
-    data_list = [{
-        'old_password': password,
-        'new_password2': new_password,
-    }, {
-        'old_password': password,
-        'new_password1': new_password,
-    }]
-    url = reverse('password_change')
+    # dictionaries missing password1 and then password2
+    data_list = [
+        {
+            "old_password": password,
+            "new_password2": new_password,
+        },
+        {
+            "old_password": password,
+            "new_password1": new_password,
+        },
+    ]
+    url = reverse("password_change")
 
     for data in data_list:
 
         response = client.post(url, data=data, follow=True)
 
-        template = 'registration/password_change_form.html'
+        template = "registration/password_change_form.html"
         assert template in [t.name for t in response.templates]
         assert response.status_code == 200
 
-        content = response.content.decode('utf-8')
+        content = response.content.decode("utf-8")
         assert "Please fix the errors in the form below." in content
         assert "This field is required." in content
 
-        #verify that the password for our user has been updated:
+        # verify that the password for our user has been updated:
         user = CustomUser.objects.get(email=email)
         assert user.check_password(password) is True
         assert user.check_password(new_password) is False
@@ -217,30 +221,30 @@ def test_change_new_password_mismatch(client, joe_user):
     a meaningful message and the user's password should be unchanged."""
 
     email = joe_user.email
-    password = 'Abcd1234'
+    password = "Abcd1234"
 
     client.login(username=email, password=password)
 
     data = {
-        'old_password': password,
-        'new_password1': 'WrongPassword!@#',
-        'new_password2': 'WrongPassword-!@#'  #extra hyphen
+        "old_password": password,
+        "new_password1": "WrongPassword!@#",
+        "new_password2": "WrongPassword-!@#",  # extra hyphen
     }
 
-    url = reverse('password_change')
+    url = reverse("password_change")
     response = client.post(url, data=data, follow=True)
 
-    template = 'registration/password_change_form.html'
+    template = "registration/password_change_form.html"
     assert template in [t.name for t in response.templates]
     assert response.status_code == 200
 
-    content = response.content.decode('utf-8')
+    content = response.content.decode("utf-8")
 
     assert "Please fix the errors in the form below." in content
     msg = "The two password fields didn&#39;t match."
     assert msg in content
 
-    #verify that the password for our user has *NOT* been updated:
+    # verify that the password for our user has *NOT* been updated:
     user = CustomUser.objects.get(email=email)
     assert user.check_password(password) is True
 
@@ -254,33 +258,32 @@ def test_change_new_password_too_short(client, joe_user):
     """
 
     email = joe_user.email
-    password = 'Abcd1234'
+    password = "Abcd1234"
 
     client.login(username=email, password=password)
 
     data = {
-        'old_password': password,
-        #short but uncommon:
-        'new_password1': 'Foo!@#',
-        'new_password2': 'Foo!@#'
+        "old_password": password,
+        # short but uncommon:
+        "new_password1": "Foo!@#",
+        "new_password2": "Foo!@#",
     }
 
-    url = reverse('password_change')
+    url = reverse("password_change")
     response = client.post(url, data=data, follow=True)
 
-    template = 'registration/password_change_form.html'
+    template = "registration/password_change_form.html"
     assert template in [t.name for t in response.templates]
     assert response.status_code == 200
 
-    content = response.content.decode('utf-8')
+    content = response.content.decode("utf-8")
     assert "Please fix the errors in the form below." in content
     msg = "This password is too short. It must contain at least 8 characters."
     assert msg in content
 
-    #verify that the password for our user has *NOT* been updated:
+    # verify that the password for our user has *NOT* been updated:
     user = CustomUser.objects.get(email=email)
     assert user.check_password(password) is True
-
 
 
 @pytest.mark.django_db
@@ -292,29 +295,29 @@ def test_change_new_password_too_common(client, joe_user):
     """
 
     email = joe_user.email
-    password = 'Abcd1234'
+    password = "Abcd1234"
 
     client.login(username=email, password=password)
 
     data = {
-        'old_password': password,
-        #the most common password:
-        'new_password1': 'password',
-        'new_password2': 'password'
+        "old_password": password,
+        # the most common password:
+        "new_password1": "password",
+        "new_password2": "password",
     }
 
-    url = reverse('password_change')
+    url = reverse("password_change")
     response = client.post(url, data=data, follow=True)
 
-    template = 'registration/password_change_form.html'
+    template = "registration/password_change_form.html"
     assert template in [t.name for t in response.templates]
     assert response.status_code == 200
 
-    content = response.content.decode('utf-8')
+    content = response.content.decode("utf-8")
     assert "Please fix the errors in the form below." in content
     msg = "This password is too common."
     assert msg in content
 
-    #verify that the password for our user has *NOT* been updated:
+    # verify that the password for our user has *NOT* been updated:
     user = CustomUser.objects.get(email=email)
     assert user.check_password(password) is True
