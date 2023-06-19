@@ -2,6 +2,8 @@
 
 {% load static %}
 
+{% load fsdviz_tags %}
+
 {% block extra_head %}
 
     <style>
@@ -61,11 +63,33 @@
 
 
 
-    {{ form.non_field_errors }}
+    {{ formset.non_field_errors }}
 
+    {% if formset_errors %}
+
+        <div class="ui compact error message">
+            <i class="close icon"></i>
+            <div class="header">
+                The server returned the following errors.
+            </div>
+            <p>Please make the necessary updates and try again.</p>
+            <ul class="list">
+                {% for row,messages in formset_errors.items %}
+                    <li>{{ row|humanize_error_label }}:
+                        <ul class="list">
+                        {% for msg in messages %}
+                            <li>{{  msg }}</li>
+                        {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+
+            </ul>
+        </div>
+
+    {% endif %}
 
     <div class="table-container">
-
 
         <div class="horizontal-scroll">
 
@@ -80,6 +104,7 @@
             <table class="ui small very compact single line table">
                 <thead>
                     <tr class="center aligned">
+                        <th>Row</th>
                         <th>Valid</th>
                         <th>Year</th>
                         <th>Month</th>
@@ -110,11 +135,18 @@
                         <th>physchem_mark</th>
                         <th>tag_type</th>
                         <th>hatchery</th>
-                        <th>agency_stock_id</tr>
+                        <th>GLFDS Stock ID</th>
+                        <th>Agency StocK ID</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for form in formset %}
                         <tr class="" id="id_form-{{forloop.counter0}}-row">
+
+                            <td class="center aligned">
+                                {{ forloop.counter }}
+                            </td>
+
 
                             <td class="center aligned">
                                 <i id="id_form-{{forloop.counter0}}-icon" class="green check icon"></i>

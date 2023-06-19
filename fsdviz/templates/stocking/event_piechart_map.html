@@ -7,8 +7,8 @@
 
 {% block extra_head  %}
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="{% static "style.css" %}" type="text/css" media="screen" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" >
+    <link rel="stylesheet" href="{% static "style.css" %}" media="screen" >
 
 
 {% endblock %}
@@ -286,7 +286,7 @@
 
     {{ year_range|json_script:"year-range" }}
 
-    <script type="text/javascript">
+    <script>
 
      const yearRange = JSON.parse(document.getElementById('year-range').textContent);
      const currentYear = {{year}};
@@ -312,9 +312,9 @@
 
     </script>
 
-    <script type="text/javascript" src="{% static "js/mainPieChartMap.js" %}"></script>
+    <script src="{% static "js/mainPieChartMap.js" %}"></script>
 
-    <script type="text/javascript">
+    <script>
      $(".ui.checkbox").checkbox();
      $(".ui.accordion").accordion();
      $(".menu .item").tab();

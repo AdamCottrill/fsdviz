@@ -69,7 +69,6 @@ def upload_events(request):
     # data = {}
     maxEvents = settings.MAX_UPLOAD_EVENT_COUNT
     if request.method == "POST":
-
         form = DataUploadForm(request.POST, request.FILES)
 
         if form.is_valid():
@@ -232,13 +231,11 @@ def xls_events(request):
     cache["point_polygons"] = point_polygons
 
     if request.method == "POST":
-
         formset = EventFormSet(
             request.POST, form_kwargs={"choices": choices, "cache": cache}
         )
         event_count = formset.total_form_count()
         if formset.is_valid():
-
             # create our lookup dicts that relate abbrev to django objects -
             # we will need them for our front end validation and for
             # processing the submitted form:
@@ -299,7 +296,8 @@ def xls_events(request):
 
                     def restore_trigger():
                         """A function to be called after the transaction is complete.  Cannot
-                        take arguments and must use the same cursor as our transaction"""
+                        take arguments and must use the same cursor as our transaction
+                        """
 
                         enable_trigger = """ALTER TABLE stocking_stockingevent
                         ENABLE TRIGGER update_reused_cwt_flags_trigger"""
@@ -356,7 +354,7 @@ def xls_events(request):
                             if finclip_lookup.get(x) is not None
                         ]
 
-                        cwts = data.pop("tag_no", "")
+                        cwts = data.get("tag_no", "")
                         if cwts != "":
                             cwts = cwts.replace(" ", "").replace(";", ",").split(",")
                         tag_list = data.pop("tag_type")
@@ -388,6 +386,8 @@ def xls_events(request):
 
                         # ForeigmKeyFields
                         # data["agency_id"] = agency
+                        stock_id = data.pop("stock_id")
+                        data["stock_id"] = str(stock_id)
                         data["lifestage_id"] = lifestage
                         data["stocking_method_id"] = stocking_method
                         data["grid_10_id"] = grid
@@ -407,16 +407,27 @@ def xls_events(request):
 
                         data["agency"] = agency
 
-                        event = StockingEvent(**data)
+                        try:
+                            event = StockingEvent.objects.get(stock_id=stock_id)
+                        except StockingEvent.DoesNotExist:
+                            event = None
+                        if event:
+                            for attr, value in data.items():
+                                setattr(event, attr, value)
+                        else:
+                            # we know stock_id doesn't exist and we
+                            # will need to create a new one:
+                            data.pop("stock_id")
+                            event = StockingEvent(**data)
                         event.save()
 
                         # add any finclips, marks, and tags here:
                         if finclips:
-                            event.fin_clips.add(*finclips)
+                            event.fin_clips.set(finclips)
                         if marks:
-                            event.physchem_marks.add(*marks)
+                            event.physchem_marks.set(marks)
                         if tags:
-                            event.fish_tags.add(*tags)
+                            event.fish_tags.set(tags)
 
                         if cwts:
                             cwt_list = []
@@ -433,9 +444,7 @@ def xls_events(request):
                                     raise err
                                 if cwt_series is not None:
                                     cwt_list.append(cwt_series)
-
                             event.cwt_series.set(cwt_list)
-
                         event.save()
 
                 # re-save last event to run reused-cwt trigger which
@@ -462,7 +471,6 @@ def xls_events(request):
             print(formset_errors)
 
     else:
-
         formset = EventFormSet(
             initial=xls_events, form_kwargs={"choices": choices, "cache": cache}
         )
@@ -564,7 +572,6 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
         return super(DataUploadEventListView, self).get(*args, **kwargs)
 
     def get_queryset(self):
-
         queryset = (
             DataUploadEvent.objects.select_related("agency", "lake", "uploaded_by")
             .prefetch_related(

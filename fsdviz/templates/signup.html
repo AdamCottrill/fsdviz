@@ -6,7 +6,7 @@
 
 
 {% block extra_head %}
-    <style type="text/css" media="screen">
+    <style media="screen">
 
 
      body > .grid {
@@ -51,7 +51,7 @@
                                         {% for error in form.non_field_errors %}
                                             <li class="error">{{ error|escape }}</li>
                                         {% endfor %}
-                                {% endif %}                                
+                                {% endif %}
                                     </ul>
                             </div>
                         {% endif %}
@@ -81,7 +81,7 @@
                                         </ul>
                                     </div>
                                 {% endif %}
-                            </div> 
+                            </div>
 
                             <div  class="eight wide column" >
                                 <!-- last_name -->
@@ -101,7 +101,7 @@
                                     </div>
                                 {% endif %}
                             </div>
-                        </div> 
+                        </div>
 
                         <!-- Email -->
                         <div class="field {% if form.email.errors %} error{% endif %}">
@@ -131,7 +131,7 @@
                                 </div>
                                 <div class="content">
                                     <p class="transition visible" style="display: block !important;">
-                                        
+
                                         <div class="ui segment">
                                             <small>{{ form.password1.help_text }}</small>
                                         </div>
@@ -183,7 +183,7 @@
 
 {% block extra_scripts %}
 
-    <script type="text/javascript">
+    <script>
 
      $('.ui.accordion')
          .accordion()

@@ -142,6 +142,7 @@ class XlsEventForm(forms.Form):
         widget=MySelect(attrs={"class": "ui search"}),
     )
     # hatchery = forms.CharField(required=False)  # choice field some day too
+    stock_id = forms.CharField(required=False)
     agency_stock_id = forms.CharField(required=False)
 
     def clean_latitude(self):

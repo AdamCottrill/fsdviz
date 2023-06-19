@@ -638,7 +638,7 @@ args = [
     (["RV", "LP"], "LPRV"),
     (["RV", "LP", "AD"], "ADLPRV"),
     ([], None),
-    (["NO", "LP"], "NO"),
+    (["NC", "LP"], "NC"),
     (["UN", "LP"], "UN"),
 ]
 
@@ -652,7 +652,7 @@ def test_event_get_composite_clip_code(finclips, clip_codes, expected):
 
     + If the list of fin clips is emtpy, the method should return None,
 
-    + if the list of finclips includes NO - it should return "No Fin
+    + if the list of finclips includes NC - it should return "No Fin
     Clip", regardless of any other codes (No clip is exclusive of all
     other clip codes)
 

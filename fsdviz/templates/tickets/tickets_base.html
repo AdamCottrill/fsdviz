@@ -13,7 +13,7 @@
 
 
       {% load static %}
-      
+
       <link rel="stylesheet" href="{% static "css/stickyfooter.css" %}">
 
       {% block extra_head %}
@@ -23,7 +23,7 @@
 
   <body>
 
-      <style type="text/css" media="screen">
+      <style media="screen">
        .navbar-inverse .nav li.dropdown.open > .dropdown-toggle,
        .navbar-inverse .nav li.dropdown.active > .dropdown-toggle,
        .navbar-inverse .nav li.dropdown.open.active > .dropdown-toggle,
@@ -100,7 +100,7 @@
                       </div><!-- /input-group -->
                   </form>
               </div>
-              
+
               {% if user.is_authenticated %}
                   <p class="navbar-text">Welcome
                       {% if user.first_name %}
@@ -116,13 +116,13 @@
               <p class="navbar-text">
                   <a class="btn btn-primary btn-sm float-right" href="{% url 'home' %}">Return to Fish Stocking</a>
               </p>
-              
+
           </div><!-- /.navbar-collapse -->
       </header>
 
 
       {% block content %}
-          
+
       {% endblock%}
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>

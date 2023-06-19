@@ -18,7 +18,38 @@ from django.utils.translation import gettext_lazy
 from .validators import validate_cwt_sequence_range
 
 
-class BuildDate(models.Model):
+class BaseModel(models.Model):
+    """A simple abstract model that all of our other models will inherit
+    from to captuture when the record was created, and when it was
+    modified
+    """
+
+    created_timestamp = models.DateTimeField(auto_now_add=True)
+    modified_timestamp = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+class Image(models.Model):
+    """A model to hold images uploaded by our super-users to that they can
+    be referenced in our documentation (data dictionary ect)."""
+
+    id = models.AutoField(primary_key=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+    title = models.CharField(max_length=255, unique=True)
+    file = models.ImageField(upload_to="uploaded_images")
+
+    def __str__(self):
+        """String representation for an image object."""
+        return f"{self.title}({self.file.url})"
+
+    def get_absolute_url(self):
+        return (self.file and self.file.url) or ""
+
+
+class BuildDate(BaseModel):
     """
     A database to hold the date that the database was last refreshed.
     """
@@ -29,7 +60,7 @@ class BuildDate(models.Model):
         return self.build_date.strftime("%d-%b-%Y")
 
 
-class Readme(models.Model):
+class Readme(BaseModel):
     """
     a table to hold all of the information regarding last FSIS
     download and FS_Master rebuild (it appear as a footer on every
@@ -47,7 +78,7 @@ class Readme(models.Model):
         return self.comment
 
 
-class Agency(models.Model):
+class Agency(BaseModel):
     """
     A lookup table for agencies that either stock fish or recovery cwts.
 
@@ -75,7 +106,7 @@ class Agency(models.Model):
         return "{} ({})".format(self.agency_name, self.abbrev)
 
 
-class Lake(models.Model):
+class Lake(BaseModel):
     """
     A lookup table for lakes where fish were stocked, cwts either
     deployed or recovered, or where management/spatial units are located.
@@ -166,7 +197,7 @@ class Lake(models.Model):
         return self.lake_name.replace("Lake ", "")
 
 
-class StateProvince(models.Model):
+class StateProvince(BaseModel):
     """
     A lookup table for states or provinces where fish were stocked,
     cwts either deployed or recovered, or where management/spatial
@@ -190,7 +221,7 @@ class StateProvince(models.Model):
         return "{} ({})".format(self.name, self.abbrev)
 
 
-class Jurisdiction(models.Model):
+class Jurisdiction(BaseModel):
     """A lookup table for geographic extents of a state or province
     within a lake.  This will be important for managers to find the
     waters that they are responsible for.
@@ -244,7 +275,7 @@ class Jurisdiction(models.Model):
             return None
 
 
-class ManagementUnit(models.Model):
+class ManagementUnit(BaseModel):
     """
     a class to hold geometries associated with arbirary ManagementUnits
     that can be represented as polygons.  Examples include quota
@@ -319,7 +350,7 @@ class ManagementUnit(models.Model):
         super(ManagementUnit, self).save(*args, **kwargs)
 
 
-class Grid10(models.Model):
+class Grid10(BaseModel):
     """'
     A lookup table for 10-minute grids within lakes.  Used to verify
     stocking and recovery data before being inserted.
@@ -362,7 +393,7 @@ class Grid10(models.Model):
         super(Grid10, self).save(*args, **kwargs)
 
 
-class Species(models.Model):
+class Species(BaseModel):
     """
     A lookup table for species.  Note that both backcross and splake
     are considered species and not lake trout strains.
@@ -392,7 +423,7 @@ class Species(models.Model):
         return "{} ({})".format(self.common_name.title(), self.abbrev)
 
 
-class Strain(models.Model):
+class Strain(BaseModel):
     """
     This table contains the 'nominal' names for each strain.  Allows
     "SEN(86)", "SEN(87)", "SEN(88)", "SEN(89)", "SEND", "SN", "SNHW",
@@ -437,7 +468,7 @@ class Strain(models.Model):
         )
 
 
-class StrainRaw(models.Model):
+class StrainRaw(BaseModel):
     """
     The raw strain codes will represent the information returned in the
     GLFC look-up table where strain has too much information - eg -
@@ -484,7 +515,7 @@ class StrainRaw(models.Model):
         super(StrainRaw, self).save()
 
 
-class Mark(models.Model):
+class Mark(BaseModel):
     """
     Stores a single mark applied to fish when they are stocked and
     reported when they are recaptured.  Includes fin clips, the
@@ -518,10 +549,10 @@ class Mark(models.Model):
         return "{} ({})".format(self.description, self.mark_code)
 
 
-class FinClip(models.Model):
+class FinClip(BaseModel):
     """Stores a type of Fin clip - These are associated to Stocking Events
     through a many-to-many relationship. The reported clip codes are
-    composites of these values. With the exception of NO (no clips) and
+    composites of these values. With the exception of NC (no clips) and
     UN (unknown clip status) - these are mutually exclusive of each
     other and all other fin clips.
 
@@ -538,7 +569,7 @@ class FinClip(models.Model):
         return "{} ({})".format(self.description, self.abbrev)
 
 
-class CompositeFinClip(models.Model):
+class CompositeFinClip(BaseModel):
     """Stores the attributes of fin clip, or combination of finclips that
     could be applied to stocked fish.
 
@@ -571,7 +602,7 @@ class CompositeFinClip(models.Model):
         return "{} ({})".format(self.description, self.clip_code)
 
 
-class PhysChemMark(models.Model):
+class PhysChemMark(BaseModel):
     """Stores a single physical or chemical mark applied to fish when they
     are stocked and reported when they are recaptured.  It does NOT
     include fin clips, or the presence of a cwt.
@@ -598,7 +629,7 @@ class PhysChemMark(models.Model):
         return "{} ({})".format(self.description, self.mark_code)
 
 
-class FishTag(models.Model):
+class FishTag(BaseModel):
     """Stores the attributes of tag that could be applied to stocked fish.
     Joined to stocking recovery events through a many-to-many
     relationship as fish could have more than one tag type (e.g. - cwt
@@ -641,7 +672,7 @@ class FishTag(models.Model):
         return "{} ({})".format(self.description, self.tag_code)
 
 
-class LatLonFlag(models.Model):
+class LatLonFlag(BaseModel):
     """
     Indicates the level of spatial precision associated with a stocking
     event or recovery effort.  Lower numbers indicate higher precision.
@@ -657,7 +688,7 @@ class LatLonFlag(models.Model):
         return "{} - {}".format(self.value, self.description)
 
 
-class CWT(models.Model):
+class CWT(BaseModel):
     """
     A model representing a single CWT object.  CWT has a foreign key back to
     :model:`common.Agency` and current a single cwt_number and cwt manufacturer
@@ -753,7 +784,7 @@ class CWT(models.Model):
         return cwt_string
 
 
-class CWTsequence(models.Model):
+class CWTsequence(BaseModel):
     """
     A model representing a sequence for a CWT object. Most CWTs are not
     sequential and will have a single record in this table with
@@ -791,7 +822,6 @@ class CWTsequence(models.Model):
         # ]
 
     def __str__(self):
-
         return "{} [{}-{}]".format(
             str(self.cwt), self.sequence.lower, self.sequence.upper
         )

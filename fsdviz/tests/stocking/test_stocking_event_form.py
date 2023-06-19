@@ -859,19 +859,19 @@ def test_no_clip_mutally_exclusive_clip(event, glsc):
     """No clipped and unclipped are mutually exclusive of all other clips"""
 
     FinClipFactory.create(abbrev="AD", description="adipose clip")
-    FinClipFactory.create(abbrev="NO", description="no clip")
+    FinClipFactory.create(abbrev="NC", description="no clip")
 
     choices = get_event_model_form_choices(event)
 
     # make sure cwt is a valid fin clip choice:
     event_dict = create_event_dict(event)
-    event_dict["fin_clips"] = ["AD", "NO"]
+    event_dict["fin_clips"] = ["AD", "NC"]
 
     form = StockingEventForm(event_dict, choices=choices, user=glsc)
     status = form.is_valid()
     assert status is False
 
-    msg = '"No fin clip (NO)" cannot be combined with another fin clip.'
+    msg = '"No fin clip (NC)" cannot be combined with another fin clip.'
     assert msg in form.errors["__all__"]
 
 

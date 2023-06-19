@@ -7,7 +7,7 @@
 {% block extra_head %}
 
 
-    <style type="text/css" media="screen">
+    <style media="screen">
      .small {
          font-size: 0.8rem;
      }
@@ -24,7 +24,7 @@
 
     </style>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" >
     <script src= "https://unpkg.com/leaflet@1.5.1/dist/leaflet-src.js"></script>
 
 
@@ -53,7 +53,7 @@
                 {% endif %}
 
 
-                <h2>Data Upload Event Details</h2>
+                <h1 class="ui huge header">Data Upload Event Details</h1>
 
                 <div class="ui grid">
                     <div class="ui row">
@@ -107,13 +107,12 @@
                     <div class="content">
 
                         <div id="legend-table">
-                            <h5 id="category-value-label"></h5>
-
+                            <div class="ui medium header"
+                                id="category-value-label">Species</div>
                             <table
                                 class="ui celled compact table tablesorter"
                                 style="font-size: 0.7em"
                             >
-
                                 <tbody id="legend-table-tbody"></tbody>
                             </table>
                         </div>

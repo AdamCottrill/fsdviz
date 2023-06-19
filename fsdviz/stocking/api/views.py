@@ -3,7 +3,7 @@
 The veiws in this file should all be publicly available as readonly.
 
 """
-
+from datetime import datetime
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Count, F, Sum
@@ -16,6 +16,8 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
+
+from .xls_render import MetaXLSXRenderer
 
 from ..filters import StockingEventFilter, YearlingEquivalentFilter
 from ..models import (
@@ -125,9 +127,14 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
     queryset = StockingEvent.objects.all()
     serializer_class = StockingEventXlsxSerializer
     filterset_class = StockingEventFilter
-    renderer_classes = (XLSXRenderer, JSONRenderer)
+    renderer_classes = (MetaXLSXRenderer, JSONRenderer)
     permission_classes = [IsAuthenticatedOrReadOnly]
-    filename = "glfsd_export.xlsx"
+    filename = f"glfsd_stocking_export_f{datetime.today().strftime('%Y-%m-%d')}.xlsx"
+
+    header = {
+        "tab_title": "Stocking Data",
+        "header_title": "Stocking Data",
+    }
 
     column_header = {
         "height": 15,
@@ -160,8 +167,14 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
         "height": 15,
     }
 
-    def get_queryset(self):
+    def get_serializer_context(self):
+        """Add the request to the serializre context so we can include the url
+        and queryparameters in the spreadsheet."""
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
 
+    def get_queryset(self):
         field_aliases = {
             "glfsd_stock_id": F("stock_id"),
             "agency_code": F("agency__abbrev"),
@@ -281,7 +294,6 @@ class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-
         queryset = StockingEvent.objects.all()
         queryset = queryset.select_related(
             "agency",
@@ -331,7 +343,6 @@ class StockingEventMapListView(generics.ListAPIView):
         return Response(queryset)
 
     def get_queryset(self):
-
         # get any url parameters:
         upload_event = self.kwargs.get("upload_event_slug")
 
@@ -457,7 +468,6 @@ class StockingEventListAPIView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
-
         field_aliases = {
             "agency_code": F("agency__abbrev"),
             "species_code": F("species__abbrev"),
@@ -558,7 +568,6 @@ class StockingEventLookUpsAPIView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
-
         lifestages = LifeStage.objects.values("abbrev", "description", "color")
         stockingmethods = StockingMethod.objects.values(
             "stk_meth", "description", "color"
@@ -589,7 +598,6 @@ class CWTEventListAPIView(generics.ListAPIView):
 
     # def get(self, request):
     def get_queryset(self):
-
         field_aliases = {
             "cwt_number": F("cwt_series__cwt__cwt_number"),
             "seq_lower": F("cwt_series__seq_lower"),
@@ -719,7 +727,6 @@ class CWTEventMapAPIView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
-
         field_aliases = {
             "cwt_number": F("cwt_series__cwt__cwt_number"),
             "tag_type": F("cwt_series__cwt__tag_type"),
@@ -797,7 +804,13 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
     serializer_class = CWTEventXlsxSerializer
     renderer_classes = (XLSXRenderer, JSONRenderer)
     permission_classes = [IsAuthenticatedOrReadOnly]
-    filename = "glfsd_cwt_export.xlsx"
+
+    filename = f"glfsd_cwt_export_f{datetime.today().strftime('%Y-%m-%d')}.xlsx"
+
+    header = {
+        "tab_title": "CWT Data",
+        "header_title": "CWT Data",
+    }
 
     column_header = {
         "height": 15,
@@ -829,6 +842,13 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
         },
         "height": 15,
     }
+
+    def get_serializer_context(self):
+        """Add the request to the serializre context so we can include the url
+        and queryparameters in the spreadsheet."""
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
 
     def get(self, request):
         """"""

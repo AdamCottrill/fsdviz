@@ -1,0 +1,46 @@
+{% extends 'admin/change_list.html' %}
+
+{% block object-tools %}
+
+
+    {{ block.super }}
+
+
+    <div>
+        <p>The Image model in the FSDB Admin provides an interface for
+        site administrators to upload images that can be referenced
+        and embedded in other places in the FSDB application
+        (eg. About page).  In order to upload and use an image, follow
+        these steps:</p>
+        <ol>
+            <li>Click on the 'Add Image' button on the right side of this page</li>
+            <li>Provide a meaningful title for the image and upload the file.</li>
+            <li>Click save.</li>
+        </ol>
+        <p>To reference an image in somewhere in FSDB,
+            simply paste this snippet into the text box of the edit
+            form for that object:
+        </p>
+        <pre>
+            <code class="language-html" data-lang="html">
+                <span class="p">&lt;</span><span class="nt">img </span><span class="na">src=</span><span class="o"></span><span class="s">&#34;...&#34;</span><span class="na"> class=</span><span class="o"></span><span class="s">&#34;ui fluid image&#34; </span><span class="na"> alt=</span><span class="o"></span><span class="s">&#34;...&#34</span><span class="p">&gt;</span>
+            </code>
+        </pre>
+        <p>Provide the url listed in the table below as the source
+            (src) and an alternative text description (alt). Make
+            sure that the alternative text provides sufficient
+            detailed for assistive technologies.
+        </p>
+
+        <p>The default size of the image is the full width of the
+            page. To control the width of the image, insert the
+            following code into your snippet (and fill in your desired
+            relative width including the % sign):
+        </p>
+        <pre>
+             <code class="language-html" data-lang="html">
+                 <span class="s">style=&#34;width:...%&#34;</span>
+             </code>
+             <br >
+    </div>
+{% endblock %}

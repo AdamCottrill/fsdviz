@@ -1,23 +1,11 @@
 """fsdviz URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/2.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
+from django.contrib.flatpages import views as flatpage_views
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from fsdviz.myusers.views import account_redirect
@@ -107,6 +95,13 @@ urlpatterns = [
     path("login/", account_redirect, name="account-redirect"),
     path("users/", include("fsdviz.myusers.urls")),
     path("users/", include("django.contrib.auth.urls")),
+    path(
+        "about/",
+        flatpage_views.flatpage,
+        {"url": "/about/"},
+        name="about",
+    ),
+    path("pages/", include("django.contrib.flatpages.urls")),
     path("shared/", include("fsdviz.common.urls", namespace="common")),
     path("stocking/", include("fsdviz.stocking.urls", namespace="stocking")),
     path("resource_library/", include("resource_library.urls", "resource_library")),

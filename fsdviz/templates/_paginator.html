@@ -1,27 +1,53 @@
-{% load fsdviz_tags %}
-
-{% if page_obj.paginator.num_pages > 1 %}
+{% if is_paginated %}
+    {% load i18n %}
+    {% load fsdviz_tags %}
 
     <div class="ui pagination menu"  style="margin-top:10px">
 
         {% if page_obj.has_previous %}
-            <a class="item" href="?{% query_transform True page=page_obj.previous_page_number %}" >Previous</a>
+
+            <a class="item" aria-label="Go to previous page" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+
         {% else %}
-            <a class="disabled item ">Previous Page</a>
+
+            <a class="item disabled" aria-label="Go to previous page is disabled. You are on the first page.">Previous</a>
+
         {% endif %}
 
-        {% for pg in page_obj.paginator.num_pages|times %}
-            <a class="{% if pg == page_obj.number %} active {% endif %}  item"  href="?{% query_transform True page=pg %}">
-                {{ pg }}
-            </a>
+        {% get_adjusted_elided_page_range paginator page_obj.number as page_range %}
+        {% for i in page_range %}
+            {% if i == page_obj.paginator.ELLIPSIS %}
+
+                <a class="item">{{ i }}</a>
+
+            {% elif i == page_obj.number %}
+
+                <a class="active item" href="?page={{ i }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    {{ i }} of {{ paginator.num_pages }}
+                </a>
+
+            {% else %}
+
+                <a class="item" aria-label="Go to page {{ i }}" href="?page={{ i }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}
+                </a>
+
+            {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
-            <a class="item" href="?{% query_transform True page=page_obj.next_page_number %}" >Next</a>
+
+            <a class="item" aria-label="Go to next page" href="?page={{ page_obj.next_page_number }}
+                      {% for key,value in request.GET.items %}
+                      {% if key != 'page' %}
+                      &{{ key }}={{ value }}
+                      {% endif %}
+                      {% endfor %}">Next</a>
+
         {% else %}
-            <a class="disabled item">Next Page</a>
+
+            <a class="item disabled" aria-label="Go to next page is disabled. You are on the last page." disabled="disabled">Next</a>
+
         {% endif %}
 
     </div>
-
 {% endif %}

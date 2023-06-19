@@ -1,66 +1,8 @@
 from django.contrib import admin
 
-from fsdviz.common.utils import fill_color_widget
-from .models import (
-    LifeStage,
-    Condition,
-    StockingMethod,
-    StockingEvent,
-    Hatchery,
-    YearlingEquivalent,
-)
-
+from ..models import StockingEvent
 
 admin.site.empty_value_display = "(None)"
-
-
-@admin.register(LifeStage)
-class LifeStageModelAdmin(admin.ModelAdmin):
-    list_display = ("abbrev", "description", "fill_color")
-
-    def fill_color(self, obj):
-        return fill_color_widget(obj.color)
-
-
-@admin.register(YearlingEquivalent)
-class YearlingEquivalentModelAdmin(admin.ModelAdmin):
-    list_display = ("species", "lifestage", "yreq_factor", "comment")
-    list_filter = ("species", "lifestage")
-    search_fields = ("species", "lifestage")
-
-    ordering = ("species__common_name", "yreq_factor")
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return ("species", "lifestage")
-        else:
-            return []
-
-
-@admin.register(Condition)
-class ConditionModelAdmin(admin.ModelAdmin):
-    list_display = ("condition", "description")
-
-
-@admin.register(StockingMethod)
-class StockingMethodModelAdmin(admin.ModelAdmin):
-    list_display = ("stk_meth", "description", "fill_color")
-    search_fields = ("stk_meth", "description")
-
-    def fill_color(self, obj):
-        return fill_color_widget(obj.color)
-
-
-@admin.register(Hatchery)
-class HatcheryModelAdmin(admin.ModelAdmin):
-    list_display = ("hatchery_name", "abbrev", "hatchery_type", "agency", "active")
-    list_select_related = ("agency",)
-    list_filter = (
-        "active",
-        "hatchery_type",
-        "agency",
-    )
-    search_fields = ["hatchery_name", "abbrev"]
 
 
 @admin.register(StockingEvent)
@@ -77,6 +19,7 @@ class StockingEventModelAdmin(admin.ModelAdmin):
         "date",
         "site",
         "no_stocked",
+        "modified_timestamp",
     )
     list_select_related = (
         "species",
@@ -122,6 +65,12 @@ class StockingEventModelAdmin(admin.ModelAdmin):
         "yreq_stocked",
         "notes",
     ]
+
+    readonly_fields = (
+        "created_timestamp",
+        "modified_timestamp",
+    )
+
     date_hierarchy = "date"
     view_on_site = True
 

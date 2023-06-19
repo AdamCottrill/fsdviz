@@ -1,5 +1,4 @@
 [run]
-include = fsdviz/*
 
 omit =
     */.virtualenv/*,
@@ -11,6 +10,6 @@ omit =
     *.git/*,
     *htmlcov/*,
     *config/*,
-    *migrations/*,    
+    *migrations/*,
     *docs/*,
     *utils/*,
