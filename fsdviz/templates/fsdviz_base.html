@@ -6,12 +6,12 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <link rel="stylesheet" type="text/css" href="https://unpkg.com/fomantic-ui@2.8.3/dist/semantic.min.css">
+        <link rel="stylesheet" href="https://unpkg.com/fomantic-ui@2.8.3/dist/semantic.min.css">
 
         <script src="{% static "bookmark_modal_form.js" %}"></script>
 
 
-        <style type="text/css" media="screen">
+        <style media="screen">
 
 
          body {
@@ -44,7 +44,7 @@
         {% endblock extra_head%}
 
         <title>{% block title %} GLFS DataViz {% endblock title %} </title>
-        <link rel="shortcut icon" type="image/jpg" href="{% static "favicon.ico" %}"/>
+        <link rel="shortcut icon" type="image/jpg" href="{% static "favicon.ico" %}" >
 
 
 
@@ -68,8 +68,8 @@
             {% block navbar %}
 
                 <div class="ui top attached menu">
-                    <a class="item" href="{% url 'home' %}" \>
-                        <h3>Great Lakes Fish Stocking</h3>
+                    <a class="item" href="{% url 'home' %}" >
+                        <span class="ui large text"><b>Great Lakes Fish Stocking</b></span>
                     </a>
                     <div class="ui dropdown icon item">
                         Stocking
@@ -118,12 +118,9 @@
                         </div>
                     </div>
 
-
-                    <a class="item" href="{% url 'about' %}" \>
+                    <a class="item" href="{% url 'about' %}">
                         About
                     </a>
-
-
 
                     {% if user.is_authenticated %}
 
@@ -228,7 +225,7 @@
             {% endblock footer %}
 
 
-
+        </div>  <!-- main container -->
 
             <script
                 src="http://code.jquery.com/jquery-3.3.1.min.js"

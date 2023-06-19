@@ -5,13 +5,13 @@
 
 {% block extra_head %}
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.12/dc.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" >
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.12/dc.min.css" >
 
-    <link rel="stylesheet" href="{% static "style.css" %}" type="text/css" media="screen" />
+    <link rel="stylesheet" href="{% static "style.css" %}" media="screen" >
 
 
-    <style type="text/css" media="screen">
+    <style media="screen">
 
      .pass-through {
          pointer-events: none;
@@ -559,7 +559,7 @@
 {% block extra_js %}
 
 
-    <script type="text/javascript">
+    <script >
 
      const dataURL = "{{ dataUrl|safe }}" + window.location.search;
      const maxEvents = {{ maxEvents }};
@@ -592,10 +592,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter2/1.4.6/crossfilter.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.12/dc.min.js"></script>
 
-    <script type="text/javascript" src="{% static "js/filteredStockingEvents.js" %}"></script>
+    <script src="{% static "js/filteredStockingEvents.js" %}"></script>
 
 
-    <script type="text/javascript">
+    <script>
      $(".ui.checkbox").checkbox();
      $(".ui.accordion").accordion();
      $(".menu .item").tab();
