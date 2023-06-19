@@ -508,6 +508,17 @@ class StockingEvent(BaseModel):
         else:
             self.yreq_stocked = self.no_stocked
 
+        # update tag_no with an semi-colon separated list of cwt numbers:
+        if self.id:
+            cwts = self.cwt_series.all()
+            if cwts:
+                cwt_numbers = (
+                    cwts.values_list("cwt__cwt_number")
+                    .order_by("cwt__cwt_number")
+                    .distinct()
+                )
+                self.tag_no = ";".join([x[0] for x in cwt_numbers])
+
         super(StockingEvent, self).save(*args, **kwargs)
 
     def best_date_str(self):
