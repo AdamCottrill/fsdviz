@@ -423,11 +423,11 @@ def xls_events(request):
 
                         # add any finclips, marks, and tags here:
                         if finclips:
-                            event.fin_clips.add(*finclips)
+                            event.fin_clips.set(finclips)
                         if marks:
-                            event.physchem_marks.add(*marks)
+                            event.physchem_marks.set(marks)
                         if tags:
-                            event.fish_tags.add(*tags)
+                            event.fish_tags.set(tags)
 
                         if cwts:
                             cwt_list = []
@@ -444,9 +444,7 @@ def xls_events(request):
                                     raise err
                                 if cwt_series is not None:
                                     cwt_list.append(cwt_series)
-
                             event.cwt_series.set(cwt_list)
-
                         event.save()
 
                 # re-save last event to run reused-cwt trigger which
