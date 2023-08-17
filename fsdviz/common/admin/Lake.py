@@ -22,6 +22,10 @@ class LakeChangeForm(forms.ModelForm):
             "lake_name",
             "abbrev",
             "color",
+            "max_lat",
+            "min_lat",
+            "max_lon",
+            "min_lon",
             "geom",
         ]
 
@@ -35,6 +39,10 @@ class LakeCreationForm(forms.ModelForm):
             "lake_name",
             "abbrev",
             "color",
+            "max_lat",
+            "min_lat",
+            "max_lon",
+            "min_lon",
             "geom",
         ]
 
