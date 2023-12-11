@@ -20,6 +20,7 @@ class StrainModelAdmin(admin.ModelAdmin):
     search_fields = ("strain_label", "strain_code")
 
     readonly_fields = (
+        "slug",
         "created_timestamp",
         "modified_timestamp",
     )
