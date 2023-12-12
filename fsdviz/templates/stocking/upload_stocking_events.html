@@ -5,80 +5,72 @@
 
 {% block content %}
 
-<div class="ui container">
-    <h1>Upload Stocking Events</h1>
+    <div class="ui container">
+        <h1>Upload Stocking Events</h1>
 
-    <div class="ui fluid card">
+        <div class="ui fluid card">
 
-        <div class="content">
+            <div class="content">
 
-            <h3>To upload stocking events you must:</h3>
-            <div class="ui bulleted list">
-                <div class="item">Use the offial stocking event upload template
-                    (available <a href="{% url 'resource_library:resource_list' %}">here</a>).
-                    Only xlsx files that match the structure of that
-                    template will be processed. </div>
-                <div class="item">Ensure that any errors
-                    identified by the spreadsheet validation have
-                    been addressed before uploading the file</div>
-                <div class="item">Limit your submission to a
-                    single agency and lake and ensure that you are
-                    affiliated with that lake and agency</div>
-                <div class="item">Ensure that your upload contains fewer events than
-                    the event limit ({{ maxEvents }}). If you have more
-                    events than the current limit, you will have so
-                    split your upload into smaller packets
-                    (e.g. by species)</div>
+                <h3>To upload stocking events you must:</h3>
+                <div class="ui bulleted list">
+                    <div class="item">Use the official stocking event upload template
+                        (available <a href="{% url 'resource_library:resource_list' %}">here</a>).
+                        Only xlsx files that match the structure of that
+                        template will be processed. </div>
+                    <div class="item">Ensure that any errors
+                        identified by the spreadsheet validation have
+                        been addressed before uploading the file</div>
+                    <div class="item">Limit your submission to a
+                        single agency and lake and ensure that you are
+                        affiliated with that lake and agency</div>
+                    <div class="item">Ensure that your upload contains fewer events than
+                        the event limit ({{ maxEvents }}). If you have more
+                        events than the current limit, you will have so
+                        split your upload into smaller packets
+                        (e.g. by species)</div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="ui fluid card">
-        <div class="content">
+        <div class="ui fluid card">
+            <div class="content">
 
-            <div class="ui inverted dimmer" id="event-loader">
-                <div class="ui large text loader">Uploading Stocking Events...</div>
-            </div>
+                <div class="ui inverted dimmer" id="event-loader">
+                    <div class="ui large text loader">Uploading Stocking Events...</div>
+                </div>
 
-            {% if messages %}
-            {% for message in messages %}
-            <div class="ui
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="ui
                                     {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %} success {% else %} negative {% endif %}
 
                                     message">
-                <p> {{ message }} </p>
-            </div>
-            {% endfor %}
-            {% endif %}
+                            <p> {{ message }} </p>
+                        </div>
+                    {% endfor %}
+                {% endif %}
 
-            <form class="ui form" action="{% url "stocking:upload-stocking-events" %}" method="POST"
-                  enctype="multipart/form-data" class="form-horizontal" id="upload-form">
+                <form class="ui form" action="{% url "stocking:upload-stocking-events" %}" method="POST"
+                      enctype="multipart/form-data" class="form-horizontal" id="upload-form">
 
-
-
-                {% csrf_token %}
-
+                    {% csrf_token %}
                     <div class="field">
-                            <label for="upload_comment" >{{ form.upload_comment.label }}</label>
-                    {{ form.upload_comment }}
-                </div>
-
-
-                    <div class="field">
-                    <label for="data_file" >{{ form.data_file.label }}</label>
-                                {{ form.data_file }}
+                        <label for="upload_comment" >{{ form.upload_comment.label }}</label>
+                        {{ form.upload_comment }}
                     </div>
 
+                    <div class="field">
+                        <label for="data_file" >{{ form.data_file.label }}</label>
+                        {{ form.data_file }}
+                    </div>
 
-                    <button class="ui right floated primary button" type="submit">Upload</button>
-            </form>
+                    <button class="ui right floated primary button" type="submit" id="form-submit-button">Upload</button>
+                </form>
 
-
-
+            </div>
+        </div>
     </div>
-    </div>
-
-</div>
 
 
 
@@ -87,13 +79,14 @@
 
 {% block extra_js %}
 
-<script>
-    $('#upload-form').form({
-        onSuccess: function (e) {
-            $('#event-loader').addClass('active');
-        }
-    });
-</script>
+    <script>
+     $('#upload-form').form({
+         onSuccess: function (e) {
+             $('#event-loader').addClass('active');
+         }
+     });
+
+    </script>
 
 
 {% endblock %}
