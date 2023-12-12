@@ -15,14 +15,14 @@
         {% if object_list %}
 
 
-            <table class="ui celled table">
+            <table class="ui celled table tablesorter">
                 <thead>
                     <tr>
                         <th>Details</th>
                         <th>Lake</th>
                         <th>Agency</th>
                         <th>Uploaded By</th>
-                        <th>Timestamp</th>
+                        <th id="timestamp">Timestamp</th>
                         <th>Events (N)</th>
                         <th>Total Stocked</th>
                     </tr>
@@ -64,11 +64,55 @@
 
 
 
-            {% endif %}
+        {% endif %}
 
 
 
 
     </div>
+
+{% endblock %}
+
+{% block extra_js%}
+    <!-- tablesorter plugin-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js"></script>
+
+    <!-- tablesorter widget file - loaded after the plugin -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
+
+    <script>
+
+     $(".tablesorter").tablesorter({
+
+         widthFixed: true,
+         showProcessing: true,
+         headerTemplate: '{content} {icon}',
+         widgets: ['zebra', 'uitheme', 'scroller'],
+         widgetOptions: {
+             scroller_height: 300,
+             scroller_barWidth: 17,
+             scroller_jumpToHeader: true,
+             scroller_idPrefix: 's_'
+         }
+     })
+
+     $.tablesorter.addParser({
+         id: 'timestamp',
+         is: function(s) {
+             return false;
+         },
+         format: function(s) {
+         // regular expression must match timestamp format "Oct. 27, 2022, 11:25 a.m.":
+         const dateParts = s.match(/([A-Za-z]+)\.? (\d+), (\d+), (\d+):(\d+) ([a|p])/);
+         const month = new Date(dateParts[1] + " 1, 2022").getMonth()
+         const hour = dateParts[6]==='a' ? parseInt(dateParts[4]) : parseInt(dateParts[4]) + 12
+         const date = new Date(dateParts[3], month, dateParts[2], hour, dateParts[5]);
+         console.log('s,date = ', s,date);
+             return date.getTime();
+         },
+         type: 'numeric'
+     });
+
+    </script>
 
 {% endblock %}

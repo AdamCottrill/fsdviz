@@ -13,7 +13,7 @@
 
 
 {% block content %}
-    
+
     <div class="ui container" >
         <div class="ui grid">
             <div class="three wide column">
@@ -24,41 +24,41 @@
                             <li><a href="?{%  add_query_param tag=tag.tag %}">{{tag.tag}}</a></li>
                         {% endfor %}
 
-                    </ul>                    
-                {% endif %}                                
+                    </ul>
+                {% endif %}
             </div>
             <div class="thirteen wide column">
-                
+
                 <h3>My Bookmarks</h3>
 
                 <div class="row">
-                    
+
                     {% if contains %}
                         <a href="{% remove_query_param 'contains' %}" class="ui mini red icon button">
                             {{ contains }}
-                            <i class="times icon"></i>                                                
-                        </a>                    
+                            <i class="times icon"></i>
+                        </a>
                     {% endif %}
 
                     {% if tagged_with %}
                         {% for tag in tagged_with %}
                             <a href="{% remove_query_param key='tag' value=tag %}" class="ui mini blue icon button">
                                 {{ tag }}
-                                <i class="times icon"></i>                                                
+                                <i class="times icon"></i>
                             </a>
                         {% endfor %}
                     {% endif %}
 
                 </div>
-                
+
                 <ul>
                     {% if object_list %}
 
                         <table class="ui sortable celled table">
                             <thead>
                                 <tr>
-                                    <th>Title</th>                                    
-                                    <th>Last Modified</th>
+                                    <th>Title</th>
+                                    <th >Last Modified</th>
                                     <th>Edit</th>
                                 </tr>
                             </thead>
@@ -68,17 +68,17 @@
                                         <td>
 
                                             <a href="{{item.url}}">{{ item.title }}</a>
-                                            
+
                                             {% if item.homepage %}
                                                 <a href="{% url 'bookmark_it:bookmark_detail' item.pk %}"
                                                    class="ui mini violet right floated basic icon button">
                                                     Your Homepage
                                                     <i class="home icon"></i>
-                                                </a>                                       
+                                                </a>
 
                                             {% endif %}
                                         </td>
-                                        <td>{{item.date_created}}</td>                           
+                                        <td>{{item.date_created}}</td>
                                         <td>
                                             <a href="{% url 'bookmark_it:bookmark_detail' item.pk %}" class="ui mini blue icon button">
                                                 Bookmark Details <i class="info icon"></i>
@@ -86,11 +86,11 @@
                                         </td>
                                     </tr>
                                 {% endfor %}
-                                
+
                             </tbody>
-                            
+
                         </table>
-                        
+
 
                     {% else %}
                         {% if contains or filters %}
@@ -107,11 +107,11 @@
 
             </div>
         </div>
-        
-    </div> 
 
-    
-    
+    </div>
+
+
+
 {% endblock %}
 
 
@@ -130,13 +130,13 @@
      $( window ).on( "load", function() {
 
      });
-    </script>     
+    </script>
     <script>
      $(function() {
-         $('table').tablesort()            
+         $('table').tablesort()
      });
     </script>
 
-    
-    
+
+
 {% endblock %}
