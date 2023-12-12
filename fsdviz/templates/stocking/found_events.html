@@ -24,7 +24,21 @@
      }
 
 
-     .dc-chart g.row text {fill: grey;}
+     .dc-chart svg g.pie-slice path  {
+         stroke: lightgrey;
+
+     }
+
+     .dc-chart g.row text {
+         fill: grey;
+         mix-blend-mode: difference;
+     }
+
+     .dc-chart text.pie-slice.pie-label  {
+         fill: grey;
+         mix-blend-mode: difference;
+     }
+
 
      tr .filtered {
          font-weight: bold;

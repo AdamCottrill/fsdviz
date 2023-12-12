@@ -12,7 +12,6 @@ attrs==23.1.0
     # via pytest
 black==23.3.0
     # via -r local.in
-bookmark-it @ file:///E:/1work/Python/djcode/apps/bookmark_it/dist/bookmark-it-2022.4.1.tar.gz#sha256=217e38a329dc2a1a0436a39b23a917e283b448c7e818268a9eb9b2640cf4bf22
     # via -r base.in
 build==0.10.0
     # via pip-tools
@@ -93,7 +92,7 @@ factory-boy==3.2.0
     # via -r local.in
 faker==18.10.1
     # via factory-boy
-gdal @ file:///C:/Users/COTTRILLAD/Downloads/GDAL-3.4.2-cp39-cp39-win32.whl#sha256=fbe0a9b3aba2db8dd47a77acbbf19cd532f8bedaac75692776baa7f056da6999
+
     # via -r base.in
 idna==3.4
     # via requests
@@ -160,7 +159,8 @@ pylint-plugin-utils==0.7
     # via
     #   -r local.in
     #   pylint-django
-pyodbc @ file:///C:/Users/COTTRILLAD/Downloads/pyodbc-4.0.32-cp39-cp39-win32.whl#sha256=9ad0431c04c955b7232007d3f792357ff8836936c94edcda363c6059d7e9b349
+#pyodbc @ file:///C:/Users/COTTRILLAD/Downloads/pyodbc-4.0.32-cp39-cp39-win32.whl#sha256=9ad0431c04c955b7232007d3f792357ff8836936c94edcda363c6059d7e9b349
+pyodbc==4.0.32
     # via -r local.in
 pyproject-hooks==1.0.0
     # via build
@@ -185,7 +185,7 @@ pytz==2023.3
     # via django
 requests==2.31.0
     # via coreapi
-resource-library @ file:///E:/1work/Python/djcode/apps/resource_library/dist/resource-library-2022.6.29.tar.gz#sha256=9ae13190bf377fb49438767053aba2227d4058b1e5f21a631106bf9262e6dfd2
+
     # via -r base.in
 ruamel-yaml==0.17.31
     # via drf-yasg
@@ -199,7 +199,7 @@ sqlparse==0.4.4
     # via
     #   django
     #   django-debug-toolbar
-ticket-tracker @ file:///C:/Users/COTTRILLAD/1work/Python/djcode/apps/tickettracker2/dist/ticket-tracker-2023.1.10.tar.gz#sha256=444731a80ef8711c67d1a6385b5aee531878e5d6f7e685ecc1421fd111c39169
+
     # via -r base.in
 toml==0.10.2
     # via
@@ -228,3 +228,12 @@ wrapt==1.12.1
 # The following packages are considered to be unsafe in a requirements file:
 # pip
 # setuptools
+
+
+#bookmark-it @ file:///E:/1work/Python/djcode/apps/bookmark_it/dist/bookmark-it-2022.4.1.tar.gz#sha256=217e38a329dc2a1a0436a39b23a917e283b448c7e818268a9eb9b2640cf4bf22
+
+#gdal @ file:///C:/Users/COTTRILLAD/Downloads/GDAL-3.4.2-cp39-cp39-win32.whl#sha256=fbe0a9b3aba2db8dd47a77acbbf19cd532f8bedaac75692776baa7f056da6999
+
+#resource-library @ file:///E:/1work/Python/djcode/apps/resource_library/dist/resource-library-2022.6.29.tar.gz#sha256=9ae13190bf377fb49438767053aba2227d4058b1e5f21a631106bf9262e6dfd2
+
+#ticket-tracker @ file:///C:/Users/COTTRILLAD/1work/Python/djcode/apps/tickettracker2/dist/ticket-tracker-2023.1.10.tar.gz#sha256=444731a80ef8711c67d1a6385b5aee531878e5d6f7e685ecc1421fd111c39169

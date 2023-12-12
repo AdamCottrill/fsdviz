@@ -36,6 +36,8 @@
          }
          .ui.dropdown .menu { z-index: 999999 !important; }
 
+
+
         </style>
 
 
@@ -47,17 +49,17 @@
         <link rel="shortcut icon" type="image/jpg" href="{% static "favicon.ico" %}" >
 
 
+        {% if not debug %}
+            <!-- Google tag (gtag.js) -->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-BR59QP377W"></script>
+            <script>
+             window.dataLayer = window.dataLayer || [];
+             function gtag(){dataLayer.push(arguments);}
+             gtag('js', new Date());
 
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-BR59QP377W"></script>
-        <script>
-         window.dataLayer = window.dataLayer || [];
-         function gtag(){dataLayer.push(arguments);}
-         gtag('js', new Date());
-
-         gtag('config', 'G-BR59QP377W');
-        </script>
-
+             gtag('config', 'G-BR59QP377W');
+            </script>
+            {% endif %}
 
     </head>
     <body>
