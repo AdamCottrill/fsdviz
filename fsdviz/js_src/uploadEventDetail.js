@@ -1,6 +1,6 @@
 /* global  dataURL, */
 
-//import crossfilter from "crossfilter2";
+// import crossfilter from "crossfilter2";
 import { json, scaleOrdinal, extent } from "d3";
 
 import Leaflet from "leaflet";
@@ -34,10 +34,10 @@ Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(mymap);
 
 const recalc_bbox = (bbox, dd_lat, dd_lon) => {
-  //longitude
+  // longitude
   bbox[0] = bbox[0] < dd_lon[0] ? bbox[0] : dd_lon[0];
   bbox[2] = bbox[2] > dd_lon[1] ? bbox[2] : dd_lon[1];
-  //latitude
+  // latitude
   bbox[1] = bbox[1] < dd_lat[0] ? bbox[1] : dd_lat[0];
   bbox[3] = bbox[3] > dd_lat[1] ? bbox[3] : dd_lat[1];
   return bbox;
@@ -46,13 +46,13 @@ const recalc_bbox = (bbox, dd_lat, dd_lon) => {
 function onClick(e) {
   // when we click on a point, toggle the active mark style, and hide or show
   // the corresponding rows in the table:
-  let marker = e.target.getElement();
-  let classes = marker.getAttribute("class");
-  let pt = `${e.latlng.lat}; ${e.latlng.lng}`;
+  const marker = e.target.getElement();
+  const classes = marker.getAttribute("class");
+  const pt = `${e.latlng.lat}; ${e.latlng.lng}`;
   let rows;
 
-  //remove the old active marker class if it exists:
-  let oldMarker = document.getElementsByClassName("active-marker");
+  // remove the old active marker class if it exists:
+  const oldMarker = document.getElementsByClassName("active-marker");
   if (oldMarker.length > 0) {
     oldMarker[0].classList.remove("active-marker");
   }
@@ -64,11 +64,11 @@ function onClick(e) {
   } else {
     selectedPt = pt;
     marker.setAttribute("class", classes + " active-marker");
-    //hide them all
+    // hide them all
     rows = document.querySelectorAll("[data-coord]");
     rows.forEach((row) => (row.style.display = "none"));
-    //make the selected one appear:
-    let selector = `[data-coord='${pt}']`;
+    // make the selected one appear:
+    const selector = `[data-coord='${pt}']`;
     rows = document.querySelectorAll(selector);
     rows.forEach((row) => (row.style.display = ""));
   }
@@ -89,7 +89,7 @@ Promise.all([json(dataURL), json("/api/v1/common/lookups")]).then(
       d.latitude = +d.latitude;
       d.longitude = +d.longitude;
       if (d.latitude & d.longitude) {
-        let circle = Leaflet.circleMarker([d.latitude, +d.longitude], {
+        const circle = Leaflet.circleMarker([d.latitude, +d.longitude], {
           color: colourScale(d.species_name),
           fillColor: colourScale(d.species_name),
           fillOpacity: 0.5,
@@ -109,9 +109,9 @@ Promise.all([json(dataURL), json("/api/v1/common/lookups")]).then(
 
     update_category_legend(colourScale, speciesList, "");
 
-    //reset the the bounds of our map if required.
-    let lat_extent = extent(data, (d) => d.latitude);
-    let lon_extent = extent(data, (d) => d.longitude);
+    // reset the the bounds of our map if required.
+    const lat_extent = extent(data, (d) => d.latitude);
+    const lon_extent = extent(data, (d) => d.longitude);
     bbox = recalc_bbox(bbox, lat_extent, lon_extent);
     if (bbox.every((x) => !typeof undefined)) {
       mymap.fitBounds([

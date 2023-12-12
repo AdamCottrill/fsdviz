@@ -3,27 +3,13 @@
 import crossfilter from "crossfilter2";
 import { select, selectAll, format } from "d3";
 
+import { monthLookup } from "./components/constants";
+
 // some constants:
 
-let commaFormat = format(",d");
+const commaFormat = format(",d");
 let firstYear = "";
 let lastYear = "";
-
-const month_lookup = {
-  1: "January",
-  2: "February",
-  3: "March",
-  4: "April",
-  5: "May",
-  6: "June",
-  7: "July",
-  8: "August",
-  9: "September",
-  10: "October",
-  11: "November",
-  12: "December",
-  0: "Unknown/Not Reported",
-};
 
 // a little scrubbing:
 values.forEach((d) => {
@@ -82,7 +68,7 @@ const method_lookup = stockingMethods.reduce((accumulator, d) => {
 // );
 
 const get_selections = function (widget, what = "value") {
-  let selected = [];
+  const selected = [];
   if (widget.selectedIndex >= 0) {
     for (let i = widget.selectedIndex; i < widget.length; i++) {
       if (widget.options[i].selected) {
@@ -94,7 +80,7 @@ const get_selections = function (widget, what = "value") {
   return selected;
 };
 
-//=============================================
+// = ============================================
 //           Helper Functions
 
 // get the options that are still available in a group
@@ -110,12 +96,12 @@ const update_options = (selector, option_data, lookup, sortKey = "label") => {
   let options = select(selector)
     .selectAll("option")
     .data(option_data, function (d) {
-      return d ? d : this.value;
+      return d || this.value;
     });
 
   options.exit().remove();
 
-  let optionsEnter = options
+  const optionsEnter = options
     .enter()
     .append("option")
     .text((d) => lookup[d])
@@ -134,53 +120,53 @@ const update_options = (selector, option_data, lookup, sortKey = "label") => {
   }
 };
 
-//const filterDim = (dimension, selected) => {
+// const filterDim = (dimension, selected) => {
 //  if (selected.length) {
 //    dimension.filter((d) => selected.indexOf(d) > -1);
 //  } else {
 //    dimension.filterAll();
 //  }
-//};
+// };
 //
 // now we are going to set up our crossfilter
 
-let ndx = crossfilter(values);
+const ndx = crossfilter(values);
 
-let all = ndx.groupAll().reduceSum((d) => d.events);
+const all = ndx.groupAll().reduceSum((d) => d.events);
 
-let yearDim = ndx.dimension((d) => d.year);
-let monthDim = ndx.dimension((d) => d.month);
-let lakeDim = ndx.dimension((d) => d.lake);
-let jurisdictionDim = ndx.dimension((d) => d.jurisd);
-//roiDim = ndx.dimension((d) => d.jurisd);
+const yearDim = ndx.dimension((d) => d.year);
+const monthDim = ndx.dimension((d) => d.month);
+const lakeDim = ndx.dimension((d) => d.lake);
+const jurisdictionDim = ndx.dimension((d) => d.jurisd);
+// roiDim = ndx.dimension((d) => d.jurisd);
 roiDim = ndx.dimension((d) => d.manUnit);
-let stateDim = ndx.dimension((d) => d.state);
-let agencyDim = ndx.dimension((d) => d.agency_code);
-let speciesDim = ndx.dimension((d) => d.spc);
-let strainDim = ndx.dimension((d) => d.strain);
-let markDim = ndx.dimension((d) => d.mark);
-let methodDim = ndx.dimension((d) => d.method);
-let stageDim = ndx.dimension((d) => d.stage);
+const stateDim = ndx.dimension((d) => d.state);
+const agencyDim = ndx.dimension((d) => d.agency_code);
+const speciesDim = ndx.dimension((d) => d.spc);
+const strainDim = ndx.dimension((d) => d.strain);
+const markDim = ndx.dimension((d) => d.mark);
+const methodDim = ndx.dimension((d) => d.method);
+const stageDim = ndx.dimension((d) => d.stage);
 
 // set up our groups
-let yearGroup = yearDim.group().reduceSum((d) => d.events);
-let monthGroup = monthDim.group().reduceSum((d) => d.events);
-let lakeGroup = lakeDim.group().reduceSum((d) => d.events);
-let jurisdictionGroup = jurisdictionDim.group().reduceSum((d) => d.events);
-let roiGroup = roiDim.group().reduceSum((d) => d.events);
-let stateGroup = stateDim.group().reduceSum((d) => d.events);
-let agencyGroup = agencyDim.group().reduceSum((d) => d.events);
-let speciesGroup = speciesDim.group().reduceSum((d) => d.events);
-let strainGroup = strainDim.group().reduceSum((d) => d.events);
-let markGroup = markDim.group().reduceSum((d) => d.events);
-let methodGroup = methodDim.group().reduceSum((d) => d.events);
-let stageGroup = stageDim.group().reduceSum((d) => d.events);
+const yearGroup = yearDim.group().reduceSum((d) => d.events);
+const monthGroup = monthDim.group().reduceSum((d) => d.events);
+const lakeGroup = lakeDim.group().reduceSum((d) => d.events);
+const jurisdictionGroup = jurisdictionDim.group().reduceSum((d) => d.events);
+const roiGroup = roiDim.group().reduceSum((d) => d.events);
+const stateGroup = stateDim.group().reduceSum((d) => d.events);
+const agencyGroup = agencyDim.group().reduceSum((d) => d.events);
+const speciesGroup = speciesDim.group().reduceSum((d) => d.events);
+const strainGroup = strainDim.group().reduceSum((d) => d.events);
+const markGroup = markDim.group().reduceSum((d) => d.events);
+const methodGroup = methodDim.group().reduceSum((d) => d.events);
+const stageGroup = stageDim.group().reduceSum((d) => d.events);
 
 const update_total = () => {
-  let total = all.value();
+  const total = all.value();
   select("#event-total")
     .text(commaFormat(total))
-    .classed("total-zero", total <= 0 ? true : false);
+    .classed("total-zero", total <= 0);
 };
 
 const update_widgets = () => {
@@ -188,7 +174,7 @@ const update_widgets = () => {
   update_options("#id_lake", options, lake_lookup);
 
   options = get_options(monthGroup);
-  update_options("#id_months", options, month_lookup, "id");
+  update_options("#id_months", options, monthLookup, "id");
 
   options = get_options(stateGroup);
   update_options("#id_stateprov", options, stateProv_lookup);
@@ -205,8 +191,8 @@ const update_widgets = () => {
   options = get_options(strainGroup);
   update_options("#id_strain", options, strain_lookup);
 
-  //options = get_options(markGroup);
-  //update_options("#id_mark", options, mark_lookup);
+  // options = get_options(markGroup);
+  // update_options("#id_mark", options, mark_lookup);
 
   options = get_options(stageGroup);
   update_options("#id_life_stage", options, lifestage_lookup);
@@ -221,14 +207,14 @@ ndx.onChange(() => {
   update_widgets();
 });
 
-//initalize everything:
+// initalize everything:
 update_widgets();
 
 const filterYears = (firstYear, lastYear) => {
-  //clear any existing filters on year:
+  // clear any existing filters on year:
 
   if (firstYear && lastYear) {
-    let top = parseInt(lastYear) + 1;
+    const top = parseInt(lastYear) + 1;
     yearDim.filter([parseInt(firstYear), top]);
   } else if (firstYear && lastYear === "") {
     yearDim.filterFunction((d) => d >= parseInt(firstYear));
@@ -240,7 +226,7 @@ const filterYears = (firstYear, lastYear) => {
 };
 
 const checkYears = (firstYear, lastYear) => {
-  let yearInputs = selectAll(".year-input");
+  const yearInputs = selectAll(".year-input");
   if (firstYear !== "" && lastYear !== "" && firstYear > lastYear) {
     yearInputs.classed("error", true);
   } else {
@@ -248,21 +234,21 @@ const checkYears = (firstYear, lastYear) => {
   }
 };
 
-//=============================================
+// = ============================================
 // create listeners for each of our form widgets
 
 select("#id_lake").on("change", function () {
-  let selected = get_selections(this);
+  const selected = get_selections(this);
   filterDim(lakeDim, selected);
 });
 
 select("#id_stateprov").on("change", function () {
-  let selected = get_selections(this);
+  const selected = get_selections(this);
   filterDim(stateDim, selected);
 });
 
 select("#id_jurisdiction").on("change", function () {
-  let selected = get_selections(this);
+  const selected = get_selections(this);
   filterDim(jurisdictionDim, selected);
 });
 
@@ -279,32 +265,32 @@ select("#id_last_year").on("change", function () {
 });
 
 select("#id_months").on("change", function () {
-  let selected = get_selections(this);
+  const selected = get_selections(this);
   filterDim(monthDim, selected);
 });
 
 select("#id_agency").on("change", function () {
-  let selected = get_selections(this);
+  const selected = get_selections(this);
   filterDim(agencyDim, selected);
 });
 
 select("#id_species").on("change", function () {
-  let selected = get_selections(this);
+  const selected = get_selections(this);
   filterDim(speciesDim, selected);
 });
 
 select("#id_strain").on("change", function () {
-  let selected = get_selections(this);
+  const selected = get_selections(this);
   filterDim(strainDim, selected);
 });
 
 select("#id_life_stage").on("change", function () {
-  let selected = get_selections(this);
+  const selected = get_selections(this);
   filterDim(stageDim, selected);
 });
 
 select("#id_stocking_method").on("change", function () {
-  let selected = get_selections(this);
+  const selected = get_selections(this);
   filterDim(methodDim, selected);
 });
 

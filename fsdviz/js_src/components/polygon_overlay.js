@@ -50,16 +50,16 @@ export const polygon_overlay = () => {
   const geomClicked = function (d, what) {
     select(this).classed("highlighted", false);
 
-    let slug = d.properties.slug;
-    let geometry = d.geometry;
+    const slug = d.properties.slug;
+    const geometry = d.geometry;
 
     // update our globals
     selectedGeom = slug;
     spatialScale = what;
-    //Update Bread crumb
+    // Update Bread crumb
     select("#next-unit").text("");
     addBreadcrumb(spatialScale, slug);
-    //reset our map
+    // reset our map
     const polygon_bbox = bbox(geometry);
     leafletMap.flyToBounds(turfbbToLeafletbb(polygon_bbox));
 
@@ -69,7 +69,7 @@ export const polygon_overlay = () => {
   // create a lookup array we will use for displaying pretty names for things
   // identifeid by a slug:
   const makeLabelLookup = (features) => {
-    let lookup = {};
+    const lookup = {};
     features.forEach((feature) => {
       feature.forEach((d) => (lookup[d.properties.slug] = d.properties.label));
     });
@@ -94,12 +94,12 @@ export const polygon_overlay = () => {
 
   // used by click event on our polygon geometries - zoom to the extents
   // of the selected polygon
-  let zoomToFeature = (what, label) => {
+  const zoomToFeature = (what, label) => {
     if (what !== "manUnit") {
       spatialScale = what;
-      let features = what === "lake" ? lake_features : jurisdiction_features;
-      let feature = features.filter((d) => d.properties.label === label)[0];
-      let mybbox = bbox(feature.geometry);
+      const features = what === "lake" ? lake_features : jurisdiction_features;
+      const feature = features.filter((d) => d.properties.label === label)[0];
+      const mybbox = bbox(feature.geometry);
       selectedGeom = feature.properties.slug;
       leafletMap.flyToBounds(turfbbToLeafletbb(mybbox));
 
@@ -115,9 +115,9 @@ export const polygon_overlay = () => {
   // existsing filters on 'lower' spatial scales and
   // zoom to its extent
   function breadCrumbClick() {
-    let what = this.id.split("-")[0];
-    let label = this.text;
-    let slug = this.dataset["slug"];
+    const what = this.id.split("-")[0];
+    const label = this.text;
+    const slug = this.dataset.slug;
     updateCrossfilter(what, slug);
     zoomToFeature(what, label);
   }
@@ -126,24 +126,24 @@ export const polygon_overlay = () => {
   // crumb to the list of existing breadcrumbs. Uses semantic-ui formatting.
   // what is one of lake, jurisdiction
   const addBreadcrumb = (what, slug) => {
-    let label = labelLookup[slug];
+    const label = labelLookup[slug];
     let html = '<div class="divider"> / </div>';
     html += `<a class="section" id="${what}-breadcrumb-link" data-slug=${slug}>${label}</a>`;
-    let selector = `#${what}-breadcrumb`;
+    const selector = `#${what}-breadcrumb`;
     select(selector).html(html);
     select(selector + "-link").on("click", breadCrumbClick);
   };
 
   // remove the item of the thelist of breadcrumbs that correspond to what
   const clearBreadcrumb = (what) => {
-    let selector = `#${what}-breadcrumb`;
+    const selector = `#${what}-breadcrumb`;
     select(selector).html("");
-    //TODO - clear filter for the appropriate spatial filter here
+    // TODO - clear filter for the appropriate spatial filter here
   };
 
   // add click event to our basin breadcrumb link - it must already exist on the page. the others are added dynamically.
   const basinBreadCrumbOnClick = () => {
-    //=====================================
+    // = ====================================
     select("#basin-breadcrumb-link").on("click", () => {
       // when the basin breadcrumb is clicked, set the map to the bounding box for the basin,
       // set the visibility of the other breadcrumbs to none
@@ -164,18 +164,22 @@ export const polygon_overlay = () => {
 
   function chart(selection) {
     selection.each(function (topodata) {
-      //===================================================
+      // = ==================================================
       // Polygons and Mapping geometries
-      lake_features = topojson.feature(topodata, topodata.objects.lakes)
-        .features;
+      lake_features = topojson.feature(
+        topodata,
+        topodata.objects.lakes
+      ).features;
       jurisdiction_features = topojson.feature(
         topodata,
         topodata.objects.jurisdictions
       ).features;
-      manUnit_features = topojson.feature(topodata, topodata.objects.mus)
-        .features;
+      manUnit_features = topojson.feature(
+        topodata,
+        topodata.objects.mus
+      ).features;
 
-      let tmp = manUnit_features.filter(
+      const tmp = manUnit_features.filter(
         (d) => d.properties.jurisdiction === "mi_wi"
       );
 

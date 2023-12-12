@@ -1,5 +1,5 @@
-// 19 colours
-export let speciesColours = [
+// 19 colours -
+export const speciesColours = [
   "#3cb44b",
   "#4363d8",
   "#e6194b",
@@ -23,53 +23,7 @@ export let speciesColours = [
   "#ffffff",
 ];
 
-//19 species
-export const all_species = [
-  "Lake Trout",
-  "Chinook Salmon",
-  "Rainbow Trout",
-  "Brown Trout",
-  "Coho Salmon",
-  "Walleye",
-  "Lake Trout Backcross",
-  "Atlantic Salmon",
-  "Splake",
-  "Brook Trout",
-  "Sockeye Salmon",
-  "Yellow Perch",
-  "Lake Herring (Cisco)",
-  "Bloater",
-  "Lake Sturgeon",
-  "Muskellunge",
-  "Smallmouth Bass",
-  "Tiger Musky",
-  "Northern Pike",
-];
-
-//19 species
-export const all_species_abbrev = [
-  "LAT",
-  "CHS",
-  "RBT",
-  "BRT",
-  "COS",
-  "WAE",
-  "LTC",
-  "ATS",
-  "SPE",
-  "BKT",
-  "SOS",
-  "YEP",
-  "LAH",
-  "BLO",
-  "LAS",
-  "MUE",
-  "SMB",
-  "TIM",
-  "NOP",
-];
-
-export const month_lookup = {
+export const monthLookup = {
   1: "Jan",
   2: "Feb",
   3: "Mar",

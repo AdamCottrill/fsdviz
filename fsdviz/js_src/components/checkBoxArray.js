@@ -5,14 +5,8 @@ import { updateUrlCheckBoxParams } from "./url_parsing";
 import { pluckLabel } from "./utils";
 
 export const checkBoxes = (selection, props) => {
-  const {
-    filterkey,
-    xfdim,
-    xfgroup,
-    filters,
-    label_lookup,
-    sortByLabel,
-  } = props;
+  const { filterkey, xfdim, xfgroup, filters, label_lookup, sortByLabel } =
+    props;
 
   // semantic-ui checkbox markup:
   //  `<div class="checkbox" id={}>
@@ -24,7 +18,7 @@ export const checkBoxes = (selection, props) => {
 
   let myfilters = filters[filterkey].values;
 
-  let keys = xfgroup.top("Infinity").filter((d) => d.value > 0);
+  const keys = xfgroup.top("Infinity").filter((d) => d.value > 0);
 
   let compareFn;
   if (sortByLabel) {
@@ -42,12 +36,10 @@ export const checkBoxes = (selection, props) => {
   keys.sort(compareFn);
 
   // an object to contain the checkbox status for each checkbox
-  let checkbox_map = {};
-  keys.forEach(
-    (d) => (checkbox_map[d.key] = myfilters.indexOf(d.key) > -1 ? true : false)
-  );
+  const checkbox_map = {};
+  keys.forEach((d) => (checkbox_map[d.key] = myfilters.indexOf(d.key) > -1));
 
-  let filtered = !Object.values(checkbox_map).every(
+  const filtered = !Object.values(checkbox_map).every(
     (val, i, arr) => val === arr[0]
   );
 
@@ -55,12 +47,12 @@ export const checkBoxes = (selection, props) => {
 
   // if this dimension is filtered, add the class filtered to the title
   // so we can style it differently to indicate that:
-  let selector = selection.attr("id");
+  const selector = selection.attr("id");
   select(`#${selector}-title`).classed("filtered", filtered);
 
-  let cbarray = selection.enter().append("div").merge(selection);
+  const cbarray = selection.enter().append("div").merge(selection);
 
-  let boxes = cbarray.selectAll("div").data(keys, (d) => d.key);
+  const boxes = cbarray.selectAll("div").data(keys, (d) => d.key);
 
   boxes.exit().remove();
 
@@ -68,7 +60,7 @@ export const checkBoxes = (selection, props) => {
 
   boxesEnter = boxesEnter.merge(boxes);
 
-  let uiCheckbox = boxesEnter
+  const uiCheckbox = boxesEnter
     .append("div")
     .attr("data-tooltip", (d) => `N=${d.value.toLocaleString()}`)
     .attr("data-position", "right center")
@@ -96,9 +88,9 @@ export const checkBoxes = (selection, props) => {
 
   uiCheckbox.append("label").text((d) => pluckLabel(d.key, label_lookup));
 
-  let buttonbar = select(`#${selector}-buttons`).attr("class", "ui buttons");
+  const buttonbar = select(`#${selector}-buttons`).attr("class", "ui buttons");
 
-  let clearAllBnt = buttonbar
+  const clearAllBnt = buttonbar
     .selectAll(".clear-link")
     .data([null])
     .enter()
@@ -106,7 +98,7 @@ export const checkBoxes = (selection, props) => {
     .attr("class", "clear-link ui mini basic primary left floated button")
     .text("Clear All")
     .on("click", function () {
-      let checkboxes = cbarray
+      const checkboxes = cbarray
         .selectAll("input[type=checkbox]")
         .property("checked", false);
       filters[filterkey].values = [];
@@ -114,7 +106,7 @@ export const checkBoxes = (selection, props) => {
       xfdim.filter();
     });
 
-  let selectAllBtn = buttonbar
+  const selectAllBtn = buttonbar
     .selectAll(".select-link")
     .data([null])
     .enter()
@@ -122,7 +114,7 @@ export const checkBoxes = (selection, props) => {
     .attr("class", "select-link ui mini basic primary right floated button")
     .text("Select All")
     .on("click", function () {
-      let checkboxes = cbarray
+      const checkboxes = cbarray
         .selectAll("input[type=checkbox]")
         .property("checked", true);
       filters[filterkey].values = keys.map((d) => d.key);

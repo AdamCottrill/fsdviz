@@ -1,4 +1,4 @@
-/* global values dc, dataURL, maxEvents, all_species, speciesColours, markLookup, tagLookup, clipLookup */
+/* global values dc, dataURL, maxEvents, speciesColours, markLookup, tagLookup, clipLookup */
 
 import crossfilter from "crossfilter2";
 import Leaflet from "leaflet";
@@ -45,9 +45,9 @@ import {
   stockingRemove,
   stockingInitial,
 } from "./components/reducers";
-import { month_lookup } from "./components/constants";
+import { monthLookup } from "./components/constants";
 
-let commaFormat = format(",");
+const commaFormat = format(",");
 
 const fullwidth = $("#stackedbar-chart-card").innerWidth();
 const padding = 20;
@@ -56,7 +56,7 @@ const width2 = fullwidth / 3 - padding;
 const height1 = 400;
 const height2 = 300;
 
-let roi = getUrlSearchValue("roi") || false;
+const roi = getUrlSearchValue("roi") || false;
 
 // intial values of global variabls that control the state of our page:
 let spatialUnit = getUrlParamValue("spatial_unit") || "geom";
@@ -68,7 +68,7 @@ let responseVar = getUrlParamValue("response_var") || "yreq";
 
 // a global object that will hold slug:label pairs for the labels of
 // the currently selected spatial unit.
-//const labelLookup = {};
+// const labelLookup = {};
 
 const sharedColourScale = scaleOrdinal();
 
@@ -99,10 +99,10 @@ if (roi) {
 Leaflet.svg().addTo(mymap);
 
 // Select the svg area and add a group element we can use to move things around:
-let svg = select("#mapid").select("svg");
+const svg = select("#mapid").select("svg");
 
 // add a groups to our svg - for our pie charts
-let pieg = svg.append("g");
+const pieg = svg.append("g");
 
 // this function is used for points events (centroids and mouse clicks)
 // converts the mouse clicks and cetroids to screen corrordinates that
@@ -112,23 +112,23 @@ function projectPoint(x, y) {
   return point;
 }
 
-let piecharts = piechart_overlay(mymap)
+const piecharts = piechart_overlay(mymap)
   .responseVar(responseVar)
   .getProjection(projectPoint);
 
-//======================================================
+// = =====================================================
 //           RADIO BUTTONS
 
-let strata = [
+const strata = [
   { name: "lake", label: "Lake" },
-  //{ name: "stateProv", label: "State/Province" },
+  // { name: "stateProv", label: "State/Province" },
   { name: "jurisdiction", label: "Jurisdiction" },
   { name: "manUnit", label: "Statistical District" },
   { name: "grid10", label: "10-minute Grid" },
   { name: "geom", label: "Reported Point" },
 ];
 
-let spatialSelector = RadioButtons()
+const spatialSelector = RadioButtons()
   .selector("#strata-selector")
   .options(strata)
   .checked(spatialUnit);
@@ -142,7 +142,7 @@ const spatial_resolution = selectAll("#strata-selector input");
 // name must correspond to column names in our data
 // TODO - add lookup option - for tooltip etc.
 
-let categories = [
+const categories = [
   { name: "lake", label: "Lake" },
   { name: "stateProv", label: "State/Province" },
   { name: "jurisdiction", label: "Jurisdiction" },
@@ -156,7 +156,7 @@ let categories = [
   { name: "stockingMethod", label: "Stocking Method" },
 ];
 
-let categorySelector = RadioButtons()
+const categorySelector = RadioButtons()
   .selector("#category-selector")
   .options(categories)
   .checked(sliceVar);
@@ -165,13 +165,13 @@ categorySelector();
 const category_selector = selectAll("#category-selector input");
 
 // Our Response Variable buttons:
-let pieSizeVars = [
+const pieSizeVars = [
   { name: "yreq", label: "Yearling Equivalents" },
   { name: "total", label: "Number Stocked" },
   { name: "events", label: "Event Count" },
 ];
 
-let pieSizeVarSelector = RadioButtons()
+const pieSizeVarSelector = RadioButtons()
   .selector("#pie-size-selector")
   .options(pieSizeVars)
   .checked(responseVar);
@@ -231,32 +231,32 @@ Promise.all([
   // have truncated the data and should show a warning.
   select("#record-count-warning").classed(
     "hidden",
-    data.length >= maxEvents ? false : true
+    !(data.length >= maxEvents)
   );
 
-  //=======================================================================
+  // = ======================================================================
   //                         CROSSFILTER
 
-  let ndx = crossfilter(data);
+  const ndx = crossfilter(data);
 
-  let yearDim = ndx.dimension((d) => d.year);
-  let monthDim = ndx.dimension((d) => d.month);
+  const yearDim = ndx.dimension((d) => d.year);
+  const monthDim = ndx.dimension((d) => d.month);
 
-  let lakeDim = ndx.dimension((d) => d.lake);
-  let agencyDim = ndx.dimension((d) => d.agency_code);
-  let stateProvDim = ndx.dimension((d) => d.stateProv);
-  let jurisdictionDim = ndx.dimension((d) => d.jurisdiction);
-  let manUnitDim = ndx.dimension((d) => d.man_unit);
-  let grid10Dim = ndx.dimension((d) => d.grid_10);
-  let geomDim = ndx.dimension((d) => d.geom);
+  const lakeDim = ndx.dimension((d) => d.lake);
+  const agencyDim = ndx.dimension((d) => d.agency_code);
+  const stateProvDim = ndx.dimension((d) => d.stateProv);
+  const jurisdictionDim = ndx.dimension((d) => d.jurisdiction);
+  const manUnitDim = ndx.dimension((d) => d.man_unit);
+  const grid10Dim = ndx.dimension((d) => d.grid_10);
+  const geomDim = ndx.dimension((d) => d.geom);
 
-  let speciesDim = ndx.dimension((d) => d.species_code);
-  let strainDim = ndx.dimension((d) => d.strain);
-  let lifeStageDim = ndx.dimension((d) => d.lifestage_code);
-  let clipDim = ndx.dimension((d) => d.clip);
-  let tagDim = ndx.dimension((d) => d.tag);
-  let markDim = ndx.dimension((d) => d.mark);
-  let stkMethDim = ndx.dimension((d) => d.stockingMethod);
+  const speciesDim = ndx.dimension((d) => d.species_code);
+  const strainDim = ndx.dimension((d) => d.strain);
+  const lifeStageDim = ndx.dimension((d) => d.lifestage_code);
+  const clipDim = ndx.dimension((d) => d.clip);
+  const tagDim = ndx.dimension((d) => d.tag);
+  const markDim = ndx.dimension((d) => d.mark);
+  const stkMethDim = ndx.dimension((d) => d.stockingMethod);
 
   // let lakeMapDim = ndx.dimension((d) => d.lake);
   // let stateProvMapDim = ndx.dimension((d) => d.stateProv);
@@ -266,12 +266,12 @@ Promise.all([
   // actually populated in a function that can be called when the
   // response variable changes and can be recalculated as needed.
 
-  //[NOTE: this appears to work, but I'm not sure if recreateing
-  //groups is the best way to do this. THe alternative would be to
-  //use our custom stockingAdd, StockingRemove, stockingInital
-  //reducers - but they would be continuously calculating values
-  //that we might not be interested in (total, yreq and events
-  //would be calculated on every change of the cross filter).]
+  // [NOTE: this appears to work, but I'm not sure if recreateing
+  // groups is the best way to do this. THe alternative would be to
+  // use our custom stockingAdd, StockingRemove, stockingInital
+  // reducers - but they would be continuously calculating values
+  // that we might not be interested in (total, yreq and events
+  // would be calculated on every change of the cross filter).]
   let yearGroup;
   let monthGroup;
   let lakeGroup;
@@ -299,7 +299,7 @@ Promise.all([
     jurisdictionGroup = jurisdictionDim
       .group()
       .reduceSum((d) => d[responseVar]);
-    //let manUnitGroup = manUnitDim.group().reduceSum((d) => d[responseVar]);
+    // let manUnitGroup = manUnitDim.group().reduceSum((d) => d[responseVar]);
     grid10Group = grid10Dim.group().reduceSum((d) => d[responseVar]);
     speciesGroup = speciesDim.group().reduceSum((d) => d[responseVar]);
     strainGroup = strainDim.group().reduceSum((d) => d[responseVar]);
@@ -377,19 +377,19 @@ Promise.all([
   update_stats_panel(all, {
     fillScale: sharedColourScale,
     label: categories.filter((d) => d.name === sliceVar)[0].label,
-    //what: responseVar,
+    // what: responseVar,
     what: sliceVar,
     row_labels: sliceLabels[sliceVar],
   });
 
   // set up an array of years:
-  let first_year = yearDim.bottom(1)[0].year;
-  let last_year = yearDim.top(1)[0].year;
+  const first_year = yearDim.bottom(1)[0].year;
+  const last_year = yearDim.top(1)[0].year;
 
-  let years = range(first_year, last_year);
+  const years = range(first_year, last_year);
   years.push(last_year);
 
-  //=========================================
+  // = ========================================
   //      helper functions
 
   function sel_stack(item_name) {
@@ -403,7 +403,7 @@ Promise.all([
 
     return {
       all: function () {
-        let result = group.all().slice(0);
+        const result = group.all().slice(0);
         result.forEach(function (x) {
           keys.forEach(function (d) {
             x.value[d] = x.value[d] || 0;
@@ -419,7 +419,7 @@ Promise.all([
     dc.renderAll();
   });
 
-  //==============================================================
+  // = =============================================================
   // declare our dc.js plots
 
   const stackedByYearBarChart = dc.barChart("#stackedbar-chart");
@@ -462,7 +462,7 @@ Promise.all([
     clipChart.group(clipGroup);
   };
 
-  //==========================================================
+  // = =========================================================
   //                 DYANAMIC STACKED BAR
 
   let items;
@@ -474,80 +474,80 @@ Promise.all([
     switch (category) {
       case "species_code":
         items = uniqueSpecies;
-        lookupMap = sliceLabels["species_code"];
+        lookupMap = sliceLabels.species_code;
         plotLabel = "Species Stocked Through Time";
 
         break;
       case "lake":
         items = uniqueLakes;
-        lookupMap = sliceLabels["lake"];
+        lookupMap = sliceLabels.lake;
         plotLabel = "Stocking By Lake Through Time";
 
         break;
       case "stateProv":
         items = uniqueStateProvs;
-        lookupMap = sliceLabels["stateProv"];
+        lookupMap = sliceLabels.stateProv;
         plotLabel = "Stocking By State/Province Through Time";
 
         break;
       case "jurisdiction":
         items = uniqueJurisdictions;
-        lookupMap = sliceLabels["jurisdiction"];
+        lookupMap = sliceLabels.jurisdiction;
         plotLabel = "Stocking By Jurisdiction Through Time";
 
         break;
       case "agency_code":
         items = uniqueAgencies;
-        lookupMap = sliceLabels["agency_code"];
+        lookupMap = sliceLabels.agency_code;
         plotLabel = "Stocking By Agency Through Time";
 
         break;
       case "strain":
         items = uniqueStrains;
-        lookupMap = sliceLabels["strain"];
+        lookupMap = sliceLabels.strain;
         plotLabel = "Stocking By Strain Through Time";
 
         break;
       case "clip":
         items = uniqueClips;
-        lookupMap = sliceLabels["clip"];
+        lookupMap = sliceLabels.clip;
         plotLabel = "Stocking By Clip Through Time";
 
         break;
       case "mark":
         items = uniqueMarks;
-        lookupMap = sliceLabels["mark"];
+        lookupMap = sliceLabels.mark;
         plotLabel = "Stocking By Mark Through Time";
 
         break;
       case "tag":
         items = uniqueTags;
-        lookupMap = sliceLabels["tag"];
+        lookupMap = sliceLabels.tag;
         plotLabel = "Stocking By Tag Type Through Time";
 
         break;
       case "lifestage_code":
         items = uniqueLifestages;
-        lookupMap = sliceLabels["lifestage_code"];
+        lookupMap = sliceLabels.lifestage_code;
         plotLabel = "Stocking By LifeStage Through Time";
 
         break;
       case "stockingMethod":
         items = uniqueStockingMethods;
-        lookupMap = sliceLabels["stockingMethod"];
+        lookupMap = sliceLabels.stockingMethod;
         plotLabel = "Stocking By Stocking Method Through Time";
 
         break;
       default:
         items = uniqueSpecies;
-        lookupMap = sliceLabels["species_code"];
+        lookupMap = sliceLabels.species_code;
         plotLabel = "Species Stocked Through Time";
     }
   };
 
   updateStackedBarItems(sliceVar);
 
-  //updateStackeBarLabel(plotLabel);
+  // updateStackeBarLabel(plotLabel);
 
   const updateStackeBarLabel = (label) => {
     select("#stackedbar-chart-heading").text(label);
@@ -565,8 +565,8 @@ Promise.all([
   let byYearWith0s = ensure_group_bins(byYear, items);
 
   // create string for stacked bar chart tooltips:
-  let barchartTooltip = function (d) {
-    let layer = this.layer.trim();
+  const barchartTooltip = function (d) {
+    const layer = this.layer.trim();
     if (layer !== "0") {
       const yr = d.key;
       const N = d.value[layer] == 0 ? 0 : d.value[layer][responseVar];
@@ -575,14 +575,14 @@ Promise.all([
       // some of our lookups are objects with a description attribute:
       label = typeof label === "object" ? label.description : label;
 
-      let stocked = commaFormat(N);
+      const stocked = commaFormat(N);
       return `${yr} - ${label}: ${stocked} ${what}`;
     } else {
       return "";
     }
   };
 
-  let stackedByYearBarChartXScale = scaleLinear().domain([
+  const stackedByYearBarChartXScale = scaleLinear().domain([
     first_year - 0.6,
     last_year + 0.55,
   ]);
@@ -600,7 +600,7 @@ Promise.all([
     })
     .elasticY(true)
     .title(barchartTooltip);
-  //.renderLabel(true);
+  // .renderLabel(true);
 
   stackedByYearBarChart.xAxis().tickFormat(format("d")).ticks(years.length);
 
@@ -627,29 +627,29 @@ Promise.all([
       .on("dblclick", function () {
         // get the mouse corrdinates relative to our overlay (plotting) rectangle
         // not sure why d3 is needed here:
-        let x = d3.mouse(this)[0];
+        const x = d3.mouse(this)[0];
         // convert those coordinates to years
-        let yr = Math.round(stackedByYearBarChartXScale.invert(x));
+        const yr = Math.round(stackedByYearBarChartXScale.invert(x));
         // apply a filter that is exactly on year wide
         stackedByYearBarChart.filter(dc.filters.RangedFilter(yr, yr + 1));
       });
   });
 
-  let decrementStackedBarByYearFilter = () => {
+  const decrementStackedBarByYearFilter = () => {
     if (stackedByYearBarChart.filters().length) {
-      let yr0 = stackedByYearBarChart.filters()[0][0];
-      let yr1 = stackedByYearBarChart.filters()[0][1];
-      let newFilters = dc.filters.RangedFilter(yr0 - 1, yr1 - 1);
+      const yr0 = stackedByYearBarChart.filters()[0][0];
+      const yr1 = stackedByYearBarChart.filters()[0][1];
+      const newFilters = dc.filters.RangedFilter(yr0 - 1, yr1 - 1);
       stackedByYearBarChart.replaceFilter(newFilters);
       dc.redrawAll();
     }
   };
 
-  let incrementStackedBarByYearFilter = () => {
+  const incrementStackedBarByYearFilter = () => {
     if (stackedByYearBarChart.filters().length) {
-      let yr0 = stackedByYearBarChart.filters()[0][0];
-      let yr1 = stackedByYearBarChart.filters()[0][1];
-      let newFilters = dc.filters.RangedFilter(yr0 + 1, yr1 + 1);
+      const yr0 = stackedByYearBarChart.filters()[0][0];
+      const yr1 = stackedByYearBarChart.filters()[0][1];
+      const newFilters = dc.filters.RangedFilter(yr0 + 1, yr1 + 1);
       stackedByYearBarChart.replaceFilter(newFilters);
       dc.redrawAll();
     }
@@ -657,13 +657,13 @@ Promise.all([
 
   // attach our increment and decrement functions to the
   // button click events
-  let nextyr = select("#stackedbar-next-year").classed("visible", () => {
+  const nextyr = select("#stackedbar-next-year").classed("visible", () => {
     return stackedByYearBarChart.hasFilter();
   });
 
   nextyr.on("click", incrementStackedBarByYearFilter);
 
-  let lastyr = select("#stackedbar-previous-year").classed("visibile", () => {
+  const lastyr = select("#stackedbar-previous-year").classed("visibile", () => {
     return stackedByYearBarChart.hasFilter();
   });
 
@@ -673,21 +673,21 @@ Promise.all([
   // the brush/toolip  value of tooltip (a boolean). Called by brush toggle
   // on change and when the category of the stacked bar plot is re-rendered.
   const setBrushTooltip = (tooltip) => {
-    let overlay = select("#stackedbar-chart rect.overlay");
+    const overlay = select("#stackedbar-chart rect.overlay");
     overlay.classed("pass-through", tooltip);
-    let selection = select("#stackedbar-chart rect.selection");
+    const selection = select("#stackedbar-chart rect.selection");
     selection.classed("pass-through", tooltip);
   };
 
   // get intitial state of our brush tool tip from the selected check box:
 
-  let tooltip = select('input[name="brush-toggle"]:checked').node().value;
+  const tooltip = select('input[name="brush-toggle"]:checked').node().value;
   setBrushTooltip(tooltip == "tooltip");
 
   // toggle the css
-  let brushtoggle = selectAll(".stackedbar-brush-toggle");
+  const brushtoggle = selectAll(".stackedbar-brush-toggle");
   brushtoggle.on("change", function () {
-    let tooltip = this.value == "tooltip";
+    const tooltip = this.value == "tooltip";
     setBrushTooltip(tooltip);
   });
 
@@ -699,10 +699,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==========================================================
+  // = =========================================================
   //                   LAKE
 
-  const lakeColorScale = getColorScale(fillColours["lake"]);
+  const lakeColorScale = getColorScale(fillColours.lake);
   //  const getLabel = (d, lookup) => pluckLabel(d.key, lookup);
   lakeChart
     .width(width1)
@@ -710,16 +710,16 @@ Promise.all([
     .dimension(lakeDim)
     .group(lakeGroup)
     .colors(lakeColorScale)
-    .label((d) => pluckLabel(d.key, sliceLabels["lake"]))
+    .label((d) => pluckLabel(d.key, sliceLabels.lake))
     .title((d) => {
-      const label = pluckLabel(d.key, sliceLabels["lake"]);
+      const label = pluckLabel(d.key, sliceLabels.lake);
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${label}: ${commaFormat(d.value)} ${what}`;
     });
 
   lakeChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = lakeChart.filters();
+      const filters = lakeChart.filters();
       if (!filters || !filters.length) {
         select("#lake-filter").text("All").classed("filtered", false);
       } else {
@@ -736,10 +736,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //            AGENCY
 
-  const agencyColorScale = getColorScale(fillColours["agency_code"]);
+  const agencyColorScale = getColorScale(fillColours.agency_code);
   agencyChart
     .width(width2)
     .height(height2)
@@ -747,14 +747,14 @@ Promise.all([
     .group(agencyGroup)
     .colors(agencyColorScale)
     .title((d) => {
-      const label = pluckLabel(d.key, sliceLabels["agency_code"]);
+      const label = pluckLabel(d.key, sliceLabels.agency_code);
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${label}: ${commaFormat(d.value)} ${what}`;
     });
 
   agencyChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = agencyChart.filters();
+      const filters = agencyChart.filters();
       if (!filters || !filters.length) {
         select("#agency-filter").text("All").classed("filtered", false);
       } else {
@@ -771,10 +771,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //            JURISDICTION
 
-  const jurisdictionColorScale = getColorScale(fillColours["jurisdiction"]);
+  const jurisdictionColorScale = getColorScale(fillColours.jurisdiction);
 
   jurisdictionChart
     .width(width2)
@@ -782,16 +782,16 @@ Promise.all([
     .dimension(jurisdictionDim)
     .group(jurisdictionGroup)
     .colors(jurisdictionColorScale)
-    .label((d) => pluckLabel(d.key, sliceLabels["jurisdiction"]))
+    .label((d) => pluckLabel(d.key, sliceLabels.jurisdiction))
     .title((d) => {
-      const label = pluckLabel(d.key, sliceLabels["jurisdiction"]);
+      const label = pluckLabel(d.key, sliceLabels.jurisdiction);
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${label}: ${commaFormat(d.value)} ${what}`;
     });
 
   jurisdictionChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = jurisdictionChart.filters();
+      const filters = jurisdictionChart.filters();
       if (!filters || !filters.length) {
         select("#jurisdiction-filter").text("All").classed("filtered", false);
       } else {
@@ -808,10 +808,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //            Management Units
 
-  const manUnitColorScale = getColorScale(fillColours["manUnit"]);
+  const manUnitColorScale = getColorScale(fillColours.manUnit);
 
   manUnitChart
     .width(width2)
@@ -819,16 +819,16 @@ Promise.all([
     .dimension(manUnitDim)
     .group(manUnitGroup)
     .colors(manUnitColorScale)
-    .label((d) => pluckLabel(d.key, sliceLabels["manUnit"]))
+    .label((d) => pluckLabel(d.key, sliceLabels.manUnit))
     .title((d) => {
-      const label = pluckLabel(d.key, sliceLabels["manUnit"]);
+      const label = pluckLabel(d.key, sliceLabels.manUnit);
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${label}: ${commaFormat(d.value)} ${what}`;
     });
 
   manUnitChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = manUnitChart.filters();
+      const filters = manUnitChart.filters();
       if (!filters || !filters.length) {
         select("#manUnit-filter").text("All").classed("filtered", false);
       } else {
@@ -845,10 +845,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //               STATE OR PROVINCE
 
-  const stateProvColorScale = getColorScale(fillColours["stateProv"]);
+  const stateProvColorScale = getColorScale(fillColours.stateProv);
   stateProvChart
     .width(width1)
     .height(height1)
@@ -856,14 +856,14 @@ Promise.all([
     .group(stateProvGroup)
     .colors(stateProvColorScale)
     .title((d) => {
-      const label = pluckLabel(d.key, sliceLabels["stateProv"]);
+      const label = pluckLabel(d.key, sliceLabels.stateProv);
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${label}: ${commaFormat(d.value)} ${what}`;
     });
 
   stateProvChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = stateProvChart.filters();
+      const filters = stateProvChart.filters();
       if (!filters || !filters.length) {
         select("#state-prov-filter").text("All").classed("filtered", false);
       } else {
@@ -880,10 +880,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //               SPECIES
 
-  const speciesColourScale = getColorScale(fillColours["species_code"]);
+  const speciesColourScale = getColorScale(fillColours.species_code);
   speciesChart
     .width(width1)
     .height(height1)
@@ -891,14 +891,14 @@ Promise.all([
     .group(speciesGroup)
     .colors(speciesColourScale)
     .title((d) => {
-      const label = pluckLabel(d.key, sliceLabels["species_code"]);
+      const label = pluckLabel(d.key, sliceLabels.species_code);
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${label}: ${commaFormat(d.value)} ${what}`;
     });
 
   speciesChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = speciesChart.filters();
+      const filters = speciesChart.filters();
       if (!filters || !filters.length) {
         select("#species-filter").text("All").classed("filtered", false);
       } else {
@@ -915,9 +915,9 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //               STRAIN
-  const strainColorScale = getColorScale(fillColours["strain"]);
+  const strainColorScale = getColorScale(fillColours.strain);
   strainChart
     .width(width1)
     .height(height1)
@@ -925,13 +925,12 @@ Promise.all([
     .dimension(strainDim)
     .group(strainGroup)
     .title(
-      (d) =>
-        `${pluckLabel(d.key, sliceLabels["strain"])}: ${commaFormat(d.value)}`
+      (d) => `${pluckLabel(d.key, sliceLabels.strain)}: ${commaFormat(d.value)}`
     );
 
   strainChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = strainChart.filters();
+      const filters = strainChart.filters();
       if (!filters || !filters.length) {
         select("#strain-filter").text("All").classed("filtered", false);
       } else {
@@ -946,10 +945,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //               LIFESTAGE
 
-  const lifestageColorScale = getColorScale(fillColours["lifestage_code"]);
+  const lifestageColorScale = getColorScale(fillColours.lifestage_code);
 
   lifestageChart
     .width(width2)
@@ -958,12 +957,12 @@ Promise.all([
     .dimension(lifeStageDim)
     .group(lifeStageGroup)
     .colors(lifestageColorScale)
-    //.ordering(d => d.key)
+    // .ordering(d => d.key)
     .title((d) => {
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${commaFormat(d.value)} ${what}`;
     })
-    .label((d) => pluckLabel(d.key, sliceLabels["lifestage_code"]))
+    .label((d) => pluckLabel(d.key, sliceLabels.lifestage_code))
     .gap(2)
     .elasticX(true)
     .xAxis()
@@ -971,7 +970,7 @@ Promise.all([
 
   lifestageChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = lifestageChart.filters();
+      const filters = lifestageChart.filters();
       if (!filters || !filters.length) {
         select("#lifestage-filter").text("All").classed("filtered", false);
       } else {
@@ -986,10 +985,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //               STOCKING METHOD
 
-  const stockingMethodColorScale = getColorScale(fillColours["stockingMethod"]);
+  const stockingMethodColorScale = getColorScale(fillColours.stockingMethod);
   stockingMethodChart
     .width(width2)
     .height(height2)
@@ -997,20 +996,20 @@ Promise.all([
     .dimension(stkMethDim)
     .group(stkMethGroup)
     .colors(stockingMethodColorScale)
-    //.ordering(d => d.key)
+    // .ordering(d => d.key)
     .gap(2)
     .title((d) => {
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${commaFormat(d.value)} ${what}`;
     })
-    .label((d) => pluckLabel(d.key, sliceLabels["stockingMethod"]))
+    .label((d) => pluckLabel(d.key, sliceLabels.stockingMethod))
     .elasticX(true)
     .xAxis()
     .ticks(4);
 
   stockingMethodChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = stockingMethodChart.filters();
+      const filters = stockingMethodChart.filters();
       if (!filters || !filters.length) {
         select("#stocking-method-filter")
           .text("All")
@@ -1029,7 +1028,7 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //               STOCKING MONTH
 
   stockingMonthChart
@@ -1044,18 +1043,18 @@ Promise.all([
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${commaFormat(d.value)} ${what}`;
     })
-    .label((d) => month_lookup[d.key])
+    .label((d) => monthLookup[d.key])
     .elasticX(true)
     .xAxis()
     .ticks(4);
 
   stockingMonthChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = stockingMonthChart.filters();
+      const filters = stockingMonthChart.filters();
       if (!filters || !filters.length) {
         select("#stocking-month-filter").text("All").classed("filtered", false);
       } else {
-        let labels = filters.map((d) => month_lookup[d]);
+        const labels = filters.map((d) => monthLookup[d]);
         select("#stocking-month-filter").text(labels).classed("filtered", true);
       }
     });
@@ -1067,10 +1066,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //               MARKS
 
-  const markColorScale = getColorScale(fillColours["mark"]);
+  const markColorScale = getColorScale(fillColours.mark);
 
   markChart
     .width(width2)
@@ -1079,14 +1078,14 @@ Promise.all([
     .group(markGroup)
     .colors(markColorScale)
     .title((d) => {
-      const label = pluckLabel(d.key, sliceLabels["mark"]);
+      const label = pluckLabel(d.key, sliceLabels.mark);
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${label}: ${commaFormat(d.value)} ${what}`;
     });
 
   markChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = markChart.filters();
+      const filters = markChart.filters();
       if (!filters || !filters.length) {
         select("#mark-filter").text("All").classed("filtered", false);
       } else {
@@ -1101,10 +1100,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //               CLIPS
 
-  const clipColorScale = getColorScale(fillColours["clip"]);
+  const clipColorScale = getColorScale(fillColours.clip);
 
   clipChart
     .width(width2)
@@ -1113,14 +1112,14 @@ Promise.all([
     .group(clipGroup)
     .colors(clipColorScale)
     .title((d) => {
-      const label = pluckLabel(d.key, sliceLabels["clip"]);
+      const label = pluckLabel(d.key, sliceLabels.clip);
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${label}: ${commaFormat(d.value)} ${what}`;
     });
 
   clipChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = clipChart.filters();
+      const filters = clipChart.filters();
       if (!filters || !filters.length) {
         select("#clip-filter").text("All").classed("filtered", false);
       } else {
@@ -1135,10 +1134,10 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //==============================================
+  // = =============================================
   //               TAGS
 
-  const tagColorScale = getColorScale(fillColours["tag"]);
+  const tagColorScale = getColorScale(fillColours.tag);
 
   tagChart
     .width(width2)
@@ -1147,14 +1146,14 @@ Promise.all([
     .group(tagGroup)
     .colors(tagColorScale)
     .title((d) => {
-      const label = pluckLabel(d.key, sliceLabels["tag"]);
+      const label = pluckLabel(d.key, sliceLabels.tag);
       const what = pluralize(responseVarLabels[responseVar], d.value);
       return `${label}: ${commaFormat(d.value)} ${what}`;
     });
 
   tagChart.on("renderlet", function (chart) {
     dc.events.trigger(function () {
-      let filters = tagChart.filters();
+      const filters = tagChart.filters();
       if (!filters || !filters.length) {
         select("#tag-filter").text("All").classed("filtered", false);
       } else {
@@ -1169,19 +1168,19 @@ Promise.all([
     dc.redrawAll();
   });
 
-  //update the url when the dc plot filters change:
+  // update the url when the dc plot filters change:
   dc.chartRegistry.list().forEach(function (chart) {
     chart.on("filtered", function () {
       update_dc_url();
     });
   });
 
-  //==================================================+
+  // = =================================================+
   //         RADIO BUTTON CHANGE LISTENERS
 
   // an accessor function to get values of our currently selected
   // response variable.
-  let ptAccessor = (d) =>
+  const ptAccessor = (d) =>
     Object.keys(d.value).map((x) => d.value[x][responseVar]);
 
   // a helper function to get the data in the correct format for
@@ -1222,11 +1221,11 @@ Promise.all([
     }
 
     if (spatialUnit === "geom") {
-      pts.forEach((d) => (d["coordinates"] = get_coordinates(d.key)));
+      pts.forEach((d) => (d.coordinates = get_coordinates(d.key)));
     } else {
-      pts.forEach((d) => (d["coordinates"] = centroids[spatialUnit][d.key]));
+      pts.forEach((d) => (d.coordinates = centroids[spatialUnit][d.key]));
     }
-    pts.forEach((d) => (d["total"] = sum(ptAccessor(d))));
+    pts.forEach((d) => (d.total = sum(ptAccessor(d))));
 
     return pts.filter((d) => d.total > 0);
   };
@@ -1272,7 +1271,7 @@ Promise.all([
     updatePieCharts();
   });
 
-  //==================================================+
+  // = =================================================+
   //         RADIO BUTTON CHANGE LISTENERS
 
   spatial_resolution.on("change", function () {
@@ -1292,18 +1291,18 @@ Promise.all([
 
     // make sure the behaviour of the stacked bar plot matches
     // the currently selected option:
-    let tooltip = select('input[name="brush-toggle"]:checked').node().value;
+    const tooltip = select('input[name="brush-toggle"]:checked').node().value;
     setBrushTooltip(tooltip === "tooltip");
   });
 
-  //==========================================================
+  // = =========================================================
   //     CATEGORY VARIABLE HAS CHANGED!
   category_selector.on("change", function () {
     sliceVar = this.value;
-    //update_CategoryValue(sliceVar);
+    // update_CategoryValue(sliceVar);
     updateColorScale(sliceVar);
     updateUrlParams("category_var", this.value);
-    //resetChartColours();
+    // resetChartColours();
     updateStackedBarItems(sliceVar);
 
     byYear = yearDim
@@ -1325,15 +1324,15 @@ Promise.all([
     }
 
     dc.redrawAll();
-    //stackedByYearBarChart.redraw();
+    // stackedByYearBarChart.redraw();
     stackedByYearBarChart.render();
 
-    let tooltip = select('input[name="brush-toggle"]:checked').node().value;
+    const tooltip = select('input[name="brush-toggle"]:checked').node().value;
     setBrushTooltip(tooltip === "tooltip");
   });
 
   mymap.on("moveend", function () {
-    //polygons.render();
+    // polygons.render();
     pieg.call(piecharts);
   });
 

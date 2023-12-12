@@ -2,7 +2,7 @@ import { select, selectAll } from "d3-selection";
 import { scaleOrdinal } from "d3-scale";
 import { timeParse } from "d3";
 
-import { month_lookup, speciesColours } from "./constants";
+import { monthLookup, speciesColours } from "./constants";
 
 const dateParser = timeParse("%Y-%m-%d");
 
@@ -41,7 +41,7 @@ export const prepare_filtered_stocking_data = (data) => {
   data.strain = `${data.species_code}-${data.strain}`.toLowerCase();
   data.year = parseInt(data.year);
   data.year_class = parseInt(data.year_class);
-  //yreq, events, & total_stocked match names on other views
+  // yreq, events, & total_stocked match names on other views
   data.yreq = parseInt(data.yreq_stocked);
   data.events = 1;
   data.total = parseInt(data.no_stocked);
@@ -55,16 +55,16 @@ export const prepare_filtered_cwt_data = (data) => {
   data.key = data.stock_id + "-" + data.cwt_number;
   data.cwtReused = data.tag_reused ? "yes" : "no";
   data.point = { lng: +data.longitude, lat: +data.latitude };
-  data.stockingMonth = month_lookup[data.month]
-    ? "" + month_lookup[data.month]
+  data.stockingMonth = monthLookup[data.month]
+    ? "" + monthLookup[data.month]
     : "Unkn";
   data.yearClass = data.year_class ? "" + data.year_class : "9999";
   data.stockingYear = data.year ? "" + data.year : "9999";
   data.clipcode = data.clipcode ? data.clipcode.trim() : "None";
   data.mark = data.mark ? data.mark : "NONE";
-  //data.month = data.month ? parseInt(data.month) : 0;
-  //data.year = parseInt(data.year);
-  //data.year_class = parseInt(data.year_class);
+  // data.month = data.month ? parseInt(data.month) : 0;
+  // data.year = parseInt(data.year);
+  // data.year_class = parseInt(data.year_class);
   data.stockingMethod = data.method;
   data.species_code = data.spc;
   data.lifestage_code = data.stage;
@@ -84,10 +84,10 @@ export const initialize_filter = (filters, key, dim, query_args) => {
     .map((d) => d.key);
 
   if (typeof query_args[key] === "undefined") {
-    filters[key] = { values: values, is_filtered: false };
+    filters[key] = { values, is_filtered: false };
   } else {
     values = query_args[key].split(",");
-    filters[key] = { values: values, is_filtered: true };
+    filters[key] = { values, is_filtered: true };
   }
 
   dim.filter((val) => filters[key].values.indexOf(val) > -1);
@@ -97,7 +97,7 @@ export const initialize_filter = (filters, key, dim, query_args) => {
 // this: "Point(-84.0326737783168 45.7810170315535)" becomes
 // this: [-84.0326737783168, 45.7810170315535]
 export const get_coordinates = (pt) => {
-  let coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
+  const coords = pt.slice(pt.indexOf("(") + 1, pt.indexOf(")")).split(" ");
   return [parseFloat(coords[0]), parseFloat(coords[1])];
 };
 
@@ -105,7 +105,7 @@ export const hideShowTableRows = (selector, row_ids) => {
   // get all of the rows in the current able and set the visibility
   // if the id of the row is in the rowIds attribute.
   selectAll("#event-list tbody tr").each(function () {
-    let row_id = select(this).attr("id");
+    const row_id = select(this).attr("id");
 
     select(this).style("display", (d) =>
       row_ids.indexOf(row_id) >= 0 ? "" : "None"
@@ -115,11 +115,11 @@ export const hideShowTableRows = (selector, row_ids) => {
 
 export const update_clear_button_state = (filters) => {
   // see if there are any check box filters:
-  let filter_states = Object.values(filters).map((d) => d.is_filtered);
+  const filter_states = Object.values(filters).map((d) => d.is_filtered);
 
-  let filtered = !filter_states.every((d) => d === false);
+  const filtered = !filter_states.every((d) => d === false);
 
-  let clear_button = select("#clear-filters-button");
+  const clear_button = select("#clear-filters-button");
   clear_button.classed("disabled", !filtered);
 };
 
@@ -188,10 +188,10 @@ export const makePieLabels = (data, common) => {
   }
 
   const pieLabels = {};
-  pieLabels["lake"] = lookupToLabels(lake_lookup);
-  pieLabels["stateProv"] = lookupToLabels(stateprov_lookup);
-  pieLabels["jurisdiction"] = lookupToLabelsNoKey(jurisdiction_lookup);
-  pieLabels["manUnit"] = lookupToLabelsNoKey(managementUnit_lookup);
+  pieLabels.lake = lookupToLabels(lake_lookup);
+  pieLabels.stateProv = lookupToLabels(stateprov_lookup);
+  pieLabels.jurisdiction = lookupToLabelsNoKey(jurisdiction_lookup);
+  pieLabels.manUnit = lookupToLabelsNoKey(managementUnit_lookup);
 
   if (data.length) {
     const mygrids = [...new Set(data.map((x) => x.grid10))];
@@ -199,10 +199,10 @@ export const makePieLabels = (data, common) => {
       const [_lake, grid] = x.split("_");
       return { slug: x, label: `Grid ${grid} (${_lake.toUpperCase()})` };
     });
-    pieLabels["grid10"] = grid_labels;
+    pieLabels.grid10 = grid_labels;
 
     const mypts = [...new Set(data.map((x) => x.geom))];
-    pieLabels["geom"] = mypts.map((x) => {
+    pieLabels.geom = mypts.map((x) => {
       return { slug: x, label: x };
     });
   }
@@ -226,7 +226,7 @@ export const makeSliceLabels = (common, stocking) => {
     "description"
   );
   // need to account for events without any marks:
-  mark_lookup["NONE"] = "No Mark";
+  mark_lookup.NONE = "No Mark";
   const tag_lookup = makeItemMap(common.fish_tags, "tag_code", "description");
   const clip_lookup = makeItemMap(common.clipcodes, "clip_code", "description");
   const lifestage_lookup = makeItemMap(
@@ -241,14 +241,14 @@ export const makeSliceLabels = (common, stocking) => {
   );
 
   const sliceLabels = {};
-  sliceLabels["agency_code"] = lookupToLabels(agency_lookup);
-  sliceLabels["species_code"] = lookupToLabels(species_lookup);
-  sliceLabels["strain"] = lookupToLabels(strain_lookup);
-  sliceLabels["mark"] = lookupToLabels(mark_lookup);
-  sliceLabels["clip"] = lookupToLabels(clip_lookup);
-  sliceLabels["tag"] = lookupToLabels(tag_lookup);
-  sliceLabels["lifestage_code"] = lookupToLabels(lifestage_lookup);
-  sliceLabels["stockingMethod"] = lookupToLabels(stocking_method_lookup);
+  sliceLabels.agency_code = lookupToLabels(agency_lookup);
+  sliceLabels.species_code = lookupToLabels(species_lookup);
+  sliceLabels.strain = lookupToLabels(strain_lookup);
+  sliceLabels.mark = lookupToLabels(mark_lookup);
+  sliceLabels.clip = lookupToLabels(clip_lookup);
+  sliceLabels.tag = lookupToLabels(tag_lookup);
+  sliceLabels.lifestage_code = lookupToLabels(lifestage_lookup);
+  sliceLabels.stockingMethod = lookupToLabels(stocking_method_lookup);
 
   return sliceLabels;
 };
@@ -260,23 +260,23 @@ export const makeFillColours = (common, stocking) => {
 
   const fillColours = {};
   // common
-  fillColours["lake"] = makeColorMap(common.lakes);
-  fillColours["stateProv"] = makeColorMap(common.stateprov);
-  fillColours["jurisdiction"] = makeColorMap(common.jurisdictions, "slug");
-  fillColours["manUnit"] = makeColorMap(common.manUnits, "slug");
-  fillColours["agency_code"] = makeColorMap(common.agencies);
-  fillColours["species_code"] = makeColorMap(common.species);
-  fillColours["strain"] = makeColorMap(common.strains, "slug");
-  fillColours["clip"] = makeColorMap(common.clipcodes, "clip_code");
-  fillColours["mark"] = makeColorMap(common.physchem_marks, "mark_code");
+  fillColours.lake = makeColorMap(common.lakes);
+  fillColours.stateProv = makeColorMap(common.stateprov);
+  fillColours.jurisdiction = makeColorMap(common.jurisdictions, "slug");
+  fillColours.manUnit = makeColorMap(common.manUnits, "slug");
+  fillColours.agency_code = makeColorMap(common.agencies);
+  fillColours.species_code = makeColorMap(common.species);
+  fillColours.strain = makeColorMap(common.strains, "slug");
+  fillColours.clip = makeColorMap(common.clipcodes, "clip_code");
+  fillColours.mark = makeColorMap(common.physchem_marks, "mark_code");
 
-  fillColours["tag"] = makeColorMap(common.fish_tags, "tag_code");
+  fillColours.tag = makeColorMap(common.fish_tags, "tag_code");
   // stocking colours
-  fillColours["stockingMethod"] = makeColorMap(
+  fillColours.stockingMethod = makeColorMap(
     stocking.stockingmethods,
     "stk_meth"
   );
-  fillColours["lifestage_code"] = makeColorMap(stocking.lifestages);
+  fillColours.lifestage_code = makeColorMap(stocking.lifestages);
 
   return fillColours;
 };

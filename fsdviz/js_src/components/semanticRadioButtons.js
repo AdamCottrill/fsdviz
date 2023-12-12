@@ -6,14 +6,14 @@ export const RadioButtons = () => {
   let selector = "";
 
   function buttons() {
-    let groupedFields = select(selector)
+    const groupedFields = select(selector)
       .append("div")
       .data([null])
       .attr("class", "grouped fields");
 
     groupedFields.append("label").attr("for", selector.replace("#", ""));
 
-    let radioButtons = groupedFields
+    const radioButtons = groupedFields
       .selectAll(".field")
       .data(options)
       .enter()
@@ -60,8 +60,8 @@ export const RadioButtons = () => {
   // in sync with other controls. (this allows us to control the state
   // of these button if another control needs to change them)
   buttons.refresh = () => {
-    let me = select(selector);
-    let inputOptions = me
+    const me = select(selector);
+    const inputOptions = me
       .selectAll("input")
       .property("checked", (d) => d.name === checked);
   };

@@ -14,7 +14,7 @@ const update_summary_table = (data, props) => {
   //
   // *NOTE* data also contain a column total - it could be include
   // *and could be toggled depending on what options the user has
-  //selected.
+  // selected.
 
   // ad species key to each summary object and create an
   // array of objects - sorted by yreq
@@ -24,8 +24,8 @@ const update_summary_table = (data, props) => {
   //  let tmp = props.slices.filter(d => d.name === what);
   //  let sliceVarLabel = tmp[0].label;
 
-  Object.keys(data).forEach((x) => (data[x]["category"] = x));
-  let dataArray = Object.keys(data).map((x) => data[x]);
+  Object.keys(data).forEach((x) => (data[x].category = x));
+  const dataArray = Object.keys(data).map((x) => data[x]);
 
   dataArray.sort((a, b) => b.yreq - a.yreq);
 
@@ -61,25 +61,25 @@ export const update_stats_panel = (allxf, props) => {
 
   let { what, label } = props;
 
-  let current = allxf.value();
+  const current = allxf.value();
 
   // grand total accessor:
   const get_total = (varname, count = false) => {
     let mykeys = Object.keys(current);
     if (count) {
-      mykeys = mykeys.filter((x) => current[x]["events"] > 0);
+      mykeys = mykeys.filter((x) => current[x].events > 0);
       return mykeys.length;
     } else {
       return sum(mykeys.map((x) => current[x][varname]));
     }
   };
 
-  let total_stocked = get_total("total");
-  let yreq_stocked = get_total("yreq");
-  let event_count = get_total("events");
-  let value_count = get_total(what, true);
+  const total_stocked = get_total("total");
+  const yreq_stocked = get_total("yreq");
+  const event_count = get_total("events");
+  const value_count = get_total(what, true);
 
-  let commaFormat = format(",d");
+  const commaFormat = format(",d");
 
   // pluralize our labels if there is more than one value
   if ((label !== "Species") & (value_count > 1)) {

@@ -21,7 +21,7 @@ import {
 const render_field_errors = (form_errors) => {
   for (const [fld, err] of Object.entries(form_errors)) {
     // set the error class on the field:
-    let selector = `#${fld}-field`;
+    const selector = `#${fld}-field`;
     $(selector)
       .addClass("error")
       .attr("data-tooltip", err)
@@ -67,7 +67,7 @@ const clear_row_field_errors = (row_prefix) => {
 };
 
 const clear_field_error = (field_id) => {
-  let selector = `#${field_id}-field`;
+  const selector = `#${field_id}-field`;
   $(selector)
     .removeClass("error")
     .removeAttr("data-tooltip")
@@ -76,8 +76,8 @@ const clear_field_error = (field_id) => {
 
 const get_row_values = (row_selector) => {
   // row slector should be of the form 'id_form-8'
-  let values = {};
-  let row = $(`#${row_selector}-row :input`);
+  const values = {};
+  const row = $(`#${row_selector}-row :input`);
   row.each(function () {
     values[
       $(this)
@@ -106,8 +106,8 @@ const get_row_values = (row_selector) => {
   return values;
 };
 
-let agency_choices = [];
-let lake_choices = [];
+const agency_choices = [];
+const lake_choices = [];
 let stateprov_choices = [];
 let statDist_choices = [];
 let grid10_choices = [];
@@ -146,14 +146,14 @@ Promise.all([
     mu_grids.map((d) => [d[0], { value: d[1], text: d[1] }])
   );
 
-  species_choices = common["species"]
+  species_choices = common.species
     .filter((d) => d.active === true)
     .map((x) => x.abbrev);
 
-  clipcode_choices = common["clipcodes"].map((x) => x.clip_code);
+  clipcode_choices = common.clipcodes.map((x) => x.clip_code);
 
-  stocking_method_choices = stocking["stockingmethods"].map((x) => x.stk_meth);
-  lifestage_choices = stocking["lifestages"].map((x) => x.abbrev);
+  stocking_method_choices = stocking.stockingmethods.map((x) => x.stk_meth);
+  lifestage_choices = stocking.lifestages.map((x) => x.abbrev);
 
   strain_choices = make_choices(
     // object keyed by species with array of 2 element arrays
@@ -161,7 +161,7 @@ Promise.all([
     common.raw_strains
       .filter((d) => d.active === true)
       .map((x) => {
-        //const label = `${x.raw_strain} (${x.description})`;
+        // const label = `${x.raw_strain} (${x.description})`;
         return [x.species__abbrev, { value: x.raw_strain, text: x.raw_strain }];
       })
   );
@@ -175,7 +175,7 @@ Promise.all([
   //   return x.value;
   // });
 
-  //const finclip_choices = get_choices("finclip");
+  // const finclip_choices = get_choices("finclip");
   const condition_choices = get_choices("condition");
   const physchem_mark_choices = get_choices("physchem_mark");
   const tag_type_choices = get_choices("tag_type");
@@ -185,7 +185,7 @@ Promise.all([
   const cwt_regex = /^[0-9]{6}((,|;)[0-9]{6})*(,|;)?$/;
   const thisYear = new Date().getFullYear();
 
-  let schema = object().shape(
+  const schema = object().shape(
     {
       // stock_id: yup
       //   .number()
@@ -202,7 +202,7 @@ Promise.all([
         .min(1950, "Year must be after 1950")
         .max(thisYear, `Year must be less than today (${thisYear})`),
       month: number()
-        //.required("Month is required")
+        // .required("Month is required")
         .nullable()
         .positive("Month must be positive")
         .min(1, "Month must be greater than or equal to 1")
@@ -443,12 +443,12 @@ Promise.all([
         valid.forEach(
           (err) => (form_errors[`${row_id}-${err.field}`] = [err.message])
         );
-        //add_row_error(row_id);
+        // add_row_error(row_id);
         $(`#${row_id}-icon`).attr("class", "red arrow right icon");
         $(`#${row_id}-row`).addClass("error");
       } else {
         // no errors
-        //clear_row_error(row_id);
+        // clear_row_error(row_id);
         $(`#${row_id}-icon`).attr("class", "green check icon");
         $(`#${row_id}-row`).removeClass("error");
       }
@@ -457,7 +457,7 @@ Promise.all([
     });
   };
 
-  //==================
+  // = =================
   //    ON LOAD
 
   // attach our row validate to the blur event of every input field
@@ -473,49 +473,49 @@ Promise.all([
     validate_row(row_prefix);
   });
 
-  //update the mangement unit, grid, and strain choices for each row
-  //based on the value of their parent widgets in the same row
+  // update the mangement unit, grid, and strain choices for each row
+  // based on the value of their parent widgets in the same row
   $('select[id$="-state_prov"]').each(function (x) {
-    let parent_id = this.id;
-    let child_id = parent_id.replace("state_prov", "stat_dist");
+    const parent_id = this.id;
+    const child_id = parent_id.replace("state_prov", "stat_dist");
     update_choices(child_id, parent_id, statDist_choices[this.value]);
   });
 
   $('select[id$="-stat_dist"]').each(function (x) {
-    let parent_id = this.id;
-    let child_id = parent_id.replace("stat_dist", "grid");
+    const parent_id = this.id;
+    const child_id = parent_id.replace("stat_dist", "grid");
     update_choices(child_id, parent_id, grid10_choices[this.value]);
   });
 
-  //update the strain choices for each row based on the value in each species
+  // update the strain choices for each row based on the value in each species
   // loop over each one, get each id, build the strain id, and select the options from
   // the strain lookup:
   $('select[id$="-species"]').each(function (x) {
-    let parent_id = this.id;
-    let child_id = parent_id.replace("species", "strain");
+    const parent_id = this.id;
+    const child_id = parent_id.replace("species", "strain");
 
     update_choices(child_id, parent_id, strain_choices[this.value]);
   });
 
-  //==================
+  // = =================
   // ON CHANGE
 
   $('select[id$="-state_prov"]').change(function (x) {
-    let parent_id = this.id;
-    let child_id = parent_id.replace("state_prov", "stat_dist");
+    const parent_id = this.id;
+    const child_id = parent_id.replace("state_prov", "stat_dist");
     update_choices(child_id, parent_id, statDist_choices[this.value]);
   });
 
   $('select[id$="-stat_dist"]').change(function (x) {
-    let parent_id = this.id;
-    let child_id = parent_id.replace("stat_dist", "grid");
+    const parent_id = this.id;
+    const child_id = parent_id.replace("stat_dist", "grid");
     update_choices(child_id, parent_id, grid10_choices[this.value]);
   });
 
   // if a species changes - update the available choice in the strain control:
   $('select[id$="-species"]').change(function () {
-    let parent_id = this.id;
-    let child_id = parent_id.replace("species", "strain");
+    const parent_id = this.id;
+    const child_id = parent_id.replace("species", "strain");
     update_choices(child_id, parent_id, strain_choices[this.value]);
   });
 

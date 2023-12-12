@@ -8,7 +8,7 @@ import crossfilter from "crossfilter2";
 import { scaleOrdinal, selectAll, select, csv, json, sum } from "d3";
 
 import { checkBoxes } from "./components/checkBoxArray";
-import { month_lookup } from "./components/constants";
+import { monthLookup } from "./components/constants";
 
 import {
   prepare_stocking_data,
@@ -61,13 +61,13 @@ const updateYearButtons = () => {
   // if the current year >= than maxYear, disable the next-year-button
   // if the current year <= than minYear, disable the previous-year-button
 
-  let previousYearButton = document.getElementById("previous-year-btn");
-  let nextYearButton = document.getElementById("next-year-btn");
+  const previousYearButton = document.getElementById("previous-year-btn");
+  const nextYearButton = document.getElementById("next-year-btn");
 
   // replace any existing hash with the new hash and enable/disable the buttons if years exist.
   let newUrl = nextYearButton.href.split("#")[0] + window.location.hash;
   nextYearButton.setAttribute("href", newUrl);
-  nextYearButton.disabled = yearRange.last_year >= currentYear ? true : false;
+  nextYearButton.disabled = yearRange.last_year >= currentYear;
 
   if (currentYear >= yearRange.last_year) {
     nextYearButton.classList.add("disabled");
@@ -97,11 +97,11 @@ spatialUnit = getUrlParamValue("spatialUnit")
 let responseVar = getUrlParamValue("responseVar")
   ? getUrlParamValue("responseVar")
   : "yreq";
-let mapState = getUrlParamValue("mapState")
+const mapState = getUrlParamValue("mapState")
   ? getUrlParamValue("mapState")
   : "basin-all";
 
-let column = responseVar;
+const column = responseVar;
 
 // a map from mapState strings to feature types in topodata
 // used to pluck our geometries and calculate bounding box for map.
@@ -131,17 +131,17 @@ Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 const colourScale = scaleOrdinal();
 
 // intantiation our polygon overlay
-let polygons = polygon_overlay().leafletMap(mymap);
+const polygons = polygon_overlay().leafletMap(mymap);
 
-//// Add a svg layer to the map
+// / / Add a svg layer to the map
 Leaflet.svg().addTo(mymap);
 //
-//// Select the svg area and add a group element we can use to move things around:
-let svg = select("#mapid").select("svg");
+// / / Select the svg area and add a group element we can use to move things around:
+const svg = select("#mapid").select("svg");
 
 // add two groups to our svg - one four our geometries, one for our pies
-let geomg = svg.append("g").attr("class", "leaflet-zoom-hide");
-let pieg = svg.append("g");
+const geomg = svg.append("g").attr("class", "leaflet-zoom-hide");
+const pieg = svg.append("g");
 
 // this function is used for points events (centroids and mouse clicks)
 function projectPoint(x, y) {
@@ -149,15 +149,15 @@ function projectPoint(x, y) {
   return point;
 }
 
-let piecharts = piechart_overlay(mymap)
+const piecharts = piechart_overlay(mymap)
   .responseVar(responseVar)
   .getProjection(projectPoint)
   .fillScale(colourScale);
 
-//======================================================
+// = =====================================================
 //           RADIO BUTTONS
 
-let strata = [
+const strata = [
   { name: "lake", label: "Lake" },
   // { name: "stateProv", label: "State/Province" },
   { name: "jurisdiction", label: "Jurisdiction" },
@@ -166,7 +166,7 @@ let strata = [
   { name: "geom", label: "Reported Point" },
 ];
 
-let spatialSelector = RadioButtons()
+const spatialSelector = RadioButtons()
   .selector("#strata-selector")
   .options(strata)
   .checked(spatialUnit);
@@ -178,7 +178,7 @@ const spatial_resolution = selectAll("#strata-selector input");
 
 // slices buttons:
 // name must correspond to column names in our data
-let slices = [
+const slices = [
   { name: "agency_code", label: "Agency" },
   { name: "species_code", label: "Species" },
   { name: "strain", label: "Strain" },
@@ -188,7 +188,7 @@ let slices = [
   { name: "stockingMethod", label: "Stocking Method" },
 ];
 
-let sliceSelector = RadioButtons()
+const sliceSelector = RadioButtons()
   .selector("#slices-selector")
   .options(slices)
   .checked(sliceVar);
@@ -197,13 +197,13 @@ sliceSelector();
 const slice_selector = selectAll("#slices-selector input");
 
 // Our Response Variable buttons:
-let pieSizeVars = [
+const pieSizeVars = [
   { name: "yreq", label: "Yearling Equivalents" },
   { name: "total", label: "Number Stocked" },
   { name: "events", label: "Event Count" },
 ];
 
-let pieSizeVarSelector = RadioButtons()
+const pieSizeVarSelector = RadioButtons()
   .selector("#pie-size-selector")
   .options(pieSizeVars)
   .checked(responseVar);
@@ -250,43 +250,43 @@ Promise.all([
       .range(Object.entries(colors).map((x) => x[1]));
   };
 
-  let ndx = crossfilter(data);
+  const ndx = crossfilter(data);
 
   // these are dimensions that will be used by the polygon overlay:
-  let lakePolygonDim = ndx.dimension((d) => d.lake);
-  let jurisdictionPolygonDim = ndx.dimension((d) => d.jurisdiction_slug);
-  let manUnitPolygonDim = ndx.dimension((d) => d.man_unit);
+  const lakePolygonDim = ndx.dimension((d) => d.lake);
+  const jurisdictionPolygonDim = ndx.dimension((d) => d.jurisdiction_slug);
+  const manUnitPolygonDim = ndx.dimension((d) => d.man_unit);
 
-  let lakeDim = ndx.dimension((d) => d.lake);
-  let agencyDim = ndx.dimension((d) => d.agency_code);
-  let stateProvDim = ndx.dimension((d) => d.stateprov);
-  let jurisdictionDim = ndx.dimension((d) => d.jurisdiction_slug);
-  let manUnitDim = ndx.dimension((d) => d.man_unit);
-  let grid10Dim = ndx.dimension((d) => d.grid10);
-  let geomDim = ndx.dimension((d) => d.geom);
-  let speciesDim = ndx.dimension((d) => d.species_code);
-  let strainDim = ndx.dimension((d) => d.strain);
-  let yearClassDim = ndx.dimension((d) => d.year_class);
-  let lifeStageDim = ndx.dimension((d) => d.lifestage_code);
-  let markDim = ndx.dimension((d) => d.mark);
-  let clipDim = ndx.dimension((d) => d.clip);
-  let monthDim = ndx.dimension((d) => d.month);
-  let stkMethDim = ndx.dimension((d) => d.stockingMethod);
+  const lakeDim = ndx.dimension((d) => d.lake);
+  const agencyDim = ndx.dimension((d) => d.agency_code);
+  const stateProvDim = ndx.dimension((d) => d.stateprov);
+  const jurisdictionDim = ndx.dimension((d) => d.jurisdiction_slug);
+  const manUnitDim = ndx.dimension((d) => d.man_unit);
+  const grid10Dim = ndx.dimension((d) => d.grid10);
+  const geomDim = ndx.dimension((d) => d.geom);
+  const speciesDim = ndx.dimension((d) => d.species_code);
+  const strainDim = ndx.dimension((d) => d.strain);
+  const yearClassDim = ndx.dimension((d) => d.year_class);
+  const lifeStageDim = ndx.dimension((d) => d.lifestage_code);
+  const markDim = ndx.dimension((d) => d.mark);
+  const clipDim = ndx.dimension((d) => d.clip);
+  const monthDim = ndx.dimension((d) => d.month);
+  const stkMethDim = ndx.dimension((d) => d.stockingMethod);
 
-  let lakeGroup = lakeDim.group().reduceSum((d) => d[column]);
-  let agencyGroup = agencyDim.group().reduceSum((d) => d[column]);
-  let stateProvGroup = stateProvDim.group().reduceSum((d) => d[column]);
-  let jurisdictionGroup = jurisdictionDim.group().reduceSum((d) => d[column]);
-  let manUnitGroup = manUnitDim.group().reduceSum((d) => d[column]);
-  //let grid10Group = grid10Dim.group().reduceSum(d => d[column]);
-  let speciesGroup = speciesDim.group().reduceSum((d) => d[column]);
-  let strainGroup = strainDim.group().reduceSum((d) => d[column]);
-  let yearClassGroup = yearClassDim.group().reduceSum((d) => d[column]);
-  let lifeStageGroup = lifeStageDim.group().reduceSum((d) => d[column]);
-  let markGroup = markDim.group().reduceSum((d) => d[column]);
-  let clipGroup = clipDim.group().reduceSum((d) => d[column]);
-  let monthGroup = monthDim.group().reduceSum((d) => d[column]);
-  let stkMethGroup = stkMethDim.group().reduceSum((d) => d[column]);
+  const lakeGroup = lakeDim.group().reduceSum((d) => d[column]);
+  const agencyGroup = agencyDim.group().reduceSum((d) => d[column]);
+  const stateProvGroup = stateProvDim.group().reduceSum((d) => d[column]);
+  const jurisdictionGroup = jurisdictionDim.group().reduceSum((d) => d[column]);
+  const manUnitGroup = manUnitDim.group().reduceSum((d) => d[column]);
+  // let grid10Group = grid10Dim.group().reduceSum(d => d[column]);
+  const speciesGroup = speciesDim.group().reduceSum((d) => d[column]);
+  const strainGroup = strainDim.group().reduceSum((d) => d[column]);
+  const yearClassGroup = yearClassDim.group().reduceSum((d) => d[column]);
+  const lifeStageGroup = lifeStageDim.group().reduceSum((d) => d[column]);
+  const markGroup = markDim.group().reduceSum((d) => d[column]);
+  const clipGroup = clipDim.group().reduceSum((d) => d[column]);
+  const monthGroup = monthDim.group().reduceSum((d) => d[column]);
+  const stkMethGroup = stkMethDim.group().reduceSum((d) => d[column]);
 
   // set-up our spatial groups - each key will contain an object
   // with the total number of fish stocked, the number of yearling
@@ -336,7 +336,7 @@ Promise.all([
 
   // an accessor function to get values of our currently selected
   // response variable.
-  let ptAccessor = (d) =>
+  const ptAccessor = (d) =>
     Object.keys(d.value).map((x) => d.value[x][responseVar]);
 
   // a helper function to get the data in the correct format for
@@ -371,11 +371,11 @@ Promise.all([
     }
 
     if (spatialUnit === "geom") {
-      pts.forEach((d) => (d["coordinates"] = get_coordinates(d.key)));
+      pts.forEach((d) => (d.coordinates = get_coordinates(d.key)));
     } else {
-      pts.forEach((d) => (d["coordinates"] = centroids[spatialUnit][d.key]));
+      pts.forEach((d) => (d.coordinates = centroids[spatialUnit][d.key]));
     }
-    pts.forEach((d) => (d["total"] = sum(ptAccessor(d))));
+    pts.forEach((d) => (d.total = sum(ptAccessor(d))));
 
     return pts.filter((d) => d.total > 0);
   };
@@ -383,7 +383,7 @@ Promise.all([
   // recacalculate the points given the current spatial unit and
   // point accessor
   const updatePieCharts = () => {
-    let pts = get_pts(spatialUnit, centroids, ptAccessor);
+    const pts = get_pts(spatialUnit, centroids, ptAccessor);
     pieg.data([pts]).call(piecharts);
     piecharts.selectedPie(null).clear_pointInfo();
     piecharts.pieLabelLookup(pieLabels[spatialUnit]);
@@ -423,8 +423,8 @@ Promise.all([
   // load our geometries and call our polygon overlay on the geom group:
   geomg.datum(topodata).call(polygons);
 
-  //A function to set all of the filters to checked - called when
-  //the page loads or if the reset button is clicked.
+  // A function to set all of the filters to checked - called when
+  // the page loads or if the reset button is clicked.
   const set_or_reset_filters = (query_args) => {
     initialize_filter(filters, "lake", lakeDim, query_args);
     initialize_filter(filters, "stateProv", stateProvDim, query_args);
@@ -442,7 +442,7 @@ Promise.all([
   };
 
   // get any query parameters from the url
-  let query_args = parseParams(window.location.hash);
+  const query_args = parseParams(window.location.hash);
 
   // initialize our filters when everything loads
   set_or_reset_filters(query_args);
@@ -475,16 +475,16 @@ Promise.all([
       filterkey: "lake",
       xfdim: lakeDim,
       xfgroup: lakeGroup,
-      filters: filters,
-      label_lookup: pieLabels["lake"],
+      filters,
+      label_lookup: pieLabels.lake,
     });
 
     checkBoxes(stateProvSelection, {
       filterkey: "stateProv",
       xfdim: stateProvDim,
       xfgroup: stateProvGroup,
-      filters: filters,
-      label_lookup: pieLabels["stateProv"],
+      filters,
+      label_lookup: pieLabels.stateProv,
       sortByLabel: true,
     });
 
@@ -492,8 +492,8 @@ Promise.all([
       filterkey: "jurisdiction",
       xfdim: jurisdictionDim,
       xfgroup: jurisdictionGroup,
-      filters: filters,
-      label_lookup: pieLabels["jurisdiction"],
+      filters,
+      label_lookup: pieLabels.jurisdiction,
       sortByLabel: true,
     });
 
@@ -501,8 +501,8 @@ Promise.all([
       filterkey: "manUnit",
       xfdim: manUnitDim,
       xfgroup: manUnitGroup,
-      filters: filters,
-      label_lookup: pieLabels["manUnit"],
+      filters,
+      label_lookup: pieLabels.manUnit,
       sortByLabel: true,
     });
 
@@ -510,8 +510,8 @@ Promise.all([
       filterkey: "agency_code",
       xfdim: agencyDim,
       xfgroup: agencyGroup,
-      filters: filters,
-      label_lookup: sliceLabels["agency_code"],
+      filters,
+      label_lookup: sliceLabels.agency_code,
       sortByLabel: true,
     });
 
@@ -519,8 +519,8 @@ Promise.all([
       filterkey: "species",
       xfdim: speciesDim,
       xfgroup: speciesGroup,
-      filters: filters,
-      label_lookup: sliceLabels["species_code"],
+      filters,
+      label_lookup: sliceLabels.species_code,
       sortByLabel: true,
     });
 
@@ -528,8 +528,8 @@ Promise.all([
       filterkey: "strain",
       xfdim: strainDim,
       xfgroup: strainGroup,
-      filters: filters,
-      label_lookup: sliceLabels["strain"],
+      filters,
+      label_lookup: sliceLabels.strain,
       sortByLabel: true,
     });
 
@@ -537,7 +537,7 @@ Promise.all([
       filterkey: "yearClass",
       xfdim: yearClassDim,
       xfgroup: yearClassGroup,
-      filters: filters,
+      filters,
       label_lookup: yearClassGroup
         .all()
         .map((x) => ({ slug: x.key, label: x.key })),
@@ -548,8 +548,8 @@ Promise.all([
       filterkey: "mark",
       xfdim: markDim,
       xfgroup: markGroup,
-      filters: filters,
-      label_lookup: sliceLabels["mark"],
+      filters,
+      label_lookup: sliceLabels.mark,
       sortByLabel: true,
     });
 
@@ -557,8 +557,8 @@ Promise.all([
       filterkey: "clip",
       xfdim: clipDim,
       xfgroup: clipGroup,
-      filters: filters,
-      label_lookup: sliceLabels["clip"],
+      filters,
+      label_lookup: sliceLabels.clip,
       sortByLabel: true,
     });
 
@@ -566,8 +566,8 @@ Promise.all([
       filterkey: "stockingMonth",
       xfdim: monthDim,
       xfgroup: monthGroup,
-      filters: filters,
-      label_lookup: Object.entries(month_lookup).map((x) => ({
+      filters,
+      label_lookup: Object.entries(monthLookup).map((x) => ({
         slug: x[0],
         label: `${x[1]} (${x[0]})`,
       })),
@@ -578,8 +578,8 @@ Promise.all([
       filterkey: "stkMeth",
       xfdim: stkMethDim,
       xfgroup: stkMethGroup,
-      filters: filters,
-      label_lookup: sliceLabels["stockingMethod"],
+      filters,
+      label_lookup: sliceLabels.stockingMethod,
       sortByLabel: true,
     });
 
@@ -587,8 +587,8 @@ Promise.all([
       filterkey: "lifeStage",
       xfdim: lifeStageDim,
       xfgroup: lifeStageGroup,
-      filters: filters,
-      label_lookup: sliceLabels["lifestage_code"],
+      filters,
+      label_lookup: sliceLabels.lifestage_code,
       sortByLabel: true,
     });
   };
@@ -612,11 +612,10 @@ Promise.all([
     // if spatialScales.indexOf(spatialUnit) < spatialScales.indexOf(spatialScale)
     //
 
-    let updateUnit =
+    const updateUnit = !!(
       ~spatialScales.indexOf(spatialScale) &&
       spatialScales.indexOf(spatialUnit) <= spatialScales.indexOf(spatialScale)
-        ? true
-        : false;
+    );
 
     switch (spatialScale) {
       case "basin":
@@ -649,16 +648,16 @@ Promise.all([
         }
         break;
     }
-    let tmp = value == "" ? "all" : value;
+    const tmp = value == "" ? "all" : value;
     updateUrlParams("mapState", `${spatialScale}-${tmp}`);
   };
 
   // if the map not set to the basin wide view, update it to the dimension and value
   // encoded in the global mapState variable.
   if (mapState !== "basin-all") {
-    let splitState = mapState.split("-");
-    let feature_type = mapState2FeatureType[splitState[0]];
-    let slug = splitState[1];
+    const splitState = mapState.split("-");
+    const feature_type = mapState2FeatureType[splitState[0]];
+    const slug = splitState[1];
 
     updateCrossfilter(splitState[0], slug);
     polygons
@@ -694,7 +693,7 @@ Promise.all([
     }
 
     // muMap = {}
-    //common.manUnits.map(d=>muMap[d.slug] = d.jurisdiction) ;
+    // common.manUnits.map(d=>muMap[d.slug] = d.jurisdiction) ;
     // if feature type is lake - we need basin wide
     // if feature type is jurisdiction - we need basin wide and lake
     // if feature_type is manUnit we need basin, lake, and jurisdiction
@@ -704,10 +703,10 @@ Promise.all([
 
   polygons.render();
 
-  let pts = get_pts(spatialUnit, centroids, ptAccessor);
+  const pts = get_pts(spatialUnit, centroids, ptAccessor);
   pieg.data([pts]).call(piecharts);
 
-  //==================================================+
+  // = =================================================+
   //         RADIO BUTTON CHANGE LISTENERS
 
   spatial_resolution.on("change", function () {
@@ -726,7 +725,7 @@ Promise.all([
     updateYearButtons();
   });
 
-  //==================================================+
+  // = =================================================+
   //         CROSSFILTER ON CHANGE
 
   // if the crossfilter changes, update our checkboxes:
