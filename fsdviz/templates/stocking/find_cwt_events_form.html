@@ -250,14 +250,14 @@
 
 
                             <!-- Stocking Months -->
-                            <div class="eight wide field {% if form.months.errors %} error{% endif %}">
-                                {{ form.months.label_tag }}
-                                {{ form.months }}
+                            <div class="eight wide field {% if form.stocking_month.errors %} error{% endif %}">
+                                {{ form.stocking_month.label_tag }}
+                                {{ form.stocking_month }}
                             </div>
-                            {% if form.months.errors %}
+                            {% if form.stocking_month.errors %}
                                 <div class="ui warning message">
                                     <ul class="list">
-                                        {% for error in form.months.errors %}
+                                        {% for error in form.stocking_month.errors %}
                                             <li>{{ error }}</li>
                                         {% endfor %}
                                     </ul>

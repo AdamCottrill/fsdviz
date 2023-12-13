@@ -45,7 +45,7 @@ choice_fields = [
     ("strain", "strains"),
     ("life_stage", "lifestages"),
     ("stocking_method", "stocking_methods"),
-    ("months", "stocking_month"),
+    ("stocking_month", "stocking_month"),
 ]
 
 

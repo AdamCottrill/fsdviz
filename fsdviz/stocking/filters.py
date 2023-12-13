@@ -100,6 +100,10 @@ class StockingEventFilter(django_filters.FilterSet):
 
     stocking_month = NumberInOrNullFilter(field_name="month", lookup_expr="in")
 
+    # and aliase for stocking_month - to keep existing book marks working
+    months = NumberInOrNullFilter(field_name="month", lookup_expr="in")
+
+
     species = ValueInFilter(field_name="species__abbrev", lookup_expr="in")
 
     # strain abbrev (human friendly)
