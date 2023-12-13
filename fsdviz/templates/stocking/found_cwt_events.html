@@ -215,19 +215,15 @@
                 <div class="ui twelve wide column">
                     <h1>Filtered CWT Stocking Events</h1>
                 </div>
-                <div class="ui four wide column">
-                    <div style="padding-top:15px">
-                        {% if not object_list %}
+                {% if not object_list %}
+                    <div class="ui four wide column">
+                        <div style="padding-top:15px">
                             <div class="ui negative message">
                                 No CWT stocking events match that criteria! Please refine your filters and try again.
                             </div>
-                        {% endif %}
+                        </div>
                     </div>
-                </div>
-
-
-
-
+                {% endif %}
 
 
                 <div class="ui grid">
@@ -289,12 +285,16 @@
                                         class="ui celled compact table tablesorter"
                                         style="font-size: 0.7em"
                                     >
-
                                         <tbody id="legend-table-tbody"></tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
+
+                        <a class="ui mini primary button" id="download-events-btn" href="#">Download Events
+                            <i class="arrow alternate circle down icon"></i>
+                        </a>
+
                     </div>
                 </div>
 
@@ -414,6 +414,14 @@
              scroller_idPrefix: 's_'
          }
      });
+
+     let search = window.location.search;
+     let download_url = "{% url 'api:api-cwt-event-list-xlsx' %}";
+     let download_button = document.getElementById("download-events-btn");
+     if (download_button) {
+         download_button.href = download_url + search;
+     }
+
 
     </script>
 
