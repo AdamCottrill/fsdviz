@@ -328,6 +328,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.7.5/components/calendar.min.js"></script>
 
+    {{ bbox|json_script:"basin-envelope" }}
 
     <script >
      $('.ui.form').form();
@@ -430,13 +431,25 @@
          });
      }
 
+     let bbox = JSON.parse(document.getElementById('basin-envelope').textContent);
+
+     function leafletBounds(bbox){
+         let pt1 = [bbox[1], bbox[0]]
+         let pt2 = [bbox[3], bbox[2]]
+
+         pt1.sort((a,b)=> b - a)
+         pt2.sort((a,b)=> b - a)
+         return [pt1, pt2]
+     }
+
+
      let mapReferences = [];
 
      window.addEventListener(
          "map:init",
          function (e) {
              let map = e.detail.map;
-
+             map.fitBounds(leafletBounds(bbox));
              mapReferences.push(map);
 
              let geojson;
@@ -483,6 +496,9 @@
              mapReferences[0].invalidateSize();
          }
      };
+
+
+
 
     </script>
 

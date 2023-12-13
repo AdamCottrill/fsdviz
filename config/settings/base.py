@@ -220,7 +220,7 @@ LINK_PATTERNS = [
 
 LEAFLET_CONFIG = {
     # minx, miny, maxx,maxy
-    "SPATIAL_EXTENT": (-92.09, 41.38, -76.05, 49.01),
+    "SPATIAL_EXTENT": (-94.0, 40.0, -74.0, 50.0),
     # "RESET_VIEW": True,
     "DEFAULT_PRECISION": 5,
 }
