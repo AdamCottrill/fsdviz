@@ -11,6 +11,7 @@
 =============================================================
 """
 
+
 from openpyxl import load_workbook
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -554,7 +555,6 @@ def get_or_create_cwt_sequence(
     cwt_series = None
 
     with transaction.atomic():
-
         cwt, cwt_created = CWT.objects.get_or_create(
             defaults={"tag_count": 0},
             cwt_number=cwt_number,

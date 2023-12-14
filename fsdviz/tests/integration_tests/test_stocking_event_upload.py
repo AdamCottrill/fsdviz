@@ -233,15 +233,15 @@ def test_upload_form_contains_some_instructions(client, user):
 
     messages = [
         "To upload stocking events you must:",
-        "Use the offial stocking event upload template",
+        "Use the official stocking event upload template",
         """Ensure that any errors
-                    identified by the spreadsheet validation have
-                    been addressed before uploading the file""",
+                        identified by the spreadsheet validation have
+                        been addressed before uploading the file""",
         """Limit your submission to a
-                    single agency and lake and ensure that you are
-                    affiliated with that lake and agency""",
+                        single agency and lake and ensure that you are
+                        affiliated with that lake and agency""",
         """Ensure that your upload contains fewer events than
-                    the event limit""",
+                        the event limit """,
     ]
 
     for msg in messages:

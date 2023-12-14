@@ -487,6 +487,8 @@ def find_cwt_events(request):
     jurisdictions = Jurisdiction.objects.values_list("slug", "name")
     agencies = Agency.objects.all().values_list("abbrev", "agency_name")
 
+    bbox =  Lake.objects.all().aggregate(extent=Extent("geom"))
+
     # manunits
     # managementUnits = list(
     #    ManagementUnit.objects.values('slug', 'label', 'description'))
@@ -570,7 +572,9 @@ def find_cwt_events(request):
             "strains": json.dumps(strains),
             "lifestages": json.dumps(lifestages),
             "stocking_methods": json.dumps(stocking_methods),
+            "bbox": bbox["extent"]
         },
+
     )
 
 

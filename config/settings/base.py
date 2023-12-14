@@ -175,12 +175,11 @@ EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_mails")
 
 # for xls upload
-
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 MAX_UPLOAD_EVENT_COUNT = 100
 DATA_WORKSHEET_NAME = "DATA_TEMPLATE"
 UPLOAD_KEY_FIELD_ROW = 4
-UPLOAD_FIRST_DATA_ROW = 5
+UPLOAD_FIRST_DATA_ROW = 10
 
 
 ## urls here as needed for cors:
@@ -221,7 +220,7 @@ LINK_PATTERNS = [
 
 LEAFLET_CONFIG = {
     # minx, miny, maxx,maxy
-    "SPATIAL_EXTENT": (-92.09, 41.38, -76.05, 49.01),
+    "SPATIAL_EXTENT": (-94.0, 40.0, -74.0, 50.0),
     # "RESET_VIEW": True,
     "DEFAULT_PRECISION": 5,
 }

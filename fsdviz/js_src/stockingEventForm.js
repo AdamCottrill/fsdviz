@@ -19,14 +19,14 @@ import {
 } from "./components/form_utils";
 
 import {
-  //checkPointInPoly, getPolygon,
+  // checkPointInPoly, getPolygon,
   getSpatialAttrs,
 } from "./components/spatial_utils";
 
-//=================================================
+// = ================================================
 // GLOBALS
 
-let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
+const bbox = JSON.parse(document.getElementById("map-bounds").textContent);
 
 // get our initial lat-lon values from the form:
 let lat = $("#id_dd_lat").val();
@@ -40,7 +40,7 @@ let spatialAttrs = {
   manUnit: "",
 };
 
-//=================================================
+// = ================================================
 //              LEAFLET MAP
 
 // setup the map with rough bounds (need to get pies to plot first,
@@ -85,7 +85,7 @@ mymap.on("click", function (e) {
   updateMapPt();
 });
 
-//watch our lat-lon inputs and update the point if they change:
+// watch our lat-lon inputs and update the point if they change:
 $("#id_dd_lat").on("change", function () {
   if (!checkDdLat(this, bbox)) return false;
   if (!checkLatLon(this)) return false;
@@ -105,7 +105,7 @@ function updateMapPt() {
   updateSpatialAttrs(lat, lon);
 }
 
-//=================================================
+// = ================================================
 // SPATIAL SELECTS EVENTS
 
 $("#id_lake_id").on("change", () => {
@@ -136,7 +136,7 @@ $("#id_management_unit_id").on("change", () => {
 });
 
 $("#id_grid_10_id").on("change", () => {
-  //checkSpatialWidgets();
+  // checkSpatialWidgets();
   //  checkMyChoice("id_grid_10_id", "id_management_unit_id");
   //    checkGrid10ChoiceLatLon();
   validateGrid10();
@@ -170,7 +170,7 @@ $("#id_grid_10_id").on("blur", () => {
   checkSpatialWidgets();
 });
 
-//=====================================================
+// = ====================================================
 // in order for our spatial selects to be valid - each one must:
 // + be consistent with coordinates
 // + be one of the choices
@@ -194,18 +194,18 @@ const validateGrid10 = () => {
   checkMyChoice("id_grid_10_id", "id_management_unit_id");
 };
 
-//=====================================================
+// = ====================================================
 //         UPDATE SPATIAL SELECTS
 
 // when a spatial select changes, update the options in the child widget:
 
 const updateStateProvChoices = () => {
   let options;
-  let lake_id = $("#id_lake_id option:selected").val();
+  const lake_id = $("#id_lake_id option:selected").val();
 
-  //let url = "/api/v1/common/jurisdiction/?lake_id=" + e.target.value;
-  //let url = `${jurisdictionURL}?lake_id=${lake_id}`;
-  let url = `${jurisdictionURL}?lake_id=${lake_id}`;
+  // let url = "/api/v1/common/jurisdiction/?lake_id=" + e.target.value;
+  // let url = `${jurisdictionURL}?lake_id=${lake_id}`;
+  const url = `${jurisdictionURL}?lake_id=${lake_id}`;
   const reducer = (accumulator, d) => {
     accumulator[d.stateprov.id] = `${d.stateprov.name} (${d.stateprov.abbrev})`;
     return accumulator;
@@ -214,7 +214,7 @@ const updateStateProvChoices = () => {
   const success = (data) => {
     options = data.reduce(reducer, {});
   };
-  let errmsg = "ajax error getting states and provinces!";
+  const errmsg = "ajax error getting states and provinces!";
 
   getChoices(url, success, errmsg)
     .then(() => {
@@ -226,10 +226,10 @@ const updateStateProvChoices = () => {
 const updateManUnitChoices = () => {
   let options;
 
-  let lake_id = $("#id_lake_id option:selected").val();
-  let stateprov_id = $("#id_state_prov_id option:selected").val();
+  const lake_id = $("#id_lake_id option:selected").val();
+  const stateprov_id = $("#id_state_prov_id option:selected").val();
 
-  let url = `${manUnitURL}?mu_type=stat_dist&stateprov_id=${stateprov_id}&lake_id=${lake_id}`;
+  const url = `${manUnitURL}?mu_type=stat_dist&stateprov_id=${stateprov_id}&lake_id=${lake_id}`;
   const reducer = (accumulator, d) => {
     accumulator[d.id] = d.label;
     return accumulator;
@@ -238,7 +238,7 @@ const updateManUnitChoices = () => {
   const success = (data) => {
     options = data.reduce(reducer, {});
   };
-  let errmsg = "ajax error getting management units!";
+  const errmsg = "ajax error getting management units!";
 
   getChoices(url, success, errmsg)
     .then(() => {
@@ -251,11 +251,11 @@ const updateManUnitChoices = () => {
 const updateGrid10Choices = () => {
   // update the options available in the grid10 select box
 
-  let selectedManUnitId = $("#id_management_unit_id option:selected").val();
-  let url = `${grid10URL}?manUnit_id=${selectedManUnitId}`;
+  const selectedManUnitId = $("#id_management_unit_id option:selected").val();
+  const url = `${grid10URL}?manUnit_id=${selectedManUnitId}`;
 
   const reducer = (accumulator, d) => {
-    //accumulator[d.id] = `${d.grid} (${d.lake.abbrev})`;
+    // accumulator[d.id] = `${d.grid} (${d.lake.abbrev})`;
     accumulator[d.id] = d.grid;
     return accumulator;
   };
@@ -264,20 +264,20 @@ const updateGrid10Choices = () => {
   const success = (data) => {
     options = data.reduce(reducer, {});
   };
-  let errmsg = "ajax error getting grids!";
+  const errmsg = "ajax error getting grids!";
   getChoices(url, success, errmsg)
     .then(() => {
       update_selector("id_grid_10_id", "id_management_unit_id", options);
-      //checkSpatialWidgets();
+      // checkSpatialWidgets();
     })
     .then(checkMyChoice("id_grid_10_id", "id_management_unit_id"));
 };
 
 const checkLakeChoiceLatLon = () => {
   let lakeShouldbe;
-  if (spatialAttrs["lake"] !== "") {
-    let name = spatialAttrs["lake"].lake_name;
-    let abbrev = spatialAttrs["lake"].abbrev;
+  if (spatialAttrs.lake !== "") {
+    const name = spatialAttrs.lake.lake_name;
+    const abbrev = spatialAttrs.lake.abbrev;
     lakeShouldbe = `${name} (${abbrev})`;
   } else {
     lakeShouldbe = "";
@@ -287,9 +287,9 @@ const checkLakeChoiceLatLon = () => {
 
 const checkStateProvChoiceLatLon = () => {
   let stateProvShouldbe;
-  if (spatialAttrs["jurisdiction"] !== "") {
-    let name = spatialAttrs["jurisdiction"].stateprov_name;
-    let abbrev = spatialAttrs["jurisdiction"].stateprov_abbrev;
+  if (spatialAttrs.jurisdiction !== "") {
+    const name = spatialAttrs.jurisdiction.stateprov_name;
+    const abbrev = spatialAttrs.jurisdiction.stateprov_abbrev;
     stateProvShouldbe = `${name} (${abbrev})`;
   } else {
     stateProvShouldbe = "";
@@ -300,14 +300,13 @@ const checkStateProvChoiceLatLon = () => {
 const checkManUnitChoiceLatLon = () => {
   let manUnitShouldbe;
   manUnitShouldbe =
-    spatialAttrs["manUnit"] !== "" ? spatialAttrs["manUnit"].label : "";
+    spatialAttrs.manUnit !== "" ? spatialAttrs.manUnit.label : "";
   validateSpatialField(manUnitShouldbe, "id_management_unit_id");
 };
 
 const checkGrid10ChoiceLatLon = () => {
   let gridShouldbe;
-  gridShouldbe =
-    spatialAttrs["grid10"] !== "" ? spatialAttrs["grid10"].grid : "";
+  gridShouldbe = spatialAttrs.grid10 !== "" ? spatialAttrs.grid10.grid : "";
   validateSpatialField(gridShouldbe, "id_grid_10_id");
 };
 
@@ -319,14 +318,14 @@ const checkSpatialWidgets = () => {
 };
 
 const validateSpatialField = (shouldbe, fieldid) => {
-  //see if the selected value is the same as shouldbe
+  // see if the selected value is the same as shouldbe
   // if not - add popup html to the dom.
   const selected = $(`#${fieldid} option:selected`).html();
 
   if (selected == shouldbe || shouldbe == "") {
     removeError(fieldid, "lat-lon");
   } else {
-    let msg = `Lat-long suggests "${shouldbe}"`;
+    const msg = `Lat-long suggests "${shouldbe}"`;
     addError(fieldid, "lat-lon", msg);
   }
 };
@@ -335,20 +334,20 @@ const validateSpatialField = (shouldbe, fieldid) => {
  * based on lat lon and compare against current values. */
 
 const updateSpatialAttrs = async (lat, lon) => {
-  let pt = { dd_lat: lat, dd_lon: lon };
+  const pt = { dd_lat: lat, dd_lon: lon };
   spatialAttrs = await getSpatialAttrs(pt, spatialAttrURL, csrf_token);
   checkSpatialWidgets();
 };
 
-//=====================================================
+// = ====================================================
 //              SPECIES AND STRAINS
 
 // when species changes, update the list of strains - if there is a
 // strain selected, keep it but flag it as invalid
 
 $("#id_species_id").on("change", function (e) {
-  //let url = "/api/v1/common/strainraw/?species_id=" + e.target.value;
-  let url = `${strainURL}?species_id=${e.target.value}`;
+  // let url = "/api/v1/common/strainraw/?species_id=" + e.target.value;
+  const url = `${strainURL}?species_id=${e.target.value}`;
 
   const reducer = (accumulator, d) => {
     accumulator[d.id] = `${d.raw_strain} (${d.description})`;
@@ -372,7 +371,7 @@ $("#id_strain_raw_id").on("change", function () {
   checkMyChoice(myId, parentId);
 });
 
-//=====================================================
+// = ====================================================
 //         EVENT DATE
 
 $(".ui.calendar").calendar({
@@ -381,16 +380,18 @@ $(".ui.calendar").calendar({
   onChange: function (date, text) {
     const myDate = new Date(text);
 
-    let yr = myDate.getFullYear();
-    let month = myDate.getMonth();
-    let day = myDate.getDate();
+    const yr = myDate.getFullYear();
+    const month = myDate.getMonth();
+    const day = myDate.getDate();
 
     if (isValidDate(yr, month, day)) {
-      let yearField = document.getElementById(this.id.replace("date", "year"));
-      let monthField = document.getElementById(
+      const yearField = document.getElementById(
+        this.id.replace("date", "year")
+      );
+      const monthField = document.getElementById(
         this.id.replace("date", "month")
       );
-      let dayField = document.getElementById(this.id.replace("date", "day"));
+      const dayField = document.getElementById(this.id.replace("date", "day"));
 
       dayField.value = day;
       setValid(dayField);
@@ -440,21 +441,21 @@ function validate_month(field) {
   // get the day, month, and year from the same row and see if it
   // forms a valid date;
 
-  let day = $("#" + field.id.replace("month", "day"));
+  const day = $("#" + field.id.replace("month", "day"));
 
   if (day.val()) {
     if (checkEmpty(field)) {
       setInvalid(field, "Month is required if Day is populated.");
-      //addError(
+      // addError(
       //  field.id,
       //  "month-required",
       //  "Month is required if Day is populated."
-      //);
+      // );
       return false;
     }
   }
-  //removeError(field.id, "month-required");
-  //setValid(field);
+  // removeError(field.id, "month-required");
+  // setValid(field);
   return true;
 }
 
@@ -469,15 +470,15 @@ function validate_year(field) {
 }
 
 const checkDate = function () {
-  let yearElement = document.getElementById("id_year");
-  let monthElement = document.getElementById("id_month");
-  let dayElement = document.getElementById("id_day");
+  const yearElement = document.getElementById("id_year");
+  const monthElement = document.getElementById("id_month");
+  const dayElement = document.getElementById("id_day");
 
-  let yr = yearElement.value;
-  let month = monthElement.value;
-  let day = dayElement.value;
+  const yr = yearElement.value;
+  const month = monthElement.value;
+  const day = dayElement.value;
 
-  //clear calendar
+  // clear calendar
   updateCalendar("id_date");
 
   if (yr !== "" && month !== "" && day !== "") {
@@ -490,7 +491,7 @@ const checkDate = function () {
       setValid(monthElement);
       setValid(dayElement);
     } else {
-      let msg = `${yr}-${month}-${day} is an invalid date or occurs in the future.`;
+      const msg = `${yr}-${month}-${day} is an invalid date or occurs in the future.`;
       setInvalid(yearElement, msg);
       setInvalid(monthElement, msg);
       setInvalid(dayElement, msg);

@@ -5,59 +5,75 @@
 
 {% block extra_head %}
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" >
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.12/dc.min.css" >
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" >
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.12/dc.min.css" >
 
-    <link rel="stylesheet" href="{% static "style.css" %}" media="screen" >
-
-
-    <style media="screen">
-
-     .pass-through {
-         pointer-events: none;
-     }
+<link rel="stylesheet" href="{% static "style.css" %}" media="screen" >
 
 
-     #stackedbar-chart .x.axis text {
-         text-anchor: end !important;
-         transform: rotate(-45deg);
-     }
+<style media="screen">
+
+ .pass-through {
+     pointer-events: none;
+ }
 
 
-     .dc-chart g.row text {fill: grey;}
+ #stackedbar-chart .x.axis text {
+     text-anchor: end !important;
+     transform: rotate(-45deg);
+ }
 
-     tr .filtered {
-         font-weight: bold;
-         color: red;
 
-     }
+ .dc-chart svg g.pie-slice path  {
+     stroke: lightgrey;
 
-     text {
-         font-family: sans-serif;
-     }
+ }
 
-     .tick text {
-         fill: #8E8883;
-         font-size: 1.2em;
-         font-family: sans-serif;
-     }
+ .dc-chart g.row text {
+     fill: grey;
+     mix-blend-mode: difference;
+ }
 
-     .tick {
-         opacity: 0.8;
-     }
+ .dc-chart text.pie-slice.pie-label  {
+     fill: grey;
+     mix-blend-mode: difference;
+ }
 
-     .tick line {
-         stroke: #C0C0BB;
 
-     }
+ tr .filtered {
+     font-weight: bold;
+     color: red;
 
-     .axis-label {
-         fill: #635F5D;
-         font-size: 1.5em;
-         font-family: sans-serif;
-     }
+ }
 
-    </style>
+ text {
+     font-family: sans-serif;
+ }
+
+ .tick text {
+     fill: #8E8883;
+     font-size: 1.2em;
+     font-family: sans-serif;
+ }
+
+ .tick {
+     opacity: 0.8;
+ }
+
+ .tick line {
+     stroke: #C0C0BB;
+
+ }
+
+ .axis-label {
+     fill: #635F5D;
+     font-size: 1.5em;
+     font-family: sans-serif;
+ }
+
+
+
+</style>
 
 
 
@@ -68,490 +84,490 @@
 
 {% block content %}
 
-    <div class="ui fluid container">
+<div class="ui fluid container">
 
-        <div class="ui grid">
+    <div class="ui grid">
 
-            <div class="two wide column" id="left-sidebar">
-                <!-- Left SideBar -->
+        <div class="two wide column" id="left-sidebar">
+            <!-- Left SideBar -->
+        </div>
+
+        <div class="eleven wide column" id="center-column">
+
+            <div class="row">
+                <div id="some_id" class="some_class" ></div>
+                <div class="twelve wide column">
+                    <h1>Filtered Stocking Events</h1>
+                </div>
             </div>
 
-            <div class="eleven wide column" id="center-column">
-
-                <div class="row">
-                    <div id="some_id" class="some_class" ></div>
-                    <div class="twelve wide column">
-                        <h1>Filtered Stocking Events</h1>
+            <div class="row" id="limit-exceeded-row">
+                <div class="sixteen wide column">
+                    <div class="ui hidden warning message" id="record-count-warning">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            Too many stocking events returned!
+                        </div>
+                        The number of records returned by your selections exceeds
+                        the maximum number of stocking events that can be displayed
+                        by this view. You should return to
+                        <a href="{% url 'stocking:find-stocking-events' %}">Find Stocking Events</a> and refine your search criteria.
                     </div>
                 </div>
+            </div>
 
-                <div class="row" id="limit-exceeded-row">
-                        <div class="sixteen wide column">
-                            <div class="ui hidden warning message" id="record-count-warning">
-                                <i class="close icon"></i>
-                                <div class="header">
-                                    Too many stocking events returned!
+            <div class="ui fluid card" id="map-card">
+                <div class="content">
+                    <div class="header">Map</div>
+                </div>
+                <div class="content">
+                    <div id="mapid" style="width: 100%; height: 700px"></div>
+                </div>
+            </div>
+
+
+            <div class="ui fluid card" id="stackedbar-chart-card">
+                <div class="content">
+                    <div class="header">Stocking Over Time</div>
+                </div>
+                <div class="content">
+
+                    <div id="stackedbar-chart">
+
+                        <div class="ui grid">
+                            <div class="ten wide column">
+                                <h5> <span id="stackedbar-chart-heading"></span>
+                                    <span>
+                                        <a class="reset" id="stackedbar-chart-reset" href="#" style="display: none;">reset</a>
+                                        <div class="clearfix"></div>
+                                    </span>
+                                </h5>
+                            </div>
+                            <div class="centered two wide column">
+                                <div class="ui icon buttons ">
+                                    <button class="mini ui primary button brush-control"  id="stackedbar-previous-year"><i class="left angle icon"></i></button>
+                                    <button class="mini ui primary button brush-control" id="stackedbar-next-year"><i class="right angle icon"></i></button>
                                 </div>
-                                The number of records returned by your selections exceeds
-                                the maximum number of stocking events that can be displayed
-                                by this view. You should return to
-                                <a href="{% url 'stocking:find-stocking-events' %}">Find Stocking Events</a> and refine your search criteria.
+
+                            </div>
+                            <div class="right floated left aligned four wide column">
+                                <form class="ui form">
+                                    <div class="inline fields">
+                                        <div class="field">
+                                            <div class="ui radio checkbox" data-content="Drag to select or change the year(s) to view">
+                                                <input class="stackedbar-brush-toggle"
+                                                       id="stackedbar-brush-toggle" type="radio" name="brush-toggle" checked="true" value="brush" tabindex="0" class="hidden">
+                                                <label>Brush</label>
+                                            </div>
+                                        </div>
+                                        <div class="field">
+                                            <div class="ui radio checkbox" data-content="Hover over each bar to see its details">
+
+                                                <input class="stackedbar-brush-toggle" id="stackedbar-brush-toggle-tooltip" type="radio" name="brush-toggle" value="tooltip" tabindex="0" class="hidden">
+                                                <label>Tooltip</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </form>
                             </div>
                         </div>
+                    </div>
                 </div>
+            </div>
 
-                <div class="ui fluid card" id="map-card">
-                        <div class="content">
-                            <div class="header">Map</div>
+
+            <div class="ui fluid card accordion" id="filter-row">
+                <div class="content">
+                    <div class="header title active">
+                        <div class="ui grid">
+                            <div class="ten wide column">
+                                <h3>Filters</h3>
+                            </div>
+                            <div class="four wide column">
+                                <button  class="ui mini primary button right floated" id="btn_reset_filters">Reset All Filters</button>
+                            </div>
+                            <div class="two wide column">
+                                <div class="right floated meta"><i class="chevron down icon"></i></div>
+                            </div>
                         </div>
-                        <div class="content">
-                            <div id="mapid" style="width: 100%; height: 700px"></div>
-                        </div>
+                    </div>
+                    <div class="content">
+                        <p class="transition visible" style="display: block !important;">
+                            <div class="ui horizontal segments">
+                                <div class="ui segment">
+                                    <h4>Spatial And Administrative</h4>
+                                    <table>
+                                        <tr>
+                                            <td><strong>Lake(s):</strong></td>
+                                            <td id="lake-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>State(s)/Prov.:</strong></td>
+                                            <td id="state-prov-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Jurisdiction(s)</strong></td>
+                                            <td id="jurisdiction-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Management Unit(s)</strong></td>
+                                            <td id="management-unit-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Agency(ies)</strong></td>
+                                            <td id="agency-filter">All</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="ui segment">
+                                    <h4>Species And Strain(s)</h4>
+                                    <table>
+                                        <tr>
+                                            <td><strong>Species:</strong></td>
+                                            <td id="species-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Strain(s):</strong></td>
+                                            <td id="strain-filter">All</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="ui segment">
+                                    <h4>Stocking Method(s)</h4>
+
+                                    <table>
+                                        <tr>
+                                            <td><strong>Life Stage(s):</strong></td>
+                                            <td id="lifestage-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Stocking Method(s):</strong></td>
+                                            <td id="stocking-method-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Stocking Month(s):</strong></td>
+                                            <td id="stocking-month-filter">All</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="ui segment">
+                                    <h4>Clips, Marks and Tags</h4>
+                                    <table>
+                                        <tr>
+                                            <td><strong>Clip(s):</strong></td>
+                                            <td id="clip-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Tag(s):</strong></td>
+                                            <td id="tag-filter">All</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Mark(s):</strong></td>
+                                            <td id="mark-filter">All</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </p>
+                    </div>
                 </div>
+            </div>
 
 
-                <div class="ui fluid card" id="stackedbar-chart-card">
-                        <div class="content">
-                            <div class="header">Stocking Over Time</div>
+            <div class="ui fluid card accordion" id="spatial-admin-row">
+                <div class="content">
+                    <div class="header title active">
+                        <h3>Spatial And Administrative Filters
+                            <div class="right floated meta"><i class="chevron down icon"></i></div>
+                        </hr>
+                        </h3>
+                    </div>
+                    <div class="content">
+                        <div class="transition visible" style="display: block !important;">
+
+                            <div class="ui equal width grid">
+
+                                <div class="row">
+                                    <div class="column">
+                                        <div id="lake-plot">
+                                            <h5>Lake
+                                                <span>
+                                                    <a class="reset" id="lake-plot-reset" href="#" style="display: none;">reset</a>
+                                                    <div class="clearfix"></div>
+                                                </span>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                    <div class="column">
+                                        <div id="state-province-plot">
+                                            <h5>State/Province
+                                                <span>
+                                                    <a class="reset" id="state-province-plot-reset" href="#" style="display: none;">reset</a>
+                                                    <div class="clearfix"></div>
+                                                </span>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="column">
+                                        <div id="jurisdiction-plot">
+                                            <h5>Jurisdiction
+                                                <span>
+                                                    <a class="reset" id="jurisdiction-plot-reset" href="#" style="display: none;">reset</a>
+                                                    <div class="clearfix"></div>
+                                                </span>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                    <div class="column">
+                                        <div id="management-unit-plot">
+                                            <h5>Management Unit
+                                                <span>
+                                                    <a class="reset" id="management-unit-plot-reset" href="#" style="display: none;">reset</a>
+                                                    <div class="clearfix"></div>
+                                                </span>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                    <div class="column">
+                                        <div id="agency-plot">
+                                            <h5>Agency
+                                                <span>
+                                                    <a class="reset" id="agency-plot-reset" href="#" style="display: none;">reset</a>
+                                                    <div class="clearfix"></div>
+                                                </span>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="content">
+                    </div>
+                </div>
+            </div>
 
-                            <div id="stackedbar-chart">
 
-                                <div class="ui grid">
-                                    <div class="ten wide column">
-                                        <h5> <span id="stackedbar-chart-heading"></span>
+            <div class="ui fluid card accordion" id="species-strain-row">
+                <div class="content">
+                    <div class="header title active">
+                        <h3>Species And Strains
+                            <div class="right floated meta"><i class="chevron down icon"></i></div>
+                        </hr>
+                        </h3>
+                    </div>
+                    <div class="content">
+                        <div class="transition visible" style="display: block !important;">
+
+                            <div class="ui equal width grid">
+                                <div class="column">
+                                    <div id="species-plot">
+                                        <h5>Species
                                             <span>
-                                                <a class="reset" id="stackedbar-chart-reset" href="#" style="display: none;">reset</a>
+                                                <a class="reset" id="species-plot-reset" href="#" style="display: none;">reset</a>
                                                 <div class="clearfix"></div>
                                             </span>
                                         </h5>
                                     </div>
-                                    <div class="centered two wide column">
-                                        <div class="ui icon buttons ">
-                                            <button class="mini ui primary button brush-control"  id="stackedbar-previous-year"><i class="left angle icon"></i></button>
-                                            <button class="mini ui primary button brush-control" id="stackedbar-next-year"><i class="right angle icon"></i></button>
-                                        </div>
-
-                                    </div>
-                                    <div class="right floated left aligned four wide column">
-                                        <form class="ui form">
-                                            <div class="inline fields">
-                                                <div class="field">
-                                                    <div class="ui radio checkbox" data-content="Drag to select or change the year(s) to view">
-                                                        <input class="stackedbar-brush-toggle"
-                                                               id="stackedbar-brush-toggle" type="radio" name="brush-toggle" checked="true" value="brush" tabindex="0" class="hidden">
-                                                        <label>Brush</label>
-                                                    </div>
-                                                </div>
-                                                <div class="field">
-                                                    <div class="ui radio checkbox" data-content="Hover over each bar to see its details">
-
-                                                        <input class="stackedbar-brush-toggle" id="stackedbar-brush-toggle-tooltip" type="radio" name="brush-toggle" value="tooltip" tabindex="0" class="hidden">
-                                                        <label>Tooltip</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                        </form>
-                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                </div>
-
-
-                <div class="ui fluid card accordion" id="filter-row">
-                    <div class="content">
-                        <div class="header title active">
-                            <div class="ui grid">
-                                <div class="ten wide column">
-                                    <h3>Filters</h3>
-                                </div>
-                                <div class="four wide column">
-                                    <button  class="ui mini primary button right floated" id="btn_reset_filters">Reset All Filters</button>
-                                </div>
-                                <div class="two wide column">
-                                    <div class="right floated meta"><i class="chevron down icon"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="content">
-                            <p class="transition visible" style="display: block !important;">
-                                <div class="ui horizontal segments">
-                                    <div class="ui segment">
-                                        <h4>Spatial And Administrative</h4>
-                                        <table>
-                                            <tr>
-                                                <td><strong>Lake(s):</strong></td>
-                                                <td id="lake-filter">All</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>State(s)/Prov.:</strong></td>
-                                                <td id="state-prov-filter">All</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Jurisdiction(s)</strong></td>
-                                                <td id="jurisdiction-filter">All</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Management Unit(s)</strong></td>
-                                                <td id="management-unit-filter">All</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Agency(ies)</strong></td>
-                                                <td id="agency-filter">All</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div class="ui segment">
-                                        <h4>Species And Strain(s)</h4>
-                                        <table>
-                                            <tr>
-                                                <td><strong>Species:</strong></td>
-                                                <td id="species-filter">All</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Strain(s):</strong></td>
-                                                <td id="strain-filter">All</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div class="ui segment">
-                                        <h4>Stocking Method(s)</h4>
-
-                                        <table>
-                                            <tr>
-                                                <td><strong>Life Stage(s):</strong></td>
-                                                <td id="lifestage-filter">All</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Stocking Method(s):</strong></td>
-                                                <td id="stocking-method-filter">All</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Stocking Month(s):</strong></td>
-                                                <td id="stocking-month-filter">All</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div class="ui segment">
-                                        <h4>Clips, Marks and Tags</h4>
-                                        <table>
-                                            <tr>
-                                                <td><strong>Clip(s):</strong></td>
-                                                <td id="clip-filter">All</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Tag(s):</strong></td>
-                                                <td id="tag-filter">All</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Mark(s):</strong></td>
-                                                <td id="mark-filter">All</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                </div>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="ui fluid card accordion" id="spatial-admin-row">
-                    <div class="content">
-                        <div class="header title active">
-                            <h3>Spatial And Administrative Filters
-                                <div class="right floated meta"><i class="chevron down icon"></i></div>
-                        </hr>
-                            </h3>
-                        </div>
-                        <div class="content">
-                            <div class="transition visible" style="display: block !important;">
-
-                                <div class="ui equal width grid">
-
-                                    <div class="row">
-                                        <div class="column">
-                                            <div id="lake-plot">
-                                                <h5>Lake
-                                                    <span>
-                                                        <a class="reset" id="lake-plot-reset" href="#" style="display: none;">reset</a>
-                                                        <div class="clearfix"></div>
-                                                    </span>
-                                                </h5>
-                                            </div>
-                                        </div>
-                                        <div class="column">
-                                            <div id="state-province-plot">
-                                                <h5>State/Province
-                                                    <span>
-                                                        <a class="reset" id="state-province-plot-reset" href="#" style="display: none;">reset</a>
-                                                        <div class="clearfix"></div>
-                                                    </span>
-                                                </h5>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="column">
-                                            <div id="jurisdiction-plot">
-                                                <h5>Jurisdiction
-                                                    <span>
-                                                        <a class="reset" id="jurisdiction-plot-reset" href="#" style="display: none;">reset</a>
-                                                        <div class="clearfix"></div>
-                                                    </span>
-                                                </h5>
-                                            </div>
-                                        </div>
-                                        <div class="column">
-                                            <div id="management-unit-plot">
-                                                <h5>Management Unit
-                                                    <span>
-                                                        <a class="reset" id="management-unit-plot-reset" href="#" style="display: none;">reset</a>
-                                                        <div class="clearfix"></div>
-                                                    </span>
-                                                </h5>
-                                            </div>
-                                        </div>
-                                        <div class="column">
-                                            <div id="agency-plot">
-                                                <h5>Agency
-                                                    <span>
-                                                        <a class="reset" id="agency-plot-reset" href="#" style="display: none;">reset</a>
-                                                        <div class="clearfix"></div>
-                                                    </span>
-                                                </h5>
-                                            </div>
-                                        </div>
+                                <div class="column">
+                                    <div id="strain-plot">
+                                        <h5>Strain
+                                            <span>
+                                                <a class="reset" id="strain-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div class="clearfix"></div>
+                                            </span>
+                                        </h5>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-
-                <div class="ui fluid card accordion" id="species-strain-row">
-                    <div class="content">
-                        <div class="header title active">
-                            <h3>Species And Strains
-                                <div class="right floated meta"><i class="chevron down icon"></i></div>
-                        </hr>
-                            </h3>
-                        </div>
-                        <div class="content">
-                            <div class="transition visible" style="display: block !important;">
-
-                                <div class="ui equal width grid">
-                                    <div class="column">
-                                        <div id="species-plot">
-                                            <h5>Species
-                                                <span>
-                                                    <a class="reset" id="species-plot-reset" href="#" style="display: none;">reset</a>
-                                                    <div class="clearfix"></div>
-                                                </span>
-                                            </h5>
-                                        </div>
-                                    </div>
-                                    <div class="column">
-                                        <div id="strain-plot">
-                                            <h5>Strain
-                                                <span>
-                                                    <a class="reset" id="strain-plot-reset" href="#" style="display: none;">reset</a>
-                                                    <div class="clearfix"></div>
-                                                </span>
-                                            </h5>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-
-                <div class="ui fluid card accordion" id="lifestage-method-month-row">
-                    <div class="content">
-                        <div class="header title active">
-                            <h3>Lifestage, Stocking Method and Month
-                                <div class="right floated meta"><i class="chevron down icon"></i></div>
-                        </hr>
-                            </h3>
-                        </div>
-                        <div class="content">
-                            <div class="transition visible" style="display: block !important;">
-
-                                <div class="ui equal width grid">
-                                    <div class="column">
-                                        <div id="lifestage-plot">
-
-                                            <h5>Life Stage
-                                                <span>
-                                                    <a class="reset" id="lifestage-plot-reset" href="#" style="display: none;">reset</a>
-                                                    <div  class="clearfix"></div>
-                                                </span>
-                                            </h5>
-
-                                        </div>
-                                    </div>
-                                    <div class="column">
-                                        <div id="stocking-method-plot">
-                                            <h5>Stocking Method
-                                                <span>
-                                                    <a class="reset" id="stocking-method-plot-reset" href="#" style="display: none;">reset</a>
-                                                    <div class="clearfix"></div>
-                                                </span>
-                                            </h5>
-                                        </div>
-                                    </div>
-                                    <div class="column">
-                                        <div id="stocking-month-plot">
-                                            <h5>Stocking Month
-                                                <span>
-                                                    <a class="reset" id="stocking-month-plot-reset" href="#" style="display: none;">reset</a>
-                                                    <div class="clearfix"></div>
-                                                </span>
-                                            </h5>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="ui fluid card accordion" id="clips-marks-tags-row">
-                    <div class="content">
-                        <div class="header title active">
-                            <h3>Clips, Marks, and Tags
-                                <div class="right floated meta"><i class="chevron down icon"></i></div>
-                        </hr>
-                            </h3>
-                        </div>
-                        <div class="content">
-                            <div class="transition visible" style="display: block !important;">
-                                <div class="ui equal width grid">
-                                    <div class="column">
-                                        <div id="clip-plot">
-                                            <h5>Clips
-                                                <span>
-                                                    <a class="reset" id="clip-plot-reset" href="#" style="display: none;">reset</a>
-                                                    <div  class="clearfix"></div>
-                                                </span>
-                                            </h5>
-
-                                        </div>
-                                    </div>
-                                    <div class="column">
-                                        <div id="tag-plot">
-                                            <h5>Tags
-                                                <span>
-                                                    <a class="reset" id="tag-plot-reset" href="#" style="display: none;">reset</a>
-                                                    <div class="clearfix"></div>
-                                                </span>
-                                            </h5>
-                                        </div>
-                                    </div>
-                                    <div class="column">
-                                        <div id="mark-plot">
-                                            <h5>Chemical Marks
-                                                <span>
-                                                    <a class="reset" id="mark-plot-reset" href="#" style="display: none;">reset</a>
-                                                    <div class="clearfix"></div>
-                                                </span>
-                                            </h5>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-
             </div>
-            <div class="three wide column" id="right-sidebar">
-                <div class="ui sticky">
 
-                    <div class="ui tabular menu">
-                        <a class="item active" data-tab="statistics">
-                            Statistics
-                        </a>
-                        <a class="item" data-tab="settings">
-                            Map Settings
-                        </a>
+
+
+            <div class="ui fluid card accordion" id="lifestage-method-month-row">
+                <div class="content">
+                    <div class="header title active">
+                        <h3>Lifestage, Stocking Method and Month
+                            <div class="right floated meta"><i class="chevron down icon"></i></div>
+                        </hr>
+                        </h3>
                     </div>
+                    <div class="content">
+                        <div class="transition visible" style="display: block !important;">
 
-                    <div
-                        class="ui bottom attached tab segment active"
-                        data-tab="statistics" >
-                        <div class="ui fluid card">
-                            <div class="content">
-                                <div class="header">Stats Panel</div>
-                            </div>
-                            <div class="content">
-                                <p>Summary Statstics:</p>
-                                <ul>
-                                    <li><span id="total-stocked"></span> Fish</li>
-                                    <li><span id="yreq-stocked"></span> Yearling Equiv.</li>
-                                    <li><span id="event-count"></span> Events</li>
-                                    <li><span id="value-count"></span> <span id="category-value-label-plural"></span></li>
-                                </ul>
+                            <div class="ui equal width grid">
+                                <div class="column">
+                                    <div id="lifestage-plot">
 
-                                <div id="stocked-summary-table">
-                                    <table
-                                        class="ui celled compact table tablesorter"
-                                        style="font-size: 0.7em"
-                                    >
-                                        <thead>
-                                            <tr>
-                                                <th><span id="category-value-label"></th>
-                                                    <th class="center aligned">Events</th>
-                                                    <th class="center aligned">Yr.Eq.</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="stocked-summary-table-tbody"></tbody>
-                                    </table>
+                                        <h5>Life Stage
+                                            <span>
+                                                <a class="reset" id="lifestage-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div  class="clearfix"></div>
+                                            </span>
+                                        </h5>
+
+                                    </div>
                                 </div>
-                                <br />
-                                <div class="ui row">
-                                    <div id="point-info"></div>
+                                <div class="column">
+                                    <div id="stocking-method-plot">
+                                        <h5>Stocking Method
+                                            <span>
+                                                <a class="reset" id="stocking-method-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div class="clearfix"></div>
+                                            </span>
+                                        </h5>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div id="stocking-month-plot">
+                                        <h5>Stocking Month
+                                            <span>
+                                                <a class="reset" id="stocking-month-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div class="clearfix"></div>
+                                            </span>
+                                        </h5>
+                                    </div>
                                 </div>
                             </div>
-                            <a class="ui mini primary button" id="download-events-btn" href="#">Download Events
-                                <i class="arrow alternate circle down icon"></i>
-                            </a>
-
                         </div>
                     </div>
-                    <div class="ui bottom attached tab segment" data-tab="settings">
-                        <h3 class="ui header">Spatial Resolution</h3>
-                        <div class="ui mini form" id="strata-selector"></div>
+                </div>
+            </div>
 
-                        <h3 class="ui header"
-                            data-tooltip="Controls what pie slices and stacked bars represent.">
-                            Category</h3>
 
-                        <div class="ui mini form" id="category-selector"></div>
+            <div class="ui fluid card accordion" id="clips-marks-tags-row">
+                <div class="content">
+                    <div class="header title active">
+                        <h3>Clips, Marks, and Tags
+                            <div class="right floated meta"><i class="chevron down icon"></i></div>
+                        </hr>
+                        </h3>
+                    </div>
+                    <div class="content">
+                        <div class="transition visible" style="display: block !important;">
+                            <div class="ui equal width grid">
+                                <div class="column">
+                                    <div id="clip-plot">
+                                        <h5>Clips
+                                            <span>
+                                                <a class="reset" id="clip-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div  class="clearfix"></div>
+                                            </span>
+                                        </h5>
 
-                        <h3 class="ui header"
-                            data-tooltip="Controls what the size of the pies and height of bars represent.">
-                            Response Variable</h3>
-                        <div class="ui mini form" id="pie-size-selector"></div>
-
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div id="tag-plot">
+                                        <h5>Tags
+                                            <span>
+                                                <a class="reset" id="tag-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div class="clearfix"></div>
+                                            </span>
+                                        </h5>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div id="mark-plot">
+                                        <h5>Chemical Marks
+                                            <span>
+                                                <a class="reset" id="mark-plot-reset" href="#" style="display: none;">reset</a>
+                                                <div class="clearfix"></div>
+                                            </span>
+                                        </h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
             </div>
+
 
         </div>
+        <div class="three wide column" id="right-sidebar">
+            <div class="ui sticky">
+
+                <div class="ui tabular menu">
+                    <a class="item active" data-tab="statistics">
+                        Statistics
+                    </a>
+                    <a class="item" data-tab="settings">
+                        Map Settings
+                    </a>
+                </div>
+
+                <div
+                    class="ui bottom attached tab segment active"
+                    data-tab="statistics" >
+                    <div class="ui fluid card">
+                        <div class="content">
+                            <div class="header">Stats Panel</div>
+                        </div>
+                        <div class="content">
+                            <p>Summary Statstics:</p>
+                            <ul>
+                                <li><span id="total-stocked"></span> Fish</li>
+                                <li><span id="yreq-stocked"></span> Yearling Equiv.</li>
+                                <li><span id="event-count"></span> Events</li>
+                                <li><span id="value-count"></span> <span id="category-value-label-plural"></span></li>
+                            </ul>
+
+                            <div id="stocked-summary-table">
+                                <table
+                                    class="ui celled compact table tablesorter"
+                                    style="font-size: 0.7em"
+                                >
+                                    <thead>
+                                        <tr>
+                                            <th><span id="category-value-label"></th>
+                                                <th class="center aligned">Events</th>
+                                                <th class="center aligned">Yr.Eq.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stocked-summary-table-tbody"></tbody>
+                                </table>
+                            </div>
+                            <br />
+                            <div class="ui row">
+                                <div id="point-info"></div>
+                            </div>
+                        </div>
+                        <a class="ui mini success button" id="event-list-btn" href="#">View Events as Table
+                            <i class="table icon"></i>
+                        </a>
+                        <a class="ui mini primary button" id="download-events-btn" href="#">Download Events
+                            <i class="arrow alternate circle down icon"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ui bottom attached tab segment" data-tab="settings">
+                    <h3 class="ui header">Spatial Resolution</h3>
+                    <div class="ui mini form" id="strata-selector"></div>
+
+                    <h3 class="ui header"
+                        data-tooltip="Controls what pie slices and stacked bars represent.">
+                        Category</h3>
+
+                    <div class="ui mini form" id="category-selector"></div>
+
+                    <h3 class="ui header"
+                        data-tooltip="Controls what the size of the pies and height of bars represent.">
+                        Response Variable</h3>
+                    <div class="ui mini form" id="pie-size-selector"></div>
+
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
 {% endblock %}
 
@@ -571,8 +587,11 @@
      document.getElementById("download-events-btn").href = download_url + search;
      //document.getElementById("download-events-button").href();
 
+     let event_list_url = "{% url 'stocking:stocking-event-list' %}";
+     document.getElementById("event-list-btn").href = event_list_url + search;
 
-    $(document).ready(function(){
+
+     $(document).ready(function(){
          let msg = "The waters of each lake within the bounds of the state or province"
          document.getElementById("strata-selector-jurisdiction").parentElement.setAttribute('data-tooltip', msg)
          document.getElementById("category-selector-jurisdiction").parentElement.setAttribute('data-tooltip', msg)
@@ -586,11 +605,11 @@
     <!--
          <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
     -->
-
     <!-- dc.js won't roll up - add these here for now:      -->
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter2/1.4.6/crossfilter.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/3.0.12/dc.min.js"></script>
+
 
     <script src="{% static "js/filteredStockingEvents.js" %}"></script>
 

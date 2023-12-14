@@ -8,12 +8,12 @@
  * (e.g. strains depend on species) */
 export const make_choices = (values) => {
   const choices = values.reduce((acc, x) => {
-    let [key, val] = x;
+    const [key, val] = x;
     if (!acc.hasOwnProperty(key)) {
       acc[key] = [];
     }
     acc[key] = [...acc[key], val];
-    //acc[key].push(val);
+    // acc[key].push(val);
     return acc;
   }, {});
   return choices;
@@ -21,9 +21,9 @@ export const make_choices = (values) => {
 
 export async function getChoices(url, success, errmsg) {
   await $.ajax({
-    url: url,
+    url,
     dataType: "json",
-    success: success,
+    success,
     error: () => {
       console.log(errmsg);
     },
@@ -34,17 +34,17 @@ export async function getChoices(url, success, errmsg) {
  *   box if it doesn't and add a meaningful message
  *   eg - 'Seneca' is not a valid choice for Chinook Salmon */
 export const checkMyChoice = (myId, parentId) => {
-  //const el = $(`#${myId}`);
+  // const el = $(`#${myId}`);
   const selected_val = $(`#${myId} option:selected`).val();
   const selected_text = $(`#${myId} option:selected`).text();
   const parent_text = $(`#${parentId} option:selected`).text();
 
   if (selected_val === "-999") {
     const msg = `'${selected_text}' is not a valid choice for '${parent_text}'`;
-    //setInvalid(el, msg);
+    // setInvalid(el, msg);
     addError(myId, "invalid-choice", msg);
   } else {
-    //setValid(el);
+    // setValid(el);
     removeError(myId, "invalid-choice");
   }
 };
@@ -52,7 +52,7 @@ export const checkMyChoice = (myId, parentId) => {
 export const update_selector = (selectorID, parentID, newOptions) => {
   const el = $(`#${selectorID}`);
 
-  //const previous_val = $(`#${selectorID} option:selected`).val();
+  // const previous_val = $(`#${selectorID} option:selected`).val();
   const previous_text = $(`#${selectorID} option:selected`).text();
   const parent_text = $(`#${parentID} option:selected`).text();
 
@@ -62,11 +62,11 @@ export const update_selector = (selectorID, parentID, newOptions) => {
     el.append($("<option></option>").attr("value", "-999").text(previous_text));
 
     const msg = `'${previous_text}' is not a valid choice for ${parent_text}`;
-    //setInvalid(el, msg);
+    // setInvalid(el, msg);
     addError(selectorID, "invalid-choice", msg);
   } else {
     removeError(selectorID, "invalid-choice");
-    //setValid(el);
+    // setValid(el);
   }
 
   $.each(newOptions, (value, label) => {
@@ -88,10 +88,10 @@ accepts a list of objects as new Options.
 export const update_choices = (selectorID, parentID, newOptions) => {
   const el = $(`#${selectorID}`);
 
-  //const previous_val = $(`#${selectorID} option:selected`).val();
+  // const previous_val = $(`#${selectorID} option:selected`).val();
   const previous_selection = $(`#${selectorID} option:selected`);
   const previous_text = previous_selection.text();
-  let previous_value = previous_selection.val();
+  const previous_value = previous_selection.val();
 
   const parent_text = $(`#${parentID} option:selected`).text();
 
@@ -123,28 +123,28 @@ export const update_choices = (selectorID, parentID, newOptions) => {
 };
 
 export const setInvalid = (field, errMsg) => {
-  let id = field.id ? field.id : field[0].id;
-  let wrapper = $("#" + id + "-field");
+  const id = field.id ? field.id : field[0].id;
+  const wrapper = $("#" + id + "-field");
   wrapper.addClass("error");
-  let input = wrapper.find(".ui.input");
+  const input = wrapper.find(".ui.input");
   // get the current errors and add our new one:
   input.attr("data-html", errMsg).attr("data-position", "top center");
 };
 
 export const setValid = (field) => {
-  let id = field.id ? field.id : field[0].id;
-  let wrapper = $("#" + id + "-field");
+  const id = field.id ? field.id : field[0].id;
+  const wrapper = $("#" + id + "-field");
   wrapper.removeClass("error");
-  let input = wrapper.find(".ui.input");
+  const input = wrapper.find(".ui.input");
   input.removeAttr("data-html").removeAttr("data-position");
 };
 
 export const addError = (targetid, errorid, msg) => {
   errorid = targetid + "-" + errorid;
-  let popup = $(`#${targetid}-popup`);
+  const popup = $(`#${targetid}-popup`);
 
   if (popup.length === 0) {
-    let html = `<div id="${targetid}-popup" class="ui flowing popup" hidden>
+    const html = `<div id="${targetid}-popup" class="ui flowing popup" hidden>
             <div id="${targetid}-error-list" class="ui bulleted list">
             </ul>
           </div>`;
@@ -153,12 +153,12 @@ export const addError = (targetid, errorid, msg) => {
   }
 
   $(`#${targetid}-field`).addClass("error");
-  let errorList = $(`#${targetid}-error-list`);
+  const errorList = $(`#${targetid}-error-list`);
 
   // don't append duplicates
   if ($(`#${errorid}`).length === 0) {
-    //let item_html = `<li id="${errorid}">${msg}</li>`;
-    let item_html = `<div class="item" id="${errorid}">${msg}</div>`;
+    // let item_html = `<li id="${errorid}">${msg}</li>`;
+    const item_html = `<div class="item" id="${errorid}">${msg}</div>`;
     errorList.append(item_html);
   } else {
     // update the error message (just incase it changed)
@@ -172,9 +172,9 @@ export const addError = (targetid, errorid, msg) => {
 // just leaving an empty popup is a workable solution.
 export const removeError = (targetid, errorid) => {
   errorid = targetid + "-" + errorid;
-  let errorSelector = `#${targetid}-error-list #${errorid}`;
+  const errorSelector = `#${targetid}-error-list #${errorid}`;
   $(errorSelector).remove();
-  let errorList = $(`#${targetid}-error-list .item`);
+  const errorList = $(`#${targetid}-error-list .item`);
   if (errorList.length === 0) {
     $(`#${targetid}-popup`).popup("destroy");
     $(`#${targetid}-field`).removeClass("error");
@@ -186,8 +186,8 @@ export const removeError = (targetid, errorid) => {
 // if the input is the same as the output we are good:
 export const isValidDate = (year, month, day) => {
   month = month - 1;
-  let d = new Date(year, month, day);
-  let now = new Date();
+  const d = new Date(year, month, day);
+  const now = new Date();
 
   if (
     d.getFullYear() == year &&
@@ -202,14 +202,14 @@ export const isValidDate = (year, month, day) => {
 
 export const checkRange = (field, lower, upper, integer = true) => {
   if (field.value >= lower && field.value <= upper) {
-    //setValid(field);
+    // setValid(field);
     removeError(field.id, "out-of-range");
     return true;
   } else {
-    let msg = `${field.name} must be ${
+    const msg = `${field.name} must be ${
       integer ? "an integer" : ""
     } bewteen ${lower} and ${upper}.`;
-    //setInvalid(field, msg);
+    // setInvalid(field, msg);
     addError(field.id, "out-of-range", msg);
     return false;
   }
@@ -222,13 +222,13 @@ export const isEmpty = (value) => {
 
 export const checkEmpty = (field) => {
   if (isEmpty(field.value.trim())) {
-    //set field invalid
-    //setInvalid(field, `${field.name} must not be empty`);
+    // set field invalid
+    // setInvalid(field, `${field.name} must not be empty`);
     addError(field.id, "empty", `${field.name} must not be empty`);
     return true;
   } else {
-    //set field to valid
-    //setValid(field);
+    // set field to valid
+    // setValid(field);
     removeError(field.id, "empty");
     return false;
   }
@@ -248,8 +248,8 @@ export const checkLatLon = (field) => {
     (isEmpty(ddlat.value) && isEmpty(ddlon.value)) ||
     (!isEmpty(ddlat.value) && !isEmpty(ddlon.value))
   ) {
-    //setValid(ddlat);
-    //setValid(ddlon);
+    // setValid(ddlat);
+    // setValid(ddlon);
     removeError(ddlat.id, "latlon");
     removeError(ddlon.id, "latlon");
     return true;
@@ -259,14 +259,14 @@ export const checkLatLon = (field) => {
 
   if (isEmpty(ddlat.value)) {
     msg = "Latitude is required if longitude is populated.";
-    //setInvalid(ddlat, msg);
+    // setInvalid(ddlat, msg);
     addError(ddlat.id, "latlon", msg);
     return false;
   }
 
   if (isEmpty(ddlon.value)) {
     msg = "Longitude is required if Latitude is populated.";
-    //setInvalid(ddlon, msg);
+    // setInvalid(ddlon, msg);
     addError(ddlon.id, "latlon", msg);
     return false;
   }
@@ -279,10 +279,10 @@ export const checkDdLat = (field, bbox) => {
   // box.
   const lat = parseFloat(field.value);
   if (lat < bbox[1] || lat > bbox[3]) {
-    let msg = `Latitude must be bewteen ${bbox[1].toFixed(
+    const msg = `Latitude must be bewteen ${bbox[1].toFixed(
       3
     )} and ${bbox[3].toFixed(3)}`;
-    //setInvalid(field, msg);
+    // setInvalid(field, msg);
     addError(field.id, "lat-bounds", msg);
     return false;
   }
@@ -295,10 +295,10 @@ export const checkDdLon = (field, bbox) => {
   // box.
   const lon = parseFloat(field.value);
   if (lon < bbox[0] || lon > bbox[2]) {
-    let msg = `Longitude must be bewteen ${bbox[0].toFixed(
+    const msg = `Longitude must be bewteen ${bbox[0].toFixed(
       3
     )} and ${bbox[2].toFixed(3)}`;
-    //setInvalid(field, msg);
+    // setInvalid(field, msg);
     addError(field.id, "lon-bounds", msg);
     return false;
   }

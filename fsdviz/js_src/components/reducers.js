@@ -7,7 +7,7 @@
 
 export const stockingAdd = (column) => {
   return (p, v) => {
-    let counts = p[v[column]] || { yreq: 0, total: 0, events: 0 };
+    const counts = p[v[column]] || { yreq: 0, total: 0, events: 0 };
     counts.yreq += v.yreq;
     counts.total += v.total;
     counts.events += v.events;
@@ -18,7 +18,7 @@ export const stockingAdd = (column) => {
 
 export const stockingRemove = (column) => {
   return (p, v) => {
-    let counts = p[v[column]] || { yreq: 0, total: 0, events: 0 };
+    const counts = p[v[column]] || { yreq: 0, total: 0, events: 0 };
     counts.yreq -= v.yreq;
     counts.total -= v.total;
     counts.events -= v.events;

@@ -5,7 +5,7 @@
 // toggle region of interest
 // update check boxes to show tool tip make count optional.
 
-//import crossfilter from "crossfilter2";
+// import crossfilter from "crossfilter2";
 import { select, selectAll, json, extent, scaleOrdinal } from "d3";
 
 import Leaflet from "leaflet";
@@ -22,7 +22,7 @@ import {
 
 import { RadioButtons } from "./components/semanticRadioButtons";
 
-import { month_lookup } from "./components/constants";
+import { monthLookup } from "./components/constants";
 
 import { add_roi } from "./components/spatial_utils";
 import {
@@ -58,7 +58,7 @@ let selectedEvent = getUrlParamValue("selected-event")
 // categorys buttons:
 // name must correspond to column names in our data
 // label appears on radio buttons:
-let categories = [
+const categories = [
   { name: "agency_code", label: "Agency" },
   { name: "tag_type", label: "CWT Type" },
   { name: "cwtReused", label: "CWT Re-used" },
@@ -78,7 +78,7 @@ const categoryLabels = categories.reduce((acc, x) => {
   return acc;
 }, {});
 
-let categorySelector = RadioButtons()
+const categorySelector = RadioButtons()
   .selector("#category-selector")
   .options(categories)
   .checked(categoryVar);
@@ -112,16 +112,16 @@ if (roi) {
 Leaflet.svg().addTo(mymap);
 
 // Select the svg area and add a group element we can use to move things around:
-let svg = select("#mapid").select("svg");
+const svg = select("#mapid").select("svg");
 // // add a groups to our svg - for our pie charts
-let pointg = svg.append("g").attr("class", "leaflet-zoom-hide");
+const pointg = svg.append("g").attr("class", "leaflet-zoom-hide");
 
 Promise.all([
   json(dataURL),
   json("/api/v1/stocking/lookups"),
   json("/api/v1/common/lookups"),
   //  json(centroidsURL),
-  //json(topoURL),
+  // json(topoURL),
   // csv(slugURL),
 ]).then(([data, stocking, common]) => {
   // create our lookups so that our widgets have nice labels:
@@ -166,7 +166,7 @@ Promise.all([
 
   const ndx = crossfilter(data);
 
-  //const eventDim = ndx.dimension((d) => d.stock_id);
+  // const eventDim = ndx.dimension((d) => d.stock_id);
   const yearDim = ndx.dimension((d) => d.stockingYear);
   const monthDim = ndx.dimension((d) => d.stockingMonth);
 
@@ -187,7 +187,7 @@ Promise.all([
   const markDim = ndx.dimension((d) => d.mark);
   const tagTypeDim = ndx.dimension((d) => d.tag_type);
 
-  //const eventGroup = eventDim.group().reduceCount();
+  // const eventGroup = eventDim.group().reduceCount();
   const yearGroup = yearDim.group().reduceCount();
   const monthGroup = monthDim.group().reduceCount();
   const cwtReusedGroup = cwtReusedDim.group().reduceCount();
@@ -214,7 +214,7 @@ Promise.all([
 
   // unique values for each category - keys here must match name
   // attribute of corresponding category
-  const months = Object.entries(month_lookup).map((x) => x[1]);
+  const months = Object.entries(monthLookup).map((x) => x[1]);
   const unique_values = {
     cwtReused: cwtReusedGroup
       .top(Infinity)
@@ -268,41 +268,37 @@ Promise.all([
   // year class that are one-to-one (the name and
   // the label are the same):
 
-  lookup_values["stockingMonth"] = unique_values["stockingMonth"].map((x) => ({
+  lookup_values.stockingMonth = unique_values.stockingMonth.map((x) => ({
     slug: x,
     label: x,
   }));
-  lookup_values["stockingYear"] = unique_values["stockingYear"].map((x) => ({
+  lookup_values.stockingYear = unique_values.stockingYear.map((x) => ({
     slug: x,
     label: x,
   }));
-  lookup_values["yearClass"] = [
-    ...unique_values["yearClass"].map((x) => ({ slug: x, label: x })),
+  lookup_values.yearClass = [
+    ...unique_values.yearClass.map((x) => ({ slug: x, label: x })),
     { slug: "9999", label: "Unknown" },
   ];
-  lookup_values["cwtReused"] = [
+  lookup_values.cwtReused = [
     { slug: "yes", label: "Yes" },
     { slug: "no", label: "No" },
   ];
 
-  lookup_values["tag_type"] = [
+  lookup_values.tag_type = [
     { slug: "cwt", label: "Standard CWT" },
     { slug: "sequential", label: "Sequential CWT" },
   ];
 
   // assign random, differnt colours to these categories:
-  fillColours["yearClass"] = assignDefaultColours(unique_values["yearClass"]);
-  fillColours["stockingYear"] = assignDefaultColours(
-    unique_values["stockingYear"]
-  );
-  fillColours["stockingMonth"] = assignDefaultColours(
-    unique_values["stockingMonth"]
-  );
-  fillColours["cwtReused"] = { yes: "#4363d8", no: "#f58231" };
-  fillColours["tag_type"] = { cwt: "#4363d8", sequential: "#f58231" };
+  fillColours.yearClass = assignDefaultColours(unique_values.yearClass);
+  fillColours.stockingYear = assignDefaultColours(unique_values.stockingYear);
+  fillColours.stockingMonth = assignDefaultColours(unique_values.stockingMonth);
+  fillColours.cwtReused = { yes: "#4363d8", no: "#f58231" };
+  fillColours.tag_type = { cwt: "#4363d8", sequential: "#f58231" };
 
   // // get any query parameters from the url
-  let query_args = parseParams(window.location.hash);
+  const query_args = parseParams(window.location.hash);
 
   const set_or_reset_filters = (query_args) => {
     initialize_filter(filters, "lake", lakeDim, query_args);
@@ -350,130 +346,130 @@ Promise.all([
       filterkey: "cwtReused",
       xfdim: cwtReusedDim,
       xfgroup: cwtReusedGroup,
-      filters: filters,
-      label_lookup: lookup_values["cwtReused"],
+      filters,
+      label_lookup: lookup_values.cwtReused,
     });
 
     checkBoxes(lakeSelection, {
       filterkey: "lake",
       xfdim: lakeDim,
       xfgroup: lakeGroup,
-      filters: filters,
-      label_lookup: lookup_values["lake"],
+      filters,
+      label_lookup: lookup_values.lake,
     });
 
     checkBoxes(stateProvSelection, {
       filterkey: "stateProv",
       xfdim: stateProvDim,
       xfgroup: stateProvGroup,
-      filters: filters,
-      label_lookup: lookup_values["stateProv"],
+      filters,
+      label_lookup: lookup_values.stateProv,
     });
 
     checkBoxes(jurisdictionSelection, {
       filterkey: "jurisdiction",
       xfdim: jurisdictionDim,
       xfgroup: jurisdictionGroup,
-      filters: filters,
-      label_lookup: lookup_values["jurisdiction"],
+      filters,
+      label_lookup: lookup_values.jurisdiction,
     });
 
     checkBoxes(manUnitSelection, {
       filterkey: "manUnit",
       xfdim: manUnitDim,
       xfgroup: manUnitGroup,
-      filters: filters,
-      label_lookup: lookup_values["manUnit"],
+      filters,
+      label_lookup: lookup_values.manUnit,
     });
 
     checkBoxes(agencySelection, {
       filterkey: "agency",
       xfdim: agencyDim,
       xfgroup: agencyGroup,
-      filters: filters,
-      label_lookup: lookup_values["agency_code"],
+      filters,
+      label_lookup: lookup_values.agency_code,
     });
 
     checkBoxes(speciesSelection, {
       filterkey: "species",
       xfdim: speciesDim,
       xfgroup: speciesGroup,
-      filters: filters,
-      label_lookup: lookup_values["species_code"],
+      filters,
+      label_lookup: lookup_values.species_code,
     });
 
     checkBoxes(strainSelection, {
       filterkey: "strain",
       xfdim: strainDim,
       xfgroup: strainGroup,
-      filters: filters,
-      label_lookup: lookup_values["strain"],
+      filters,
+      label_lookup: lookup_values.strain,
     });
 
     checkBoxes(yearClassSelection, {
       filterkey: "yearClass",
       xfdim: yearClassDim,
       xfgroup: yearClassGroup,
-      filters: filters,
-      label_lookup: lookup_values["yearClass"],
+      filters,
+      label_lookup: lookup_values.yearClass,
     });
 
     checkBoxes(lifeStageSelection, {
       filterkey: "lifeStage",
       xfdim: lifeStageDim,
       xfgroup: lifeStageGroup,
-      filters: filters,
-      label_lookup: lookup_values["lifestage_code"],
+      filters,
+      label_lookup: lookup_values.lifestage_code,
     });
 
     checkBoxes(clipCodeSelection, {
       filterkey: "clipCode",
       xfdim: clipCodeDim,
       xfgroup: clipCodeGroup,
-      filters: filters,
-      label_lookup: lookup_values["clip"],
+      filters,
+      label_lookup: lookup_values.clip,
     });
 
     checkBoxes(markSelection, {
       filterkey: "mark",
       xfdim: markDim,
       xfgroup: markGroup,
-      filters: filters,
-      label_lookup: lookup_values["mark"],
+      filters,
+      label_lookup: lookup_values.mark,
     });
 
     checkBoxes(tagSelection, {
       filterkey: "tag_type",
       xfdim: tagTypeDim,
       xfgroup: tagTypeGroup,
-      filters: filters,
-      label_lookup: lookup_values["tag_type"],
+      filters,
+      label_lookup: lookup_values.tag_type,
     });
 
     checkBoxes(monthSelection, {
       filterkey: "stockingMonth",
       xfdim: monthDim,
       xfgroup: monthGroup,
-      filters: filters,
-      label_lookup: lookup_values["stockingMonth"],
+      filters,
+      label_lookup: lookup_values.stockingMonth,
     });
 
     checkBoxes(stkMethSelection, {
       filterkey: "stkMeth",
       xfdim: stkMethDim,
       xfgroup: stkMethGroup,
-      filters: filters,
-      label_lookup: lookup_values["stockingMethod"],
+      filters,
+      label_lookup: lookup_values.stockingMethod,
     });
   };
 
   updateRefinByCheckboxes();
 
-  //===============================================
+  // = ==============================================
 
   const plot_points = (points) => {
     if (jitter_points) {
-      let jitter_size = 20;
+      const jitter_size = 20;
       const jitter = () => (Math.random() - 0.5) * jitter_size;
       points
         .attr("cx", (d) => mymap.latLngToLayerPoint(d.point).x + jitter())
@@ -490,13 +486,13 @@ Promise.all([
   };
 
   const update_map = () => {
-    let points = pointg
+    const points = pointg
       .selectAll(".point")
       .data(ndx.allFiltered(), (d) => d.key);
 
     points.exit().transition().duration(200).remove();
 
-    let pointsEnter = points
+    const pointsEnter = points
       .enter()
       .append("circle")
       .attr("class", "point")
@@ -538,10 +534,10 @@ Promise.all([
 
   // Function that update circle position if we zoom or pan:
   const move_points = () => {
-    let points = selectAll(".point");
+    const points = selectAll(".point");
     plot_points(points);
-    //.attr("cx", (d) => mymap.latLngToLayerPoint(d.point).x)
-    //.attr("cy", (d) => mymap.latLngToLayerPoint(d.point).y);
+    // .attr("cx", (d) => mymap.latLngToLayerPoint(d.point).x)
+    // .attr("cy", (d) => mymap.latLngToLayerPoint(d.point).y);
   };
 
   mymap.on("zoomend", move_points);
@@ -566,10 +562,10 @@ Promise.all([
 
   selectAll("tr");
 
-  //===============================================
+  // = ==============================================
 
   const refresh_legend = () => {
-    let category_label = categoryLabels[categoryVar] || "Category";
+    const category_label = categoryLabels[categoryVar] || "Category";
 
     updateColorScale(categoryVar);
     updateUrlParams("categoryVar", categoryVar);

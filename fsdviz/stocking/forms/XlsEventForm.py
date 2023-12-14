@@ -1,4 +1,3 @@
-import pdb
 from datetime import datetime
 
 from django import forms
@@ -15,7 +14,6 @@ class XlsEventForm(forms.Form):
     them, and convert them to stocking event model instances.  The"""
 
     def __init__(self, *args, **kwargs):
-
         OPTIONAL_CHOICE = [
             ("", "---"),
         ]
@@ -348,7 +346,6 @@ class XlsEventForm(forms.Form):
         return int_or_none(val)
 
     def clean(self):
-
         year = self.cleaned_data.get("year", "0")
         month = self.cleaned_data.get("month")
         day = self.cleaned_data.get("day")

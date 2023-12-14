@@ -42,14 +42,14 @@ class FindEventsForm(forms.Form):
         required=False,
     )
 
-    months = forms.MultipleChoiceField(
+    stocking_month = forms.MultipleChoiceField(
         label="Stocking Month",
         widget=forms.SelectMultiple,
         choices=MONTHS,
         required=False,
     )
 
-    months.widget.attrs["class"] = "ui dropdown"
+    stocking_month.widget.attrs["class"] = "ui dropdown"
 
     #   LAKE
     lake = forms.MultipleChoiceField(

@@ -3,16 +3,19 @@
 import Leaflet from "leaflet";
 import { point, feature } from "@turf/helpers";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
-//import * as turf from "@turf/turf";
+// import * as turf from "@turf/turf";
 import { select, selectAll } from "d3";
 
 // get our initial lat-lon values from the form:
 let lat;
 let lon;
 
-let grid10, grid10Geom;
-let lake, lakeGeom;
-let jurisdiction, jurisdictionGeom;
+let grid10;
+let grid10Geom;
+let lake;
+let lakeGeom;
+let jurisdiction;
+let jurisdictionGeom;
 let manUnits = [];
 let manUnitGeoms = {};
 
@@ -21,7 +24,7 @@ const updatePolygon = (item, geom) => {
   // remove any existing polygon layers and add a new one with the
   // if itme is an object, use it, otherwise use the first element of
   // the array
-  let myobj = Array.isArray(item) ? item[0] : item;
+  const myobj = Array.isArray(item) ? item[0] : item;
 
   if (typeof myobj !== "undefined") {
     bbox = myobj.extent;
@@ -44,7 +47,7 @@ const updatePolygon = (item, geom) => {
 };
 
 const changeGeom = () => {
-  let what = select('input[name="show-geom"]:checked').property("value");
+  const what = select('input[name="show-geom"]:checked').property("value");
   if (what === "lake") {
     updatePolygon(lake, lakeGeom);
   } else if (what === "jurisdiction") {
@@ -60,18 +63,18 @@ const changeGeom = () => {
 };
 
 const add_radio_buttons = (data, label, value, label_function) => {
-  //data, #mu-radio-button, mu-btn, label_function
+  // data, #mu-radio-button, mu-btn, label_function
 
-  let radioButtonsDiv = select(`#${label}-radio-buttons`);
+  const radioButtonsDiv = select(`#${label}-radio-buttons`);
 
-  let radioButtons = radioButtonsDiv
+  const radioButtons = radioButtonsDiv
     .selectAll(`.${label}-btn`)
     .data(data, (d) => d.id);
 
   radioButtons.exit().remove();
 
   // enter
-  let newButtons = radioButtons
+  const newButtons = radioButtons
     .enter()
     .append("div")
     .attr("class", `field ${label}-btn`)
@@ -92,7 +95,7 @@ const add_radio_buttons = (data, label, value, label_function) => {
 
   radioButtons.merge(newButtons);
 
-  //refresh semantic checkboxes again
+  // refresh semantic checkboxes again
   $(".ui.radio.checkbox").checkbox();
 };
 
@@ -102,9 +105,9 @@ const update_grid_radio = (obj) => {
 };
 
 const get_grid10 = (dd_lat, dd_lon) => {
-  let pt = `POINT(${dd_lon} ${dd_lat})`;
+  const pt = `POINT(${dd_lon} ${dd_lat})`;
   let contained = false;
-  let turfpt = point([dd_lon, dd_lat]);
+  const turfpt = point([dd_lon, dd_lat]);
 
   if (typeof grid10Geom !== "undefined") {
     contained = booleanPointInPolygon(turfpt, grid10Geom);
@@ -140,21 +143,21 @@ const update_lake_radio = (obj) => {
 };
 
 const get_lake = (dd_lat, dd_lon) => {
-  let pt = `POINT(${dd_lon} ${dd_lat})`;
+  const pt = `POINT(${dd_lon} ${dd_lat})`;
 
   let contained = false;
-  let turfpt = point([dd_lon, dd_lat]);
+  const turfpt = point([dd_lon, dd_lat]);
 
   if (typeof lakeGeom !== "undefined") {
     contained = booleanPointInPolygon(turfpt, lakeGeom);
   }
 
-  let url = lakeURL + "?geom=geom";
+  const url = lakeURL + "?geom=geom";
 
   if (!contained) {
     $.ajax({
       type: "POST",
-      url: url,
+      url,
       dataType: "json",
       data: {
         point: pt,
@@ -180,20 +183,20 @@ const update_jurisdiction_radio = (obj) => {
 };
 
 const get_jurisdiction = (dd_lat, dd_lon) => {
-  let pt = `POINT(${dd_lon} ${dd_lat})`;
+  const pt = `POINT(${dd_lon} ${dd_lat})`;
 
   let contained = false;
-  let turfpt = point([dd_lon, dd_lat]);
+  const turfpt = point([dd_lon, dd_lat]);
 
   if (typeof jurisdictionGeom !== "undefined") {
     contained = booleanPointInPolygon(turfpt, jurisdictionGeom);
   }
 
   if (!contained) {
-    let url = jurisdictionURL + "?geom=geom";
+    const url = jurisdictionURL + "?geom=geom";
     $.ajax({
       type: "POST",
-      url: url,
+      url,
       dataType: "json",
       data: {
         point: pt,
@@ -220,13 +223,13 @@ const update_manUnit_radio = (mus) => {
 };
 
 const get_manUnits = (dd_lat, dd_lon) => {
-  let pt = `POINT(${dd_lon} ${dd_lat})`;
+  const pt = `POINT(${dd_lon} ${dd_lat})`;
 
-  let url = manUnitURL + "?all=true&geom=geom";
+  const url = manUnitURL + "?all=true&geom=geom";
 
   $.ajax({
     type: "POST",
-    url: url,
+    url,
     dataType: "json",
     data: {
       point: pt,
@@ -250,12 +253,12 @@ const get_manUnits = (dd_lat, dd_lon) => {
 let bbox = JSON.parse(document.getElementById("map-bounds").textContent);
 
 // min_lon, min_lat, max_lon, max_lat
-//[-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947]
+// [-92.0940772277101, 41.3808069346309, -76.0591720893562, 49.0158109434947]
 
-let min_lon = bbox[0];
-let min_lat = bbox[1];
-let max_lon = bbox[2];
-let max_lat = bbox[3];
+const min_lon = bbox[0];
+const min_lat = bbox[1];
+const max_lon = bbox[2];
+const max_lat = bbox[3];
 
 // setup the map with rough bounds (need to get pies to plot first,
 // this will be tweaked later):
@@ -283,11 +286,11 @@ Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
 }).addTo(mymap);
 
-//this should be a util
+// this should be a util
 const drawPt = (lat, lon) => {
   // remove the last one - there can only ever be one point for an event:
   $("path.leaflet-interactive").remove();
-  let circle = Leaflet.circleMarker([parseFloat(lat), parseFloat(lon)], {
+  const circle = Leaflet.circleMarker([parseFloat(lat), parseFloat(lon)], {
     color: "red",
     fillColor: "#f03",
     fillOpacity: 0.5,
@@ -322,7 +325,7 @@ mymap.on("click", function (e) {
   $("#id_dd_lon").val(Number(lon).toFixed(4));
 });
 
-//watch our lat-lon inputs and update the point if they change:
+// watch our lat-lon inputs and update the point if they change:
 $("#id_dd_lat").on("change", function (e) {
   lat = parseFloat(e.target.value);
   update_widgets(lat, lon);
@@ -337,10 +340,10 @@ selectAll('input[name="show-geom"]').on("change", changeGeom);
 
 const update_text_inputs = (ddlat, ddlon) => {
   // latitude inputs
-  var lat_idegrees = Math.floor(ddlat);
-  var lat_dminutes = (ddlat - lat_idegrees) * 60;
-  var lat_iminutes = Math.floor(lat_dminutes);
-  var lat_seconds = (lat_dminutes - lat_iminutes) * 60;
+  const lat_idegrees = Math.floor(ddlat);
+  const lat_dminutes = (ddlat - lat_idegrees) * 60;
+  const lat_iminutes = Math.floor(lat_dminutes);
+  const lat_seconds = (lat_dminutes - lat_iminutes) * 60;
 
   $('input[id="id_dd_lat"]').val(ddlat);
   $('input[id="ddm_lat_deg"]').val(lat_idegrees);
@@ -352,10 +355,10 @@ const update_text_inputs = (ddlat, ddlon) => {
 
   // longitude inputs
   ddlon = Math.abs(ddlon);
-  var lon_idegrees = Math.floor(ddlon);
-  var lon_dminutes = (ddlon - lon_idegrees) * 60;
-  var lon_iminutes = Math.floor(lon_dminutes);
-  var lon_seconds = (lon_dminutes - lon_iminutes) * 60;
+  const lon_idegrees = Math.floor(ddlon);
+  const lon_dminutes = (ddlon - lon_idegrees) * 60;
+  const lon_iminutes = Math.floor(lon_dminutes);
+  const lon_seconds = (lon_dminutes - lon_iminutes) * 60;
 
   $('input[id="id_dd_lon"]').val(ddlon * -1);
 
@@ -368,9 +371,9 @@ const update_text_inputs = (ddlat, ddlon) => {
 };
 
 $('input[name="ddm_lat"]').change(function () {
-  //if any of the latitude elements on the ddm page change, update the other formats.
-  var lat_idegrees = parseFloat($('input[id="ddm_lat_deg"]').val());
-  var lat_dminutes = parseFloat($('input[id="ddm_lat_min"]').val());
+  // if any of the latitude elements on the ddm page change, update the other formats.
+  const lat_idegrees = parseFloat($('input[id="ddm_lat_deg"]').val());
+  const lat_dminutes = parseFloat($('input[id="ddm_lat_min"]').val());
 
   // try and calculate a ddlat - if it is a number between lat-min and
   // lat max update our widgets
@@ -382,7 +385,7 @@ $('input[name="ddm_lat"]').change(function () {
 
 $('input[name="ddm_lon"]').change(function () {
   let lon_idegrees = parseFloat($('input[id="ddm_lon_deg"]').val());
-  let lon_dminutes = parseFloat($('input[id="ddm_lon_min"]').val());
+  const lon_dminutes = parseFloat($('input[id="ddm_lon_min"]').val());
 
   // try and calculate a ddlat - if it is a number between lat-min and
   // lat max update our widgets
@@ -394,30 +397,30 @@ $('input[name="ddm_lon"]').change(function () {
 });
 
 $('input[name="dms_lat"]').change(function () {
-  //if any of the latitude elements on the dms page change, update the other formats.
+  // if any of the latitude elements on the dms page change, update the other formats.
 
-  let lat_idegrees = parseFloat($('input[id="dms_lat_deg"]').val());
-  let lat_iminutes = parseFloat($('input[id="dms_lat_min"]').val());
-  let lat_seconds = parseFloat($('input[id="dms_lat_sec"]').val());
+  const lat_idegrees = parseFloat($('input[id="dms_lat_deg"]').val());
+  const lat_iminutes = parseFloat($('input[id="dms_lat_min"]').val());
+  const lat_seconds = parseFloat($('input[id="dms_lat_sec"]').val());
 
   if ((lat_idegrees !== "") & (lat_iminutes !== "") & (lat_seconds !== "")) {
-    let lat_dminutes = lat_iminutes + lat_seconds / 60;
+    const lat_dminutes = lat_iminutes + lat_seconds / 60;
     lat = lat_idegrees + lat_dminutes / 60;
     update_widgets(lat, lon);
   }
 });
 
 $('input[name="dms_lon"]').change(function () {
-  //if any of the longitude elements on the dms page change, update the other formats.
+  // if any of the longitude elements on the dms page change, update the other formats.
 
   let lon_idegrees = parseFloat($('input[id="dms_lon_deg"]').val());
 
-  let lon_iminutes = parseFloat($('input[id="dms_lon_min"]').val());
-  let lon_seconds = parseFloat($('input[id="dms_lon_sec"]').val());
+  const lon_iminutes = parseFloat($('input[id="dms_lon_min"]').val());
+  const lon_seconds = parseFloat($('input[id="dms_lon_sec"]').val());
 
   if ((lon_idegrees !== "") & (lon_iminutes !== "") & (lon_seconds !== "")) {
     lon_idegrees = Math.abs(lon_idegrees);
-    let lon_dminutes = lon_iminutes + lon_seconds / 60;
+    const lon_dminutes = lon_iminutes + lon_seconds / 60;
     lon = (lon_idegrees + lon_dminutes / 60) * -1;
     update_widgets(lat, lon);
   }

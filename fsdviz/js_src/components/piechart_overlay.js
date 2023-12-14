@@ -1,6 +1,6 @@
 // a re-usabel chart component that will overlay points a map.
 
-//import { event } from "d3";
+// import { event } from "d3";
 import { format } from "d3-format";
 import { arc, pie } from "d3-shape";
 import { select, selectAll } from "d3-selection";
@@ -25,12 +25,12 @@ export const piechart_overlay = () => {
   let maxCircleSize = 140;
   let fillScale = scaleOrdinal();
 
-  let myArc = arc().innerRadius(0);
-  let myPie = pie().sort(null).value(fillAccessor);
+  const myArc = arc().innerRadius(0);
+  const myPie = pie().sort(null).value(fillAccessor);
 
   const commaFormat = format(",d");
 
-  //let roi;
+  // let roi;
   // the name of the field that uniquely identifies each point:
   let keyfield = "geom";
 
@@ -40,16 +40,16 @@ export const piechart_overlay = () => {
   // when we instantiate the overlay
   let getProjection;
 
-  let show_pointInfo = (d, row_labels, fillScale) => {
+  const show_pointInfo = (d, row_labels, fillScale) => {
     // this does not work as expected - it needs to be updated if the
     // filters change.
 
-    let data = d.values;
-    let dataArray = Object.keys(data).map((x) => data[x]);
+    const data = d.values;
+    const dataArray = Object.keys(data).map((x) => data[x]);
     dataArray.sort((a, b) => b.value - a.value);
-    let total = sum(dataArray.map((d) => d.value));
+    const total = sum(dataArray.map((d) => d.value));
 
-    let label = pluckLabel(d.key, pieLabelLookup);
+    const label = pluckLabel(d.key, pieLabelLookup);
 
     const rectSize = 15;
 
@@ -58,7 +58,7 @@ export const piechart_overlay = () => {
     dataArray
       .filter((d) => d.value > 0)
       .forEach((row) => {
-        let rowid = row.slice.replace(/ /g, "-").replace(/[()]/g, "");
+        const rowid = row.slice.replace(/ /g, "-").replace(/[()]/g, "");
 
         html += `<tr id="tr-${rowid}">
            <td class="species-name">
@@ -77,12 +77,12 @@ ${pluckLabel(row.slice, row_labels)}</td>
 
   const recalc_slice_values = (data) => {
     data.forEach((x) => {
-      let mykeys = Object.keys(x.value);
-      let values = mykeys.map((d) => ({
+      const mykeys = Object.keys(x.value);
+      const values = mykeys.map((d) => ({
         slice: d,
         value: x.value[d][responseVar],
       }));
-      x["values"] = values;
+      x.values = values;
     });
   };
 
@@ -97,7 +97,7 @@ ${pluckLabel(row.slice, row_labels)}</td>
       recalc_slice_values(data);
 
       // create a tooltip
-      var tooltip = select("#mapid")
+      const tooltip = select("#mapid")
         .append("div")
         .attr("class", "tooltip")
         .attr("id", "pie-tooltip")
@@ -105,7 +105,7 @@ ${pluckLabel(row.slice, row_labels)}</td>
         .style("z-index", "999")
         .html("<p>Tool-tip</p>");
 
-      //==========================================================
+      // = =========================================================
       //             PIE CHARTS
 
       // sort our pies so small pies plot on top of large pies
@@ -117,10 +117,10 @@ ${pluckLabel(row.slice, row_labels)}</td>
         .range([1, maxCircleSize])
         .domain([0, sum(data, radiusAccessor)]);
 
-      let pies = selection.selectAll(".pie").data(data, (d) => d.key);
+      const pies = selection.selectAll(".pie").data(data, (d) => d.key);
       pies.exit().transition().duration(200).remove();
 
-      let piesEnter = pies
+      const piesEnter = pies
         .enter()
         .append("g")
         .attr("class", "pie")
@@ -145,7 +145,7 @@ ${pluckLabel(row.slice, row_labels)}</td>
       pies
         .merge(piesEnter)
         .attr("transform", function (d) {
-          let translate = getProjection(d.coordinates[0], d.coordinates[1]);
+          const translate = getProjection(d.coordinates[0], d.coordinates[1]);
           return `translate( ${translate.x}  ${translate.y} )`;
         })
         .transition()
@@ -156,24 +156,24 @@ ${pluckLabel(row.slice, row_labels)}</td>
       // elements selectedPie above
       function onePie(d) {
         const highlight_row = (d, bool) => {
-          let selector =
+          const selector =
             "#tr-" + d.data.slice.replace(/ /g, "-").replace(/[()]/g, "");
-          let tmp = selectAll(selector);
+          const tmp = selectAll(selector);
           tmp.classed("blue", bool);
         };
 
-        let r = radiusScale(d.total);
+        const r = radiusScale(d.total);
 
-        let svg = select(this)
+        const svg = select(this)
           .attr("width", r * 2)
           .attr("height", r * 2);
 
-        let slices = svg.selectAll(".arc").data(
+        const slices = svg.selectAll(".arc").data(
           (d) => myPie(d.values),
           (d) => d.index
         );
 
-        let slicesEnter = slices
+        const slicesEnter = slices
           .enter()
           .append("path")
           .attr("class", "arc")
@@ -189,7 +189,7 @@ ${pluckLabel(row.slice, row_labels)}</td>
             );
             const N = commaFormat(d.data.value);
 
-            let html = `<strong class="capitalize">${pie_label}</strong><br>
+            const html = `<strong class="capitalize">${pie_label}</strong><br>
                         <strong class="capitalize">${slice_label}</strong><br>
                         N:${N} ${what}`;
 
@@ -197,7 +197,7 @@ ${pluckLabel(row.slice, row_labels)}</td>
 
             if (selectedPie && selectedPie === this.parentElement.id) {
               highlight_row(d, true);
-              //select("#point-info").html(get_sliceInfo(d));
+              // select("#point-info").html(get_sliceInfo(d));
             }
             tooltip.style("visibility", "visible").html(html);
           })

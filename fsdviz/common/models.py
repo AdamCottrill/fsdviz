@@ -4,6 +4,7 @@ be shared across both the stocking and cwt recovery applications.
 
 """
 
+
 from colorfield.fields import ColorField
 from django.contrib.gis.db import models
 
@@ -436,7 +437,9 @@ class Strain(BaseModel):
 
     """
 
-    strain_code = models.CharField(max_length=10)
+    strain_code = models.CharField(
+        "Nominal Strain Code for groups of raw strain values", max_length=10
+    )
     strain_label = models.CharField(max_length=100)
     description = models.CharField(max_length=500, blank=True, null=True)
     color = ColorField(default="#FF0000")
@@ -487,7 +490,7 @@ class StrainRaw(BaseModel):
     )
 
     # raw_strain_code = models.CharField(max_length=10)
-    raw_strain = models.CharField(max_length=100)
+    raw_strain = models.CharField("Submitted (raw) strain code", max_length=100)
     description = models.CharField(max_length=500)
     color = ColorField(default="#FF0000")
 
@@ -502,6 +505,9 @@ class StrainRaw(BaseModel):
 
     def full_clean(self, *args, **kwargs):
         """make sure that the species and strain are consistent."""
+
+        if not hasattr(self, "species"):
+            self.species = self.strain.species.first()
 
         super(StrainRaw, self).full_clean(*args, **kwargs)
 

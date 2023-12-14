@@ -6,6 +6,7 @@ import json
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib.gis.db.models.aggregates import Extent
 from django.db.models import Count, F, Max, Min, Q
 from django.forms import formset_factory
 from django.http import HttpResponseRedirect
@@ -111,6 +112,8 @@ def find_events(request):
     jurisdictions = Jurisdiction.objects.values_list("slug", "name")
     agencies = Agency.objects.all().values_list("abbrev", "agency_name")
 
+    bbox =  Lake.objects.all().aggregate(extent=Extent("geom"))
+
     # manunits
     # managementUnits = list(
     #    ManagementUnit.objects.values('slug', 'label', 'description'))
@@ -194,6 +197,7 @@ def find_events(request):
             "strains": json.dumps(strains),
             "lifestages": json.dumps(lifestages),
             "stocking_methods": json.dumps(stocking_methods),
+            "bbox": bbox["extent"]
         },
     )
 
@@ -380,7 +384,7 @@ class StockingEventListView(ListView):
     model = StockingEvent
     paginate_by = 200
     template_name = "stocking/stocking_event_list.html"
-    filter_class = StockingEventFilter
+
 
     def get_context_data(self, **kwargs):
         context = super(StockingEventListView, self).get_context_data(**kwargs)
