@@ -3,6 +3,20 @@
 {% load humanize %}
 {% load tz %}
 
+{% load fsdviz_tags %}
+
+
+{% block extra_head %}
+
+
+    <style>
+     #content {
+         width: 1825px !important;
+     }
+    </style>
+
+{% endblock %}
+
 {% block title %} Upload List {% endblock title %}
 
 
@@ -10,63 +24,96 @@
 
     <div class="ui container" id="content">
 
-        <h2>Data Upload Events </h2>
 
-        {% if object_list %}
-
-
-            <table class="ui celled table tablesorter">
-                <thead>
-                    <tr>
-                        <th>Details</th>
-                        <th>Lake</th>
-                        <th>Agency</th>
-                        <th>Uploaded By</th>
-                        <th id="timestamp">Timestamp</th>
-                        <th>Events (N)</th>
-                        <th>Total Stocked</th>
-                    </tr>
-                </thead>
-                <tbody>
-
-                    {% for object in object_list %}
-                        <tr>
-                            <td><a href="{% url 'stocking:data-upload-event-detail' object.slug %}"><i class="list icon"></i></a></td>
-
-                            <td>{{ object.lake }} </td>
-                            <td>{{ object.agency }} </td>
-                            <td>{{object.uploaded_by }} </td>
-                            <td>{{object.timestamp |timezone:"America/Detroit"}} (EST)</td>
-                            <td>{{ object.event_count }}</td>
-                            <td>{{ object.total_stocked | intcomma  }}</td>
-                        </tr>
-                    {% endfor %}
-
-
-                </tbody>
-
-
-            </table>
-
-
-
-
-            {% else %}
-
-            <div class="ui segment">
-
-                <div class="ui warning message">
-                    Oops. No upload events are currently available.
-                </div>
-
+        <div class="ui grid">
+            <div class="two wide column">
+                {% include 'stocking/_refine_upload_events_sidebar.html' %}
             </div>
+            <div class="fourteen wide column">
+                <div class="ui grid">
+                    <div class="row">
+                        <div class="ui column">
+
+                            <h2>Data Upload Events (N={{record_count}})</h2>
+
+                            {% if filters %}
+                                <div class="row">
+                                    {% for filter, values in  filters.items %}
+                                        {% if filter != 'page' %}
+                                            <a href="{% strip_parameter param=filter %}" class="mini ui icon {{ filter | filter_colour }} button">
+                                                {{ filter }} = {{values}}
+                                                <i class="times icon"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                </div>
+                            {% endif %}
+
+
+
+                            {% if object_list %}
+
+                                {% include '_paginator.html' %}
+
+                                <table class="ui celled table tablesorter">
+                                    <thead>
+                                        <tr>
+                                            <th>Details</th>
+                                            <th>Lake</th>
+                                            <th>Agency</th>
+                                            <th>Uploaded By</th>
+                                            <th id="timestamp">Timestamp</th>
+                                            <th>Events (N)</th>
+                                            <th>Total Stocked</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        {% for object in object_list %}
+                                            <tr>
+                                                <td><a href="{% url 'stocking:data-upload-event-detail' object.slug %}"><i class="list icon"></i></a></td>
+
+                                                <td>{{ object.lake }} </td>
+                                                <td>{{ object.agency }} </td>
+                                                <td>{{object.uploaded_by }} </td>
+                                                <td>{{object.timestamp |timezone:"America/Detroit"}} (EST)</td>
+                                                <td>{{ object.event_count }}</td>
+                                                <td>{{ object.total_stocked | intcomma  }}</td>
+                                            </tr>
+                                        {% endfor %}
+
+
+                                    </tbody>
+
+
+                                </table>
 
 
 
 
-        {% endif %}
+                            {% else %}
+
+                                <div class="ui segment">
+
+                                    <div class="ui warning message">
+                                        Oops. No upload events are currently available.
+                                    </div>
+
+                                </div>
 
 
+
+
+                            {% endif %}
+
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
     </div>
@@ -81,6 +128,53 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
 
     <script>
+
+
+  const updateUrl = function (name, filter_tag = "") {
+    // given the name of the checkbox group, find the checked
+    // checkboxes and update the url based on the filter_tag
+    filter_tag = filter_tag === "" ? name : filter_tag;
+
+    let url = window.location.search;
+    let checked = [];
+
+    $.each($("input[name='" + name + "']:checked"), function () {
+      let value = $(this).val() !== "None" ? $(this).val() : 99;
+      checked.push(value);
+    });
+
+    // remove any existing query strings for this parameter
+    // just incase our widget is updated:
+    let regex = new RegExp(filter_tag + "=.+&|" + filter_tag + "=.+$");
+    url = url.replace(regex, "").replace(/&$/, "");
+
+    // build our query string....
+    if (checked.length) {
+      let query_string = filter_tag + "=" + checked.join(",");
+      tmp = url.indexOf("?") >= 0 ? "&" + query_string : "?" + query_string;
+      url = url + tmp;
+    }
+
+    window.location.search = url.replace("?&", "?").replace(/\\?$/, "");
+     };
+
+
+
+  const updateLakeClick = () => {
+    updateUrl("lake");
+  };
+
+  const updateAgenciesClick = () => {
+    updateUrl("agency");
+     };
+
+
+  const updateYearsClick = () => {
+    updateUrl("year");
+     };
+
+
+
 
      $(".tablesorter").tablesorter({
 
@@ -107,7 +201,6 @@
          const month = new Date(dateParts[1] + " 1, 2022").getMonth()
          const hour = dateParts[6]==='a' ? parseInt(dateParts[4]) : parseInt(dateParts[4]) + 12
          const date = new Date(dateParts[3], month, dateParts[2], hour, dateParts[5]);
-         console.log('s,date = ', s,date);
              return date.getTime();
          },
          type: 'numeric'

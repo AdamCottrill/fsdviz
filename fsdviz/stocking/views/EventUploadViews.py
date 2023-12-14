@@ -38,6 +38,8 @@ from fsdviz.common.utils import (
 )
 from fsdviz.myusers.permissions import user_can_create_edit_delete
 
+from ..filters import DataUploadEventFilter
+
 from ..forms import XlsEventForm, DataUploadForm
 from ..models import (
     Condition,
@@ -47,7 +49,8 @@ from ..models import (
     StockingEvent,
     StockingMethod,
 )
-from ..utils import get_choices, validate_upload, xls2dicts, get_or_create_cwt_sequence
+from ..utils import add_is_checked, get_choices, validate_upload, xls2dicts, get_or_create_cwt_sequence
+
 
 
 @login_required
@@ -563,6 +566,7 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
     """
 
     model = DataUploadEvent
+
     paginate_by = 100
     template_name = "stocking/upload_event_list.html"
 
@@ -571,22 +575,74 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
             return redirect("home")
         return super(DataUploadEventListView, self).get(*args, **kwargs)
 
-    def get_queryset(self):
+
+    def get_base_queryset(self):
+        """Get the base queryset that is used for both the event list
+        and sidebar filter options.  Returns queryset without
+        annotations, but does add filters from the filter set and
+        based on user's role
+
+        """
+
         queryset = (
-            DataUploadEvent.objects.select_related("agency", "lake", "uploaded_by")
-            .prefetch_related(
-                "stocking_events__species",
+            DataUploadEvent.objects.select_related("agency", "lake")
+            .all()
+        )
+        user = self.request.user
+        if user.role != "glsc":
+            queryset = queryset.filter(lake__in=user.lakes.all(), agency=user.agency)
+        filtered = DataUploadEventFilter(self.request.GET, queryset=queryset)
+
+        return filtered.qs
+
+
+    def get_context_data(self, **kwargs):
+
+        context = super(DataUploadEventListView, self).get_context_data(**kwargs)
+
+        filters = self.request.GET.copy()
+        context["filters"] = filters
+
+        basequery = self.get_base_queryset()
+
+        lake_list = (
+            basequery.values_list(
+                "lake__abbrev", "lake__lake_name"
             )
-            .annotate(
+            .annotate(n=Count("id"))
+            .order_by("lake__lake_name")
+        )
+
+        context["lake_list"] = add_is_checked(lake_list, filters.get("lake"))
+
+        agency_list = (
+            basequery.values_list("agency__abbrev", "agency__agency_name")
+            .annotate(n=Count("id"))
+            .order_by("agency__abbrev")
+        )
+
+        context["agency_list"] = add_is_checked(agency_list, filters.get("agency"))
+
+
+        year_list = (
+            basequery.values_list("timestamp__year", "timestamp__year")
+            .annotate(n=Count("id"))
+            .order_by("timestamp__year")
+        )
+
+        context["year_list"] = add_is_checked(year_list, filters.get("year"))
+
+        context["record_count"] = basequery.count()
+
+        return context
+
+    def get_queryset(self):
+        """Annotate our base queryset with the number of stocking
+        events and numbers stocked"""
+
+        qs = self.get_base_queryset().select_related("uploaded_by").annotate(
                 event_count=Count("stocking_events"),
                 total_stocked=Sum("stocking_events__no_stocked"),
             )
-            .order_by("-timestamp")
-            .all()
-        )
 
-        if self.request.user.role != "glsc":
-            user = self.request.user
-            queryset = queryset.filter(lake__in=user.lakes.all(), agency=user.agency)
-
-        return queryset
+        return qs

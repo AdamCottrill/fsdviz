@@ -384,7 +384,7 @@ class StockingEventListView(ListView):
     model = StockingEvent
     paginate_by = 200
     template_name = "stocking/stocking_event_list.html"
-    filter_class = StockingEventFilter
+
 
     def get_context_data(self, **kwargs):
         context = super(StockingEventListView, self).get_context_data(**kwargs)

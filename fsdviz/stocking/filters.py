@@ -5,7 +5,7 @@ The will be used in both views and api serializers.
 
 import django_filters
 from django.contrib.gis.geos import GEOSGeometry
-from .models import StockingEvent, YearlingEquivalent
+from .models import StockingEvent, YearlingEquivalent, DataUploadEvent
 
 from ..common.utils import ValueInFilter, NumberInFilter, NumberInOrNullFilter
 
@@ -152,4 +152,22 @@ class StockingEventFilter(django_filters.FilterSet):
             "jurisdiction__stateprov__abbrev",
             "stocking_method__stk_meth",
             "mark",
+        ]
+
+
+
+class DataUploadEventFilter(django_filters.FilterSet):
+    """A filter for our data upload events so we can filter by lake,
+    agency, and upload year."""
+
+    lake = ValueInFilter(field_name="lake__abbrev", lookup_expr="in")
+    agency = ValueInFilter(field_name="agency__abbrev", lookup_expr="in")
+    year  = ValueInFilter(field_name="timestamp__year", lookup_expr="in")
+
+    class Meta:
+        model = DataUploadEvent
+        fields = [
+            "timestamp",
+            "lake__abbrev",
+            "agency__abbrev",
         ]
