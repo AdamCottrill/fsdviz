@@ -506,8 +506,8 @@ class StrainRaw(BaseModel):
     def full_clean(self, *args, **kwargs):
         """make sure that the species and strain are consistent."""
 
-        if not hasattr(self, "species"):
-            self.species = self.strain.species.first()
+        if hasattr(self, "species") is False or self.species is None:
+            self.species = self.strain.strain_species
 
         super(StrainRaw, self).full_clean(*args, **kwargs)
 
