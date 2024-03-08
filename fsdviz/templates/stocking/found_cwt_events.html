@@ -351,16 +351,16 @@
 
             {% else %}
 
-                <div class="ui negative message">
-                    No CWT stocking events match that criteria! Please refine your filters and try again.
-                    (<a href="{% url 'stocking:find-cwt-stocking-events' %}">Back to Find CWT Events</a>)
-                </div>
+            <div class="ui negative message">
+                No CWT stocking events match that criteria! Please refine your filters and try again.
+                (<a href="{% url 'stocking:find-cwt-stocking-events' %}">Back to Find CWT Events</a>)
+            </div>
 
             {% endif %}
 
 
+            </div>
         </div>
-    </div>
     </div>
 
 
@@ -370,12 +370,7 @@
 {% block extra_js %}
 
 
-    <!-- tablesorter plugin-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js"></script>
-
-    <!-- tablesorter widget file - loaded after the plugin -->
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
-
+    {% include "_table_sorter.html" %}
 
     <script>
 
@@ -400,20 +395,6 @@
      $('.ui.slider')
          .slider()
      ;
-
-     $(".tablesorter").tablesorter({
-         theme: 'bootstrap',
-         widthFixed: true,
-         showProcessing: true,
-         headerTemplate: '{content} {icon}',
-         widgets: ['zebra', 'uitheme', 'scroller'],
-         widgetOptions: {
-             scroller_height: 300,
-             scroller_barWidth: 17,
-             scroller_jumpToHeader: true,
-             scroller_idPrefix: 's_'
-         }
-     });
 
      let search = window.location.search;
      let download_url = "{% url 'api:api-cwt-event-list-xlsx' %}";
