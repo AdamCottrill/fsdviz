@@ -129,10 +129,6 @@ def test_reused_cwt_list_filters(
 
     payload = response.data["results"]
 
-    observed = [x["stock_id"] for x in payload]
-    observed.sort()
-    expected.sort()
+    observed = [(x["stock_id"], x["cwt_number"]) for x in payload]
 
-    assert expected == observed
-    for item in excluded:
-        assert item not in observed
+    assert set(expected) == set(observed)

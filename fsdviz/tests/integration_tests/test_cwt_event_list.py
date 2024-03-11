@@ -154,12 +154,12 @@ def test_cwt_list_filters(
             html = button_html.format(key, val, colour)
             assertContains(response, html, html=True)
 
-    html = '<tr id="{}">'
+    html = '<tr id="{}-{}">'
 
     # verify that the correct stock ID numbers are returned - can't
     # use cwt because they are confounded if cwts are re-used.
     for value in expected:
-        assertContains(response, html.format(value))
+        assertContains(response, html.format(*value))
 
     for value in excluded:
-        assertNotContains(response, html.format(value))
+        assertNotContains(response, html.format(*value))

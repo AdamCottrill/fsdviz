@@ -12,7 +12,7 @@
         Years
     </div>
     <div class="content">
-        <form class="ui mini form" id="years" action={{request.get_full_path}} method="get">
+        <form class="ui mini form" id="years" action="{{request.get_full_path}}" method="get">
 
             <div class="field">
                 <input type="text"  id="first-year" name="first_year" placeholder =
@@ -158,7 +158,7 @@
             <button class="mini ui blue button" type="button" onClick=updateCwtTagTypeClick()>
                 Update CWT Type
             </button>
-        </div>        
+        </div>
     {% endif %}
 
     {% if cwt_manufacturer_list %}
@@ -266,7 +266,7 @@
 
     </div>
 
-    
+
 
     <div class="title">
         <i class="dropdown icon"></i>
@@ -359,8 +359,8 @@
     <div class="content">
         <div class="list" id="filter_fishtags_list">
             {% for item in fishtags_list %}
-                
-                
+
+
                 <div class="item" data-tooltip="{{item.1}}" data-position="right center">
                     <div class="ui tiny checkbox">
                         <input type="checkbox" name="fishtags" {% if item.3 %}checked{% endif%}  value="{{item.0}}">

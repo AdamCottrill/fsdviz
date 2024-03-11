@@ -121,11 +121,10 @@
 {% endblock %}
 
 {% block extra_js%}
-    <!-- tablesorter plugin-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.js"></script>
 
-    <!-- tablesorter widget file - loaded after the plugin -->
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.widgets.js"></script>
+
+    {% include "_table_sorter.html" %}
+
 
     <script>
 
@@ -175,20 +174,6 @@
 
 
 
-
-     $(".tablesorter").tablesorter({
-
-         widthFixed: true,
-         showProcessing: true,
-         headerTemplate: '{content} {icon}',
-         widgets: ['zebra', 'uitheme', 'scroller'],
-         widgetOptions: {
-             scroller_height: 300,
-             scroller_barWidth: 17,
-             scroller_jumpToHeader: true,
-             scroller_idPrefix: 's_'
-         }
-     })
 
      $.tablesorter.addParser({
          id: 'timestamp',

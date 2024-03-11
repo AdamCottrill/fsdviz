@@ -35,14 +35,7 @@
         {% endfor %}
 
         {% if page_obj.has_next %}
-
-            <a class="item" aria-label="Go to next page" href="?page={{ page_obj.next_page_number }}
-                      {% for key,value in request.GET.items %}
-                      {% if key != 'page' %}
-                      &{{ key }}={{ value }}
-                      {% endif %}
-                      {% endfor %}">Next</a>
-
+            <a class="item" aria-label="Go to next page" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
         {% else %}
 
             <a class="item disabled" aria-label="Go to next page is disabled. You are on the last page." disabled="disabled">Next</a>

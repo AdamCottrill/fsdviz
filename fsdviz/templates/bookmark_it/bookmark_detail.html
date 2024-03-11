@@ -11,13 +11,13 @@
 
 
 {% block content %}
-    
+
 
     <div class="ui container">
 
 
         <div class="ui fluid card">
-            
+
             <div class="content">
                 <div class="header">
                     {{  object.title }}
@@ -31,38 +31,37 @@
 
                 </div>
                 <div class="meta">Last Modified: {{ object.date_created }} </div>
-                
+
             </div>
 
             <div class="content">
                 <div class="description">
-                    {{ object.description_html | safe }}                                                
-                </div>                
+                    {{ object.description_html | safe }}
+                </div>
             </div>
 
 
             <div class="content">
                 <div class="description">
                     <strong>URL:</strong> <a href="{{object.url}}">{{object.url}}</a>
-                    
-                    {% if  object.tags.all %}
 
+                    {% if  object.tags.all %}
+                        {% url 'bookmark_it:bookmark_list' as the_url %}
                         <h5>Tags:</h5>
                         <ul>
                             {% for tag in object.tags.all %}
-                                <li><a href="{% url 'bookmark_it:bookmark_list' %}?tag={{tag.tag}}">{{tag.tag}}</a></li>
-                            {% endfor %}                                        
-                        </ul>                           
+                                <li><a href="{{the_url}}?tag={{tag.tag|urlencode}}">{{tag.tag}}</a></li>
+                            {% endfor %}
+                        </ul>
                     {%  endif %}
-                    
-                </div>                
+                </div>
             </div>
 
             <div class="extra content">
                 <a href="{% url 'bookmark_it:bookmark_list' %}" class="ui mini icon button">
                     Bookmark List <i class="list icon"></i>
                 </a>
-                
+
                 {% if not object.homepage %}
                     <a href="{% url 'bookmark_it:bookmark_make_homepage' object.id %}" class="ui mini pink icon button">
                         Make Home Page<i class="home icon"></i>
@@ -75,13 +74,13 @@
                     Delete <i class="trash alternate outline icon"></i>
                 </a>
             </div>
-            
+
         </div>
 
     </div>
 
-    
-    
+
+
 {% endblock %}
 
 
