@@ -27,54 +27,52 @@
             {% if objects %}
                 {% regroup objects by category as resource_list %}
                 {% for resource in resource_list %}
-                        <div class="row" style="padding-top:25px">
-                            <h2>{{ resource.grouper }}</h2>
+                    <div class="row" style="padding-top:25px">
+                        <h2>{{ resource.grouper }}</h2>
+                    </div>
+
+                    {% if resource.grouper.label in categories %}
+                        <div class="row" id="{{resource.grouper.label|to_id}}-description">
+                            {{categories | lookup_category_description:resource.grouper.label }}
                         </div>
+                    {% endif %}
+                    <div class="row" id="{{resource.grouper.label|to_id}}-resources">
 
-                        {% if resource.grouper.label in categories %}
-                            <div class="row" id="{{resource.grouper.label|to_id}}-description">
-                                {{categories | lookup_category_description:resource.grouper.label }}
-                            </div>
-                        {% endif %}
-                        <div class="row" id="{{resource.grouper.label|to_id}}-resources">
-                            <table>
-                                <table class="ui celled table">
-                                    <thead>
-                                        <tr><th>Title</th>
-                                            <th>Author</th>
-                                            <th>Resource Type</th>
-                                            <th>Uploaded By</th>
-                                            <th>Uploaded On</th>
-                                        </tr></thead>
-                                    <tbody>
-                                        {% for item in resource.list %}
-                                            <tr>
-                                                <td>
-                                                    {% if item.external_link %}
-                                                        <a href="{{ item.external_link}}">{{ item.title }}</a>
-                                                    {% else %}
-                                                        <a href="{% url 'resource_library:serve_file' filename=item.upload.name %}">{{ item.title }}</a>
-                                                    {% endif %}
-                                                </td>
-                                                <td>
-                                                    {{ item.author }}
-                                                </td>
-                                                <td>
-                                                    {{ item.resource_type }}
-                                                </td>
-                                                <td>
-                                                    {{ item.modified_by }}
-                                                </td>
-                                                <td>
-                                                    {{ item.modified }}
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                        </div>
-
-
+                        <table class="ui celled table">
+                            <thead>
+                                <tr><th>Title</th>
+                                    <th>Author</th>
+                                    <th>Resource Type</th>
+                                    <th>Uploaded By</th>
+                                    <th>Uploaded On</th>
+                                </tr></thead>
+                            <tbody>
+                                {% for item in resource.list %}
+                                    <tr>
+                                        <td>
+                                            {% if item.external_link %}
+                                                <a href="{{ item.external_link}}">{{ item.title }}</a>
+                                            {% else %}
+                                                <a href="{% url 'resource_library:serve_file' filename=item.upload.name %}">{{ item.title }}</a>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ item.author }}
+                                        </td>
+                                        <td>
+                                            {{ item.resource_type }}
+                                        </td>
+                                        <td>
+                                            {{ item.modified_by }}
+                                        </td>
+                                        <td>
+                                            {{ item.modified }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
                 {% endfor %}
 
@@ -96,7 +94,8 @@
 
 
 {% block extra_js %}
-    <script src="https://semantic-ui.com/javascript/library/tablesort.js"</script>
+
+    <script src="https://semantic-ui.com/javascript/library/tablesort.js"></script>
 
     <script>
      // not sure why, but the sorter will not work without this initial, empty script block.

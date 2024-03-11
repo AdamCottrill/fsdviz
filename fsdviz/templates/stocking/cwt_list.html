@@ -46,7 +46,7 @@
                         placeholder="CWT contains..."
                         name="contains"
                         required
-                    />
+                    >
                     <i id="menu-search-icon" class="search link icon"></i>
                 </div>
             </div>
@@ -140,7 +140,7 @@
               <tbody>
                 {% for object in object_list %}
 
-                <tr id="{{object.stock_id}}">
+                <tr id="{{object.stock_id}}-{{object.cwt_number}}">
                   <td>
                     <a
                       href="{% url 'stocking:cwt-detail' cwt_number=object.cwt_number%}"
