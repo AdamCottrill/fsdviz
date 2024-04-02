@@ -79,7 +79,7 @@ for lake in shapefiles:
         manUnit = record[labelIndex]
         # this is a work-around (only qmas.shp has names with dashes
         # and lower case letters!)
-        if lake.get("shpfile") is not "qmas.shp":
+        if lake.get("shpfile") != "qmas.shp":
             manUnit = manUnit.upper().replace("-", "").replace(".", "")
         manUnits.append(manUnit)
         shpname = os.path.join(SHP_TRG, "{}.shp".format(manUnit))
@@ -186,7 +186,7 @@ pg_conn.close()
 # add spatial indexes to each of our spatial fields
 
 
-sql = """create index common_managementunit_gix on 
+sql = """create index common_managementunit_gix on
          common_managementunit using GIST (geom);"""
 
 

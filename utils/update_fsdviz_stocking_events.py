@@ -102,7 +102,10 @@ grid_centroids = {}
 for lake in lakes:
     grids = Grid10.objects.filter(lake=lake).exclude(geom__isnull=True)
 
-    tmp = {x.grid: Centroid(ddlon=x.geom.centroid.x, ddlat=x.geom.centroid.y) for x in grids}
+    tmp = {
+        x.grid: Centroid(ddlon=x.geom.centroid.x, ddlat=x.geom.centroid.y)
+        for x in grids
+    }
     grid_centroids[lake.abbrev] = tmp
 
 
@@ -166,135 +169,132 @@ years.sort(reverse=True)
 new_events = []
 problem_events = {}
 
-#RIGHT HERE!!
+# RIGHT HERE!!
 for yr in years:
 
+    sql = "exec [get_stocking_data] @yr={}".format(yr)
+    mdbcur.execute(sql)
+    rs = mdbcur.fetchall()
 
-sql = "exec [get_stocking_data] @yr={}".format(yr)
-mdbcur.execute(sql)
-rs = mdbcur.fetchall()
+    colnames = [x[0].lower() for x in mdbcur.description]
 
-colnames = [x[0].lower() for x in mdbcur.description]
+    print("Getting records for {:d}: {:4d} records found".format(int(yr), len(rs)))
 
-print("Getting records for {:d}: {:4d} records found".format(int(yr), len(rs)))
+    for row in rs:
 
-for row in rs:
+        # convert our row into a dictionary so we can access elements by
+        # column name
+        record = {k: v for k, v in zip(colnames, row)}
 
-    # convert our row into a dictionary so we can access elements by
-    # column name
-    record = {k: v for k, v in zip(colnames, row)}
+        # these objects are needed to find other objects with compund foreign keys
+        # in source data - strains and grids
+        species = species_lookup.get(record["species"].strip())
 
-    # these objects are needed to find other objects with compund foreign keys
-    # in source data - strains and grids
-    species = species_lookup.get(record["species"].strip())
+        strain_raw = get_or_create_rawStrain(species, raw_strain=record["strain"])
 
-    strain_raw = get_or_create_rawStrain(species, raw_strain=record["strain"])
+        lake = lake_lookup.get(record["lake"].strip())
+        stateprov = stateprov_lookup.get(record["state_prov"].strip())
 
-    lake = lake_lookup.get(record["lake"].strip())
-    stateprov = stateprov_lookup.get(record["state_prov"].strip())
+        jurisdiction = Jurisdiction.objects.get(stateprov=stateprov, lake=lake)
 
-    jurisdiction = Jurisdiction.objects.get(stateprov=stateprov, lake=lake)
+        managementUnit = mu_lookup.get(record["stat_dist"].upper())
 
-    managementUnit = mu_lookup.get(record["stat_dist"].upper())
+        # spatial pre-processing:
+        pt = get_latlon(record, grid_centroids, mu_centroids, lake_centroids)
+        dd_lat = pt.get("ddlat")
+        dd_lon = pt.get("ddlon")
 
-    # spatial pre-processing:
-    pt = get_latlon(record, grid_centroids, mu_centroids, lake_centroids)
-    dd_lat = pt.get("ddlat")
-    dd_lon = pt.get("ddlon")
+        # temporal pre-processing:
+        yr = int_or_None(record["year"])
+        mo = int_or_None(record["month"])
+        day = int_or_None(record["day"])
+        try:
+            event_date = datetime.datetime(yr, mo, day)
+        except (TypeError, ValueError):
+            event_date = None
 
-    # temporal pre-processing:
-    yr = int_or_None(record["year"])
-    mo = int_or_None(record["month"])
-    day = int_or_None(record["day"])
-    try:
-        event_date = datetime.datetime(yr, mo, day)
-    except (TypeError, ValueError):
-        event_date = None
+        # this is total hack to ensure stocking id's are unique. Shouldn't be
+        # necessary in final product
 
-    # this is total hack to ensure stocking id's are unique. Shouldn't be
-    # necessary in final product
+        # if who=='US':
+        #    stock_id += 5000000
+        # make our stocking event object:
 
-    # if who=='US':
-    #    stock_id += 5000000
-    # make our stocking event object:
+        event_dict = {
+            # Required related objects:
+            "species": species,
+            "strain_raw": strain_raw,
+            "jurisdiction": jurisdiction,
+            "management_unit": managementUnit,
+            "grid_10": Grid10.objects.get(lake=lake, grid=int(record["grid"])),
+            "agency": agency_lookup.get(record["agency"]),
+            "lifestage": lifestage_lookup.get(record["stage"], lifestage_default),
+            "condition": get_condition(int_or_None(record["condition"]), CONDITION),
+            "stocking_method": get_stocking_method(
+                record["stock_meth"], STOCKING_METHOD
+            ),
+            "day": day,
+            "month": mo,
+            "year": yr,
+            "date": event_date,
+            "dd_lat": pt.get("ddlat"),
+            "dd_lon": pt.get("ddlon"),
+            "latlong_flag": LatLonFlag.objects.get(value=pt.get("value")),
+            "site": clean_title(record["site"]),
+            "st_site": clean_title(record["st_site"]),
+            "stock_id": int(record["stock_id"]),
+            "no_stocked": int_or_None(record["no_stocked"]),
+            "yreq_stocked": int_or_None(record["no_stocked"]),
+            "year_class": int_or_None(record["year_class"]),
+            "agemonth": int_or_None(record["agemonth"]),
+            "length": int_or_None(record["length"]),
+            "weight": int_or_None(record["weight"]),
+            "lotcode": record["lot_code"],
+            "mark": record["mark"],
+            "mark_eff": float_or_None(record["mark_eff"]),
+            "tag_ret": float_or_None(record["tag_ret"]),
+            "validation": int_or_None(record["validation"]),
+            "notes": record["notes"],
+        }
 
-    event_dict = {
-        # Required related objects:
-        "species": species,
-        "strain_raw": strain_raw,
-        "jurisdiction": jurisdiction,
-        "management_unit": managementUnit,
-        "grid_10": Grid10.objects.get(lake=lake, grid=int(record["grid"])),
-        "agency": agency_lookup.get(record["agency"]),
-        "lifestage": lifestage_lookup.get(record["stage"], lifestage_default),
-        "condition": get_condition(int_or_None(record["condition"]), CONDITION),
-        "stocking_method": get_stocking_method(record["stock_meth"], STOCKING_METHOD),
-        "day": day,
-        "month": mo,
-        "year": yr,
-        "date": event_date,
-        "dd_lat": pt.get("ddlat"),
-        "dd_lon": pt.get("ddlon"),
-        "latlong_flag": LatLonFlag.objects.get(value=pt.get("value")),
-        "site": clean_title(record["site"]),
-        "st_site": clean_title(record["st_site"]),
-        "stock_id": int(record["stock_id"]),
-        "no_stocked": int_or_None(record["no_stocked"]),
-        "yreq_stocked": int_or_None(record["no_stocked"]),
-        "year_class": int_or_None(record["year_class"]),
-        "agemonth": int_or_None(record["agemonth"]),
-        "length": int_or_None(record["length"]),
-        "weight": int_or_None(record["weight"]),
-        "lotcode": record["lot_code"],
-        "mark": record["mark"],
-        "mark_eff": float_or_None(record["mark_eff"]),
-        "tag_ret": float_or_None(record["tag_ret"]),
-        "validation": int_or_None(record["validation"]),
-        "notes": record["notes"],
-    }
+        # my_event, created = StockingEvent.objects.get_or_create(stock_id=record["stock_id"])
 
+        # if created:
+        #    new_events.append(record['stock_id'])
 
+        my_event = StockingEvent.objects.filter(stock_id=record["stock_id"]).first()
+        if my_event:
+            for key, value in event_dict.items():
+                setattr(my_event, key, value)
+        else:
+            my_event = StockingEvent(**event_dict)
 
-    #my_event, created = StockingEvent.objects.get_or_create(stock_id=record["stock_id"])
+        try:
+            my_event.save()
+        except IntegrityError as err:
+            # keep track of events that can't be saved, and any error information:
+            problem_events[record.get("stock_id")] = {"record": record, "error": err}
+            continue
 
-    #if created:
-    #    new_events.append(record['stock_id'])
+        # get rid of any old marks:
+        my_event.marks.clear()
 
-    my_event = StockingEvent.objects.filter(stock_id=record['stock_id']).first()
-    if my_event:
-        for key, value in event_dict.items():
-            setattr(my_event, key, value)
-    else:
-        my_event = StockingEvent(**event_dict)
+        mark_codes = get_mark_codes(record["mark"], VALID_MARKS)
+        if mark_codes:
+            my_marks = Mark.objects.filter(mark_code__in=mark_codes.get("codes"))
+            my_event.marks.add(*my_marks)
 
-    try:
+        # TODO - replace old tags with new tags:
+        if record["tag_no"]:
+            cwt_nums = re.split("[;,\W]+", record["tag_no"])
+            for cwt_number in cwt_nums:
+                associate_cwt(my_event, cwt_number)
+
         my_event.save()
-    except IntegrityError as err:
-        #keep track of events that can't be saved, and any error information:
-        problem_events[record.get('stock_id')] = {"record":record, "error":err}
-        continue
 
-    #get rid of any old marks:
-    my_event.marks.clear()
+        # AND HERE!!!
 
-    mark_codes = get_mark_codes(record["mark"], VALID_MARKS)
-    if mark_codes:
-        my_marks = Mark.objects.filter(mark_code__in=mark_codes.get("codes"))
-        my_event.marks.add(*my_marks)
-
-    #TODO - replace old tags with new tags:
-    if record["tag_no"]:
-        cwt_nums = re.split("[;,\W]+", record["tag_no"])
-        for cwt_number in cwt_nums:
-            associate_cwt(my_event, cwt_number)
-
-    my_event.save()
-
-
-
-# AND HERE!!!
-
-    print("Done adding {}".format(yr))
+        print("Done adding {}".format(yr))
 
 print("Done adding all stocking events!")
 

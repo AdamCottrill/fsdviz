@@ -315,7 +315,7 @@ def get_mark_codes(mark_string, valid_marks):
         spans.sort()
         first_match = spans[0][0]
         last_match = spans[-1][1]
-        problem = True if first_match is not 0 else False
+        problem = True if first_match != 0 else False
         problem = True if last_match is not len(mark_string) else False
         if len(codes) > 2 and problem is False:
             for n, m in enumerate(spans[-1]):
@@ -494,7 +494,7 @@ def recode_mark(mark, mark_shouldbe, no_mark="XX"):
     any marking information.
 
     """
-    mark = no_mark if (mark is None or mark is "") else mark
+    mark = no_mark if (mark is None or mark == "") else mark
     for key, val in mark_shouldbe.items():
         mark = mark.replace(key, val)
     tmp = mark_shouldbe.get(mark)

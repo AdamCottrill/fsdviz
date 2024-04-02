@@ -402,6 +402,7 @@ class TestFileUpload:
         with open("fsdviz/tests/xls_files/mnrf_huron.xlsx", "rb") as fp:
             response = client.post(url, {"data_file": fp}, follow=True)
             assert response.status_code == 200
+
             assertTemplateUsed("stocking/xls_events_form.html")
             heading = "<h1>1 Uploaded MNRF Stocking Event for Lake Huron</h1>"
             assertContains(response, heading, html=True)

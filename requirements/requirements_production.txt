@@ -4,7 +4,11 @@
 #
 #    pip-compile --output-file=requirements_production.txt base.in
 #
-bookmark-it @ file:///E:/1work/Python/djcode/apps/bookmark_it/dist/bookmark-it-2022.4.1.tar.gz#sha256=217e38a329dc2a1a0436a39b23a917e283b448c7e818268a9eb9b2640cf4bf22
+asgiref==3.8.1
+    # via
+    #   django
+    #   django-cors-headers
+bookmark-it @ file:///c:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/bookmark_it/dist/bookmark-it-2022.4.1.tar.gz#sha256=217e38a329dc2a1a0436a39b23a917e283b448c7e818268a9eb9b2640cf4bf22
     # via -r base.in
 certifi==2023.7.22
     # via requests
@@ -18,96 +22,96 @@ coreapi==2.3.3
     # via
     #   -r base.in
     #   coreapi-cli
-    #   drf-yasg
 coreapi-cli==1.0.9
     # via -r base.in
 coreschema==0.0.4
-    # via
-    #   coreapi
-    #   drf-yasg
-django==2.2.28
+    # via coreapi
+django==3.2.25
     # via
     #   -r base.in
     #   django-cors-headers
+    #   django-crispy-forms
     #   django-filter
     #   django-leaflet
-    #   django-rest-auth
     #   django-taggit
     #   djangorestframework
     #   drf-yasg
-django-colorfield==0.4.2
+django-colorfield==0.11.0
     # via -r base.in
-django-cors-headers==3.5.0
+django-cors-headers==4.3.1
     # via -r base.in
-django-crispy-forms==1.10.0
+django-crispy-forms==2.0
     # via -r base.in
-django-filter==2.4.0
+django-filter==23.5
     # via -r base.in
-django-leaflet==0.27.1
+django-leaflet==0.29.1
     # via -r base.in
-django-rest-auth==0.9.5
+django-taggit==4.0.0
     # via -r base.in
-django-taggit==1.1.0
-    # via -r base.in
-djangorestframework==3.12.4
+djangorestframework==3.15.1
     # via
     #   -r base.in
-    #   django-rest-auth
-    #   drf-renderer-xlsx
+    #   drf-excel
     #   drf-yasg
-drf-renderer-xlsx==0.3.8
+drf-excel==2.4.0
+    # via drf-renderer-xlsx
+drf-renderer-xlsx==1.0.0
     # via -r base.in
-drf-yasg==1.20.0
+drf-yasg==1.21.7
     # via -r base.in
 et-xmlfile==1.1.0
     # via openpyxl
-gdal @ file:///C:/Users/COTTRILLAD/Downloads/GDAL-3.4.2-cp39-cp39-win32.whl#sha256=fbe0a9b3aba2db8dd47a77acbbf19cd532f8bedaac75692776baa7f056da6999
+gdal @ file:///C:/Users/COTTRILLAD/Downloads/GDAL-3.4.3-cp39-cp39-win32.whl
     # via -r base.in
 idna==3.4
     # via requests
+importlib-metadata==7.1.0
+    # via markdown
 inflection==0.5.1
     # via drf-yasg
 itypes==1.2.0
     # via coreapi
-jdcal==1.4.1
-    # via openpyxl
 jinja2==3.1.2
     # via coreschema
-markdown==3.3.3
+markdown==3.6
     # via -r base.in
-markdown2==2.4.0
+markdown2==2.4.13
     # via -r base.in
 markupsafe==2.1.3
     # via jinja2
-openpyxl==3.0.5
+openpyxl==3.1.2
     # via
     #   -r base.in
-    #   drf-renderer-xlsx
+    #   drf-excel
 packaging==23.1
     # via drf-yasg
-pillow==10.0.1
-    # via -r base.in
-psycopg2-binary==2.8.6
+pillow==10.3.0
+    # via
+    #   -r base.in
+    #   django-colorfield
+psycopg2-binary==2.9.9
     # via -r base.in
 pytz==2023.3
-    # via django
+    # via
+    #   django
+    #   drf-yasg
+pyyaml==6.0.1
+    # via drf-yasg
 requests==2.31.0
     # via coreapi
-resource-library @ file:///E:/1work/Python/djcode/apps/resource_library/dist/resource-library-2022.6.29.tar.gz#sha256=9ae13190bf377fb49438767053aba2227d4058b1e5f21a631106bf9262e6dfd2
+resource-library @ file:///c:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/resource_library/dist/resource-library-2022.6.29.tar.gz#sha256=9ae13190bf377fb49438767053aba2227d4058b1e5f21a631106bf9262e6dfd2
     # via -r base.in
-ruamel-yaml==0.17.31
-    # via drf-yasg
-ruamel-yaml-clib==0.2.7
-    # via ruamel-yaml
-six==1.16.0
-    # via django-rest-auth
 sqlparse==0.4.4
     # via django
-ticket-tracker @ file:///C:/Users/COTTRILLAD/1work/Python/djcode/apps/tickettracker2/dist/ticket-tracker-2023.1.10.tar.gz#sha256=444731a80ef8711c67d1a6385b5aee531878e5d6f7e685ecc1421fd111c39169
+ticket-tracker @ file:///c:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/tickettracker2/dist/ticket-tracker-2023.1.10.tar.gz#sha256=444731a80ef8711c67d1a6385b5aee531878e5d6f7e685ecc1421fd111c39169
     # via -r base.in
+typing-extensions==4.10.0
+    # via asgiref
 uritemplate==4.1.1
     # via
     #   coreapi
     #   drf-yasg
 urllib3==2.0.7
     # via requests
+zipp==3.18.1
+    # via importlib-metadata

@@ -76,7 +76,10 @@ def test_xlsx_download_events_xlsx(client, stocking_events):
 
     response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
-    assert response.accepted_media_type == "application/xlsx"
+    media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    assert response.accepted_media_type == media_type
+
+
     assert len(response.data) == 4
     expected_fields = set(FIELD_NAMES)
     observed_fields = set(response.data[0].keys())
@@ -97,7 +100,10 @@ def test_xlsx_download_events_xlsx_event_filters(client, stocking_events):
 
     response = client.get(url, {"lake": "SU"})
     assert response.status_code == status.HTTP_200_OK
-    assert response.accepted_media_type == "application/xlsx"
+
+    media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    assert response.accepted_media_type == media_type
+
     assert len(response.data) == 2
     expected_fields = set(FIELD_NAMES)
     observed_fields = set(response.data[0].keys())

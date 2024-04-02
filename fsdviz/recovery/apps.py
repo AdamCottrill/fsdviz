@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class RecoveryConfig(AppConfig):
-    name = 'recovery'
+    name = 'fsdviz.recovery'

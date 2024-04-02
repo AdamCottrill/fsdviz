@@ -73,7 +73,6 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "corsheaders",
     "rest_framework.authtoken",
-    "rest_auth",
     "drf_yasg",
     "leaflet",
     "colorfield",
@@ -82,6 +81,7 @@ THIRD_PARTY_APPS = [
     "tickets",
     "bookmark_it",
     "resource_library",
+
 ]
 
 MY_APPS = ["fsdviz.myusers", "fsdviz.common", "fsdviz.stocking", "fsdviz.recovery"]
@@ -182,6 +182,9 @@ UPLOAD_KEY_FIELD_ROW = 4
 UPLOAD_FIRST_DATA_ROW = 10
 
 
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+
+
 ## urls here as needed for cors:
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
@@ -199,7 +202,7 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
-        "drf_renderer_xlsx.renderers.XLSXRenderer",
+        "drf_excel.renderers.XLSXRenderer",
     ),
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
 }

@@ -3,12 +3,15 @@
 The veiws in this file should all be publicly available as readonly.
 
 """
+
 from datetime import datetime
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Count, F, Sum
-from drf_renderer_xlsx.mixins import XLSXFileMixin
-from drf_renderer_xlsx.renderers import XLSXRenderer
+
+from drf_excel.mixins import XLSXFileMixin
+from drf_excel.renderers import XLSXRenderer
+
 from rest_framework import generics, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -842,6 +845,15 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
         },
         "height": 15,
     }
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Return the serializer instance that should be used for validating and
+        deserializing input, and for serializing output.
+        """
+        serializer_class = self.serializer_class
+
+        return serializer_class(*args, **kwargs)
 
     def get_serializer_context(self):
         """Add the request to the serializre context so we can include the url

@@ -23,6 +23,7 @@ Tests in this file include:
 import pytest
 
 from django.urls import reverse
+from pytest_django.asserts import assertContains
 from fsdviz.myusers.models import CustomUser as User
 from fsdviz.myusers.tests.fixtures import joe_user
 
@@ -231,7 +232,10 @@ def test_form_password_mismatch(client):
     content = response.content.decode("utf-8")
 
     assert "Please fix the errors in the form below" in content
-    assert "The two password fields didn&#39;t match" in content
+
+    msg = '<li class="error">Password confirmation: The two password fields didn’t match.</li>'
+    assertContains(response, msg, html=True)
+
 
 
 @pytest.mark.django_db

@@ -197,8 +197,6 @@ class TestConditionAPI(APITestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
-        # there is a placeholder condition comming from somehere (99-'')
-        # no idea why this is happending.  This should be 3 rather than 4:
         assert len(response.data) == 4
 
         for obj in objects:

@@ -109,7 +109,7 @@ urlpatterns = [
     # API's
     path("tickets/", include(("tickets.urls", "tickets"), namespace="tickets")),
     path("api-auth/", include("rest_framework.urls")),
-    path("api/v1/rest-auth/", include("rest_auth.urls")),
+
     path("api/v1/common/", include("fsdviz.common.api.urls", namespace="common_api")),
     path(
         "api/v1/stocking/",
