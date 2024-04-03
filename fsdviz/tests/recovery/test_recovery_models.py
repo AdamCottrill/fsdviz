@@ -8,9 +8,9 @@ import pytest
 
 from django.contrib.gis.geos import GEOSGeometry
 
-from ..common_factories import AgencyFactory, LakeFactory
+from ..factories.common_factories import AgencyFactory, LakeFactory
 
-from ..recovery_factories import RecoveryFactory, RecoveryEventFactory
+from ..factories.recovery_factories import RecoveryFactory, RecoveryEventFactory
 
 
 @pytest.mark.django_db

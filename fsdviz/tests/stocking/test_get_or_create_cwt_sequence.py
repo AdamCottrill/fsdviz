@@ -20,7 +20,7 @@ import pytest
 
 from ...common.models import CWT, CWTsequence
 
-from ..common_factories import CWTFactory, CWTsequenceFactory
+from ..factories.common_factories import CWTFactory, CWTsequenceFactory
 
 
 from ...stocking.utils import get_or_create_cwt_sequence

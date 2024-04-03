@@ -20,10 +20,10 @@ import pytest
 from django.contrib.gis.geos import GEOSGeometry
 from fsdviz.common.choices import LATLON_FLAGS
 
-# from .user_factory import UserFactory
+
 from fsdviz.myusers.tests.factories import UserFactory
 
-from .common_factories import (
+from .factories.common_factories import (
     AgencyFactory,
     CWTFactory,
     CWTsequenceFactory,
@@ -38,7 +38,7 @@ from .common_factories import (
     StrainFactory,
     StrainRawFactory,
 )
-from .stocking_factories import (
+from .factories.stocking_factories import (
     DataUploadEventFactory,
     HatcheryFactory,
     LifeStageFactory,
@@ -130,9 +130,9 @@ def huron_mdnr_sc(mdnr, huron):
         password="Abcd1234",
         role="asc",
         agency=mdnr,
-        lakes=[huron],
+        lakes=(huron,),
     )
-    huron_mdnr_sc.save()
+
     return huron_mdnr_sc
 
 

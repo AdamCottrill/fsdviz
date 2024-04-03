@@ -33,7 +33,7 @@ import pytest
 from django.contrib.gis.geos import GEOSGeometry
 
 from fsdviz.common.models import Lake, Jurisdiction, ManagementUnit, Grid10
-from ..common_factories import (
+from ..factories.common_factories import (
     JurisdictionFactory,
     LakeFactory,
     StateProvinceFactory,

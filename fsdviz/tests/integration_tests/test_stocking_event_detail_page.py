@@ -58,7 +58,7 @@ from pytest_django.asserts import assertTemplateUsed, assertContains, assertNotC
 
 from ..pytest_fixtures import glsc as user
 
-from ..stocking_factories import (
+from ..factories.stocking_factories import (
     StockingEventFactory,
     LifeStageFactory,
     ConditionFactory,
@@ -66,7 +66,7 @@ from ..stocking_factories import (
     StockingMethodFactory,
 )
 
-from ..common_factories import (
+from ..factories.common_factories import (
     LakeFactory,
     SpeciesFactory,
     AgencyFactory,

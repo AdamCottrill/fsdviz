@@ -8,7 +8,7 @@ import factory
 from django.contrib.gis.geos import GEOSGeometry
 
 # import common.models as common
-from ..common.models import (
+from ...common.models import (
     CWT,
     Agency,
     CompositeFinClip,

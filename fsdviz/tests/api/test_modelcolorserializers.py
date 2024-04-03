@@ -39,7 +39,7 @@ from fsdviz.common.api.serializers import (
     StrainSerializer,
     StrainRawSerializer,
 )
-from ..common_factories import (
+from ..factories.common_factories import (
     AgencyFactory,
     CompositeFinClipFactory,
     FishTagFactory,
@@ -53,7 +53,7 @@ from ..common_factories import (
     StrainRawFactory,
 )
 
-from ..stocking_factories import LifeStageFactory, StockingMethodFactory
+from ..factories.stocking_factories import LifeStageFactory, StockingMethodFactory
 
 
 def test_lake_model_color_serializer():

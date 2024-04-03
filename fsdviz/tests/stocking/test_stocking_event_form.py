@@ -22,8 +22,8 @@ from datetime import datetime
 from ...stocking.utils import get_event_model_form_choices
 from ...stocking.forms import StockingEventForm
 
-from ..stocking_factories import StockingEventFactory
-from ..common_factories import FishTagFactory, FinClipFactory
+from ..factories.stocking_factories import StockingEventFactory
+from ..factories.common_factories import FishTagFactory, FinClipFactory
 
 from ..pytest_fixtures import glsc, huron, mdnr
 from ..pytest_fixtures import huron_mdnr_sc as agency_sc

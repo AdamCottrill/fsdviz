@@ -26,7 +26,7 @@ from django.urls import reverse
 
 # testing here for now - should be somewhere else:
 from fsdviz.stocking.utils import get_xls_form_choices
-from fsdviz.tests.common_factories import (
+from fsdviz.tests.factories.common_factories import (
     AgencyFactory,
     CompositeFinClipFactory,
     FinClipFactory,
@@ -37,6 +37,11 @@ from fsdviz.tests.common_factories import (
     StateProvinceFactory,
     StrainFactory,
 )
+from fsdviz.tests.factories.stocking_factories import (
+    ConditionFactory,
+    LifeStageFactory,
+    StockingMethodFactory,
+)
 from fsdviz.tests.pytest_fixtures import (
     glsc,
     huron,
@@ -46,11 +51,6 @@ from fsdviz.tests.pytest_fixtures import (
     mnrf,
     superior,
     user,
-)
-from fsdviz.tests.stocking_factories import (
-    ConditionFactory,
-    LifeStageFactory,
-    StockingMethodFactory,
 )
 from pytest_django.asserts import assertContains, assertTemplateUsed
 

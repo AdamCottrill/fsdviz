@@ -8,7 +8,7 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from ...common.models import CWTsequence
-from ..common_factories import (
+from ..factories.common_factories import (
     AgencyFactory,
     CompositeFinClipFactory,
     CWTFactory,

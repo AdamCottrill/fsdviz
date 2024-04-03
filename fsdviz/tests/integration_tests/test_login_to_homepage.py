@@ -19,7 +19,7 @@ import pytest
 from django.urls import reverse
 
 from fsdviz.tests.pytest_fixtures import user
-from fsdviz.tests.stocking_factories import StockingEventFactory
+from fsdviz.tests.factories.stocking_factories import StockingEventFactory
 from ..bookmark.factories import BookmarkFactory
 
 

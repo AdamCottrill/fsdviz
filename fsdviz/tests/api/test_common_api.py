@@ -18,7 +18,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from ..common_factories import (
+from ..factories.common_factories import (
     AgencyFactory,
     CompositeFinClipFactory,
     CWTFactory,

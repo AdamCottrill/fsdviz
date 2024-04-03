@@ -34,9 +34,9 @@ import pytest
 
 from fsdviz.common.models import CWT
 
-from ..stocking_factories import StockingEventFactory
+from ..factories.stocking_factories import StockingEventFactory
 
-from ..common_factories import (
+from ..factories.common_factories import (
     LakeFactory,
     AgencyFactory,
     StateProvinceFactory,

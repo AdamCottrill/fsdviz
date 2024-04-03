@@ -19,45 +19,38 @@
 
 """
 
-
-from django.db.models.fields import PositiveIntegerRelDbTypeMixin
-from fsdviz.common.models import Jurisdiction
 import pytest
+from django.db.models.fields import PositiveIntegerRelDbTypeMixin
 from django.test import TestCase
-
 from django.urls import reverse
-
-from fsdviz.common.models import Jurisdiction, FinClip, FishTag, PhysChemMark, CWT
-from fsdviz.stocking.models import StockingEvent, Condition
-
+from fsdviz.common.models import CWT, FinClip, FishTag, Jurisdiction, PhysChemMark
 from fsdviz.myusers.tests.factories import UserFactory
-
-from fsdviz.tests.common_factories import (
-    LakeFactory,
-    StateProvinceFactory,
+from fsdviz.stocking.models import Condition, StockingEvent
+from fsdviz.tests.factories.common_factories import (
     AgencyFactory,
-    JurisdictionFactory,
-    ManagementUnitFactory,
-    Grid10Factory,
-    SpeciesFactory,
-    StrainFactory,
-    StrainRawFactory,
-    FinClipFactory,
     CompositeFinClipFactory,
-    LatLonFlagFactory,
-    FishTagFactory,
-    PhysChemMarkFactory,
     CWTFactory,
     CWTsequenceFactory,
+    FinClipFactory,
+    FishTagFactory,
+    Grid10Factory,
+    JurisdictionFactory,
+    LakeFactory,
+    LatLonFlagFactory,
+    ManagementUnitFactory,
+    PhysChemMarkFactory,
+    SpeciesFactory,
+    StateProvinceFactory,
+    StrainFactory,
+    StrainRawFactory,
+
 )
-
-
-from fsdviz.tests.stocking_factories import (
-    LifeStageFactory,
+from fsdviz.tests.factories.stocking_factories import (
     ConditionFactory,
     HatcheryFactory,
-    YearlingEquivalentFactory,
+    LifeStageFactory,
     StockingMethodFactory,
+    YearlingEquivalentFactory,
 )
 
 

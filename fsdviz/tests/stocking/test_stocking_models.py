@@ -16,7 +16,7 @@ from ...stocking.models import StockingEvent
 
 from ..pytest_fixtures import latlon_flags, finclips
 
-from ..common_factories import (
+from ..factories.common_factories import (
     AgencyFactory,
     SpeciesFactory,
     LakeFactory,
@@ -28,9 +28,10 @@ from ..common_factories import (
     CWTFactory,
     CWTsequenceFactory,
 )
-from ..user_factory import UserFactory
 
-from ..stocking_factories import (
+from fsdviz.myusers.tests.factories import UserFactory
+
+from ..factories.stocking_factories import (
     LifeStageFactory,
     ConditionFactory,
     StockingMethodFactory,

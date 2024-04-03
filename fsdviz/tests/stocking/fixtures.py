@@ -11,7 +11,7 @@ import pytest
 
 from django.contrib.gis.geos import GEOSGeometry
 
-from ..common_factories import (
+from ..factories.common_factories import (
     LakeFactory,
     AgencyFactory,
     JurisdictionFactory,
@@ -23,7 +23,7 @@ from ..common_factories import (
     FinClipFactory,
     PhysChemMarkFactory,
 )
-from ..stocking_factories import (
+from ..factories.stocking_factories import (
     StockingEventFactory,
     LifeStageFactory,
     StockingMethodFactory,

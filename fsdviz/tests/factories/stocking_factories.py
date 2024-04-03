@@ -10,7 +10,7 @@ import factory
 from django.contrib.gis.geos import GEOSGeometry
 
 # import common.models as common
-from ..stocking.models import (
+from ...stocking.models import (
     LifeStage,
     Condition,
     Hatchery,
@@ -33,7 +33,7 @@ from .common_factories import (
     LatLonFlagFactory,
 )
 
-from .user_factory import UserFactory
+from fsdviz.myusers.tests.factories import UserFactory
 
 
 class LifeStageFactory(factory.django.DjangoModelFactory):

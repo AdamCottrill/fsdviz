@@ -17,7 +17,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from ..stocking_factories import (
+from ..factories.stocking_factories import (
     ConditionFactory,
     HatcheryFactory,
     LifeStageFactory,

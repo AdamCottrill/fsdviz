@@ -19,8 +19,8 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from fsdviz.tests.common_factories import SpeciesFactory
-from fsdviz.tests.stocking_factories import LifeStageFactory, YearlingEquivalentFactory
+from ..factories.common_factories import SpeciesFactory
+from ..factories.stocking_factories import LifeStageFactory, YearlingEquivalentFactory
 
 
 @pytest.fixture()

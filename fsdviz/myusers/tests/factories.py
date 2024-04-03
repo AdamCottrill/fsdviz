@@ -2,7 +2,7 @@ import factory
 
 from fsdviz.myusers.models import CustomUser
 
-from fsdviz.tests.common_factories import AgencyFactory
+from fsdviz.tests.factories.common_factories import AgencyFactory
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -25,14 +25,10 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     @factory.post_generation
     def lakes(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
+        if not create or not extracted:
             return
 
-        if extracted:
-            # A list of lakes were passed in, use them
-            for lake in extracted:
-                self.lakes.add(lake)
+        self.lakes.add(*extracted)
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):

@@ -40,7 +40,7 @@ import pytest
 from pytest_django.asserts import assertContains, assertTemplateUsed
 
 from django.urls import reverse
-from ..common_factories import CWTFactory, CWTsequenceFactory
+from ..factories.common_factories import CWTFactory, CWTsequenceFactory
 
 from fsdviz.common.models import CWT
 from ..pytest_fixtures import cwt_stocking_events
