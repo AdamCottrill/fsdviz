@@ -7,12 +7,13 @@ from fsdviz.tests.factories.common_factories import AgencyFactory
 
 class UserFactory(factory.django.DjangoModelFactory):
     """
-    A factory for Lake objects.
+    A factory for User objects.
     """
 
     class Meta:
         model = CustomUser
         django_get_or_create = ("email",)
+        skip_postgeneration_save = True
 
     username = "joeuser"
     first_name = ("Joe",)
@@ -27,7 +28,6 @@ class UserFactory(factory.django.DjangoModelFactory):
     def lakes(self, create, extracted, **kwargs):
         if not create or not extracted:
             return
-
         self.lakes.add(*extracted)
 
     @classmethod

@@ -593,7 +593,7 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(lake__in=user.lakes.all(), agency=user.agency)
         filtered = DataUploadEventFilter(self.request.GET, queryset=queryset)
 
-        return filtered.qs
+        return filtered.qs.order_by("-timestamp")
 
 
     def get_context_data(self, **kwargs):

@@ -144,7 +144,7 @@ def glsc():
 def huron_mdnr_sc(mdnr, huron):
     """A user who is an agency stocking coordinator"""
 
-    huron_mdnr_sc = UserFactory.create(
+    huron_mdnr_sc = UserFactory(
         username="bsimpson",
         first_name="bart",
         last_name="Simpson",
@@ -161,7 +161,7 @@ def huron_mdnr_sc(mdnr, huron):
 def huron_mdnr_user(mdnr, huron):
     """A user who is an agency user"""
 
-    huron_mdnr_user = UserFactory.create(
+    huron_mdnr_user = UserFactory(
         username="lsimpson",
         first_name="lisa",
         last_name="Simpson",
