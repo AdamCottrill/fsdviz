@@ -10,11 +10,10 @@ asgiref==3.8.1
     #   django-cors-headers
 bookmark-it @ file:///c:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/bookmark_it/dist/bookmark-it-2022.4.1.tar.gz#sha256=217e38a329dc2a1a0436a39b23a917e283b448c7e818268a9eb9b2640cf4bf22
     # via -r base.in
-django==3.2.25
+django==4.2.11
     # via
     #   -r base.in
     #   django-cors-headers
-    #   django-crispy-forms
     #   django-filter
     #   django-leaflet
     #   django-taggit
@@ -23,8 +22,6 @@ django==3.2.25
 django-colorfield==0.11.0
     # via -r base.in
 django-cors-headers==4.3.1
-    # via -r base.in
-django-crispy-forms==2.0
     # via -r base.in
 django-filter==23.5
     # via -r base.in
@@ -68,19 +65,19 @@ pillow==10.3.0
 psycopg2-binary==2.9.9
     # via -r base.in
 pytz==2023.3
-    # via
-    #   django
-    #   drf-yasg
+    # via drf-yasg
 pyyaml==6.0.1
     # via drf-yasg
 resource-library @ file:///c:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/resource_library/dist/resource-library-2022.6.29.tar.gz#sha256=9ae13190bf377fb49438767053aba2227d4058b1e5f21a631106bf9262e6dfd2
     # via -r base.in
 sqlparse==0.4.4
     # via django
-ticket-tracker @ file:///c:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/tickettracker2/dist/ticket-tracker-2023.1.10.tar.gz#sha256=444731a80ef8711c67d1a6385b5aee531878e5d6f7e685ecc1421fd111c39169
+ticket-tracker @ file:///C:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/tickettracker2/dist/ticket-tracker-2024.4.3.tar.gz#sha256=c0c804f3cba97171a3804412ed66d1c36c97cf37537a512c83098c51fae8c880
     # via -r base.in
 typing-extensions==4.10.0
     # via asgiref
+tzdata==2024.1
+    # via django
 uritemplate==4.1.1
     # via drf-yasg
 zipp==3.18.1

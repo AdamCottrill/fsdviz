@@ -5,13 +5,12 @@ The veiws in this file should all be publicly available as readonly.
 """
 
 from datetime import datetime
+
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Count, F, Sum
-
 from drf_excel.mixins import XLSXFileMixin
 from drf_excel.renderers import XLSXRenderer
-
 from rest_framework import generics, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -19,8 +18,6 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
-
-from .xls_render import MetaXLSXRenderer
 
 from ..filters import StockingEventFilter, YearlingEquivalentFilter
 from ..models import (
@@ -42,6 +39,7 @@ from .serializers import (
     StockingMethodSerializer,
     YearlingEquivalentSerializer,
 )
+from .xls_render import MetaXLSXRenderer
 
 
 class SmallResultsSetPagination(PageNumberPagination):
@@ -200,6 +198,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
                 "physchem_marks__mark_code",
                 delimiter=";",
                 ordering="physchem_marks__mark_code",
+                default="",
             ),
             "cwt_number": F("tag_no"),
             "tag_retention": F("tag_ret"),
@@ -209,7 +208,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "lot_code": F("lotcode"),
             "hatchery_abbrev": F("hatchery__abbrev"),
             "number_stocked": F("no_stocked"),
-            "tag_type": StringAgg("fish_tags__tag_code", ""),
+            "tag_type": StringAgg("fish_tags__tag_code", delimiter="", default=""),
         }
 
         fields = [
@@ -486,12 +485,16 @@ class StockingEventListAPIView(APIView):
             "longitude": F("geom_lon"),
             "clip": F("clip_code__clip_code"),
             "_tags": StringAgg(
-                "fish_tags__tag_code", delimiter=";", ordering="fish_tags__tag_code"
+                "fish_tags__tag_code",
+                delimiter=";",
+                ordering="fish_tags__tag_code",
+                default="",
             ),
             "_marks": StringAgg(
                 "physchem_marks__mark_code",
                 delimiter=";",
                 ordering="physchem_marks__mark_code",
+                default="",
             ),
         }
 

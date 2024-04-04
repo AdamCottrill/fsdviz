@@ -12,7 +12,6 @@ os.environ["PROJ_LIB"] = PROJ_LIB
 
 os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
 
-
 if not os.path.exists(OSGEO_VENV):
     print("Unable to find OSGEO_VENV at {}".format(OSGEO_VENV))
 
@@ -28,12 +27,12 @@ if not os.path.exists(PROJ_LIB):
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# whitenoise settings - only used in development
-INSTALLED_APPS = [
-    "whitenoise.runserver_nostatic",
-] + INSTALLED_APPS
-MIDDLEWARE.insert(4, "whitenoise.middleware.WhiteNoiseMiddleware")
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# # whitenoise settings - only used in development
+# INSTALLED_APPS = [
+#     "whitenoise.runserver_nostatic",
+# ] + INSTALLED_APPS
+# MIDDLEWARE.insert(4, "whitenoise.middleware.WhiteNoiseMiddleware")
+# #STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 INTERNAL_IPS = ("127.0.0.1",)

@@ -40,4 +40,4 @@ UPLOAD_FIRST_DATA_ROW = 10
 
 
 # use the default static file storage for tests:
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+#STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"

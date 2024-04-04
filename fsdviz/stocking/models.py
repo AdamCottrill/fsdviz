@@ -153,7 +153,7 @@ class Condition(models.Model):
      corrupted tests (- migrations during database creation.)
 
     """
-
+    id = models.AutoField(primary_key=True)
     condition = models.IntegerField(unique=True)
     description = models.CharField(max_length=100)
     # colour field on this model causes all kinds of grief with migrations.

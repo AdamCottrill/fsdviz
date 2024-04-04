@@ -77,7 +77,7 @@ class ManagementUnitCreationForm(forms.ModelForm):
 
 
 @admin.register(ManagementUnit)
-class ManagementUnitModelAdmin(admin.GeoModelAdmin):
+class ManagementUnitModelAdmin(admin.GISModelAdmin):
     form = ManagementUnitChangeForm
     add_form = ManagementUnitCreationForm
 

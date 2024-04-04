@@ -40,7 +40,7 @@ class Grid10CreationForm(forms.ModelForm):
 
 
 @admin.register(Grid10)
-class Grid10Admin(admin.GeoModelAdmin):
+class Grid10Admin(admin.GISModelAdmin):
     form = Grid10ChangeForm
     add_form = Grid10CreationForm
 

@@ -53,7 +53,7 @@ class LakeCreationForm(forms.ModelForm):
 
 
 @admin.register(Lake)
-class LakeModelAdmin(admin.GeoModelAdmin):
+class LakeModelAdmin(admin.GISModelAdmin):
     form = LakeChangeForm
     add_form = LakeCreationForm
     readonly_fields = (

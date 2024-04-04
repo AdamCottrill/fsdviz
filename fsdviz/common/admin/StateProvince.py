@@ -7,7 +7,7 @@ admin.site.empty_value_display = "(None)"
 
 
 @admin.register(StateProvince)
-class StateProvinceModelAdmin(admin.GeoModelAdmin):
+class StateProvinceModelAdmin(admin.GISModelAdmin):
     list_display = (
         "name",
         "abbrev",

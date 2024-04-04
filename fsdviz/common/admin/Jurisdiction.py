@@ -48,7 +48,7 @@ class JurisdictionCreationForm(forms.ModelForm):
 
 
 @admin.register(Jurisdiction)
-class JurisdictionModelAdmin(admin.GeoModelAdmin):
+class JurisdictionModelAdmin(admin.GISModelAdmin):
     form = JurisdictionChangeForm
     add_form = JurisdictionCreationForm
 

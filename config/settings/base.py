@@ -146,8 +146,6 @@ TIME_ZONE = "UTC"
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 
@@ -165,6 +163,22 @@ STATICFILES_DIRS = [os.path.join(PROJECT_ROOT, "fsdviz/static")]
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, "static/")
 
+
+# Storages
+
+# Default STORAGES from Django documentation
+# See: https://docs.djangoproject.com/en/4.2/ref/settings/#std-setting-STORAGES
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
+
+# Use ManifestStaticFilesStorage when not in debug mode
+if not DEBUG:
+    STORAGES['staticfiles'] = {"BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"}
+
+
+
 AUTH_USER_MODEL = "myusers.CustomUser"
 
 LOGIN_URL = "login"
@@ -180,9 +194,6 @@ MAX_UPLOAD_EVENT_COUNT = 100
 DATA_WORKSHEET_NAME = "DATA_TEMPLATE"
 UPLOAD_KEY_FIELD_ROW = 4
 UPLOAD_FIRST_DATA_ROW = 10
-
-
-DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 
 ## urls here as needed for cors:

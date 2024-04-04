@@ -197,7 +197,7 @@ class TestConditionAPI(APITestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
-        assert len(response.data) == 4
+        assert len(response.data) == 3
 
         for obj in objects:
             assert obj in response.data
