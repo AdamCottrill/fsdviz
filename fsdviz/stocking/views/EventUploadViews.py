@@ -49,15 +49,20 @@ from ..models import (
     StockingEvent,
     StockingMethod,
 )
-from ..utils import add_is_checked, get_choices, validate_upload, xls2dicts, get_or_create_cwt_sequence
-
+from ..utils import (
+    add_is_checked,
+    get_choices,
+    validate_upload,
+    xls2dicts,
+    get_or_create_cwt_sequence,
+)
 
 
 @login_required
 def upload_events(request):
     """A view to process data uploads.  It will be only available to logged in users.
 
-    The uploaded file will be check for validity with cerberus - if it
+    The uploaded file will be check for validity. If it
     looks like it has the correct shape, the data will be passed to a
     stocking event formset, that will allow final editing and form
     validation. Once submitted, the stocking event objects will be
@@ -84,16 +89,21 @@ def upload_events(request):
                 ):
                     msg = "Choosen file is not an Excel (*.xls or *.xlsx) file!"
                     messages.error(request, msg)
-                    return HttpResponseRedirect(
-                        reverse("stocking:upload-stocking-events")
+                    return render(
+                        request,
+                        "stocking/upload_stocking_events.html",
+                        {"maxEvents": maxEvents, "form": form},
                     )
+
                 # if file is too large, return
                 if data_file.multiple_chunks():
                     filesize = data_file.size / (1000 * 1000)
                     msg = "Uploaded file is too big ({.2f} MB).".format(filesize)
                     messages.error(request, msg)
-                    return HttpResponseRedirect(
-                        reverse("stocking:upload-stocking-events")
+                    return render(
+                        request,
+                        "stocking/upload_stocking_events.html",
+                        {"maxEvents": maxEvents, "form": form},
                     )
 
                 xls_events = xls2dicts(data_file)
@@ -101,8 +111,10 @@ def upload_events(request):
                 valid, msg = validate_upload(xls_events, request.user)
                 if not valid:
                     messages.error(request, msg)
-                    return HttpResponseRedirect(
-                        reverse("stocking:upload-stocking-events")
+                    return render(
+                        request,
+                        "stocking/upload_stocking_events.html",
+                        {"maxEvents": maxEvents, "form": form},
                     )
 
                 for i, event in enumerate(xls_events):
@@ -125,7 +137,12 @@ def upload_events(request):
 
             except Exception as e:
                 messages.error(request, "Unable to upload file. " + repr(e))
-                return HttpResponseRedirect(reverse("stocking:upload-stocking-events"))
+
+                return render(
+                    request,
+                    "stocking/upload_stocking_events.html",
+                    {"maxEvents": maxEvents, "form": form},
+                )
 
     else:
         form = DataUploadForm()
@@ -575,7 +592,6 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
             return redirect("home")
         return super(DataUploadEventListView, self).get(*args, **kwargs)
 
-
     def get_base_queryset(self):
         """Get the base queryset that is used for both the event list
         and sidebar filter options.  Returns queryset without
@@ -584,17 +600,13 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
 
         """
 
-        queryset = (
-            DataUploadEvent.objects.select_related("agency", "lake")
-            .all()
-        )
+        queryset = DataUploadEvent.objects.select_related("agency", "lake").all()
         user = self.request.user
         if user.role != "glsc":
             queryset = queryset.filter(lake__in=user.lakes.all(), agency=user.agency)
         filtered = DataUploadEventFilter(self.request.GET, queryset=queryset)
 
         return filtered.qs.order_by("-timestamp")
-
 
     def get_context_data(self, **kwargs):
 
@@ -606,9 +618,7 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
         basequery = self.get_base_queryset()
 
         lake_list = (
-            basequery.values_list(
-                "lake__abbrev", "lake__lake_name"
-            )
+            basequery.values_list("lake__abbrev", "lake__lake_name")
             .annotate(n=Count("id"))
             .order_by("lake__lake_name")
         )
@@ -622,7 +632,6 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
         )
 
         context["agency_list"] = add_is_checked(agency_list, filters.get("agency"))
-
 
         year_list = (
             basequery.values_list("timestamp__year", "timestamp__year")
@@ -640,9 +649,13 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
         """Annotate our base queryset with the number of stocking
         events and numbers stocked"""
 
-        qs = self.get_base_queryset().select_related("uploaded_by").annotate(
+        qs = (
+            self.get_base_queryset()
+            .select_related("uploaded_by")
+            .annotate(
                 event_count=Count("stocking_events"),
                 total_stocked=Sum("stocking_events__no_stocked"),
             )
+        )
 
         return qs
