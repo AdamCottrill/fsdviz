@@ -10,7 +10,7 @@
   "description": "Great Lakes Fish Stocking Data Visualization",
   "main": "index.js",
   "scripts": {
-    "dev": "rollup -c --watch.include fsdviz/js_src/**",
+    "dev": "rollup -c --watch --watch.include fsdviz/js_src/**",
     "rollup": "rollup -c",
     "build": "rollup -c --environment NODE_ENV:production",
     "reload": "live-server --port=8111",

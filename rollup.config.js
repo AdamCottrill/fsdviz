@@ -47,6 +47,13 @@ export default [
   {
     input: "fsdviz/js_src/basinwidePieChartMap.js",
     onwarn: onwarn,
+    watch: {
+      input: "fsdviz/js_src/basinwidePieChartMap.js",
+      chokidar: {
+        usePolling: true,
+      },
+    },
+
     output: {
       name: "MainPieChartMap",
       file: "fsdviz/static/js/mainPieChartMap.js",
@@ -63,6 +70,13 @@ export default [
   {
     input: "fsdviz/js_src/findEventsForm.js",
     onwarn: onwarn,
+    watch: {
+      input: "fsdviz/js_src/findEventsForm.js",
+      chokidar: {
+        usePolling: true,
+      },
+    },
+
     output: {
       name: "FindEventsForm",
       file: "fsdviz/static/js/findEventsForm.js",
@@ -79,6 +93,12 @@ export default [
   {
     input: "fsdviz/js_src/filteredStockingEvents.js",
     onwarn: onwarn,
+    watch: {
+      input: "fsdviz/js_src/filteredStockingEvents.js",
+      chokidar: {
+        usePolling: true,
+      },
+    },
     output: {
       name: "FilteredStockingEvents",
       file: "fsdviz/static/js/filteredStockingEvents.js",
@@ -96,6 +116,13 @@ export default [
   {
     input: "fsdviz/js_src/filteredCwtStockingEvents.js",
     onwarn: onwarn,
+    watch: {
+      input: "fsdviz/js_src/filteredCwtStockingEvents.js",
+      chokidar: {
+        usePolling: true,
+      },
+    },
+
     output: {
       name: "FilteredCwtStockingEvents",
       file: "fsdviz/static/js/filteredCwtStockingEvents.js",
@@ -112,6 +139,13 @@ export default [
   {
     input: "fsdviz/js_src/uploadEventDetail.js",
     onwarn: onwarn,
+    watch: {
+      input: "fsdviz/js_src/uploadEventDetail.js",
+      chokidar: {
+        usePolling: true,
+      },
+    },
+
     output: {
       name: "UploadEvent",
       file: "fsdviz/static/js/upload_event_detail.js",
@@ -128,6 +162,13 @@ export default [
   {
     input: "fsdviz/js_src/stockingEventForm.js",
     onwarn: onwarn,
+    watch: {
+      input: "fsdviz/js_src/stockingEventForm.js",
+      chokidar: {
+        usePolling: true,
+      },
+    },
+
     output: {
       name: "StockingEventForm",
       file: "fsdviz/static/js/stocking_event_form.js",
@@ -143,6 +184,13 @@ export default [
   {
     input: "fsdviz/js_src/spatialLookup.js",
     onwarn: onwarn,
+    watch: {
+      input: "fsdviz/js_src/spatialLookup.js",
+      chokidar: {
+        usePolling: true,
+      },
+    },
+
     output: {
       name: "SpatialLookup",
       file: "fsdviz/static/js/spatial_lookup.js",
@@ -159,7 +207,15 @@ export default [
 
   {
     input: "fsdviz/js_src/xlsx_event_validation.js",
+
     onwarn: onwarn,
+    watch: {
+      input: "fsdviz/js_src/xlsx_event_validation.js",
+      chokidar: {
+        usePolling: true,
+      },
+    },
+
     output: {
       name: "xlsx_upload_validations",
       file: "fsdviz/static/js/xlsx_event_validation.js",
