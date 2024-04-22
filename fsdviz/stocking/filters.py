@@ -5,9 +5,10 @@ The will be used in both views and api serializers.
 
 import django_filters
 from django.contrib.gis.geos import GEOSGeometry
-from .models import StockingEvent, YearlingEquivalent, DataUploadEvent
+from django.db.models import Q
 
-from ..common.utils import ValueInFilter, NumberInFilter, NumberInOrNullFilter
+from ..common.utils import NumberInFilter, NumberInOrNullFilter, ValueInFilter
+from .models import DataUploadEvent, StockingEvent, YearlingEquivalent
 
 
 class GeomFilter(django_filters.CharFilter):
@@ -103,7 +104,6 @@ class StockingEventFilter(django_filters.FilterSet):
     # and aliase for stocking_month - to keep existing book marks working
     months = NumberInOrNullFilter(field_name="month", lookup_expr="in")
 
-
     species = ValueInFilter(field_name="species__abbrev", lookup_expr="in")
 
     # strain abbrev (human friendly)
@@ -136,6 +136,15 @@ class StockingEventFilter(django_filters.FilterSet):
 
     roi = GeomFilter(field_name="geom", method="filter_geom_in_roi")
 
+    q = django_filters.CharFilter(method="quick_search", label="quick_search")
+
+    def quick_search(self, queryset, name, value):
+        """return any records that have partial matches on their
+        stock_id or agency stock_id"""
+        return queryset.filter(
+            Q(stock_id__icontains=value) | Q(agency_stock_id__icontains=value)
+        )
+
     class Meta:
         model = StockingEvent
         fields = [
@@ -155,14 +164,13 @@ class StockingEventFilter(django_filters.FilterSet):
         ]
 
 
-
 class DataUploadEventFilter(django_filters.FilterSet):
     """A filter for our data upload events so we can filter by lake,
     agency, and upload year."""
 
     lake = ValueInFilter(field_name="lake__abbrev", lookup_expr="in")
     agency = ValueInFilter(field_name="agency__abbrev", lookup_expr="in")
-    year  = ValueInFilter(field_name="timestamp__year", lookup_expr="in")
+    year = ValueInFilter(field_name="timestamp__year", lookup_expr="in")
 
     class Meta:
         model = DataUploadEvent

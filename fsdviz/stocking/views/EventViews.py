@@ -244,7 +244,7 @@ def PieChartMapViewLatestYear(request):
 
 
 class PieChartMapView(TemplateView):
-    """This is going to be the ront page of out application.  Most of the
+    """This is going to be the front page of out application.  Most of the
      work will done by the javascript libraries, but we will need to pass
      in serveral variables to set things up:
 
