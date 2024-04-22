@@ -112,7 +112,7 @@ def find_events(request):
     jurisdictions = Jurisdiction.objects.values_list("slug", "name")
     agencies = Agency.objects.all().values_list("abbrev", "agency_name")
 
-    bbox =  Lake.objects.all().aggregate(extent=Extent("geom"))
+    bbox = Lake.objects.all().aggregate(extent=Extent("geom"))
 
     # manunits
     # managementUnits = list(
@@ -197,7 +197,7 @@ def find_events(request):
             "strains": json.dumps(strains),
             "lifestages": json.dumps(lifestages),
             "stocking_methods": json.dumps(stocking_methods),
-            "bbox": bbox["extent"]
+            "bbox": bbox["extent"],
         },
     )
 
@@ -385,32 +385,28 @@ class StockingEventListView(ListView):
     paginate_by = 200
     template_name = "stocking/stocking_event_list.html"
 
-
     def get_context_data(self, **kwargs):
         context = super(StockingEventListView, self).get_context_data(**kwargs)
-
-        filters = self.request.GET.copy()
-        context["filters"] = filters
-        search_q = filters.get("q")
-        if search_q:
-            filters.pop("q")
-            filters["stock_id__contains"] = search_q
-            filters["agency_stock_id__contains"] = search_q
-
-        self.request.GET = filters
-
-        context["stock_id__contains"] = search_q
-        context["agency_stock_id__contains"] = search_q
 
         basequery = StockingEventFilter(
             self.request.GET, StockingEvent.objects.all()
         ).qs
 
-        # add the contains filter to make sure our tallies are right
+        filters = self.request.GET.copy()
+        context["filters"] = filters
+        search_q = filters.get("q")
+
         if search_q:
+            filters.pop("q")
+            filters["stock_id__contains"] = search_q
+            filters["agency_stock_id__contains"] = search_q
+            context["stock_id__contains"] = search_q
+            context["agency_stock_id__contains"] = search_q
+            # # add the contains filter to make sure our tallies are right
             basequery = basequery.filter(
                 Q(stock_id__icontains=search_q) | Q(agency_stock_id__icontains=search_q)
             )
+        self.request.GET = filters
 
         lake_list = (
             basequery.values_list(
@@ -595,7 +591,7 @@ class StockingEventListView(ListView):
 
         if search_q:
             queryset = queryset.filter(
-                Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q)
+                Q(stock_id__icontains=search_q) | Q(agency_stock_id__icontains=search_q)
             )
 
         filtered_list = StockingEventFilter(self.request.GET, queryset=queryset)

@@ -134,6 +134,7 @@ def stocking_events(db):
         dd_lon=pt1.x,
         dd_lat=pt1.y,
         geom=pt1,
+        agency_stock_id='foo-bar-baz',
         hatchery=mnrf_hatcheryA,
     )
     event1111.fin_clips.add(lp)
@@ -156,6 +157,7 @@ def stocking_events(db):
         dd_lon=pt1.x,
         dd_lat=pt1.y,
         geom=pt1,
+        agency_stock_id='foo-bar',
         hatchery=mdnr_hatchery,
     )
 
