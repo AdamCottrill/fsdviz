@@ -32,7 +32,7 @@ FIELD_NAMES = [
     "glfsd_stock_id",
     "agency_stock_id",
     "agency_code",
-    "_lake",
+    "lake",
     "state_prov",
     "manUnit",
     "grid_10min",
@@ -45,11 +45,12 @@ FIELD_NAMES = [
     "day",
     "stock_method",
     "species_code",
-    "_strain",
+    "strain_group",
+    "strain_raw",
     "yearclass",
     "life_stage",
     "age_months",
-    "_clip",
+    "clip",
     "clip_efficiency",
     "phys_chem_mark",
     "tag_type",
@@ -112,7 +113,7 @@ def test_xlsx_download_events_xlsx_event_filters(client, stocking_events):
 
     # we filtered for one lake, so make sure that our response includes
     # events from just that lake:
-    lakes = set([x["_lake"] for x in response.data])
+    lakes = set([x["lake"] for x in response.data])
     assert lakes == set(
         [
             "SU",
@@ -180,7 +181,7 @@ def test_xlsx_download_events_json_event_filters(client, stocking_events):
 
     # we filtered for one lake, so make sure that our response includes
     # events from just that lake:
-    lakes = set([x["_lake"] for x in response.data])
+    lakes = set([x["lake"] for x in response.data])
     assert lakes == set(
         [
             "SU",

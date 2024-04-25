@@ -9,6 +9,10 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Count, F, Sum
+
+from django.db.models import CharField, Value as V
+from django.db.models.functions import Concat
+
 from drf_excel.mixins import XLSXFileMixin
 from drf_excel.renderers import XLSXRenderer
 from rest_framework import generics, viewsets
@@ -189,7 +193,12 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "longitude": F("dd_lon"),
             "stock_method": F("stocking_method__stk_meth"),
             "species_code": F("species__abbrev"),
-            "_strain": F("strain_raw__strain__strain_code"),
+            #"_strain": F("strain_raw__strain__strain_code"),
+            "_strain": Concat("strain_raw__strain__strain_label", V(" ("), "strain_raw__strain__strain_code", V(")"), output_field=CharField()),
+            # raw_strain: "Green Lake (GRL) [ATS]"
+            # strain: "Green Lake (GRL) [ATS]"
+            "_strain_raw": Concat("strain_raw__description", V(" ("), "strain_raw__raw_strain", V(")"), output_field=CharField()),
+
             "yearclass": F("year_class"),
             "life_stage": F("lifestage__abbrev"),
             "age_months": F("agemonth"),
@@ -229,6 +238,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "stock_method",
             "species_code",
             "_strain",
+            "_strain_raw",
             "yearclass",
             "life_stage",
             "age_months",
@@ -252,6 +262,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
                 "jurisdiction",
                 "agency",
                 "species",
+                "strain_raw",
                 "strain_raw__strain",
                 "lifestage",
                 "condition",

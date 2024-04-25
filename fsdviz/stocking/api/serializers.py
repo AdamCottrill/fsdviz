@@ -210,7 +210,7 @@ class StockingEventXlsxSerializer(serializers.Serializer):
     glfsd_stock_id = serializers.CharField()
     agency_stock_id = serializers.CharField()
     agency_code = serializers.CharField()
-    _lake = serializers.CharField()
+    lake = serializers.CharField(source="_lake")
     state_prov = serializers.CharField()
     manUnit = serializers.CharField()
     # ls_mgmt= serializers.CharField(),
@@ -224,11 +224,12 @@ class StockingEventXlsxSerializer(serializers.Serializer):
     day = serializers.IntegerField()
     stock_method = serializers.CharField()
     species_code = serializers.CharField()
-    _strain = serializers.CharField()
+    strain_group = serializers.CharField(source="_strain")
+    strain_raw = serializers.CharField(source="_strain_raw")
     yearclass = serializers.IntegerField()
     life_stage = serializers.CharField()
     age_months = serializers.IntegerField()
-    _clip = serializers.CharField()
+    clip = serializers.CharField(source="_clip")
     clip_efficiency = serializers.FloatField()
     phys_chem_mark = serializers.CharField()
 
