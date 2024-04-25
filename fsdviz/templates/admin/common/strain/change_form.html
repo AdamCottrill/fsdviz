@@ -1,0 +1,40 @@
+{% extends "admin/change_form.html" %}
+
+{% load admin_urls %}
+
+{% block after_related_objects %}
+    <h2>Current Raw-Strains included in "{{original}}" Strain:</h2>
+    {% if original.rawstrain.count %}
+        <table>
+            <thead>
+                <th>Raw Strain Code</th>
+                <th>Description</th>
+                <th>Active</th>
+            </thead>
+            <tbody>
+                {% for item in original.rawstrain.all %}
+                    <tr>
+                        <td><a href="{% url 'admin:common_strainraw_change'  item.pk %}">
+                            {{item.raw_strain}}
+                        </a>
+                        </td>
+                        <td>{{item.description}}</td>
+                        <td>{{item.active|yesno}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+    {% else %}
+
+    There are current not raw (sub) strain entries associated with this strain.
+
+    {% endif %}
+
+
+    <br/>
+
+
+
+{% endblock %}
