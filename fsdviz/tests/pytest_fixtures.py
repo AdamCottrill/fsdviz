@@ -272,7 +272,7 @@ def stocking_event_dict(db):
         "tag_ret": 99,
         "length": 107.44,
         "weight": 563.8153159,
-        "condition": 1,
+        "stocking_mortality": 1,
         "lot_code": "LAT-SLW-13",
         "stock_meth": "b",
         "agency": "MNRF",

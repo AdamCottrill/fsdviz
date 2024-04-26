@@ -33,7 +33,7 @@ from fsdviz.common.api.views import (
 from fsdviz.stocking.api.views import (
     LifeStageViewSet,
     YearlingEquivalentViewSet,
-    ConditionViewSet,
+    StockingMortalityViewSet,
     StockingMethodViewSet,
     StockingEventViewSet,
     CWTEventListAPIView,
@@ -63,7 +63,7 @@ public_urls = [
         "api/v1/stocking/yearling_equivalent",
         YearlingEquivalentViewSet.as_view({"get": "list"}),
     ),
-    path("api/v1/stocking/condition", ConditionViewSet.as_view({"get": "list"})),
+    path("api/v1/stocking/stocking_mortality", StockingMortalityViewSet.as_view({"get": "list"})),
     path(
         "api/v1/stocking/stocking_method",
         StockingMethodViewSet.as_view({"get": "list"}),

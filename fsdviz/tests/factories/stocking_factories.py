@@ -1,5 +1,5 @@
 """
-Factories for the models in the stocking application - lifestage, condition,
+Factories for the models in the stocking application - lifestage, stocking_mortality,
 stocking event, etc.
 
 """
@@ -12,7 +12,7 @@ from django.contrib.gis.geos import GEOSGeometry
 # import common.models as common
 from ...stocking.models import (
     LifeStage,
-    Condition,
+    StockingMortality,
     Hatchery,
     StockingMethod,
     StockingEvent,
@@ -64,16 +64,16 @@ class YearlingEquivalentFactory(factory.django.DjangoModelFactory):
     yreq_factor = 1.0
 
 
-class ConditionFactory(factory.django.DjangoModelFactory):
+class StockingMortalityFactory(factory.django.DjangoModelFactory):
     """
-    A factory for Condition objects.
+    A factory for StockingMortality objects.
     """
 
     class Meta:
-        model = Condition
-        django_get_or_create = ("condition",)
+        model = StockingMortality
+        django_get_or_create = ("value",)
 
-    condition = 1
+    value = 1
     description = '<1% mortality observed, "excellent"'
 
 
@@ -125,7 +125,7 @@ class StockingEventFactory(factory.django.DjangoModelFactory):
     # stateprov = factory.SubFactory(StateProvinceFactory)
     stocking_method = factory.SubFactory(StockingMethodFactory)
     lifestage = factory.SubFactory(LifeStageFactory)
-    condition = factory.SubFactory(ConditionFactory)
+    stocking_mortality = factory.SubFactory(StockingMortalityFactory)
 
     latlong_flag = factory.SubFactory(LatLonFlagFactory)
 

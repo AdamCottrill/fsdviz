@@ -25,7 +25,7 @@ from django.test import TestCase
 from django.urls import reverse
 from fsdviz.common.models import CWT, FinClip, FishTag, Jurisdiction, PhysChemMark
 from fsdviz.myusers.tests.factories import UserFactory
-from fsdviz.stocking.models import Condition, StockingEvent
+from fsdviz.stocking.models import StockingMortality, StockingEvent
 from fsdviz.tests.factories.common_factories import (
     AgencyFactory,
     CompositeFinClipFactory,
@@ -46,7 +46,7 @@ from fsdviz.tests.factories.common_factories import (
 
 )
 from fsdviz.tests.factories.stocking_factories import (
-    ConditionFactory,
+    StockingMortalityFactory,
     HatcheryFactory,
     LifeStageFactory,
     StockingMethodFactory,
@@ -115,7 +115,7 @@ class XLS_Submission(TestCase):
             species=lat, lifestage=fall_fingerling, yreq_factor=0.9
         )
 
-        ConditionFactory(condition=0, description="Reported as something")
+        StockingMortalityFactory(value=0, description="Reported as something")
 
         StockingMethodFactory(stk_meth="b", description="boat")
 
@@ -175,7 +175,7 @@ class XLS_Submission(TestCase):
             "form-0-tag_ret": "",
             "form-0-length": "",
             "form-0-weight": "840.0081",
-            "form-0-condition": "0",
+            "form-0-stocking_mortality": "0",
             "form-0-stock_meth": "b",
             "form-0-no_stocked": "30747",
             "form-0-lot_code": "380",
@@ -205,7 +205,7 @@ class XLS_Submission(TestCase):
             "form-1-tag_ret": "",
             "form-1-length": "",
             "form-1-weight": "280.0127",
-            "form-1-condition": "0",
+            "form-1-stocking_mortality": "0",
             "form-1-stock_meth": "b",
             "form-1-no_stocked": "10849",
             "form-1-lot_code": "374s",
@@ -239,7 +239,7 @@ class XLS_Submission(TestCase):
                 "tag_ret": "",
                 "length": "",
                 "weight": "840.0081",
-                "condition": "0",
+                "stocking_mortality": "0",
                 "stock_meth": "b",
                 "no_stocked": "30747",
                 "lot_code": "380",
@@ -270,7 +270,7 @@ class XLS_Submission(TestCase):
                 "tag_ret": "",
                 "length": "",
                 "weight": "280.0127",
-                "condition": "",
+                "stocking_mortality": "",
                 "stock_meth": "b",
                 "no_stocked": "10849",
                 "lot_code": "374s",
@@ -334,7 +334,7 @@ class XLS_Submission(TestCase):
         assert event.grid_10.grid == "1128"
         assert event.species.abbrev == "LAT"
         assert event.hatchery.abbrev == "CWC"
-        # assert event.condition ==  "0"
+        # assert event.stocking_mortality ==  "0"
         # assert event.strain ==  "SN"
 
         # these attributes are straight from the uploaded data
@@ -408,7 +408,7 @@ class XLS_Submission(TestCase):
             "grid",
             "strain",
             "stage",
-            "condition",
+            "stocking_mortality",
             "stock_meth",
             "finclip",
             "physchem_mark",
@@ -693,22 +693,22 @@ class XLS_Submission(TestCase):
         assert event.yreq_stocked == int(event.no_stocked * 0.90)
 
     @pytest.mark.django_db(transaction=True)
-    def test_xls_submit_missing_condition(self):
-        """Condition is not a required field in our xls form but has default
-        value '99' if it is not repored.  Verify that condition is
+    def test_xls_submit_missing_stocking_mortality(self):
+        """StockingMortality is not a required field in our xls form but has default
+        value '99' if it is not repored.  Verify that stocking_mortality is
         populated as expected if the submitted data is null or an
         empty string
 
         """
 
-        not_reported, created = Condition.objects.get_or_create(condition=99)
+        not_reported, created = StockingMortality.objects.get_or_create(value=99)
 
         user = self.user
         payload = self.payload
 
         payload = self.payload
-        payload["form-0-condition"] = ""
-        payload["form-1-condition"] = ""
+        payload["form-0-stocking_mortality"] = ""
+        payload["form-1-stocking_mortality"] = ""
 
         login = self.client.login(email=user.email, password="Abcd1234")
         assert login is True
@@ -723,4 +723,4 @@ class XLS_Submission(TestCase):
 
         events = StockingEvent.objects.all()
         for event in events:
-            assert event.condition == not_reported
+            assert event.stocking_mortality == not_reported

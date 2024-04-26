@@ -31,7 +31,7 @@
     + tag retention
     + marks  (if any)
     + marking efficency
-    + condition
+    + stocking_mortality
     + number stocked
     + yearing equivalents
     + lot code
@@ -61,7 +61,7 @@ from ..pytest_fixtures import glsc as user
 from ..factories.stocking_factories import (
     StockingEventFactory,
     LifeStageFactory,
-    ConditionFactory,
+    StockingMortalityFactory,
     HatcheryFactory,
     StockingMethodFactory,
 )
@@ -122,8 +122,8 @@ def base_event():
     )
 
     lifestage = LifeStageFactory(abbrev="y", description="Yearling")
-    condition = ConditionFactory(
-        condition="0", description="unknown condition at stocking"
+    stocking_mortality = StockingMortalityFactory(
+        value=0, description="unknown stocking mortality at stocking"
     )
 
     event = StockingEventFactory(
@@ -135,7 +135,7 @@ def base_event():
         latlong_flag=latlong_flag,
         stocking_method=stocking_method,
         lifestage=lifestage,
-        condition=condition,
+        stocking_mortality=stocking_mortality,
         stock_id=stock_id,
         year_class=2018,
         agemonth=15,

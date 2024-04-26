@@ -4,7 +4,7 @@ from django.urls import path
 from rest_framework.routers import SimpleRouter
 
 from .views import (
-    ConditionViewSet,
+    StockingMortalityViewSet,
     CWTEvent2xlsxViewSet,
     CWTEventListAPIView,
     CWTEventMapAPIView,
@@ -26,7 +26,7 @@ router = SimpleRouter()
 router.register("hatchery", HatcheryViewSet)
 router.register("lifestage", LifeStageViewSet)
 router.register("yearling_equivalent", YearlingEquivalentViewSet)
-router.register("condition", ConditionViewSet)
+router.register("stocking_mortality", StockingMortalityViewSet)
 router.register("stocking_method", StockingMethodViewSet)
 
 urlpatterns = router.urls

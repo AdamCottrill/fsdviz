@@ -32,8 +32,8 @@ class XlsEventForm(forms.Form):
         self.fields["stock_meth"].choices = self.choices.get("stocking_method")
         self.fields["stage"].choices = self.choices.get("lifestage")
 
-        condition_choices = OPTIONAL_CHOICE + self.choices.get("condition", [])
-        self.fields["condition"].choices = condition_choices
+        stocking_mortality_choices = OPTIONAL_CHOICE + self.choices.get("stocking_mortality", [])
+        self.fields["stocking_mortality"].choices = stocking_mortality_choices
 
         finclips_choices = OPTIONAL_CHOICE + self.choices.get("finclips", [])
         self.fields["finclip"].choices = finclips_choices
@@ -55,7 +55,7 @@ class XlsEventForm(forms.Form):
             "strain",
             "stock_meth",
             "stage",
-            "condition",
+            "stocking_mortality",
             "finclip",
             "physchem_mark",
             "tag_type",
@@ -122,7 +122,7 @@ class XlsEventForm(forms.Form):
     length = forms.FloatField(min_value=1, required=False, widget=forms.TextInput)
     weight = forms.FloatField(min_value=0.1, required=False, widget=forms.TextInput)
 
-    condition = forms.ChoiceField(choices=[], required=False, widget=MySelect)
+    stocking_mortality = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     stock_meth = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     no_stocked = forms.IntegerField(required=True, min_value=1)
     lot_code = forms.CharField(required=False)

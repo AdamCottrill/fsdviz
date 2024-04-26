@@ -144,9 +144,8 @@ class YearlingEquivalent(BaseModel):
         return "{} [{}]: {:.3f}".format(self.species, self.lifestage, self.yreq_factor)
 
 
-class Condition(models.Model):
-    """A model to capture the condition of the stocked when they were
-    stocked.
+class StockingMortality(models.Model):
+    """A model to capture the stocking mortality
 
     *NOTE:* This model does not inherit form the base model (with
      created and modified timestamps).  Inheriting from that model
@@ -154,25 +153,34 @@ class Condition(models.Model):
 
     """
     id = models.AutoField(primary_key=True)
-    condition = models.IntegerField(unique=True)
+    value = models.IntegerField(unique=True)
     description = models.CharField(max_length=100)
     # colour field on this model causes all kinds of grief with migrations.
     # seems to be related to get_default_method??
     # color = ColorField(default="#FF0000")
 
     class Meta:
-        ordering = ["condition"]
+        ordering = ["value"]
 
     def __str__(self):
-        return "{} - {}".format(self.condition, self.description)
+        return "{} - {}".format(self.value, self.description)
 
 
 def get_default_condition():
     """a helper function to ensure that condition value is always
     populated, even if a value is not reported. 99 corresponds to 'Not
     Reported'."""
-    condition, created = Condition.objects.get_or_create(condition=99)
-    return condition.id
+    mortality, created = StockingMortality.objects.get_or_create(condition=99)
+    return mortality.id
+
+
+def get_default_stocking_mortality():
+    """a helper function to ensure that condition value is always
+    populated, even if a value is not reported. 99 corresponds to 'Not
+    Reported'."""
+    mortality, created = StockingMortality.objects.get_or_create(mortality=99)
+    return mortality.id
+    return mortality.id
 
 
 class StockingMethod(BaseModel):
@@ -306,11 +314,11 @@ class StockingEvent(BaseModel):
         LifeStage, on_delete=models.CASCADE, related_name="stocking_events"
     )
 
-    condition = models.ForeignKey(
-        Condition,
+    stocking_mortality = models.ForeignKey(
+        StockingMortality,
         on_delete=models.CASCADE,
         related_name="stocking_events",
-        default=get_default_condition,
+        default=get_default_stocking_mortality,
     )
 
     # unique fish stocking event identifier

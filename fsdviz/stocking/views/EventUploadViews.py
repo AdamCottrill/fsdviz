@@ -42,7 +42,7 @@ from ..filters import DataUploadEventFilter
 
 from ..forms import XlsEventForm, DataUploadForm
 from ..models import (
-    Condition,
+    StockingMortality,
     DataUploadEvent,
     Hatchery,
     LifeStage,
@@ -290,8 +290,8 @@ def xls_events(request):
             stocking_methods = StockingMethod.objects.values_list("id", "stk_meth")
             stocking_method_id_lookup = toLookup(stocking_methods)
 
-            conditions = Condition.objects.values_list("id", "condition")
-            condition_id_lookup = toLookup(conditions)
+            stocking_mortalities = StockingMortality.objects.values_list("id", "value")
+            stocking_mortality_id_lookup = toLookup(stocking_mortalities)
 
             lifestages = LifeStage.objects.values_list("id", "abbrev")
             lifestage_id_lookup = toLookup(lifestages)
@@ -344,11 +344,11 @@ def xls_events(request):
                             data.pop("stock_meth")
                         ]
 
-                        condition = condition_id_lookup.get(
-                            int_or_none(data.pop("condition"))
+                        stocking_mortality = stocking_mortality_id_lookup.get(
+                            int_or_none(data.pop("stocking_mortality"))
                         )
-                        if condition is None:
-                            condition = condition_id_lookup[99]
+                        if stocking_mortality is None:
+                            stocking_mortality = stocking_mortality_id_lookup[99]
 
                         hatchery = hatchery_id_lookup.get(data.pop("hatchery"))
                         grid_slug = "{}_{}".format(
@@ -415,7 +415,7 @@ def xls_events(request):
                         data["species_id"] = species
                         data["strain_raw_id"] = strain_id
                         data["jurisdiction_id"] = lakeState
-                        data["condition_id"] = condition
+                        data["stocking_mortality_id"] = stocking_mortality
                         data["hatchery_id"] = hatchery
                         data["upload_event"] = data_upload_event
 

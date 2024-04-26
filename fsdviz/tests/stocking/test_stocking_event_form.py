@@ -83,7 +83,7 @@ choice_fields = [
     ("state_prov_id", "state_provs"),
     ("species_id", "species"),
     ("lifestage_id", "lifestages"),
-    ("condition_id", "conditions"),
+    ("stocking_mortality_id", "stocking_mortalities"),
     ("stocking_method_id", "stocking_methods"),
     ("grid_10_id", "grids"),
     ("strain_raw_id", "strains"),
@@ -179,7 +179,7 @@ optional_fields = [
     "tag_ret",
     "length",
     "weight",
-    "condition",
+    "stocking_mortality",
     "validation",
 ]
 

@@ -38,7 +38,7 @@ from fsdviz.tests.factories.common_factories import (
     StrainFactory,
 )
 from fsdviz.tests.factories.stocking_factories import (
-    ConditionFactory,
+    StockingMortalityFactory,
     LifeStageFactory,
     StockingMethodFactory,
 )
@@ -273,8 +273,8 @@ def choices_setup():
     SpeciesFactory(abbrev="LAT", common_name="Lake Trout")
     StrainFactory()
     LifeStageFactory(abbrev="y", description="yearling")
-    ConditionFactory(condition="4")
-    ConditionFactory(condition="99")
+    StockingMortalityFactory(value=4)
+    StockingMortalityFactory(value=99)
 
     StockingMethodFactory(stk_meth="b", description="boat")
 
@@ -302,7 +302,7 @@ def test_get_xls_choices(choices_setup):
         "stat_dist",
         "species",
         "lifestage",
-        "condition",
+        "stocking_mortality",
         "stocking_method",
         "grids",
     ]
@@ -327,7 +327,7 @@ def test_get_xls_choices(choices_setup):
     assert xls_choices["stocking_method"] == expected
 
     expected = [(4, 4), (99, 99)]
-    assert xls_choices["condition"] == expected
+    assert xls_choices["stocking_mortality"] == expected
 
     # statdist and grids are dictionaries keyed by lake:
     expected = {"HU": [("NC2", "NC2")]}
@@ -515,7 +515,7 @@ def test_agency_coordinator_cannot_upload_events_different_lake(
         assertContains(response, msg)
 
     expected = [(4, 4), (99, 99)]
-    assert xls_choices["condition"] == expected
+    assert xls_choices["stocking_mortality"] == expected
 
     # statdist and grids are dictionaries keyed by lake:
     expected = {"HU": [("NC2", "NC2")]}

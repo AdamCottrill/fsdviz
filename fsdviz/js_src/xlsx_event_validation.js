@@ -176,7 +176,7 @@ Promise.all([
   // });
 
   // const finclip_choices = get_choices("finclip");
-  const condition_choices = get_choices("condition");
+  const stocking_mortality_choices = get_choices("stocking_mortality");
   const physchem_mark_choices = get_choices("physchem_mark");
   const tag_type_choices = get_choices("tag_type");
   const hatchery_choices = get_choices("hatchery");
@@ -364,9 +364,12 @@ Promise.all([
         )
         .min(0.1, "Weight must be greater than or equal to 1")
         .positive("Ensure this value is greater than or equal to 0.1"),
-      condition: string()
+      stocking_mortality: string()
         .nullable(true)
-        .oneOf(["", ...condition_choices], "Unknown Condition Code.")
+        .oneOf(
+          ["", ...stocking_mortality_choices],
+          "Unknown Stocking Mortality Code."
+        )
         .transform((_, val) => (val === val ? val : null)),
       lot_code: string()
         .nullable(true)

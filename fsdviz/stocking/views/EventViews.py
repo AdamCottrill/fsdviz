@@ -655,7 +655,7 @@ class StockingEventDetailView(DetailView):
             "jurisdiction__stateprov",
             "stocking_method",
             "lifestage",
-            "condition",
+            "stocking_mortality",
         )
 
         event = get_object_or_404(qs, stock_id=stock_id)

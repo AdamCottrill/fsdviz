@@ -25,7 +25,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from ..filters import StockingEventFilter, YearlingEquivalentFilter
 from ..models import (
-    Condition,
+    StockingMortality,
     Hatchery,
     LifeStage,
     StockingEvent,
@@ -33,7 +33,7 @@ from ..models import (
     YearlingEquivalent,
 )
 from .serializers import (
-    ConditionSerializer,
+    StockingMortalitySerializer,
     CWTEventXlsxSerializer,
     HatcherySerializer,
     LifeStageSerializer,
@@ -103,17 +103,17 @@ class HatcheryViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
-    """List of condition values and their descriptions reported by
+class StockingMortalityViewSet(viewsets.ReadOnlyModelViewSet):
+    """List of stocking_mortality values and their descriptions reported by
     contributing agencies for each stocking event to indicicate how
     healthy the fish were at time of stocking.
 
     """
 
-    queryset = Condition.objects.all()
-    serializer_class = ConditionSerializer
+    queryset = StockingMortality.objects.all()
+    serializer_class = StockingMortalitySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    lookup_field = "condition"
+    lookup_field = "value"
 
 
 class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
@@ -193,12 +193,23 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "longitude": F("dd_lon"),
             "stock_method": F("stocking_method__stk_meth"),
             "species_code": F("species__abbrev"),
-            #"_strain": F("strain_raw__strain__strain_code"),
-            "_strain": Concat("strain_raw__strain__strain_label", V(" ("), "strain_raw__strain__strain_code", V(")"), output_field=CharField()),
+            # "_strain": F("strain_raw__strain__strain_code"),
+            "_strain": Concat(
+                "strain_raw__strain__strain_label",
+                V(" ("),
+                "strain_raw__strain__strain_code",
+                V(")"),
+                output_field=CharField(),
+            ),
             # raw_strain: "Green Lake (GRL) [ATS]"
             # strain: "Green Lake (GRL) [ATS]"
-            "_strain_raw": Concat("strain_raw__description", V(" ("), "strain_raw__raw_strain", V(")"), output_field=CharField()),
-
+            "_strain_raw": Concat(
+                "strain_raw__description",
+                V(" ("),
+                "strain_raw__raw_strain",
+                V(")"),
+                output_field=CharField(),
+            ),
             "yearclass": F("year_class"),
             "life_stage": F("lifestage__abbrev"),
             "age_months": F("agemonth"),
@@ -213,7 +224,12 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "tag_retention": F("tag_ret"),
             "mean_length_mm": F("length"),
             "total_weight_kg": F("weight"),
-            "stocking_mortality": F("condition__description"),
+            "_stocking_mortality": Concat(
+                "stocking_mortality__value",
+                V(" - "),
+                "stocking_mortality__description",
+                output_field=CharField(),
+            ),
             "lot_code": F("lotcode"),
             "hatchery_abbrev": F("hatchery__abbrev"),
             "number_stocked": F("no_stocked"),
@@ -250,7 +266,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "tag_retention",
             "mean_length_mm",
             "total_weight_kg",
-            "stocking_mortality",
+            "_stocking_mortality",
             "lot_code",
             "hatchery_abbrev",
             "number_stocked",
@@ -265,7 +281,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
                 "strain_raw",
                 "strain_raw__strain",
                 "lifestage",
-                "condition",
+                "stocking_mortality",
                 "grid_10",
                 "stocking_method",
                 "hatchery",

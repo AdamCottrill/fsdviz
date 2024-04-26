@@ -60,7 +60,7 @@ class StockingEventModelAdmin(admin.ModelAdmin):
         "fin_clips",
         "fish_tags",
         "physchem_marks",
-        "condition",
+        "stocking_mortality",
         "no_stocked",
         "yreq_stocked",
         "notes",

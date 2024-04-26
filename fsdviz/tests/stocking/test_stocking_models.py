@@ -33,7 +33,7 @@ from fsdviz.myusers.tests.factories import UserFactory
 
 from ..factories.stocking_factories import (
     LifeStageFactory,
-    ConditionFactory,
+    StockingMortalityFactory,
     StockingMethodFactory,
     HatcheryFactory,
     StockingEventFactory,
@@ -98,22 +98,22 @@ def test_yearing_equivalent_str():
 
 
 @pytest.mark.django_db
-def test_condition_str():
+def test_stocking_mortality_str():
     """
-    Verify that the string representation of a condition object is the
-    value followed by the condition description:
+    Verify that the string representation of a stocking_mortality object is the
+    value followed by the stocking_mortality description:
 
     1 - <1% mortality observed, "excellent"
 
     """
 
-    condition_code = 1
+    stocking_mortality_code = 1
     description = '<1% mortality observed, "excellent"'
 
-    condition = ConditionFactory(condition=condition_code, description=description)
+    stocking_mortality = StockingMortalityFactory(value=stocking_mortality_code, description=description)
 
-    shouldbe = "{} - {}".format(condition_code, description)
-    assert str(condition) == shouldbe
+    shouldbe = "{} - {}".format(stocking_mortality_code, description)
+    assert str(stocking_mortality) == shouldbe
 
 
 @pytest.mark.django_db
