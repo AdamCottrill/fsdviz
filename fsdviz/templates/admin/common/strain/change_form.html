@@ -9,6 +9,7 @@
             <thead>
                 <th>Raw Strain Code</th>
                 <th>Description</th>
+                <th>Events</th>
                 <th>Active</th>
             </thead>
             <tbody>
@@ -19,6 +20,7 @@
                         </a>
                         </td>
                         <td>{{item.description}}</td>
+                        <td>{{item.stocking_events.count}}</td>
                         <td>{{item.active|yesno}}</td>
                     </tr>
                 {% endfor %}

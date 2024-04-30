@@ -1,9 +1,12 @@
 from django import forms
 from django.contrib.gis import admin
+from django.db.models import Count
 from .utils import fill_color_widget
 from ..models import StrainRaw, Strain
 
 admin.site.empty_value_display = "(None)"
+
+
 
 
 @admin.register(StrainRaw)
@@ -16,6 +19,7 @@ class StrainRawModelAdmin(admin.ModelAdmin):
         "active",
         "fill_color",
         "modified_timestamp",
+        "event_count"
     )
     list_filter = ("species", "active")
     search_fields = ("description", "raw_strain")
@@ -28,6 +32,9 @@ class StrainRawModelAdmin(admin.ModelAdmin):
         "created_timestamp",
         "modified_timestamp",
     )
+
+    def event_count(self, obj):
+        return obj._event_count
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "strain":
@@ -45,3 +52,10 @@ class StrainRawModelAdmin(admin.ModelAdmin):
 
     def fill_color(self, obj):
         return fill_color_widget(obj.color)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(
+            _event_count=Count("stocking_events", distinct=True),
+          )
+        return queryset
