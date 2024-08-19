@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.gis import admin, geos
+from django.db.models import Count
 
 from .utils import fill_color_widget
 from ..models import Jurisdiction
@@ -64,11 +65,17 @@ class JurisdictionModelAdmin(admin.GISModelAdmin):
         "description",
         "fill_color",
         "modified_timestamp",
+        "event_count",
     )
     list_filter = ("lake", "stateprov")
 
     def fill_color(self, obj):
         return fill_color_widget(obj.color)
+
+
+    def event_count(self, obj):
+        return obj._event_count
+
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -82,8 +89,12 @@ class JurisdictionModelAdmin(admin.GISModelAdmin):
                 "geom",
                 "lake__geom",
             )
+            .annotate(
+                _event_count=Count("stocking_events", distinct=True),
+            )
         )
-        return queryset
+
+        return queryset.distinct()
 
     def save_model(self, request, obj, form, change):
         """When we save the admin object, check to see if there is a

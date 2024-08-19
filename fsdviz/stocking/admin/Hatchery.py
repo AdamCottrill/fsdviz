@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 
 from ..models import Hatchery
 
@@ -15,6 +16,7 @@ class HatcheryModelAdmin(admin.ModelAdmin):
         "agency",
         "active",
         "modified_timestamp",
+        "event_count"
     )
     list_select_related = ("agency",)
     list_filter = (
@@ -27,3 +29,14 @@ class HatcheryModelAdmin(admin.ModelAdmin):
         "created_timestamp",
         "modified_timestamp",
     )
+
+
+    def event_count(self, obj):
+        return obj._event_count
+
+    def get_queryset(self, request):
+        qs = super(HatcheryModelAdmin, self).get_queryset(request)
+        qs = qs.annotate(
+            _event_count=Count("stocking_events", distinct=True),
+          )
+        return qs.distinct()

@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Count
 from django.contrib.gis import admin, geos
 
 from ..models import Grid10
@@ -49,6 +50,7 @@ class Grid10Admin(admin.GISModelAdmin):
         "lake",
         "slug",
         "modified_timestamp",
+        "event_count"
     )
     list_filter = ("lake",)
     search_fields = ("grid",)
@@ -58,16 +60,24 @@ class Grid10Admin(admin.GISModelAdmin):
         "modified_timestamp",
     )
 
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
+    def event_count(self, obj):
+        return obj._event_count
 
-        queryset = queryset.select_related(
-            "lake",
-        ).defer(
-            "geom",
-            "lake__geom",
+    def get_queryset(self, request):
+        queryset = super(Grid10Admin, self).get_queryset(request)
+        queryset = (
+            queryset.select_related(
+                "lake",
+            )
+            .defer(
+                "geom",
+                "lake__geom",
+            )
+            .annotate(
+                _event_count=Count("stocking_events", distinct=True),
+            )
         )
-        return queryset
+        return queryset.distinct()
 
     def save_model(self, request, obj, form, change):
         """When we save the admin object, check to see if there is a
