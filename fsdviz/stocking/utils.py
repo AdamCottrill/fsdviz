@@ -111,7 +111,6 @@ xlsFields2Fdviz = {
     "LOT_CODE": "lot_code",
     "NUMBER_STOCKED": "no_stocked",
     "NOTES": "notes",
-    # New Spring 2020:
     "Your_Agency_Stock_ID": "agency_stock_id",
     "HATCHERY": "hatchery",
     "CLIP": "finclip",

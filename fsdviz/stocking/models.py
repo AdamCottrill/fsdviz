@@ -381,7 +381,7 @@ class StockingEvent(BaseModel):
         "age of stocked fish in months", blank=True, null=True
     )
     length = models.IntegerField("length of stocked fish in mm", blank=True, null=True)
-    weight = models.FloatField("weight of stocked fish in grams", blank=True, null=True)
+    weight = models.FloatField("total weight of stocked fish in kgs", blank=True, null=True)
 
     lotcode = models.CharField(
         "Hatchery Lot code indicating source of stocked fish",

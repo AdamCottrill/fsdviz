@@ -60,7 +60,7 @@ FIELD_NAMES = [
     "total_weight_kg",
     "stocking_mortality",
     "lot_code",
-    "hatchery_abbrev",
+    "hatchery",
     "number_stocked",
     "notes",
 ]

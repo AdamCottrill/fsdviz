@@ -227,6 +227,8 @@ required_elements = [
     ("lifestage", "Yearling (y)"),
     ("age of stocked fish", '<td class="capitalize">15</td>'),
     ("year class", '<td class="capitalize">2018</td>'),
+    ("weight", "<td><strong>Total Weight(kg):</strong></td>"),
+    ("length", "<td><strong>Mean Length(mm):</strong></td>"),
 ]
 
 

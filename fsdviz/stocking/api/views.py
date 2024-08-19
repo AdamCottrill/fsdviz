@@ -11,7 +11,7 @@ from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Count, F, Sum
 
 from django.db.models import CharField, Value as V
-from django.db.models.functions import Concat
+from django.db.models.functions import Concat, Coalesce
 
 from drf_excel.mixins import XLSXFileMixin
 from drf_excel.renderers import XLSXRenderer
@@ -191,9 +191,14 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "location_secondary": F("st_site"),
             "latitude": F("dd_lat"),
             "longitude": F("dd_lon"),
-            "stock_method": F("stocking_method__stk_meth"),
+            #"stock_method": F("stocking_method__stk_meth"),
+            "_stock_method": Concat(
+                "stocking_method__stk_meth",
+                V(" - "),
+                "stocking_method__description",
+                output_field=CharField(),
+            ),
             "species_code": F("species__abbrev"),
-            # "_strain": F("strain_raw__strain__strain_code"),
             "_strain": Concat(
                 "strain_raw__strain__strain_label",
                 V(" ("),
@@ -201,8 +206,6 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
                 V(")"),
                 output_field=CharField(),
             ),
-            # raw_strain: "Green Lake (GRL) [ATS]"
-            # strain: "Green Lake (GRL) [ATS]"
             "_strain_raw": Concat(
                 "strain_raw__description",
                 V(" ("),
@@ -211,9 +214,15 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
                 output_field=CharField(),
             ),
             "yearclass": F("year_class"),
-            "life_stage": F("lifestage__abbrev"),
+            # "life_stage": F("lifestage__abbrev"),
+            "_life_stage": Concat(
+                "lifestage__abbrev",
+                V(" - "),
+                "lifestage__description",
+                output_field=CharField(),
+            ),
             "age_months": F("agemonth"),
-            "_clip": F("clip_code__clip_code"),
+            "_clip": Coalesce(F("clip_code__clip_code"), V("UN")),
             "phys_chem_mark": StringAgg(
                 "physchem_marks__mark_code",
                 delimiter=";",
@@ -231,7 +240,13 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
                 output_field=CharField(),
             ),
             "lot_code": F("lotcode"),
-            "hatchery_abbrev": F("hatchery__abbrev"),
+            "_hatchery": Concat(
+                "hatchery__hatchery_name",
+                V(" ["),
+                "hatchery__abbrev",
+                V("]"),
+                output_field=CharField(),
+            ),
             "number_stocked": F("no_stocked"),
             "tag_type": StringAgg("fish_tags__tag_code", delimiter="", default=""),
         }
@@ -251,12 +266,12 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "year",
             "month",
             "day",
-            "stock_method",
+            "_stock_method",
             "species_code",
             "_strain",
             "_strain_raw",
             "yearclass",
-            "life_stage",
+            "_life_stage",
             "age_months",
             "_clip",
             "clip_efficiency",
@@ -268,7 +283,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "total_weight_kg",
             "_stocking_mortality",
             "lot_code",
-            "hatchery_abbrev",
+            "_hatchery",
             "number_stocked",
             "notes",
         ]
@@ -919,7 +934,7 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
             "secondary_location": F("st_site"),
             "spc": F("species__abbrev"),
             "strain": F("strain_raw__strain__strain_label"),
-            "clipcode": F("clip_code__clip_code"),
+            "clipcode": Coalesce(F("clip_code__clip_code"), V("UN")),
             "stage": F("lifestage__description"),
             "method": F("stocking_method__description"),
             "event_tag_numbers": F("tag_no"),
