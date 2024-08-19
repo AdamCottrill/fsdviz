@@ -7,6 +7,7 @@ from .FinClip import FinClipModelAdmin
 from .FishTag import FishTagModelAdmin
 from .Grid10 import Grid10Admin
 from .Image import ImageModelAdmin
+from .LookupDescription import LookupDescriptionModelAdmin
 from .Jurisdiction import JurisdictionModelAdmin
 from .Lake import LakeModelAdmin
 from .LatLonFlag import LatLonFlagModelAdmin

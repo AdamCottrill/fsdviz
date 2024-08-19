@@ -4,9 +4,10 @@ be shared across both the stocking and cwt recovery applications.
 
 """
 
-
 from colorfield.fields import ColorField
 from django.contrib.gis.db import models
+
+from markdown import markdown
 
 # consider add range field and constraint to CWTSequence when we upgrade to Django 3.0+
 # from django.contrib.postgres.constraints import ExclusionConstraint
@@ -31,6 +32,54 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+class LookupDescription(BaseModel):
+    """A model to hold the descriptions for each Lookup table.  The
+    paragraphs contained in the description field will be displayed on
+    the lookup tables html page and be editable in the django admin.
+    The description field will support markdown, and will be converted
+    to html when the model is saved."""
+
+    slug = models.CharField(
+        max_length=255,
+        unique=True,
+        editable=False,
+        help_text="This is the string referenced in the template for this model.",
+    )
+    model_name = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text=(
+            "Plural Name of Model Instances (e.g. - Lakes). This usually "
+            "matches the heading in the Lookup Tables html template."
+        ),
+    )
+    description = models.TextField(
+        default="Coming Soon....", help_text="Lookup Table Description (markdown)."
+    )
+    description_html = models.TextField(
+        editable=False, help_text="Lookup Table Description (html)."
+    )
+
+    class Meta:
+        ordering = ["model_name"]
+
+    def __str__(self):
+        """"""
+
+        "String representation for a LookupDescription." ""
+        return self.model_name
+
+    def save(self, *args, **kwargs):
+        """Update the slug and html when we save the model. The slug
+        uses underscores rather than dashes so we can access them as
+        dict keys in the template."""
+
+        self.slug = slugify(self.model_name).replace("-", "_")
+        self.description_html = markdown(self.description)
+
+        super(LookupDescription, self).save(*args, **kwargs)
 
 
 class Image(models.Model):

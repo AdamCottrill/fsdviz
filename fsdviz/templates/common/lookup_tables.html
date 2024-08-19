@@ -1,637 +1,722 @@
-{% extends 'fsdviz_base.html' %}
-
-{% load static %}
-
-{% block extra_head %}
-
-    <style media="screen">
-
-     .title {
-         text-transform: capitalize;
-     }
-
-    </style>
-
-{% endblock %}
-
-{% block title %}Lookup Tables{% endblock %}
-
-{% block content %}
-
-    <div class="ui container">
-        <h1>Great Lakes Fish Stocking Database Look-up Tables</h1>
-        <div class="ui grid">
-            <div class="four wide column">
-                <div class="ui sticky">
-
-                    <h3>Contents</h3>
-                    <ul>
-                        <li><a href="#agencies">Agencies</a></li>
-                        <li><a href="#lakes">Lakes</a></li>
-                        <li><a href="#jurisdictions">Jurisdictions</a></li>
-                        <li><a href="#species">Species</a></li>
-                        <li><a href="#strains">Strains</a></li>
-                        <li><a href="#fin-clips">Fin Clips</a></li>
-                        <li><a href="#fish-tags">Fish Tags</a></li>
-                        <li><a href="#phys-chem-marks">Physical or Chemical Marks</a></li>
-                        <li><a href="#hatcheries">Hatcheries</a></li>
-                        <li><a href="#lifestages">Life Stages </a></li>
-                        <li><a href="#yreq">Yearling Equivalents</a></li>
-                        <li><a href="#stocking-method">Stocking Method</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="twelve wide column" id='lookup-tables'>
-
-                <h3 id="agencies">Agencies</h3>
-
-                <p> What Agency is responsible for the stocking data
-                    (who put the fish in the water). If a private
-                    group participated with helping stock fish
-                    alongside a larger group (e.g. DNR, USFWS).</p>
-
-                <div class="ui grid">
-                    <div class="four column row">
-                        <div class="right floated column">
-                            <div class="ui search">
-                                <div class="ui icon input">
-                                    <input id="agency-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
-                                    <i class="search icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <table id="agency-table" class="ui celled table tablesorter">
-                    <thead>
-                        <tr><th>Agency Name</th>
-                            <th>Abbreviation</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for agency in agencies %}
-                            <tr>
-                                <td class="title">{{ agency.agency_name}}</td>
-                                <td >{{ agency.abbrev}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id='lakes'>Lakes</h3>
-
-                <p>The Great Lake into which the fish were stocked. If
-                the stocking event occurs in a tributary, select the
-                lake in which the river/stream empties.	</p>
-
-                <table id="lake-table" class="ui celled table tablesorter">
-                    <thead>
-                        <tr><th>Lake Name</th>
-                            <th>Abbreviation</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for lake in lakes %}
-                            <tr>
-                                <td >{{ lake.lake_name}}</td>
-                                <td >{{ lake.abbrev}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id="jurisdictions">Jurisdictions</h3>
-
-                <p>
-                    Which state/province has management authority over
-                    the portion of lake where the fish were
-                    stocked. It is possible for an agency to stock
-                    outside of their normal jurisdiction (partnerships,
-                    etc), so double check this.  Generally,
-                    jurisdiction can be thought of as the waters of a
-                    lake within the bounds of a state or province
-                    (e.g. "The Michigan waters of Lake Superior",
-                    "The Ohio waters of Lake Erie.")
-                </p>
-
-
-                <div class="ui grid">
-                    <div class="four column row">
-                        <div class="right floated column">
-                            <div class="ui search">
-                                <div class="ui icon input">
-                                    <input id="jurisdiction-filter" class="prompt table-filter-input" type="text" placeholder="Filter jurisdictions...">
-                                    <i class="search icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <table id="jurisdiction-table" class="ui celled table tablesorter">
-                    <thead>
-                        <tr><th>Name</th>
-                            <th>Description</th>
-                            <th>Abbreviation</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for item in jurisdictions %}
-                            <tr>
-                                <td >{{ item.name}}</td>
-                                <td >{{ item.description}}</td>
-                                <td >{{ item.slug}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id="species">Species</h3>
-
-                <p>
-                    Common species names.  If your species is not on
-                    the list, please submit a request for it to be
-                    added.
-                </p>
-
-                <div class="ui grid">
-                    <div class="four column row">
-                        <div class="right floated column">
-                            <div class="ui search">
-                                <div class="ui icon input">
-                                    <input id="species-filter" class="prompt table-filter-input" type="text" placeholder="Filter agencies...">
-                                    <i class="search icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <table id="species-table" class="ui celled table tablesorter">
-                    <thead>
-
-                        <tr>
-                            <th>Abbreviation</th>
-                            <th>Common Name</th>
-                            <th>Scientific Name</th>
-
-                        </tr></thead>
-                    <tbody>
-                        {% for item in species %}
-                            <tr>
-                                <td >{{ item.abbrev}}</td>
-                                <td >{{ item.common_name}}</td>
-                                <td ><em>{{ item.scientific_name}}</em></td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id="strains">Strains</h3>
-
-                <p>
-                    There has been an effort to clean up the
-                    various "strains" reported in order to make the
-                    list more concise and accessible, and to be
-                    consistent between agencies, regions, and
-                    species. Historic, agency specific codes ("Raw
-                    Strain") have been grouped into to a more general,
-                    informative code in the "Strain" field that is
-                    used in all visualization and summaries in the
-                    application.
-                </p>
-
-                <p>
-                    Many of older strain codes have been inactivated
-                    and will not appear in upload templates. If your
-                    agencies has recently started stocking one of these
-                    strains, please submit a request to have it
-                    reactivated.
-                </p>
-
-                <div class="ui grid">
-                    <div class="right floated column">
-                        <div class="ui search">
-                            <div class="ui icon input">
-                                <input id="strain-filter-input" class="prompt active-filter-input" name="strain" type="text" placeholder="Filter strains...">
-                                <i class="search icon"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="three wide right floated column">
-                        <div class="ui checkbox">
-                            <input type="checkbox" value="" name="strain" class="active-checkbox"
-                                   id="active-strain-checkbox">
-                            <label for="active-strain-checkbox">
-                                Only active Strains
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-
-                <table id="strain-table" class="ui celled table tablesorter">
-                    <thead>
-                        <tr>
-                            <th>Raw Strain</th>
-                            <th>Raw Strain Description</th>
-                            <th>Species</th>
-                            <th>Strain Group</th>
-                            <th>Active</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for item in strains %}
-                            <tr class="{% if item.active %}active-strain{% else %}inactive-strain{% endif %}">
-                                <td >{{ item.raw_strain}}</td>
-                                <td >{{ item.description}}</td>
-                                <td >{{ item.species.common_name}}({{ item.species.abbrev}})</td>
-                                <td >{{ item.strain.strain_label}}({{ item.strain.strain_code}})</td>
-                                <td>{{item.active|yesno:"Yes,No"}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id="fin-clips">Fin Clips</h3>
-
-                <p>
-                    This is an indication of the fin clip(s) that were
-                    given to the fish prior to stocking. If both fins
-                    in a pair are clipped (e.g. left vent and right
-                    vent) these must be separately as "LVRV" and not
-                    "BV".
-                </p>
-
-                <div class="ui grid">
-                    <div class="four column row">
-                        <div class="right floated column">
-                            <div class="ui search">
-                                <div class="ui icon input">
-                                    <input id="clip-code-filter" class="prompt table-filter-input" type="text" placeholder="Filter fin clips...">
-                                    <i class="search icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <table id="clip-code-table" class="ui celled table tablesorter">
-                    <thead>
-                        <tr>
-                            <th>Clip Code</th>
-                            <th>Description</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for item in clips %}
-                            <tr>
-                                <td >{{ item.clip_code}}</td>
-                                <td >{{ item.description}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id="fish-tags">Fish Tags</h3>
-
-                <p>
-                    This denotes the type of tag given to stocking
-                    event (floy tag, CWT, etc).  If your tag type or
-                    color is not on the list, please submit a request
-                    for it to be added.
-                </p>
-
-                <div class="ui grid">
-                    <div class="four column row">
-                        <div class="right floated column">
-                            <div class="ui search">
-                                <div class="ui icon input">
-                                    <input id="fish-tags-filter" class="prompt table-filter-input" type="text" placeholder="Filter fish tags...">
-                                    <i class="search icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <table id="fish-tags-table" class="ui celled table tablesorter">
-                    <thead>
-                        <tr>
-                            <th>Tag Code</th>
-                            <th>Tag Type</th>
-                            <th>Tag Colour</th>
-                            <th>Description</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for item in fishtags %}
-                            <tr>
-                                <td >{{ item.tag_code}}</td>
-                                <td class="title">{{ item.tag_type}}</td>
-                                <td class="title">{{ item.tag_colour}}</td>
-                                <td class="title">{{ item.description}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id="phys-chem-marks">Physical or Chemical Marks</h3>
-
-                <p>
-                    These are chemical or physical (non-clip) marks
-                    that are used to identify fish from a stocking
-                    event (OTC, VIE, Calcein, etc).  If your mark or
-                    color is not on the list please submit a request
-                    for it to be added.
-                </p>
-
-                <div class="ui grid">
-                    <div class="four column row">
-                        <div class="right floated column">
-                            <div class="ui search">
-                                <div class="ui icon input">
-                                    <input id="physchemmarks-filter" class="prompt table-filter-input" type="text" placeholder="Filter marks...">
-                                    <i class="search icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <table id="physchemmarks-table" class="ui celled table tablesorter">
-                    <thead>
-
-                        <tr>
-                            <th>Mark Code</th>
-                            <th>Mark Type</th>
-                            <th>Description</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for item in physchemmarks %}
-                            <tr>
-                                <td >{{ item.mark_code}}</td>
-                                <td class="title">{{ item.mark_type}}</td>
-                                <td class="title">{{ item.description}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id='hatcheries'>Hatcheries</h3>
-
-                <p>
-                    This indicates where the fish were raised. If fish
-                    were transferred between hatcheries before
-                    stocking, record the last hatchery prior to
-                    stocking. If the last facility in the fish chain
-                    of custody is a school/club/private facility,
-                    record the major hatchery that did the majority of
-                    the raising effort
-                </p>
-
-                <div class="ui grid">
-                    <div class="right floated column">
-                        <div class="ui search">
-                            <div class="ui icon input">
-                                <input id="hatchery-filter-input" class="prompt active-filter-input" name="hatchery" type="text" placeholder="Filter hatcherys...">
-                                <i class="search icon"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="three wide right floated column">
-                        <div class="ui checkbox">
-                            <input type="checkbox" value="" name="hatchery" class="active-checkbox"
-                                   id="active-hatchery-checkbox">
-                            <label for="active-hatchery-checkbox">
-                                Only active Hatcheries
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-
-                <table id="hatchery-table" class="ui celled table tablesorter">
-                    <thead>
-                        <tr>
-                            <th>Hatchery Name</th>
-                            <th>Abbreviation</th>
-                            <th>Description</th>
-                            <th>Hatchery Type</th>
-                            <th>Active</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for item in hatcheries %}
-                            <tr class="{% if item.active %}active-hatchery{% else %}inactive-hatchery{% endif %}">
-                                <td >{{ item.hatchery_name}}</td>
-                                <td >{{ item.abbrev}}</td>
-                                <td class="title">{{ item.description|default_if_none:"---" }}</td>
-                                <td class="title">{{ item.hatchery_type|default_if_none:"---" }}</td>
-                                <td>{{item.active|yesno:"Yes,No"}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id="lifestages">Life Stages</h3>
-
-                <p>
-                    The lifestage of the fish that are stocked in an
-                    event (adult, yearling, etc).
-                </p>
-
-                <div class="ui grid">
-                    <div class="four column row">
-                        <div class="right floated column">
-                            <div class="ui search">
-                                <div class="ui icon input">
-                                    <input id="lifestages-filter" class="prompt table-filter-input" type="text" placeholder="Filter lifestages...">
-                                    <i class="search icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <table id="lifestages-table" class="ui celled table tablesorter">
-                    <thead>
-                        <tr>
-                            <th>Abbreviation</th>
-                            <th>Description</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for item in lifestages %}
-                            <tr>
-                                <td >{{ item.abbrev}}</td>
-                                <td class="title">{{ item.description}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id="yreq">Yearling Equivalents</h3>
-
-                <p>
-                    This table contains values which are used to scale
-                    the number of fish in a stocking event to a
-                    consistent metric of 'yearlings', often referred
-                    to as yearling equivalents. These values are based
-                    on estimated or expected survival rates given the
-                    species and lifestage that was stocked.  For
-                    instance, fall fingerling lake trout have been
-                    shown to have a survival rate of approximately one
-                    third of that for lake trout stocked the following
-                    spring as yearlings, and as such 3 stocked fall
-                    fingerlings are the equivalent of 1 stocked
-                    yearling.  In this exaxmple, the yearling
-                    equivalent value for fall fingerling lake trout is
-                    0.333.  Published or generally accepted values
-                    have been used where they are available. For other
-                    species and lifestage the a factor of 10 was used
-                    for each successive lifestage.
-                </p>
-
-                <div class="ui grid">
-                    <div class="four column row">
-                        <div class="right floated column">
-                            <div class="ui search">
-                                <div class="ui icon input">
-                                    <input id="yreq-filter" class="prompt table-filter-input" type="text" placeholder="Filter species or lifestage...">
-                                    <i class="search icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <table id="yreq-table" class="ui celled table tablesorter">
-                    <thead>
-                        <tr>
-                            <th>Species</th>
-                            <th>LifeStage</th>
-                            <th>Yearing Equivalent Factor</th>
-                            <th>Comment</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for item in yreq %}
-                            <tr>
-                                <td >{{ item.species.common_name}} ({{ item.species.abbrev}})</td>
-                                <td class="title">{{ item.lifestage.description}} ({{ item.lifestage.abbrev}})</td>
-                                <td >{{ item.yreq_factor}}</td>
-                                <td >{{ item.comment|default_if_none:""}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <h3 id="stocking-method">Stocking Method</h3>
-
-                <p>How the fish in an event were stocked.</p>
-
-                <div class="ui grid">
-                    <div class="four column row">
-                        <div class="right floated column">
-                            <div class="ui search">
-                                <div class="ui icon input">
-                                    <input id="stocking-methods-filter" class="prompt table-filter-input" type="text" placeholder="Filter stocking method...">
-                                    <i class="search icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <table id="stocking-methods-table" class="ui celled table tablesorter">
-                    <thead>
-                        <tr>
-                            <th>Abbreviation</th>
-                            <th >Description</th>
-                        </tr></thead>
-                    <tbody>
-                        {% for item in stocking_methods %}
-                            <tr>
-                                <td >{{ item.stk_meth}}</td>
-                                <td class="title">{{ item.description}}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-            </div>
-        </div>
+{% extends 'fsdviz_base.html' %} {% load static %} {% block extra_head %}
+
+
+
+<style media="screen">
+  .title {
+    text-transform: capitalize;
+  }
+</style>
+
+{% endblock %} {% block title %}Lookup Tables{% endblock %} {% block content %}
+
+<div class="ui container">
+  <h1>Great Lakes Fish Stocking Database Look-up Tables</h1>
+  <div class="ui grid">
+    <div class="four wide column">
+      <div class="ui sticky">
+        <h3>Contents</h3>
+        <ul>
+          <li><a href="#agencies">Agencies</a></li>
+          <li><a href="#lakes">Lakes</a></li>
+          <li><a href="#jurisdictions">Jurisdictions</a></li>
+          <li><a href="#species">Species</a></li>
+          <li><a href="#strains">Strains</a></li>
+          <li><a href="#fin-clips">Fin Clips</a></li>
+          <li><a href="#fish-tags">Fish Tags</a></li>
+          <li><a href="#phys-chem-marks">Physical or Chemical Marks</a></li>
+          <li><a href="#hatcheries">Hatcheries</a></li>
+          <li><a href="#lifestages">Life Stages </a></li>
+          <li><a href="#yreq">Yearling Equivalents</a></li>
+          <li><a href="#stocking-method">Stocking Method</a></li>
+        </ul>
+      </div>
     </div>
-{% endblock %}
+    <div class="twelve wide column" id="lookup-tables">
+        <h3 id="agencies">Agencies</h3>
+
+        {% with description=table_descriptions.agencies %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p><em>Sorry. A description of the "Agencies" table has not been provided.</em>   </p>
+            {% endif %}
+        {% endwith %}
+
+      <div class="ui grid">
+        <div class="four column row">
+          <div class="right floated column">
+            <div class="ui search">
+              <div class="ui icon input">
+                <input
+                  id="agency-filter"
+                  class="prompt table-filter-input"
+                  type="text"
+                  placeholder="Filter agencies..."
+                />
+                <i class="search icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table id="agency-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Agency Name</th>
+            <th>Abbreviation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for agency in agencies %}
+          <tr>
+            <td class="title">{{ agency.agency_name}}</td>
+            <td>{{ agency.abbrev}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 id="lakes">Lakes</h3>
+
+        {% with description=table_descriptions.lakes %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p><em>Sorry. A description of the "Lakes" table has not been provided.</em>   </p>
+            {% endif %}
+        {% endwith %}
 
 
-{% block extra_js %}
+      <table id="lake-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Lake Name</th>
+            <th>Abbreviation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lake in lakes %}
+          <tr>
+            <td>{{ lake.lake_name}}</td>
+            <td>{{ lake.abbrev}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-    {% include "_table_sorter.html" %}
+      <h3 id="jurisdictions">Jurisdictions</h3>
 
-    <script>
-
-     $('.ui.sticky')
-         .sticky({
-             context: '#lookup-tables'
-         })
-     ;
-
-     $(".table-filter-input").on("keyup", function() {
-         let target = this.id.replace('filter', 'table');
-         let value = $(this).val().toLowerCase();
-         $("#" + target +" tbody tr").filter(function() {
-             $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-         });
-     });
-
-
-
-     // strain and hatchery have toggle buttons:
-
-     const filter_rows = (what, value, active)=>{
-         let target = `${what}-table`;
-         let target_string = "#" + target +" tbody tr";
-
-         if (active === true){
-             $(target_string).filter(function() {
-                 $(this).toggle(
-                     ($(this).text().toLowerCase().indexOf(value) > -1) &&
-                     $(this).hasClass(`active-${what}`)
-             )});
-         } else {
-             $(target_string).filter(function() {
-                 $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-             });
-         }
-     };
-
-     $(".active-filter-input").on("keyup", function() {
-         let what = this.name;
-         let active = document.getElementById(`active-${what}-checkbox`).checked;
-         let value = $(this).val().toLowerCase();
-         filter_rows(what, value, active);
-     });
+        {% with description=table_descriptions.jurisdictions %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Jurisdictions" table has not been provided.</em>
+                </p>
+            {% endif %}
+        {% endwith %}
 
 
-     $(".active-checkbox").on("change", function() {
+      <div class="ui grid">
+        <div class="four column row">
+          <div class="right floated column">
+            <div class="ui search">
+              <div class="ui icon input">
+                <input
+                  id="jurisdiction-filter"
+                  class="prompt table-filter-input"
+                  type="text"
+                  placeholder="Filter jurisdictions..."
+                />
+                <i class="search icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-         let what = this.name;
-         let active = this.checked;
-         let value = $(`#${what}-filter-input`).val()
-         value = value ? value.toLowerCase() : ""
-         filter_rows(what, value, active);
-     });
+      <table id="jurisdiction-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Abbreviation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in jurisdictions %}
+          <tr>
+            <td>{{ item.name}}</td>
+            <td>{{ item.description}}</td>
+            <td>{{ item.slug}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 id="species">Species</h3>
+
+        {% with description=table_descriptions.species %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Species" table has not been provided.</em>
+                </p>
+            {% endif %}
+        {% endwith %}
+
+
+      <div class="ui grid">
+        <div class="four column row">
+          <div class="right floated column">
+            <div class="ui search">
+              <div class="ui icon input">
+                <input
+                  id="species-filter"
+                  class="prompt table-filter-input"
+                  type="text"
+                  placeholder="Filter agencies..."
+                />
+                <i class="search icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table id="species-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Abbreviation</th>
+            <th>Common Name</th>
+            <th>Scientific Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in species %}
+          <tr>
+            <td>{{ item.abbrev}}</td>
+            <td>{{ item.common_name}}</td>
+            <td><em>{{ item.scientific_name}}</em></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 id="strains">Strains</h3>
+
+
+        {% with description=table_descriptions.strains %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Strains" table has not been provided.</em>
+                </p>
+            {% endif %}
+        {% endwith %}
+
+      <div class="ui grid">
+        <div class="right floated column">
+          <div class="ui search">
+            <div class="ui icon input">
+              <input
+                id="strain-filter-input"
+                class="prompt active-filter-input"
+                name="strain"
+                type="text"
+                placeholder="Filter strains..."
+              />
+              <i class="search icon"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="three wide right floated column">
+          <div class="ui checkbox">
+            <input
+              type="checkbox"
+              value=""
+              name="strain"
+              class="active-checkbox"
+              id="active-strain-checkbox"
+            />
+            <label for="active-strain-checkbox"> Only active Strains </label>
+          </div>
+        </div>
+      </div>
+
+      <table id="strain-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Raw Strain</th>
+            <th>Raw Strain Description</th>
+            <th>Species</th>
+            <th>Strain Group</th>
+            <th>Active</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in strains %}
+          <tr
+            class="{% if item.active %}active-strain{% else %}inactive-strain{% endif %}"
+          >
+            <td>{{ item.raw_strain}}</td>
+            <td>{{ item.description}}</td>
+            <td>{{ item.species.common_name}}({{ item.species.abbrev}})</td>
+            <td>{{ item.strain.strain_label}}({{ item.strain.strain_code}})</td>
+            <td>{{item.active|yesno:"Yes,No"}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 id="fin-clips">Fin Clips</h3>
+
+        {% with description=table_descriptions.fin_clips %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Fin Clips" table has not been provided.</em>
+                </p>
+            {% endif %}
+        {% endwith %}
+
+
+      <div class="ui grid">
+        <div class="four column row">
+          <div class="right floated column">
+            <div class="ui search">
+              <div class="ui icon input">
+                <input
+                  id="clip-code-filter"
+                  class="prompt table-filter-input"
+                  type="text"
+                  placeholder="Filter fin clips..."
+                />
+                <i class="search icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table id="clip-code-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Clip Code</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in clips %}
+          <tr>
+            <td>{{ item.clip_code}}</td>
+            <td>{{ item.description}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 id="fish-tags">Fish Tags</h3>
+
+
+        {% with description=table_descriptions.fish_tags %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Fish Tags" table has not been provided.</em>
+                </p>
+            {% endif %}
+        {% endwith %}
+
+
+      <div class="ui grid">
+        <div class="four column row">
+          <div class="right floated column">
+            <div class="ui search">
+              <div class="ui icon input">
+                <input
+                  id="fish-tags-filter"
+                  class="prompt table-filter-input"
+                  type="text"
+                  placeholder="Filter fish tags..."
+                />
+                <i class="search icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table id="fish-tags-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Tag Code</th>
+            <th>Tag Type</th>
+            <th>Tag Colour</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in fishtags %}
+          <tr>
+            <td>{{ item.tag_code}}</td>
+            <td class="title">{{ item.tag_type}}</td>
+            <td class="title">{{ item.tag_colour}}</td>
+            <td class="title">{{ item.description}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 id="phys-chem-marks">Physical or Chemical Marks</h3>
+
+      {% with description=table_descriptions.physical_or_chemical_marks %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Physical or Chemical Marks" table has not been provided.</em>
+                </p>
+            {% endif %}
+         {% endwith %}
+
+         <div class="ui grid">
+        <div class="four column row">
+          <div class="right floated column">
+            <div class="ui search">
+              <div class="ui icon input">
+                <input
+                  id="physchemmarks-filter"
+                  class="prompt table-filter-input"
+                  type="text"
+                  placeholder="Filter marks..."
+                />
+                <i class="search icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table id="physchemmarks-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Mark Code</th>
+            <th>Mark Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in physchemmarks %}
+          <tr>
+            <td>{{ item.mark_code}}</td>
+            <td class="title">{{ item.mark_type}}</td>
+            <td class="title">{{ item.description}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 id="hatcheries">Hatcheries</h3>
+
+      {% with description=table_descriptions.hatcheries %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Hatcheries" table has not been provided.</em>
+                </p>
+            {% endif %}
+      {% endwith %}
 
 
 
 
+      <div class="ui grid">
+        <div class="right floated column">
+          <div class="ui search">
+            <div class="ui icon input">
+              <input
+                id="hatchery-filter-input"
+                class="prompt active-filter-input"
+                name="hatchery"
+                type="text"
+                placeholder="Filter hatcherys..."
+              />
+              <i class="search icon"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="three wide right floated column">
+          <div class="ui checkbox">
+            <input
+              type="checkbox"
+              value=""
+              name="hatchery"
+              class="active-checkbox"
+              id="active-hatchery-checkbox"
+            />
+            <label for="active-hatchery-checkbox">
+              Only active Hatcheries
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <table id="hatchery-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Hatchery Name</th>
+            <th>Abbreviation</th>
+            <th>Description</th>
+            <th>Hatchery Type</th>
+            <th>Active</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in hatcheries %}
+          <tr
+            class="{% if item.active %}active-hatchery{% else %}inactive-hatchery{% endif %}"
+          >
+            <td>{{ item.hatchery_name}}</td>
+            <td>{{ item.abbrev}}</td>
+            <td class="title">{{ item.description|default_if_none:"---" }}</td>
+            <td class="title">
+              {{ item.hatchery_type|default_if_none:"---" }}
+            </td>
+            <td>{{item.active|yesno:"Yes,No"}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 id="lifestages">Lifestages</h3>
+
+      {% with description=table_descriptions.lifestages %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Lifestages" table has not been provided.</em>
+                </p>
+            {% endif %}
+      {% endwith %}
+
+
+      <div class="ui grid">
+        <div class="four column row">
+          <div class="right floated column">
+            <div class="ui search">
+              <div class="ui icon input">
+                <input
+                  id="lifestages-filter"
+                  class="prompt table-filter-input"
+                  type="text"
+                  placeholder="Filter lifestages..."
+                />
+                <i class="search icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table id="lifestages-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Abbreviation</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in lifestages %}
+          <tr>
+            <td>{{ item.abbrev}}</td>
+            <td class="title">{{ item.description}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 id="yreq">Yearling Equivalents</h3>
 
 
 
-    </script>
+      {% with description=table_descriptions.yearling_equivalents %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Yearling Equivalents" table has not been provided.</em>
+                </p>
+            {% endif %}
+      {% endwith %}
+
+
+
+
+      <p>
+        This table contains values which are used to scale the number of fish in
+        a stocking event to a consistent metric of 'yearlings', often referred
+        to as yearling equivalents. These values are based on estimated or
+        expected survival rates given the species and lifestage that was
+        stocked. For instance, fall fingerling lake trout have been shown to
+        have a survival rate of approximately one third of that for lake trout
+        stocked the following spring as yearlings, and as such 3 stocked fall
+        fingerlings are the equivalent of 1 stocked yearling. In this exaxmple,
+        the yearling equivalent value for fall fingerling lake trout is 0.333.
+        Published or generally accepted values have been used where they are
+        available. For other species and lifestage the a factor of 10 was used
+        for each successive lifestage.
+      </p>
+
+      <div class="ui grid">
+        <div class="four column row">
+          <div class="right floated column">
+            <div class="ui search">
+              <div class="ui icon input">
+                <input
+                  id="yreq-filter"
+                  class="prompt table-filter-input"
+                  type="text"
+                  placeholder="Filter species or lifestage..."
+                />
+                <i class="search icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table id="yreq-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Species</th>
+            <th>LifeStage</th>
+            <th>Yearing Equivalent Factor</th>
+            <th>Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in yreq %}
+          <tr>
+            <td>{{ item.species.common_name}} ({{ item.species.abbrev}})</td>
+            <td class="title">
+              {{ item.lifestage.description}} ({{ item.lifestage.abbrev}})
+            </td>
+            <td>{{ item.yreq_factor}}</td>
+            <td>{{ item.comment|default_if_none:""}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 id="stocking-method">Stocking Method</h3>
+
+      {% with description=table_descriptions.stocking_methods %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Stocking Methods" table has not been provided.</em>
+                </p>
+            {% endif %}
+      {% endwith %}
+
+      <div class="ui grid">
+        <div class="four column row">
+          <div class="right floated column">
+            <div class="ui search">
+              <div class="ui icon input">
+                <input
+                  id="stocking-methods-filter"
+                  class="prompt table-filter-input"
+                  type="text"
+                  placeholder="Filter stocking method..."
+                />
+                <i class="search icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table id="stocking-methods-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Abbreviation</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in stocking_methods %}
+          <tr>
+            <td>{{ item.stk_meth}}</td>
+            <td class="title">{{ item.description}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %} {% include "_table_sorter.html" %}
+
+<script>
+  $(".ui.sticky").sticky({
+    context: "#lookup-tables",
+  });
+
+  $(".table-filter-input").on("keyup", function () {
+    let target = this.id.replace("filter", "table");
+    let value = $(this).val().toLowerCase();
+    $("#" + target + " tbody tr").filter(function () {
+      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+    });
+  });
+
+  // strain and hatchery have toggle buttons:
+
+  const filter_rows = (what, value, active) => {
+    let target = `${what}-table`;
+    let target_string = "#" + target + " tbody tr";
+
+    if (active === true) {
+      $(target_string).filter(function () {
+        $(this).toggle(
+          $(this).text().toLowerCase().indexOf(value) > -1 &&
+            $(this).hasClass(`active-${what}`),
+        );
+      });
+    } else {
+      $(target_string).filter(function () {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+      });
+    }
+  };
+
+  $(".active-filter-input").on("keyup", function () {
+    let what = this.name;
+    let active = document.getElementById(`active-${what}-checkbox`).checked;
+    let value = $(this).val().toLowerCase();
+    filter_rows(what, value, active);
+  });
+
+  $(".active-checkbox").on("change", function () {
+    let what = this.name;
+    let active = this.checked;
+    let value = $(`#${what}-filter-input`).val();
+    value = value ? value.toLowerCase() : "";
+    filter_rows(what, value, active);
+  });
+</script>
 
 {% endblock extra_js %}

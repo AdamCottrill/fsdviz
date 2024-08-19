@@ -7,7 +7,7 @@ species, ect.
 import pytest
 from django.core.exceptions import ValidationError
 
-from ...common.models import CWTsequence
+from ...common.models import CWTsequence, LookupDescription
 from ..factories.common_factories import (
     AgencyFactory,
     CompositeFinClipFactory,
@@ -518,3 +518,48 @@ def test_fishtag_str():
 
     obj = FishTagFactory(tag_code=tag_code, description=description)
     assert str(obj) == "{} ({})".format(description, tag_code)
+
+
+
+
+@pytest.mark.django_db
+def test_lookup_description_str():
+    """Verify that the string representation of a Lookup Description object is
+    simply the model name.
+
+    """
+
+    model_name = "Agency Strain"
+    description = "A fake description for a fake field"
+
+    lookupDescription = LookupDescription(model_name=model_name, description=description)
+
+    assert str(lookupDescription) == model_name
+
+
+
+
+@pytest.mark.django_db
+def test_lookup_description_save():
+    """Verify that the save method of a Lookup Description object is
+    convertes the markdown in the description to html and creates a
+    slug (which should be the lower case model name with spaces
+    replaced by dashes.).
+
+    """
+
+    model_name = "Agency Strain"
+    description = "A fake description for a fake field"
+
+    lookupDescription = LookupDescription(model_name=model_name, description=description)
+
+    should_be = f"<p>{description}</p>"
+
+    lookupDescription.save()
+
+    assert lookupDescription.description == description
+    assert lookupDescription.description_html == should_be
+
+    slug_should_be = model_name.lower().replace(' ', "_")
+
+    assert lookupDescription.slug == slug_should_be

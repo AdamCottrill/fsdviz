@@ -11,6 +11,7 @@ from .models import (
     Agency,
     CompositeFinClip,
     FishTag,
+    LookupDescription,
     Jurisdiction,
     Lake,
     PhysChemMark,
@@ -41,6 +42,10 @@ def lookup_tables(request):
     # Management Units
     # Strains and Raw Strains
 
+    table_descriptions = {
+        x.slug: x.description_html for x in LookupDescription.objects.all()
+    }
+
     agencies = Agency.objects.all()
     lakes = Lake.objects.all()
     jurisdictions = Jurisdiction.objects.all()
@@ -66,6 +71,7 @@ def lookup_tables(request):
         request,
         "common/lookup_tables.html",
         {
+            "table_descriptions": table_descriptions,
             "agencies": agencies,
             "lakes": lakes,
             "jurisdictions": jurisdictions,
