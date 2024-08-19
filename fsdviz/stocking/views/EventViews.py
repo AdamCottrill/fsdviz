@@ -3,6 +3,7 @@ Views associated with our stocking application.
 """
 
 import json
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -217,28 +218,19 @@ def filtered_events(request):
     )
 
 
-def StockingEventListLatestYear(request):
-    """Get the most recent year of stockin and
-    pass the information onto our annual_events view.
-    """
+def PieChartMapViewLastYear(request):
+    """Get the most recent complete year of stockind and pass the
+    information onto our pie chart map view.  At one time, this view
+    rendered the most recent year where data was available, but this
+    led to confusion when a small number of agencies with a small
+    number of spring events would report in April or May - the default
+    view was mostly empty for most of the year.  This view now returns
+    all of the data from the last calendar year (which in most cases
+    is almost awasy completely populated)."""
 
-    latest_year = StockingEvent.objects.all().aggregate(Max("year"))
-    url = reverse(
-        "stocking:stocking-event-list-year",
-        kwargs={"year": latest_year.get("year__max")},
-    )
+    last_year = datetime.now().year - 1
 
-    return redirect(url)
-
-
-def PieChartMapViewLatestYear(request):
-    """Get the most recent year of stockind and
-    pass the information onto our pie chart map view.
-    """
-    latest_year = StockingEvent.objects.all().aggregate(Max("year"))
-    url = reverse(
-        "stocking:stocking-events-year", kwargs={"year": latest_year.get("year__max")}
-    )
+    url = reverse("stocking:stocking-events-year", kwargs={"year": last_year})
 
     return redirect(url)
 
@@ -331,8 +323,7 @@ class PieChartMapView(TemplateView):
 
 
 class StockingEventListView(ListView):
-    """
-    A generic list view that is used to display a list of stocking
+    """A generic list view that is used to display a list of stocking
     events.  StockingEventFilter is used to filter the seleted
     records.
 

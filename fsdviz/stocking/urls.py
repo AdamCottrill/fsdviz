@@ -2,10 +2,9 @@ from django.urls import path
 
 from .views import (
     PieChartMapView,
-    PieChartMapViewLatestYear,
+    PieChartMapViewLastYear,
     StockingEventListView,
     StockingEventDetailView,
-    StockingEventListLatestYear,
     find_events,
     filtered_events,
     upload_events,
@@ -22,13 +21,13 @@ from .views import (
 app_name = "stocking"
 
 urlpatterns = [
-    path("", PieChartMapViewLatestYear, name="stocking-events"),
+    path("", PieChartMapViewLastYear, name="stocking-events"),
     path("find_events/", find_events, name="find-stocking-events"),
     path("filtered_events/", filtered_events, name="filtered-stocking-events"),
     path("events/<int:year>/", PieChartMapView.as_view(), name="stocking-events-year"),
     # the default events view will be to return the most recent year
     # for all lakes:
-    path("events/", PieChartMapViewLatestYear, name="stocking-events-latest-year"),
+    path("events/", PieChartMapViewLastYear, name="stocking-events-latest-year"),
     # stocking event lists
     path(
         "events_list/",

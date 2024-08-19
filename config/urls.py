@@ -11,7 +11,7 @@ from drf_yasg.views import get_schema_view
 from fsdviz.myusers.views import account_redirect
 
 # our homepage:  TEMP!!
-from fsdviz.stocking.views import PieChartMapViewLatestYear
+from fsdviz.stocking.views import PieChartMapViewLastYear
 from rest_framework.documentation import include_docs_urls
 from rest_framework.permissions import AllowAny
 
@@ -134,7 +134,7 @@ urlpatterns = [
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    path("", PieChartMapViewLatestYear, name="home"),
+    path("", PieChartMapViewLastYear, name="home"),
 ]
 
 
