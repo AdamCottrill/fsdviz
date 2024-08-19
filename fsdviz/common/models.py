@@ -51,35 +51,6 @@ class Image(models.Model):
         return (self.file and self.file.url) or ""
 
 
-class BuildDate(BaseModel):
-    """
-    A database to hold the date that the database was last refreshed.
-    """
-
-    build_date = models.DateField(editable=False)
-
-    def __str__(self):
-        return self.build_date.strftime("%d-%b-%Y")
-
-
-class Readme(BaseModel):
-    """
-    a table to hold all of the information regarding last FSIS
-    download and FS_Master rebuild (it appear as a footer on every
-    page)
-    """
-
-    date = models.DateField(editable=False)
-    comment = models.TextField()
-    initials = models.CharField(max_length=4)
-
-    class Meta:
-        ordering = ["-date"]
-
-    def __str__(self):
-        return self.comment
-
-
 class Agency(BaseModel):
     """
     A lookup table for agencies that either stock fish or recovery cwts.
