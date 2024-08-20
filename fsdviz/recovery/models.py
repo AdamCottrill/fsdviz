@@ -8,7 +8,7 @@ from django.contrib.gis.db import models
 
 from django.contrib.gis.geos import Point
 
-from fsdviz.common.models import (BaseModel, Species, Strain, StrainRaw, Agency,
+from fsdviz.common.models import (BaseModel, Species, Strain, Agency,
                                   Lake, StateProvince,
                                   Grid10, LatLonFlag, Mark)
 

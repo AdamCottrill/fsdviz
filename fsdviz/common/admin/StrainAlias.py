@@ -2,15 +2,15 @@ from django import forms
 from django.contrib.gis import admin
 from django.db.models import Count
 from .utils import fill_color_widget
-from ..models import StrainRaw, Strain
+from ..models import StrainAlias, Strain
 
 admin.site.empty_value_display = "(None)"
 
 
 
 
-@admin.register(StrainRaw)
-class StrainRawModelAdmin(admin.ModelAdmin):
+@admin.register(StrainAlias)
+class StrainAliasModelAdmin(admin.ModelAdmin):
     list_display = (
         "raw_strain",
         "description",

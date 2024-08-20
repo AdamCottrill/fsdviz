@@ -36,7 +36,7 @@ class StockingEventModelAdmin(admin.ModelAdmin):
         "stock_id",
         "agency_stock_id",
         "species",
-        "strain_raw",
+        "strain_alias",
         "agency",
         "hatchery",
         "jurisdiction",

@@ -431,7 +431,7 @@ class Species(BaseModel):
     color = ColorField(default="#FF0000")
 
     strains = models.ManyToManyField(
-        "Strain", through="StrainRaw", related_name="species"
+        "Strain", through="StrainAlias", related_name="species"
     )
 
     active = models.BooleanField(default=True, db_index=True)
@@ -492,7 +492,7 @@ class Strain(BaseModel):
         )
 
 
-class StrainRaw(BaseModel):
+class StrainAlias(BaseModel):
     """
     The raw strain codes will represent the information returned in the
     GLFC look-up table where strain has too much information - eg -
@@ -520,6 +520,7 @@ class StrainRaw(BaseModel):
     class Meta:
         ordering = ["species__abbrev", "raw_strain"]
         unique_together = ("species", "strain", "raw_strain")
+        verbose_name_plural = "Strain Aliases"
 
     def __str__(self):
         return "{} ({})".format(self.description, self.raw_strain)
@@ -530,7 +531,7 @@ class StrainRaw(BaseModel):
         if hasattr(self, "species") is False or self.species is None:
             self.species = self.strain.strain_species
 
-        super(StrainRaw, self).full_clean(*args, **kwargs)
+        super(StrainAlias, self).full_clean(*args, **kwargs)
 
         if self.species != self.strain.strain_species:
             raise ValidationError(
@@ -539,7 +540,7 @@ class StrainRaw(BaseModel):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        super(StrainRaw, self).save()
+        super(StrainAlias, self).save()
 
 
 class Mark(BaseModel):

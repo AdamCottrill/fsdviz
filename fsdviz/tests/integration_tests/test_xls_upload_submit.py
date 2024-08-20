@@ -42,7 +42,7 @@ from fsdviz.tests.factories.common_factories import (
     SpeciesFactory,
     StateProvinceFactory,
     StrainFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
 
 )
 from fsdviz.tests.factories.stocking_factories import (
@@ -105,8 +105,8 @@ class XLS_Submission(TestCase):
             strain_code="BS", strain_label="BigSound", strain_species=lat
         )
 
-        StrainRawFactory.create(raw_strain="SN", species=lat, strain=sen)
-        StrainRawFactory.create(raw_strain="BS", species=lat, strain=bs)
+        StrainAliasFactory.create(raw_strain="SN", species=lat, strain=sen)
+        StrainAliasFactory.create(raw_strain="BS", species=lat, strain=bs)
 
         LifeStageFactory(abbrev="y", description="yearling")
         fall_fingerling = LifeStageFactory(abbrev="ff", description="fall fingerling")

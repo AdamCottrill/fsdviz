@@ -21,7 +21,7 @@ from django.db.models import F
 
 from ..common.models import (
     Lake,
-    StrainRaw,
+    StrainAlias,
     Species,
     StateProvince,
     ManagementUnit,
@@ -371,7 +371,7 @@ def get_event_model_form_choices(event):
     ]
 
     # filterd by the species associated with this strain:
-    strains = StrainRaw.objects.filter(species=event.species).values_list(
+    strains = StrainAlias.objects.filter(species=event.species).values_list(
         "id", "description", "raw_strain"
     )
     strains = sorted(strains, key=lambda x: x[2])

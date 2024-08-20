@@ -13,7 +13,7 @@ from fsdviz.common.filters import (
     MarkFilter,
     StateProvinceFilter,
     StrainFilter,
-    StrainRawFilter,
+    StrainAliasFilter,
 )
 from fsdviz.common.models import (
     CWT,
@@ -30,7 +30,7 @@ from fsdviz.common.models import (
     Species,
     StateProvince,
     Strain,
-    StrainRaw,
+    StrainAlias,
 )
 from fsdviz.common.utils import get_polygons, parse_geom
 from rest_framework import status, viewsets
@@ -53,7 +53,7 @@ from .serializers import (
     PhysChemMarkSerializer,
     SpeciesSerializer,
     StateProvinceSerializer,
-    StrainRawSerializer,
+    StrainAliasSerializer,
     StrainSpeciesSerializer,
 )
 
@@ -495,17 +495,17 @@ class StrainSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class StrainRawViewSet(viewsets.ReadOnlyModelViewSet):
+class StrainAliasViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    serializer_class = StrainRawSerializer
-    filterset_class = StrainRawFilter
+    serializer_class = StrainAliasSerializer
+    filterset_class = StrainAliasFilter
 
-    queryset = StrainRaw.objects.select_related("species", "strain").distinct()
+    queryset = StrainAlias.objects.select_related("species", "strain").distinct()
 
     def get_queryset(self):
         active = self.request.query_params.get("active")
-        queryset = StrainRaw.objects.select_related("species", "strain").distinct()
+        queryset = StrainAlias.objects.select_related("species", "strain").distinct()
         if active:
             queryset = queryset.filter(active=True)
 
@@ -632,7 +632,7 @@ class CommonLookUpsAPIView(APIView):
         )
 
         raw_strains = (
-            StrainRaw.objects.filter(raw_strain__isnull=False)
+            StrainAlias.objects.filter(raw_strain__isnull=False)
             .exclude(raw_strain="")
             .select_related("species", "strain")
             .values(

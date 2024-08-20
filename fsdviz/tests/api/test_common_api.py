@@ -32,7 +32,7 @@ from ..factories.common_factories import (
     SpeciesFactory,
     StateProvinceFactory,
     StrainFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
 )
 
 # from fsdviz.common.models import Lake
@@ -710,7 +710,7 @@ class TestStrainAPI(APITestCase):
             "strain": self.strain,
         }
 
-        self.strainraw = StrainRawFactory(**self.strainraw_dict)
+        self.strainraw = StrainAliasFactory(**self.strainraw_dict)
 
         # a raw strain:
         self.strainraw_dict2 = {
@@ -720,7 +720,7 @@ class TestStrainAPI(APITestCase):
             "strain": self.strain,
         }
 
-        self.strainraw2 = StrainRawFactory(**self.strainraw_dict2)
+        self.strainraw2 = StrainAliasFactory(**self.strainraw_dict2)
 
         # a raw strain:
         self.strainraw_dict3 = {
@@ -730,7 +730,7 @@ class TestStrainAPI(APITestCase):
             "strain": self.strain,
         }
 
-        self.strainraw3 = StrainRawFactory(**self.strainraw_dict3)
+        self.strainraw3 = StrainAliasFactory(**self.strainraw_dict3)
 
     def test_strain_api_get_list(self):
         """The strain api list view should return a list of nested objects,
@@ -783,7 +783,7 @@ class TestStrainAPI(APITestCase):
         """The rawstrain api list view should return a list of nested objects,
         each corresponding to a rawstrain object."""
 
-        url = reverse("common_api:strainraw-list")
+        url = reverse("common_api:strainalias-list")
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
@@ -806,7 +806,7 @@ class TestStrainAPI(APITestCase):
 
         """
 
-        url = reverse("common_api:strainraw-detail", kwargs={"pk": self.strainraw.pk})
+        url = reverse("common_api:strainalias-detail", kwargs={"pk": self.strainraw.pk})
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK

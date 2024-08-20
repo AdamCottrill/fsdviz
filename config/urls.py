@@ -24,7 +24,7 @@ from fsdviz.common.api.views import (
     LakeViewSet,
     ManagementUnitViewSet,
     StrainSpeciesViewSet,
-    StrainRawViewSet,
+    StrainAliasViewSet,
     Grid10ViewSet,
     LatLonFlagViewSet,
     MarkViewSet,
@@ -57,7 +57,7 @@ public_urls = [
     path("api/v1/common/mark", MarkViewSet.as_view({"get": "list"})),
     path("api/v1/common/species", SpeciesViewSet.as_view({"get": "list"})),
     path("api/v1/common/strain", StrainSpeciesViewSet.as_view({"get": "list"})),
-    path("api/v1/common/strainraw", StrainRawViewSet.as_view({"get": "list"})),
+    path("api/v1/common/strain_alias", StrainAliasViewSet.as_view({"get": "list"})),
     path("api/v1/stocking/lifestage", LifeStageViewSet.as_view({"get": "list"})),
     path(
         "api/v1/stocking/yearling_equivalent",

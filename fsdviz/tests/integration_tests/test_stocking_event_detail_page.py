@@ -75,7 +75,7 @@ from ..factories.common_factories import (
     ManagementUnitFactory,
     Grid10Factory,
     StrainFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
     MarkFactory,
     LatLonFlagFactory,
     CWTFactory,
@@ -110,7 +110,7 @@ def base_event():
     species = SpeciesFactory(common_name="Lake Trout", abbrev="LAT")
     strain = StrainFactory(strain_code="SEN", strain_label="Seneca")
 
-    strain_raw = StrainRawFactory(
+    strain_raw = StrainAliasFactory(
         species=species,
         strain=strain,
         raw_strain="Sp. Strain",

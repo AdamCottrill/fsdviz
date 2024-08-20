@@ -76,7 +76,6 @@ THIRD_PARTY_APPS = [
     "drf_yasg",
     "leaflet",
     "colorfield",
-    "crispy_forms",  # ticket tracker
     "taggit",
     "tickets",
     "bookmark_it",

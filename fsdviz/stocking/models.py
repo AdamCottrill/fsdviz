@@ -25,7 +25,7 @@ from fsdviz.common.models import (
     Mark,
     PhysChemMark,
     Species,
-    StrainRaw,
+    StrainAlias,
 )
 from fsdviz.common.utils import is_uuid4, unique_string
 from fsdviz.myusers.models import CustomUser
@@ -280,9 +280,9 @@ class StockingEvent(BaseModel):
     )
 
     # foreign key to strain_raw, strain will be made available through
-    # a class method that will traverse the Strain-StrainRaw relationship.
+    # a class method that will traverse the Strain-StrainAlias relationship.
     strain_alias = models.ForeignKey(
-        StrainRaw, on_delete=models.CASCADE, related_name="stocking_events"
+        StrainAlias, on_delete=models.CASCADE, related_name="stocking_events"
     )
 
     agency = models.ForeignKey(

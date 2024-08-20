@@ -3,11 +3,11 @@
 {% load admin_urls %}
 
 {% block after_related_objects %}
-    <h2>Current Raw-Strains included in "{{original}}" Strain:</h2>
+    <h2>Current Alias-Strains included in "{{original}}" Strain:</h2>
     {% if original.rawstrain.count %}
         <table>
             <thead>
-                <th>Raw Strain Code</th>
+                <th>Alias Strain Code</th>
                 <th>Description</th>
                 <th>Events</th>
                 <th>Active</th>
@@ -15,7 +15,7 @@
             <tbody>
                 {% for item in original.rawstrain.all %}
                     <tr>
-                        <td><a href="{% url 'admin:common_strainraw_change'  item.pk %}">
+                        <td><a href="{% url 'admin:common_strainalias_change'  item.pk %}">
                             {{item.raw_strain}}
                         </a>
                         </td>
@@ -30,7 +30,7 @@
 
     {% else %}
 
-    There are current not raw (sub) strain entries associated with this strain.
+    There are current no Strain Alias  entries associated with this Strain.
 
     {% endif %}
 

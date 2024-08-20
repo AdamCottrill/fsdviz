@@ -25,7 +25,7 @@ from ..factories.common_factories import (
     SpeciesFactory,
     StateProvinceFactory,
     StrainFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
 )
 
 
@@ -246,7 +246,7 @@ def test_strainraw_str():
     species = SpeciesFactory()
     strain = StrainFactory(strain_species=species)
 
-    rawstrain = StrainRawFactory(
+    rawstrain = StrainAliasFactory(
         strain=strain, species=species, raw_strain=strain_code, description=description
     )
 
@@ -270,7 +270,7 @@ def test_strainraw_clean():
     walleye = SpeciesFactory(abbrev="WAL", common_name="Walleye")
 
     with pytest.raises(ValidationError) as excinfo:
-        rawstrain = StrainRawFactory(
+        rawstrain = StrainAliasFactory(
             strain=lat_strain,
             species=walleye,
             raw_strain=strain_code,

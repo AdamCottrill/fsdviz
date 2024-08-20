@@ -18,7 +18,7 @@ from ..factories.common_factories import (
     AgencyFactory,
     SpeciesFactory,
     StrainFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
     StateProvinceFactory,
     JurisdictionFactory,
     ManagementUnitFactory,
@@ -119,7 +119,7 @@ class TestCommonLookupAPI(APITestCase):
             "color": "#808080",
         }
 
-        self.raw_strain = StrainRawFactory(**self.strain_raw_dict)
+        self.raw_strain = StrainAliasFactory(**self.strain_raw_dict)
         # the raw strain object has speceies abbrev and the strain slug:
         self.strain_raw_dict["id"] = self.raw_strain.id
         self.strain_raw_dict.pop("species")

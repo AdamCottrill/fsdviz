@@ -25,7 +25,7 @@ from ...common.models import (
     Species,
     StateProvince,
     Strain,
-    StrainRaw,
+    StrainAlias,
 )
 
 # centroid_WKT = POINT(-82.25, 44.25)
@@ -165,13 +165,13 @@ class StrainFactory(factory.django.DjangoModelFactory):
     strain_species = factory.SubFactory(SpeciesFactory)
 
 
-class StrainRawFactory(factory.django.DjangoModelFactory):
+class StrainAliasFactory(factory.django.DjangoModelFactory):
     """
     A factory for Raw Strain objects.
     """
 
     class Meta:
-        model = StrainRaw
+        model = StrainAlias
         django_get_or_create = ("raw_strain",)
 
     raw_strain = "Special Seneca"

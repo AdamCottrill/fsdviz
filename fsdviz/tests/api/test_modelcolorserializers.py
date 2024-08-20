@@ -37,7 +37,7 @@ from fsdviz.common.api.serializers import (
     PhysChemMarkSerializer,
     SpeciesSerializer,
     StrainSerializer,
-    StrainRawSerializer,
+    StrainAliasSerializer,
 )
 from ..factories.common_factories import (
     AgencyFactory,
@@ -50,7 +50,7 @@ from ..factories.common_factories import (
     SpeciesFactory,
     StateProvinceFactory,
     StrainFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
 )
 
 from ..factories.stocking_factories import LifeStageFactory, StockingMethodFactory
@@ -270,7 +270,7 @@ def test_strainraw_model_color_serializer():
         "color": "#808080",
     }
 
-    strainraw = StrainRawFactory.build(**strainraw_dict)
+    strainraw = StrainAliasFactory.build(**strainraw_dict)
 
     strain_dict["id"] = None
     strain_dict["slug"] = None
@@ -281,7 +281,7 @@ def test_strainraw_model_color_serializer():
     expected["strain"] = strain_dict
     expected["species"] = species_dict
 
-    data_out = StrainRawSerializer(strainraw, color=True).data
+    data_out = StrainAliasSerializer(strainraw, color=True).data
 
     assert data_out == expected
 

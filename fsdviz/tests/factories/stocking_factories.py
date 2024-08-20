@@ -27,7 +27,7 @@ from .common_factories import (
     AgencyFactory,
     SpeciesFactory,
     ManagementUnitFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
     StateProvinceFactory,
     Grid10Factory,
     LatLonFlagFactory,
@@ -115,7 +115,7 @@ class StockingEventFactory(factory.django.DjangoModelFactory):
 
     # foreign keys:
     species = factory.SubFactory(SpeciesFactory)
-    strain_alias = factory.SubFactory(StrainRawFactory)
+    strain_alias = factory.SubFactory(StrainAliasFactory)
     agency = factory.SubFactory(AgencyFactory)
     hatchery = factory.SubFactory(HatcheryFactory)
     jurisdiction = factory.SubFactory(JurisdictionFactory)

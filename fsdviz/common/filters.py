@@ -12,7 +12,7 @@ from .models import (
     Jurisdiction,
     StateProvince,
     Strain,
-    StrainRaw,
+    StrainAlias,
     Mark,
     Grid10,
     CWTsequence,
@@ -99,7 +99,7 @@ class StrainFilter(django_filters.FilterSet):
         fields = ["strain_code", "strain_species"]
 
 
-class StrainRawFilter(django_filters.FilterSet):
+class StrainAliasFilter(django_filters.FilterSet):
 
     species_id = django_filters.NumberFilter(field_name="species_id")
 
@@ -112,7 +112,7 @@ class StrainRawFilter(django_filters.FilterSet):
     )
 
     class Meta:
-        model = StrainRaw
+        model = StrainAlias
         fields = ["strain", "species"]
 
 

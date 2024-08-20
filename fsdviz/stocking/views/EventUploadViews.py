@@ -25,7 +25,7 @@ from fsdviz.common.models import (
     PhysChemMark,
     Species,
     StateProvince,
-    StrainRaw,
+    StrainAlias,
 )
 from fsdviz.common.utils import (
     PointPolygonsCollection,
@@ -188,7 +188,7 @@ def xls_events(request):
 
     choices["strain"] = [
         [x.raw_strain, x.raw_strain]
-        for x in StrainRaw.objects.filter(
+        for x in StrainAlias.objects.filter(
             active=True, raw_strain__isnull=False
         ).exclude(raw_strain="")
     ]
@@ -219,7 +219,7 @@ def xls_events(request):
     # queries.
 
     cache = {"bbox": bbox}
-    strain_list = StrainRaw.objects.filter(active=True).values_list(
+    strain_list = StrainAlias.objects.filter(active=True).values_list(
         # "id", "species__abbrev", "strain__strain_code"
         "id",
         "species__abbrev",

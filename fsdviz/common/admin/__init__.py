@@ -17,6 +17,6 @@ from .PhysChemMark import PhysChemMarkModelAdmin
 from .Species import SpeciesModelAdmin
 from .StateProvince import StateProvinceModelAdmin
 from .Strain import StrainModelAdmin
-from .StrainRaw import StrainRawModelAdmin
+from .StrainAlias import StrainAliasModelAdmin
 
 admin.site.empty_value_display = "(None)"

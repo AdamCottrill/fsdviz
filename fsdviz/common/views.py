@@ -16,7 +16,7 @@ from .models import (
     Lake,
     PhysChemMark,
     Species,
-    StrainRaw,
+    StrainAlias,
 )
 
 
@@ -51,7 +51,7 @@ def lookup_tables(request):
     jurisdictions = Jurisdiction.objects.all()
     species = Species.objects.all()
     strains = (
-        StrainRaw.objects.select_related("species")
+        StrainAlias.objects.select_related("species")
         .prefetch_related("strain", "strain__species")
         .all()
     )

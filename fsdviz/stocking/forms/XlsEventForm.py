@@ -3,7 +3,7 @@ from datetime import datetime
 from django import forms
 
 from fsdviz.common.constants import MONTHS
-from fsdviz.common.models import StrainRaw
+from fsdviz.common.models import StrainAlias
 from fsdviz.common.utils import int_or_none
 from fsdviz.common.validators import validate_cwt
 from fsdviz.common.widgets import MySelect
