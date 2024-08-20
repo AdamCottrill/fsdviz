@@ -510,20 +510,19 @@ class StrainAlias(BaseModel):
         Strain, on_delete=models.CASCADE, related_name="rawstrain"
     )
 
-    # raw_strain_code = models.CharField(max_length=10)
-    raw_strain = models.CharField("Submitted (raw) strain code", max_length=100)
+    strain_alias = models.CharField("Submitted (raw) strain code", max_length=100)
     description = models.CharField(max_length=500)
     color = ColorField(default="#FF0000")
 
     active = models.BooleanField(default=True, db_index=True)
 
     class Meta:
-        ordering = ["species__abbrev", "raw_strain"]
-        unique_together = ("species", "strain", "raw_strain")
+        ordering = ["species__abbrev", "strain_alias"]
+        unique_together = ("species", "strain", "strain_alias")
         verbose_name_plural = "Strain Aliases"
 
     def __str__(self):
-        return "{} ({})".format(self.description, self.raw_strain)
+        return "{} ({})".format(self.description, self.strain_alias)
 
     def full_clean(self, *args, **kwargs):
         """make sure that the species and strain are consistent."""

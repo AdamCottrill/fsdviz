@@ -187,10 +187,10 @@ def xls_events(request):
     choices["grids"] = choices.get("grids", {}).get(lake.abbrev, "")
 
     choices["strain"] = [
-        [x.raw_strain, x.raw_strain]
+        [x.strain_alias, x.strain_alias]
         for x in StrainAlias.objects.filter(
-            active=True, raw_strain__isnull=False
-        ).exclude(raw_strain="")
+            active=True, strain_alias__isnull=False
+        ).exclude(strain_alias="")
     ]
 
     clips = [x for x in CompositeFinClip.objects.values_list("clip_code", "clip_code")]
@@ -223,7 +223,7 @@ def xls_events(request):
         # "id", "species__abbrev", "strain__strain_code"
         "id",
         "species__abbrev",
-        "raw_strain",
+        "strain_alias",
     )
     strain_id_lookup = make_strain_id_lookup(strain_list)
     cache["strains"] = strain_id_lookup

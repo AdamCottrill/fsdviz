@@ -172,9 +172,9 @@ class StrainAliasFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = StrainAlias
-        django_get_or_create = ("raw_strain",)
+        django_get_or_create = ("strain_alias",)
 
-    raw_strain = "Special Seneca"
+    strain_alias = "Special Seneca"
     description = "extra special Lake trout orignally from Seneca Lake"
     species = factory.SubFactory(SpeciesFactory)
     strain = factory.SubFactory(StrainFactory)

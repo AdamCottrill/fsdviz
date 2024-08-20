@@ -110,10 +110,10 @@ def base_event():
     species = SpeciesFactory(common_name="Lake Trout", abbrev="LAT")
     strain = StrainFactory(strain_code="SEN", strain_label="Seneca")
 
-    strain_raw = StrainAliasFactory(
+    strain_alias = StrainAliasFactory(
         species=species,
         strain=strain,
-        raw_strain="Sp. Strain",
+        strain_alias="Sp. Strain",
         description="Special Strain",
     )
 
@@ -128,7 +128,7 @@ def base_event():
 
     event = StockingEventFactory(
         species=species,
-        strain_alias=strain_raw,
+        strain_alias=strain_alias,
         agency=agency,
         jurisdiction=jurisdiction,
         grid_10=grid_10,

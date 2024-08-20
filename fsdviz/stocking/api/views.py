@@ -209,7 +209,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "_strain_alias": Concat(
                 "strain_alias__description",
                 V(" ("),
-                "strain_alias__raw_strain",
+                "strain_alias__strain_alias",
                 V(")"),
                 output_field=CharField(),
             ),

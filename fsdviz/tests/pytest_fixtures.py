@@ -409,10 +409,10 @@ def cwt_stocking_events(db):
         strain_code="WILD", strain_label="Wild", strain_species=cos
     )
 
-    cos_alias = StrainAliasFactory(species=cos, strain=cos_strain, raw_strain="COS-1")
-    rbt_alias = StrainAliasFactory(species=rbt, strain=rbt_strain, raw_strain="RBT-1")
+    cos_alias = StrainAliasFactory(species=cos, strain=cos_strain, strain_alias="COS-1")
+    rbt_alias = StrainAliasFactory(species=rbt, strain=rbt_strain, strain_alias="RBT-1")
 
-    lat1_alias = StrainAliasFactory(species=lat, strain=lat_strain1, raw_strain="BS-1")
+    lat1_alias = StrainAliasFactory(species=lat, strain=lat_strain1, strain_alias="BS-1")
 
     fry = LifeStageFactory(abbrev="fry", description="fry")
     fingerlings = LifeStageFactory(abbrev="f", description="fingerlings")
@@ -954,12 +954,12 @@ def reused_cwt_stocking_events(db):
         strain_code="WILD", strain_label="Wild", strain_species=cos
     )
 
-    cos_alias = StrainAliasFactory(species=cos, strain=cos_strain, raw_strain="COS-1")
-    rbt_alias = StrainAliasFactory(species=rbt, strain=rbt_strain, raw_strain="RBT-1")
+    cos_alias = StrainAliasFactory(species=cos, strain=cos_strain, strain_alias="COS-1")
+    rbt_alias = StrainAliasFactory(species=rbt, strain=rbt_strain, strain_alias="RBT-1")
 
-    lat1_alias = StrainAliasFactory(species=lat, strain=lat_strain1, raw_strain="BS-1")
+    lat1_alias = StrainAliasFactory(species=lat, strain=lat_strain1, strain_alias="BS-1")
 
-    lat2_alias = StrainAliasFactory(species=lat, strain=lat_strain2, raw_strain="SN-1")
+    lat2_alias = StrainAliasFactory(species=lat, strain=lat_strain2, strain_alias="SN-1")
 
     fry = LifeStageFactory(abbrev="fry", description="fry")
     fingerlings = LifeStageFactory(abbrev="f", description="fingerlings")

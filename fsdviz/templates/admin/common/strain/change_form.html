@@ -16,7 +16,7 @@
                 {% for item in original.rawstrain.all %}
                     <tr>
                         <td><a href="{% url 'admin:common_strainalias_change'  item.pk %}">
-                            {{item.raw_strain}}
+                            {{item.strain_alias}}
                         </a>
                         </td>
                         <td>{{item.description}}</td>

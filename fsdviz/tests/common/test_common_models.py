@@ -232,9 +232,9 @@ def test_strain_str():
 
 
 @pytest.mark.django_db
-def test_strainraw_str():
+def test_strain_alias_str():
     """
-    Verify that the string representation of a raw object
+    Verify that the string representation of a strain alias object
     is the strain code followed by the description in brackets.
 
     'My Special Strain (MSS)'
@@ -246,19 +246,19 @@ def test_strainraw_str():
     species = SpeciesFactory()
     strain = StrainFactory(strain_species=species)
 
-    rawstrain = StrainAliasFactory(
-        strain=strain, species=species, raw_strain=strain_code, description=description
+    strain_alias = StrainAliasFactory(
+        strain=strain, species=species, strain_alias=strain_code, description=description
     )
 
     shouldbe = "{} ({})".format(description, strain_code)
-    assert str(rawstrain) == shouldbe
+    assert str(strain_alias) == shouldbe
 
 
 @pytest.mark.django_db
-def test_strainraw_clean():
-    """The strainraw model has a clean method that ensures that the
+def test_strain_alias_clean():
+    """The strain_alias model has a clean method that ensures that the
     species associated with strain matches the species of the current
-    raw strain.
+    strain alias.
 
     """
     strain_code = "MSS"
@@ -270,10 +270,10 @@ def test_strainraw_clean():
     walleye = SpeciesFactory(abbrev="WAL", common_name="Walleye")
 
     with pytest.raises(ValidationError) as excinfo:
-        rawstrain = StrainAliasFactory(
+        strain_alias = StrainAliasFactory(
             strain=lat_strain,
             species=walleye,
-            raw_strain=strain_code,
+            strain_alias=strain_code,
             description=description,
         )
 

@@ -631,13 +631,13 @@ class CommonLookUpsAPIView(APIView):
             .distinct()
         )
 
-        raw_strains = (
-            StrainAlias.objects.filter(raw_strain__isnull=False)
-            .exclude(raw_strain="")
+        strain_aliases = (
+            StrainAlias.objects.filter(strain_alias__isnull=False)
+            .exclude(strain_alias="")
             .select_related("species", "strain")
             .values(
                 "id",
-                "raw_strain",
+                "strain_alias",
                 "description",
                 "species__abbrev",
                 "strain__slug",
@@ -672,7 +672,7 @@ class CommonLookUpsAPIView(APIView):
             "stateprov": list(stateprov),
             "species": list(species),
             "strains": strains,
-            "raw_strains": list(raw_strains),
+            "strain_aliases": list(strain_aliases),
             "clipcodes": list(clipcodes),
             "fish_tags": list(fish_tags),
             "physchem_marks": list(physchem_marks),

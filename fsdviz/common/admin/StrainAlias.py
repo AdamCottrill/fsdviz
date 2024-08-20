@@ -12,7 +12,7 @@ admin.site.empty_value_display = "(None)"
 @admin.register(StrainAlias)
 class StrainAliasModelAdmin(admin.ModelAdmin):
     list_display = (
-        "raw_strain",
+        "strain_alias",
         "description",
         "species",
         "strain",
@@ -22,7 +22,7 @@ class StrainAliasModelAdmin(admin.ModelAdmin):
         "event_count"
     )
     list_filter = ("species", "active")
-    search_fields = ("description", "raw_strain")
+    search_fields = ("description", "strain_alias")
 
     list_select_related = ("strain", "species", "strain__strain_species")
 
@@ -44,8 +44,8 @@ class StrainAliasModelAdmin(admin.ModelAdmin):
             )
 
             if object_id:
-                raw_strain = self.get_object(request, object_id)
-                qs = qs.filter(strain_species=raw_strain.species)
+                strain_alias = self.get_object(request, object_id)
+                qs = qs.filter(strain_species=strain_alias.species)
             kwargs["queryset"] = qs.order_by("strain_label").distinct()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)

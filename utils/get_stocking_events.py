@@ -113,10 +113,10 @@ grids = Grid10.objects.all()
 for grid in grids:
     grid_lookup.add_grid(grid)
 
-raw_strain_lookup = RawStrainCache()
-rawstrains = StrainRaw.objects.all()
-for strain in rawstrains:
-    raw_strain_lookup.add_strain(strain)
+strain_alias_lookup = RawStrainCache()
+strain_aliases = StrainAlias.objects.all()
+for strain in strain_aliases:
+    strain_alias_lookup.add_strain(strain)
 
 # ==============================================
 # get the stocking data:
@@ -187,13 +187,13 @@ for yr in years:
                 # in source data - strains and grids
                 species = species_lookup.get(record["species"].strip())
 
-                # strain_raw = get_or_create_rawStrain(species, raw_strain=record["strain"])
+                # strain_alias = get_or_create_rawStrain(species, strain_alias=record["strain"])
 
-                strain_raw = raw_strain_lookup.get_strain(
+                strain_alias = strain_alias_lookup.get_strain(
                     species.abbrev, record["strain"]
                 )
 
-                if strain_raw is None:
+                if strain_alias is None:
                     logging.warning(
                         "Unknown Strain: {stock_id} - {species} ({strain})".format(
                             **record
@@ -231,7 +231,7 @@ for yr in years:
                 event = StockingEvent(
                     # Required related objects:
                     species=species,
-                    strain_raw=strain_raw,
+                    strain_alias=strain_alias,
                     jurisdiction=jurisdiction,
                     management_unit=managementUnit,
                     grid_10=grid10,

@@ -179,7 +179,7 @@ class StrainAliasSerializer(ModelColorSerializer):
 
     class Meta:
         model = StrainAlias
-        fields = ("id", "raw_strain", "description", "species", "strain", "color")
+        fields = ("id", "strain_alias", "description", "species", "strain", "color")
 
     @staticmethod
     def setup_eager_loading(queryset):

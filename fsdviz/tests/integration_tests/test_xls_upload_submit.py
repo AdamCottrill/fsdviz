@@ -105,8 +105,8 @@ class XLS_Submission(TestCase):
             strain_code="BS", strain_label="BigSound", strain_species=lat
         )
 
-        StrainAliasFactory.create(raw_strain="SN", species=lat, strain=sen)
-        StrainAliasFactory.create(raw_strain="BS", species=lat, strain=bs)
+        StrainAliasFactory.create(strain_alias="SN", species=lat, strain=sen)
+        StrainAliasFactory.create(strain_alias="BS", species=lat, strain=bs)
 
         LifeStageFactory(abbrev="y", description="yearling")
         fall_fingerling = LifeStageFactory(abbrev="ff", description="fall fingerling")

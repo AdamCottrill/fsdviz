@@ -65,7 +65,7 @@ def setup():
         strain_code="BS", strain_label="Big Sound", strain_species=lat
     )
 
-    lat1_alias = StrainAliasFactory(species=lat, strain=lat_strain1, raw_strain="BS-1")
+    lat1_alias = StrainAliasFactory(species=lat, strain=lat_strain1, strain_alias="BS-1")
 
     event1 = StockingEventFactory(
         jurisdiction=on_hu,
@@ -277,7 +277,7 @@ def test_multiple_strains(setup):
     lat_strain2 = StrainFactory(
         strain_code="SN", strain_label="Seneca Lake", strain_species=lat
     )
-    lat2_alias = StrainAliasFactory(species=lat, strain=lat_strain2, raw_strain="SN-1")
+    lat2_alias = StrainAliasFactory(species=lat, strain=lat_strain2, strain_alias="SN-1")
 
     cwt1 = CWTFactory(cwt_number="111111")
     cwtseq1 = CWTsequenceFactory(cwt=cwt1)

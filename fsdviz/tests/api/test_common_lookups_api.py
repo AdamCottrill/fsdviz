@@ -38,7 +38,7 @@ class TestCommonLookupAPI(APITestCase):
     "manUnits":[(slug", "label", "jurisdiction", "description")],
     "species": [("abbrev", "common_name", "scientific_name", "species_code", "speciescommon"), ...],
     "strains":[("id", "strain_code", "strain_label", "strain_species__abbrev"), ...],
-    "raw_strains":[("id", "raw_strain", "description", "species__abbrev"), ...],
+    "strain_aliases":[("id", "strain_alias", "description", "species__abbrev"), ...],
     "clipcodes": [(clip_code, description), ....],
 
     """
@@ -111,7 +111,7 @@ class TestCommonLookupAPI(APITestCase):
 
         # a Strain:
         self.strain_raw_dict = {
-            "raw_strain": "SN-1",
+            "strain_alias": "SN-1",
             "description": "Seneca One",
             "species": self.species,
             "strain": self.strain,
@@ -119,9 +119,9 @@ class TestCommonLookupAPI(APITestCase):
             "color": "#808080",
         }
 
-        self.raw_strain = StrainAliasFactory(**self.strain_raw_dict)
+        self.strain_alias = StrainAliasFactory(**self.strain_raw_dict)
         # the raw strain object has speceies abbrev and the strain slug:
-        self.strain_raw_dict["id"] = self.raw_strain.id
+        self.strain_raw_dict["id"] = self.strain_alias.id
         self.strain_raw_dict.pop("species")
         self.strain_raw_dict.pop("strain")
         self.strain_raw_dict["species__abbrev"] = self.species.abbrev
@@ -175,7 +175,7 @@ class TestCommonLookupAPI(APITestCase):
                 "manUnits",
                 "species",
                 "strains",
-                "raw_strains",
+                "strain_aliases",
                 "clipcodes",
                 "fish_tags",
                 "physchem_marks",
@@ -192,7 +192,7 @@ class TestCommonLookupAPI(APITestCase):
         # assert response.data.get("manUnits") == [self.management_unit_dict]
 
         assert response.data.get("species") == [self.species_dict]
-        assert response.data.get("raw_strains") == [self.strain_raw_dict]
+        assert response.data.get("strain_aliases") == [self.strain_raw_dict]
 
         assert response.data.get("clipcodes") == [self.clipcode_dict]
 

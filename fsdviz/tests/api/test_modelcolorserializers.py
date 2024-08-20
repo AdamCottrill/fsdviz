@@ -240,7 +240,7 @@ def test_strain_model_color_serializer():
     assert StrainSerializer(item, color=False).data == data_in
 
 
-def test_strainraw_model_color_serializer():
+def test_strain_alias_model_color_serializer():
     """ """
 
     species_dict = {
@@ -262,26 +262,26 @@ def test_strainraw_model_color_serializer():
     strain = StrainFactory.build(**strain_dict)
 
     # a raw strain:
-    strainraw_dict = {
-        "raw_strain": "SEN",
+    strain_alias_dict = {
+        "strain_alias": "SEN",
         "description": "Seneca",
         "species": species,
         "strain": strain,
         "color": "#808080",
     }
 
-    strainraw = StrainAliasFactory.build(**strainraw_dict)
+    strain_alias = StrainAliasFactory.build(**strain_alias_dict)
 
     strain_dict["id"] = None
     strain_dict["slug"] = None
     strain_dict.pop("strain_species")
 
-    expected = strainraw_dict.copy()
+    expected = strain_alias_dict.copy()
     expected["id"] = None
     expected["strain"] = strain_dict
     expected["species"] = species_dict
 
-    data_out = StrainAliasSerializer(strainraw, color=True).data
+    data_out = StrainAliasSerializer(strain_alias, color=True).data
 
     assert data_out == expected
 

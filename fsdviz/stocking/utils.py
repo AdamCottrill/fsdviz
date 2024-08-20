@@ -372,7 +372,7 @@ def get_event_model_form_choices(event):
 
     # filterd by the species associated with this strain:
     strains = StrainAlias.objects.filter(species=event.species).values_list(
-        "id", "description", "raw_strain"
+        "id", "description", "strain_alias"
     )
     strains = sorted(strains, key=lambda x: x[2])
     strain_choices = [(x[0], "{} ({})".format(x[2], x[1])) for x in strains]

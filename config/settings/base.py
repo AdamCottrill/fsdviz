@@ -80,7 +80,6 @@ THIRD_PARTY_APPS = [
     "tickets",
     "bookmark_it",
     "resource_library",
-
 ]
 
 MY_APPS = ["fsdviz.myusers", "fsdviz.common", "fsdviz.stocking", "fsdviz.recovery"]
