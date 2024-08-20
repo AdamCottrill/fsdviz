@@ -178,12 +178,12 @@ class CWTSequenceFilter(django_filters.FilterSet):
 
     # strain abbrev (human friendly)
     strain_name = ValueInFilter(
-        field_name="events__strain_raw__strain__strain_code", lookup_expr="in"
+        field_name="events__strain_alias__strain__strain_code", lookup_expr="in"
     )
 
     # by strain id (form)
     strain = NumberInFilter(
-        field_name="events__strain_raw__strain__id", lookup_expr="in"
+        field_name="events__strain_alias__strain__id", lookup_expr="in"
     )
 
     stocking_method = ValueInFilter(
@@ -230,7 +230,7 @@ class CWTSequenceFilter(django_filters.FilterSet):
             "events__year",
             "events__month",
             "events__species__abbrev",
-            "events__strain_raw__strain__strain_label",
+            "events__strain_alias__strain__strain_label",
             "events__lifestage__abbrev",
             "events__jurisdiction__slug",
             "events__jurisdiction__lake__abbrev",

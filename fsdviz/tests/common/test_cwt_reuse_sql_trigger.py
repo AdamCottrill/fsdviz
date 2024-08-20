@@ -65,14 +65,14 @@ def setup():
         strain_code="BS", strain_label="Big Sound", strain_species=lat
     )
 
-    raw_lat1 = StrainRawFactory(species=lat, strain=lat_strain1, raw_strain="BS-1")
+    lat1_alias = StrainRawFactory(species=lat, strain=lat_strain1, raw_strain="BS-1")
 
     event1 = StockingEventFactory(
         jurisdiction=on_hu,
         agency=mnrf,
         year_class=2009,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
     )
 
     return {
@@ -82,7 +82,7 @@ def setup():
         "on_hu": on_hu,
         "lat": lat,
         "lat_strain1": lat_strain1,
-        "raw_lat1": raw_lat1,
+        "lat1_alias": lat1_alias,
         "event1": event1,
     }
 
@@ -99,7 +99,7 @@ def test_multiple_agencies(setup):
     event1 = setup["event1"]
     on_hu = setup["on_hu"]
     lat = setup["lat"]
-    raw_lat1 = setup["raw_lat1"]
+    lat1_alias = setup["lat1_alias"]
 
     cwt1 = CWTFactory(cwt_number="111111")
     cwtseq1 = CWTsequenceFactory(cwt=cwt1)
@@ -118,7 +118,7 @@ def test_multiple_agencies(setup):
         agency=mdnr,
         year_class=2009,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
     )
 
     cwtseq1.events.add(event2)
@@ -154,7 +154,7 @@ def test_multiple_lakes(setup):
     event1 = setup["event1"]
     mnrf = setup["mnrf"]
     lat = setup["lat"]
-    raw_lat1 = setup["raw_lat1"]
+    lat1_alias = setup["lat1_alias"]
 
     superior = LakeFactory(abbrev="SU", lake_name="Superior")
     ontario = setup["ontario"]
@@ -177,7 +177,7 @@ def test_multiple_lakes(setup):
         agency=mnrf,
         year_class=2009,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
     )
 
     cwtseq1.events.add(event2)
@@ -212,7 +212,7 @@ def test_multiple_species(setup):
     event1 = setup["event1"]
     mnrf = setup["mnrf"]
     lat = setup["lat"]
-    raw_lat1 = setup["raw_lat1"]
+    lat1_alias = setup["lat1_alias"]
     on_hu = setup["on_hu"]
 
     cos = SpeciesFactory(abbrev="COS", common_name="Coho Salmon")
@@ -234,7 +234,7 @@ def test_multiple_species(setup):
         agency=mnrf,
         year_class=2009,
         species=cos,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
     )
 
     cwtseq1.events.add(event2)
@@ -277,7 +277,7 @@ def test_multiple_strains(setup):
     lat_strain2 = StrainFactory(
         strain_code="SN", strain_label="Seneca Lake", strain_species=lat
     )
-    raw_lat2 = StrainRawFactory(species=lat, strain=lat_strain2, raw_strain="SN-1")
+    lat2_alias = StrainRawFactory(species=lat, strain=lat_strain2, raw_strain="SN-1")
 
     cwt1 = CWTFactory(cwt_number="111111")
     cwtseq1 = CWTsequenceFactory(cwt=cwt1)
@@ -296,7 +296,7 @@ def test_multiple_strains(setup):
         agency=mnrf,
         year_class=2009,
         species=lat,
-        strain_raw=raw_lat2,
+        strain_alias=lat2_alias,
     )
 
     cwtseq1.events.add(event2)
@@ -305,7 +305,7 @@ def test_multiple_strains(setup):
     event2.notes = "this is a test."
     event2.save()
 
-    assert event2.strain_raw != event1.strain_raw
+    assert event2.strain_alias != event1.strain_alias
 
     # #the tag should now be flagged as re-used:
     cwt1 = CWT.objects.get(pk=cwt1.id)
@@ -331,7 +331,7 @@ def test_multiple_yearclass(setup):
     event1 = setup["event1"]
     mnrf = setup["mnrf"]
     lat = setup["lat"]
-    raw_lat1 = setup["raw_lat1"]
+    lat1_alias = setup["lat1_alias"]
     on_hu = setup["on_hu"]
 
     cwt1 = CWTFactory(cwt_number="111111")
@@ -351,7 +351,7 @@ def test_multiple_yearclass(setup):
         agency=mnrf,
         year_class=2012,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
     )
 
     cwtseq1.events.add(event2)
@@ -386,7 +386,7 @@ def test_multiple_makers(setup):
     event1 = setup["event1"]
     mnrf = setup["mnrf"]
     lat = setup["lat"]
-    raw_lat1 = setup["raw_lat1"]
+    lat1_alias = setup["lat1_alias"]
     on_hu = setup["on_hu"]
 
     cwt1 = CWTFactory(cwt_number="111111")
@@ -409,7 +409,7 @@ def test_multiple_makers(setup):
         agency=mnrf,
         year_class=2012,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
     )
 
     cwtseq2.events.add(event2)

@@ -281,7 +281,7 @@ class StockingEvent(BaseModel):
 
     # foreign key to strain_raw, strain will be made available through
     # a class method that will traverse the Strain-StrainRaw relationship.
-    strain_raw = models.ForeignKey(
+    strain_alias = models.ForeignKey(
         StrainRaw, on_delete=models.CASCADE, related_name="stocking_events"
     )
 

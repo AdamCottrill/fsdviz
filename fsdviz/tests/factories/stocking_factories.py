@@ -115,7 +115,7 @@ class StockingEventFactory(factory.django.DjangoModelFactory):
 
     # foreign keys:
     species = factory.SubFactory(SpeciesFactory)
-    strain_raw = factory.SubFactory(StrainRawFactory)
+    strain_alias = factory.SubFactory(StrainRawFactory)
     agency = factory.SubFactory(AgencyFactory)
     hatchery = factory.SubFactory(HatcheryFactory)
     jurisdiction = factory.SubFactory(JurisdictionFactory)

@@ -12,7 +12,7 @@
     + agency stock_id (if known)
     + species
     + strain
-    + raw strain
+    + strain alias
     + agency
     + lake
     + state/province
@@ -128,7 +128,7 @@ def base_event():
 
     event = StockingEventFactory(
         species=species,
-        strain_raw=strain_raw,
+        strain_alias=strain_raw,
         agency=agency,
         jurisdiction=jurisdiction,
         grid_10=grid_10,
@@ -215,7 +215,7 @@ required_elements = [
     ("stock_id", "2019_12345"),
     ("species", "Lake Trout (LAT)"),
     ("strain", "Seneca (SEN)"),
-    ("raw strain", '<td id="strain-raw">Special Strain(Sp. Strain)</td>'),
+    ("strain alias", '<td id="strain-alias">Special Strain(Sp. Strain)</td>'),
     ("agency ", "Ontario Ministry of Natural Resources and Forestry (OMNRF)"),
     ("lake", '<td class="capitalize">Huron (HU)</td>'),
     ("state/province", '<td class="capitalize">Ontario (ON)</td>'),

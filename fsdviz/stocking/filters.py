@@ -108,11 +108,11 @@ class StockingEventFilter(django_filters.FilterSet):
 
     # strain abbrev (human friendly)
     strain_name = ValueInFilter(
-        field_name="strain_raw__strain__strain_code", lookup_expr="in"
+        field_name="strain_alias__strain__strain_code", lookup_expr="in"
     )
 
     # by strain id (form)
-    strain = NumberInFilter(field_name="strain_raw__strain__id", lookup_expr="in")
+    strain = NumberInFilter(field_name="strain_alias__strain__id", lookup_expr="in")
 
     stocking_method = ValueInFilter(
         field_name="stocking_method__stk_meth", lookup_expr="in"
@@ -152,7 +152,7 @@ class StockingEventFilter(django_filters.FilterSet):
             "year",
             "month",
             "species__abbrev",
-            "strain_raw__strain__strain_label",
+            "strain_alias__strain__strain_label",
             "lifestage__abbrev",
             "hatchery__abbrev",
             # "clip_code__clipcode",

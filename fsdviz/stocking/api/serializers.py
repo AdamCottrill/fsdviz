@@ -225,7 +225,7 @@ class StockingEventXlsxSerializer(serializers.Serializer):
     stock_method = serializers.CharField(source="_stock_method")
     species_code = serializers.CharField()
     strain_group = serializers.CharField(source="_strain")
-    strain_raw = serializers.CharField(source="_strain_raw")
+    strain_alias = serializers.CharField(source="_strain_alias")
     yearclass = serializers.IntegerField()
     life_stage = serializers.CharField(source="_life_stage")
     age_months = serializers.IntegerField()

@@ -46,7 +46,7 @@ FIELD_NAMES = [
     "stock_method",
     "species_code",
     "strain_group",
-    "strain_raw",
+    "strain_alias",
     "yearclass",
     "life_stage",
     "age_months",

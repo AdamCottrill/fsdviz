@@ -58,7 +58,7 @@ def find_events(request):
     field_aliases = {
         "agency_code": F("agency__abbrev"),
         "spc": F("species__abbrev"),
-        "strain": F("strain_raw__strain"),
+        "strain": F("strain_alias__strain"),
         "stage": F("lifestage__abbrev"),
         "method": F("stocking_method__stk_meth"),
         "manUnit": F("management_unit__slug"),
@@ -450,10 +450,10 @@ class StockingEventListView(ListView):
 
         strain_list = (
             basequery.values_list(
-                "strain_raw__strain__strain_code", "strain_raw__strain__strain_label"
+                "strain_alias__strain__strain_code", "strain_alias__strain__strain_label"
             )
             .annotate(n=Count("id"))
-            .order_by("strain_raw__strain__strain_label")
+            .order_by("strain_alias__strain__strain_label")
         )
 
         context["strain_list"] = add_is_checked(strain_list, filters.get("strain_name"))
@@ -576,7 +576,7 @@ class StockingEventListView(ListView):
             "jurisdiction__lake",
             "species",
             "lifestage",
-            "strain_raw__strain",
+            "strain_alias__strain",
             "stocking_method",
         )
 
@@ -594,7 +594,7 @@ class StockingEventListView(ListView):
             "site",
             "date",
             "species__common_name",
-            "strain_raw__strain__strain_label",
+            "strain_alias__strain__strain_label",
             "year_class",
             "lifestage__description",
             "stocking_method__description",
@@ -638,7 +638,7 @@ class StockingEventDetailView(DetailView):
             "species",
             "agency",
             "hatchery",
-            "strain_raw",
+            "strain_alias",
             "grid_10",
             "grid_10__lake",
             "management_unit",

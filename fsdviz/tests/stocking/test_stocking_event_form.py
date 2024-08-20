@@ -86,7 +86,7 @@ choice_fields = [
     ("stocking_mortality_id", "stocking_mortalities"),
     ("stocking_method_id", "stocking_methods"),
     ("grid_10_id", "grids"),
-    ("strain_raw_id", "strains"),
+    ("strain_alias_id", "strains"),
     ("management_unit_id", "managementUnits"),
 ]
 
@@ -126,7 +126,7 @@ def test_invalid_choices(event, field, glsc):
 required_fields = [
     "agency_id",
     "species_id",
-    "strain_raw_id",
+    "strain_alias_id",
     "year",
     "lake_id",
     "state_prov_id",

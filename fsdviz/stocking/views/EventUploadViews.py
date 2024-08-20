@@ -282,10 +282,6 @@ def xls_events(request):
             species = Species.objects.filter(active=True).values_list("id", "abbrev")
             species_id_lookup = toLookup(species)
 
-            # strains = StrainRaw.objects.filter(active=True).values_list(
-            #     "id", "species__abbrev", "strain__strain_code"
-            # )
-            # strain_id_lookup = make_strain_id_lookup(strains)
 
             stocking_methods = StockingMethod.objects.values_list("id", "stk_meth")
             stocking_method_id_lookup = toLookup(stocking_methods)
@@ -413,7 +409,7 @@ def xls_events(request):
                         data["grid_10_id"] = grid
                         data["management_unit_id"] = mu
                         data["species_id"] = species
-                        data["strain_raw_id"] = strain_id
+                        data["strain_alias_id"] = strain_id
                         data["jurisdiction_id"] = lakeState
                         data["stocking_mortality_id"] = stocking_mortality
                         data["hatchery_id"] = hatchery
@@ -560,7 +556,7 @@ class DataUploadEventDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailV
         context["events"] = StockingEvent.objects.filter(
             upload_event=self.get_object()
         ).select_related(
-            "species", "lifestage", "strain_raw__strain", "stocking_method", "clip_code"
+            "species", "lifestage", "strain_alias__strain", "stocking_method", "clip_code"
         )
 
         return context

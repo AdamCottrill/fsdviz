@@ -81,10 +81,10 @@ def stocking_events(db):
         strain_code="WILD", strain_label="Wild", strain_species=cos
     )
 
-    raw_cos = StrainRawFactory(species=cos, strain=cos_strain, raw_strain="COS-1")
-    raw_rbt = StrainRawFactory(species=rbt, strain=rbt_strain, raw_strain="RBT-1")
+    cos_alias = StrainRawFactory(species=cos, strain=cos_strain, raw_strain="COS-1")
+    rbt_alias = StrainRawFactory(species=rbt, strain=rbt_strain, raw_strain="RBT-1")
 
-    raw_lat1 = StrainRawFactory(species=lat, strain=lat_strain1, raw_strain="BS-1")
+    lat1_alias = StrainRawFactory(species=lat, strain=lat_strain1, raw_strain="BS-1")
 
     fry = LifeStageFactory(abbrev="fry", description="fry")
     fingerlings = LifeStageFactory(abbrev="f", description="fingerlings")
@@ -127,7 +127,7 @@ def stocking_events(db):
         day=15,
         year_class=2009,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
         lifestage=yearlings,
         stocking_method=plane,
         mark="LP",
@@ -150,7 +150,7 @@ def stocking_events(db):
         day=None,
         year_class=2009,
         species=cos,
-        strain_raw=raw_cos,
+        strain_alias=cos_alias,
         lifestage=fingerlings,
         stocking_method=boat,
         mark="RP",
@@ -175,7 +175,7 @@ def stocking_events(db):
         month=6,
         day=15,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
         lifestage=yearlings,
         stocking_method=boat,
         mark="LPRV",
@@ -198,7 +198,7 @@ def stocking_events(db):
         month=8,
         day=15,
         species=rbt,
-        strain_raw=raw_rbt,
+        strain_alias=rbt_alias,
         lifestage=fry,
         stocking_method=truck,
         mark="RV",
