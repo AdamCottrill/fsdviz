@@ -156,7 +156,7 @@ class StrainSpeciesSerializer(ModelColorSerializer):
 
 
 class StrainSerializer(ModelColorSerializer):
-    """A simplified serializer for strain objects - used in the strainRaw
+    """A simplified serializer for strain objects - used in the StrainAlias
     Serializers.  This version does *not* include the species serializer as
     it is already included in the StrainAliasSerializer.
     """
@@ -167,11 +167,11 @@ class StrainSerializer(ModelColorSerializer):
 
 
 class StrainAliasSerializer(ModelColorSerializer):
-    """A serializer for Strain Raw objects. Includes nested serializers
+    """A serializer for StrainAlias objects. Includes nested serializers
     for both species and strain objects.  Uses the simplified strain
     serializer that does not include species.  StrainAlias is
     effectively an association table between species and strain -
-    there can only be one species and one strain fro each record.
+    there can only be one species and one strain for each record.
     """
 
     species = SpeciesSerializer(many=False)

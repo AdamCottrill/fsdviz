@@ -261,7 +261,7 @@ def test_strain_alias_model_color_serializer():
     }
     strain = StrainFactory.build(**strain_dict)
 
-    # a raw strain:
+    # a strain alias:
     strain_alias_dict = {
         "strain_alias": "SEN",
         "description": "Seneca",

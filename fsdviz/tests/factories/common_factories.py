@@ -167,7 +167,7 @@ class StrainFactory(factory.django.DjangoModelFactory):
 
 class StrainAliasFactory(factory.django.DjangoModelFactory):
     """
-    A factory for Raw Strain objects.
+    A factory for  Strain Alias objects.
     """
 
     class Meta:

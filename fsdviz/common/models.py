@@ -459,7 +459,7 @@ class Strain(BaseModel):
     """
 
     strain_code = models.CharField(
-        "Nominal Strain Code for groups of raw strain values", max_length=10
+        "Nominal Strain Code for groups of strain alias values", max_length=10
     )
     strain_label = models.CharField(max_length=100)
     description = models.CharField(max_length=500, blank=True, null=True)
@@ -493,24 +493,23 @@ class Strain(BaseModel):
 
 
 class StrainAlias(BaseModel):
-    """
-    The raw strain codes will represent the information returned in the
-    GLFC look-up table where strain has too much information - eg -
-    origins and rearing hatchery.  Essentially, this is an association
-    table between the :model:`common.Species` and
-    the :model:`common.Strain` tables. This table is rarely used
+    """The strain alias codes will represent the information returned
+    by the agencies. In many cases, these values have too much
+    information - eg - origins and rearing hatchery.  Essentially,
+    this is an association table between the :model:`common.Species`
+    and the :model:`common.Strain` tables. This table is rarely used
     directly. Generally :model:`common.Strain` is the table you want.
 
     """
 
     species = models.ForeignKey(
-        Species, on_delete=models.CASCADE, related_name="rawstrain"
+        Species, on_delete=models.CASCADE, related_name="strain_aliases"
     )
     strain = models.ForeignKey(
-        Strain, on_delete=models.CASCADE, related_name="rawstrain"
+        Strain, on_delete=models.CASCADE, related_name="strain_aliases"
     )
 
-    strain_alias = models.CharField("Submitted (raw) strain code", max_length=100)
+    strain_alias = models.CharField("Submitted strain alias code", max_length=100)
     description = models.CharField(max_length=500)
     color = ColorField(default="#FF0000")
 
@@ -525,7 +524,9 @@ class StrainAlias(BaseModel):
         return "{} ({})".format(self.description, self.strain_alias)
 
     def full_clean(self, *args, **kwargs):
-        """make sure that the species and strain are consistent."""
+        ""
+
+        "make sure that the species and strain are consistent."""
 
         if hasattr(self, "species") is False or self.species is None:
             self.species = self.strain.strain_species
@@ -550,8 +551,8 @@ class Mark(BaseModel):
     be applied to a single fish.  Combinations of marks most often
     serve to indicate year-class.
 
-    (this model is obsolete and will be removed shortly.)
 
+    (this model is obsolete and will be removed shortly.)
     """
 
     MARK_TYPE_CHOICES = [

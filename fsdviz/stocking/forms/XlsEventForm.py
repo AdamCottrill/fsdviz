@@ -271,7 +271,7 @@ class XlsEventForm(forms.Form):
         return grid
 
     def clean_strain(self):
-        """The strain values passed in the xls form will be 'raw' strain
+        """The strain values passed in the xls form will be strain alias
         values. They must be one of the raw strains associated with the
         species, and must be mapped to an existing strain object.
 

@@ -249,7 +249,7 @@ class Hatchery(BaseModel):
 
 
 # TODO: Add table for known stocking sites - this may have to be a many-to-many
-# to accomodate site aliases similar to strains-strainsRaw.
+# to accomodate site aliases similar to strains-StrainsAliases.
 # class StockingSite(BaseModel):
 
 

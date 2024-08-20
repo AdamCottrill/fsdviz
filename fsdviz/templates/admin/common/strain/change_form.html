@@ -4,7 +4,7 @@
 
 {% block after_related_objects %}
     <h2>Current Alias-Strains included in "{{original}}" Strain:</h2>
-    {% if original.rawstrain.count %}
+    {% if original.strain_aliases.count %}
         <table>
             <thead>
                 <th>Alias Strain Code</th>
@@ -13,7 +13,7 @@
                 <th>Active</th>
             </thead>
             <tbody>
-                {% for item in original.rawstrain.all %}
+                {% for item in original.strain_aliases.all %}
                     <tr>
                         <td><a href="{% url 'admin:common_strainalias_change'  item.pk %}">
                             {{item.strain_alias}}

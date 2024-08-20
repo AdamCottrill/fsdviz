@@ -34,7 +34,7 @@ class StrainModelAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super(StrainModelAdmin, self).get_queryset(request)
         qs = qs.annotate(
-            _event_count=Count("rawstrain__stocking_events", distinct=True),
+            _event_count=Count("strain_aliases__stocking_events", distinct=True),
           )
         return qs.distinct()
 

@@ -110,7 +110,7 @@ class TestCommonLookupAPI(APITestCase):
         self.strain = StrainFactory(**self.strain_dict)
 
         # a Strain:
-        self.strain_raw_dict = {
+        self.strain_alias_dict = {
             "strain_alias": "SN-1",
             "description": "Seneca One",
             "species": self.species,
@@ -119,13 +119,13 @@ class TestCommonLookupAPI(APITestCase):
             "color": "#808080",
         }
 
-        self.strain_alias = StrainAliasFactory(**self.strain_raw_dict)
+        self.strain_alias = StrainAliasFactory(**self.strain_alias_dict)
         # the raw strain object has speceies abbrev and the strain slug:
-        self.strain_raw_dict["id"] = self.strain_alias.id
-        self.strain_raw_dict.pop("species")
-        self.strain_raw_dict.pop("strain")
-        self.strain_raw_dict["species__abbrev"] = self.species.abbrev
-        self.strain_raw_dict["strain__slug"] = self.strain.slug
+        self.strain_alias_dict["id"] = self.strain_alias.id
+        self.strain_alias_dict.pop("species")
+        self.strain_alias_dict.pop("strain")
+        self.strain_alias_dict["species__abbrev"] = self.species.abbrev
+        self.strain_alias_dict["strain__slug"] = self.strain.slug
 
         self.clipcode_dict = dict(
             clip_code="ADLP",
@@ -192,7 +192,7 @@ class TestCommonLookupAPI(APITestCase):
         # assert response.data.get("manUnits") == [self.management_unit_dict]
 
         assert response.data.get("species") == [self.species_dict]
-        assert response.data.get("strain_aliases") == [self.strain_raw_dict]
+        assert response.data.get("strain_aliases") == [self.strain_alias_dict]
 
         assert response.data.get("clipcodes") == [self.clipcode_dict]
 

@@ -40,7 +40,7 @@ def lookup_tables(request):
     # NOTE - defer spatial fields!
 
     # Management Units
-    # Strains and Raw Strains
+    # Strains and Strain Aliases
 
     table_descriptions = {
         x.slug: x.description_html for x in LookupDescription.objects.all()

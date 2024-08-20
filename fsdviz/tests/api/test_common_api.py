@@ -697,7 +697,7 @@ class TestStrainAPI(APITestCase):
         }
         self.strain3 = StrainFactory(**self.strain_dict3)
 
-        # create 3 raw strain objects - all are associated with the
+        # create 3 strain alias objects - all are associated with the
         # same strain and species.  The first one will be used in the
         # list view and detail view, the remaining two will be uses in
         # just the test of the list view.
@@ -712,7 +712,7 @@ class TestStrainAPI(APITestCase):
 
         self.strain_alias = StrainAliasFactory(**self.strain_alias_dict)
 
-        # a raw strain:
+        # another strain alias:
         self.strain_alias_dict2 = {
             "strain_alias": "SEN-2",
             "description": "Seneca-2",
@@ -722,7 +722,7 @@ class TestStrainAPI(APITestCase):
 
         self.strain_alias2 = StrainAliasFactory(**self.strain_alias_dict2)
 
-        # a raw strain:
+        # a third strain alias:
         self.strain_alias_dict3 = {
             "strain_alias": "SEN-3",
             "description": "Seneca-3",
@@ -780,8 +780,10 @@ class TestStrainAPI(APITestCase):
         assert expected == response.data
 
     def test_strain_alias_api_get_list(self):
-        """The rawstrain api list view should return a list of nested objects,
-        each corresponding to a rawstrain object."""
+        """The strain alias api list view should return a list of
+        nested objects, each corresponding to a strain alias object.
+
+        """
 
         url = reverse("common_api:strainalias-list")
 
@@ -798,9 +800,9 @@ class TestStrainAPI(APITestCase):
         for desc in ["Seneca", "Seneca-2", "Seneca-3"]:
             assert desc in descriptions
 
-    def test_strain_raw_api_get_detail(self):
-        """The strain_alias api for a single strain raw object should return a
-        nested json object. the top level keys include the key strain_alias and
+    def test_strain_alias_api_get_detail(self):
+        """The strain_alias api for a single strain alias object should return a
+        nested json object. The top level keys include the key strain_alias and
         description, as well as nested dictionaries for the related species
         and strain.
 
