@@ -161,6 +161,8 @@ class StockingMortality(models.Model):
 
     class Meta:
         ordering = ["value"]
+        verbose_name_plural = "Stocking mortalities"
+
 
     def __str__(self):
         return "{} - {}".format(self.value, self.description)

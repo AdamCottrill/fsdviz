@@ -139,6 +139,7 @@
                                     {% for object in object_list %}
 
                                         <tr>
+
                                             <td> <a href="{% url 'stocking:stocking-event-detail' object.stock_id %}" target="_blank" rel="noopener noreferrer">{{ object.stock_id }}</a></td>
                                             <td> {{ object.agency__abbrev }}</td>
                                             <td> {{ object.jurisdiction__lake__lake_name }}</td>

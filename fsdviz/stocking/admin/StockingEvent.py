@@ -5,6 +5,11 @@ from ..models import StockingEvent
 admin.site.empty_value_display = "(None)"
 
 
+# class JurisdictionChoiceField(forms.ModelChoiceField):
+#      def label_from_instance(self, obj):
+#          return "Jurisdiction:{} - {} waters".format(obj.lake.lake_name, obj.stateprov.name)
+
+
 @admin.register(StockingEvent)
 class StockingEventModelAdmin(admin.ModelAdmin):
     list_display = (
@@ -84,3 +89,12 @@ class StockingEventModelAdmin(admin.ModelAdmin):
         "physchem_marks",
         "fish_tags",
     )
+
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.defer(
+            "jurisdiction__geom",
+            "jurisdiction__lake__geom"
+        )
+        return queryset

@@ -1,0 +1,48 @@
+{% extends "admin/change_form.html" %} {% load humanize %} {% load admin_urls %}
+{% block after_related_objects %}
+<h2>Stocking Events associated with Data Upload Event "{{original}}":</h2>
+{% if original.stocking_events.count %}
+<table>
+  <thead>
+    <th>Stock ID</th>
+    <th>Agency Stock ID</th>
+    <th>Stocking Site</th>
+    <th data-sorter="shortDate" data-date-format="MMM-dd-yy">Date</th>
+    <th>Species</th>
+    <th>Strain</th>
+    <th>Year Class</th>
+    <th>Life Stage</th>
+    <th>Stocking Method</th>
+    <th>Clip</th>
+    <th>Mark</th>
+    <th>Yr.Eq.</th>
+  </thead>
+  <tbody>
+    {% for item in original.stocking_events.all %}
+    <tr>
+      <td>
+        <a href="{% url 'admin:stocking_stockingevent_change' item.pk %}">
+          {{ item.stock_id }}
+        </a>
+      </td>
+      <td>{{ item.agency_stock_id|default:"---" }}</td>
+      <td title="{{ item.site }}">{{ item.site }}</td>
+      <td>{{ item.date|date:"M-d-y" }}</td>
+      <td>{{ item.species.common_name | title}}</td>
+      <td>{{ item.strain_alias.strain.strain_label }}</td>
+      <td>{{ item.year_class }}</td>
+      <td>{{ item.lifestage.description | title }}</td>
+      <td>{{ item.stocking_method.description | title }}</td>
+      <td>{{ item.clip_code.clip_code|default:"---"}}</td>
+      <td>{{ item.mark|default:"---"}}</td>
+      <td>{{ item.yreq_stocked | intcomma }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %} There are current no Strain Alias entries associated with this
+Strain. {% endif %}
+
+<br />
+
+{% endblock %}
