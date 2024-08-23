@@ -8,7 +8,7 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.db.models.aggregates import Extent
-from django.db.models import Count, F, Max, Min, Q
+from django.db.models import Count, F, Max, Min, Q, Sum
 from django.forms import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
@@ -450,7 +450,8 @@ class StockingEventListView(ListView):
 
         strain_list = (
             basequery.values_list(
-                "strain_alias__strain__strain_code", "strain_alias__strain__strain_label"
+                "strain_alias__strain__strain_code",
+                "strain_alias__strain__strain_label",
             )
             .annotate(n=Count("id"))
             .order_by("strain_alias__strain__strain_label")
@@ -741,3 +742,121 @@ def edit_stocking_event(request, stock_id):
             "has_cwts": has_cwts,
         },
     )
+
+
+class StockingAnnualTotalsListView(ListView):
+    """A generic list view that is used to display a list of annual
+    totals by agency, lake and state/province.
+    **Context**
+
+    ``object_list``
+        An list of :model:`stocking.StockingEvent` instances that
+        satifity the lake and year parameters from the url and the
+        current filter as speficied in query string (e.g. ?species=LAT).
+
+    ``year_list``
+        A list of unique years available in the database - used to
+        populate hyperlinks to pages presenting data for the specified
+        year.
+
+    ``agency_list``
+        A list of the unique agencies in the currently selected
+        queryest. Used to further refined the seleted result. The
+        list consists of 2-element tuples that include the agency
+        abbreviation and number of records for each.
+
+    **Template:**
+
+    :template:`stocking/annual_totals.html`
+
+    """
+
+    model = StockingEvent
+    template_name = "stocking/annual_totals.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(StockingAnnualTotalsListView, self).get_context_data(**kwargs)
+
+        basequery = StockingEventFilter(
+            self.request.GET, StockingEvent.objects.all()
+        ).qs
+
+        filters = self.request.GET.copy()
+        context["filters"] = filters
+
+        self.request.GET = filters
+
+        lake_list = (
+            basequery.values_list(
+                "jurisdiction__lake__abbrev", "jurisdiction__lake__lake_name"
+            )
+            .annotate(n=Count("id"))
+            .order_by("jurisdiction__lake__lake_name")
+        )
+
+        context["lake_list"] = add_is_checked(lake_list, filters.get("lake"))
+
+        stateprov_list = (
+            basequery.values_list(
+                "jurisdiction__stateprov__abbrev",
+                "jurisdiction__stateprov__name",
+            )
+            .annotate(n=Count("id"))
+            .order_by("jurisdiction__stateprov__abbrev")
+        )
+
+        context["stateprov_list"] = add_is_checked(
+            stateprov_list, filters.get("stateprov")
+        )
+
+        agency_list = (
+            basequery.values_list("agency__abbrev", "agency__agency_name")
+            .annotate(n=Count("id"))
+            .order_by("agency__abbrev")
+        )
+
+        context["agency_list"] = add_is_checked(agency_list, filters.get("agency"))
+
+
+        context["event_count"] = basequery.count()
+        context["max_event_count"] = settings.MAX_FILTERED_EVENT_COUNT
+
+        return context
+
+    def get_queryset(self):
+
+        # get the value of q from the request kwargs
+        search_q = self.request.GET.get("q")
+
+        queryset = StockingEvent.objects.all()
+
+        queryset = queryset.select_related(
+            "agency",
+            "jurisdiction",
+            "jurisdiction__stateprov",
+            "jurisdiction__lake",
+            "species",
+        )
+
+        filtered_list = StockingEventFilter(self.request.GET, queryset=queryset)
+
+        qs = (
+            filtered_list.qs.order_by(
+                "-year",
+                "jurisdiction__lake__lake_name",
+                "agency__abbrev",
+            )
+            .values(
+                "year",
+            )
+            .annotate(
+                agency_abbrev=F("agency__abbrev"),
+                lake=F("jurisdiction__lake__lake_name"),
+                stateprov=F("jurisdiction__stateprov__name"),
+                events=Count("id"),
+                species=Count("species", distinct=True),
+                yeeq=Sum("yreq_stocked"),
+                num_stocked=Sum("no_stocked"),
+            )
+        )
+        return qs

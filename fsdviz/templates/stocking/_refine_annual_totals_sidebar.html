@@ -1,0 +1,111 @@
+
+{% load fsdviz_tags %}
+{% load humanize %}
+
+<h5>Refine By</h5>
+
+<div class="ui styled fluid accordion">
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Years
+    </div>
+    <div class="content">
+        <form class="ui mini form" id="years" action="{{request.get_full_path}}" method="get">
+
+            <div class="field">
+                <input type="text"  id="first-year" name="first_year" placeholder =
+                             "first year">
+            </div>
+            <div class="field">
+                <input type="text"  id="last-year" name="last_year" placeholder =
+                             "last year">
+            </div>
+            <div class="ui hidden divider"></div>
+            <button class="mini ui blue button" type="button" onClick=updateYearsClick()>
+                Update years
+            </button>
+        </form>
+
+    </div>
+
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Lakes
+    </div>
+    <div class="content">
+        <div class="list" id="filter_lake_list">
+            {% for item in lake_list %}
+                <div class="item">
+                    <div class="ui tiny checkbox">
+                        <input type="checkbox" name="lake" {% if item.3 %}checked{% endif%}  value="{{item.0}}">
+                        <label>
+                            {{item.1}} ({{item.0}}) (N={{item.2 | intcomma}})
+                        </label>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateLakeClick()>
+            Update Lakes
+        </button>
+
+    </div>
+
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        States/Province
+    </div>
+    <div class="content">
+        <div class="list" id="filter_stateprov_list">
+            {% for item in stateprov_list %}
+
+                <div class="item">
+                    <div class="ui tiny checkbox" data-tooltip="{{item.1}}" data-position="right center">
+                        <input type="checkbox" name="stateprov" {% if item.3 %}checked{% endif%} value="{{item.0}}">
+                        <label>
+                            {{item.0}} (N={{item.2  | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateStateProvClick()>
+            Update States/Province
+        </button>
+
+    </div>
+
+
+
+    <div class="title">
+        <i class="dropdown icon"></i>
+        Agencies
+    </div>
+    <div class="content">
+        <div class="list" id="filter_agency_list">
+            {% for item in agency_list %}
+
+                <div class="item" data-tooltip="{{item.1}}" data-position="right center">
+                    <div class="ui tiny checkbox">
+                        <input title="Agency Full Name" type="checkbox" {% if item.3 %}checked{% endif%} name="agency" value="{{item.0}}">
+                        <label>
+                            {{item.0}} (N={{item.2  | intcomma}})
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+        <div class="ui hidden divider"></div>
+        <button class="mini ui blue button" type="button" onClick=updateAgenciesClick()>
+            Update Agencies
+        </button>
+    </div>
+
+</div>

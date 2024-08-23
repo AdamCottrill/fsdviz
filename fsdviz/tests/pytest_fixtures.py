@@ -99,7 +99,7 @@ def mnrf(db):
 @pytest.fixture(scope=SCOPE)
 def usfws(db):
     """a fixture for the US Fish and Wildlife Servce"""
-    usfws = AgencyFactory(abbrev="USWFS", agency_name="U.S. Fish and Wildlife Servce")
+    usfws = AgencyFactory(abbrev="USFWS", agency_name="U.S. Fish and Wildlife Servce")
     return usfws
 
 
@@ -164,18 +164,26 @@ def stocking_events(usfws, mdnr, superior, huron):
         description="The State of Michigan",
         country="US",
     )
+    wisc = StateProvinceFactory(
+        abbrev="WI",
+        name="Wisconsin",
+        description="The State of Wisconsin",
+        country="US",
+    )
+
+    su_wi = JurisdictionFactory(stateprov=wisc, lake=superior, slug="su_wi")
     su_mi = JurisdictionFactory(stateprov=mich, lake=superior, slug="su_mi")
     hu_mi = JurisdictionFactory(stateprov=mich, lake=huron, slug="hu_mi")
 
     ox_mark = PhysChemMarkFactory(mark_code="OX")
     ca_mark = PhysChemMarkFactory(mark_code="CA")
 
-    event1 = StockingEventFactory(agency=mdnr, jurisdiction=hu_mi)
+    event1 = StockingEventFactory(agency=mdnr, year=2010, jurisdiction=hu_mi)
     event1.physchem_marks.set([ox_mark, ca_mark])
 
-    event2 = StockingEventFactory(agency=usfws, jurisdiction=hu_mi)
-    event3 = StockingEventFactory(agency=mdnr, jurisdiction=su_mi)
-    event4 = StockingEventFactory(agency=usfws, jurisdiction=su_mi)
+    event2 = StockingEventFactory(agency=usfws,year=2012,  jurisdiction=hu_mi)
+    event3 = StockingEventFactory(agency=mdnr, year=2012, jurisdiction=su_mi)
+    event4 = StockingEventFactory(agency=usfws, year=2018, jurisdiction=su_wi)
 
     return [event1, event2, event3, event4]
 

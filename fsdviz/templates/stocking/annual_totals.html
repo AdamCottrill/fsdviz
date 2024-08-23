@@ -1,0 +1,386 @@
+{% extends 'fsdviz_base.html' %}
+
+{% load static %}
+{% load humanize %}
+{% load fsdviz_tags %}
+
+{% block extra_head  %}
+
+    <style>
+     /* body { margin:0;
+        position:fixed;
+        top:0;
+        right:0;
+        bottom:0;
+        left:0;
+        }
+      */
+
+     #content{
+         padding-left: 10px;
+         padding-right: 10px;
+     }
+
+     button .ui .mini .button{
+
+         margin-top:10px;
+
+     }
+
+     .segment > .button {
+         margin-top:10px;
+         margin-bottom: 0.5em;
+     }
+
+    </style>
+
+{% endblock %}
+
+
+{% block title %} Stocking Events {% endblock title %}
+
+{% block navbar_search %}
+
+    <div class="right menu">
+        <form id="menu-search-form" class="item">
+            <div class="ui right aligned category search item">
+                <div class="ui transparent icon input">
+                    <input class="prompt" type="text" required placeholder="Search By Event id..." name="q">
+                    <i id="menu-search-icon" class="search link icon"></i>
+                </div>
+            </div>
+        </form>
+    </div>
+
+{% endblock navbar_search%}
+
+{% block content %}
+
+
+    <div class="ui container fluid" id="content">
+
+        <div class="ui grid">
+            <div class="two wide column">
+
+
+                {% include 'stocking/_refine_annual_totals_sidebar.html' %}
+
+
+            </div>
+            <div class="fourteen wide column">
+                <div class="ui grid">
+
+                    <div class="row">
+
+
+
+                        <div class="ui column">
+
+                            <h1>Annual Totals</h1>
+
+                            {% if filters %}
+
+                                <div class="row">
+
+                                    {% for filter, values in  filters.items %}
+                                        {% if filter != 'page' %}
+                                            <a href="{% strip_parameter param=filter %}" class="mini ui icon {{ filter | filter_colour }} button">
+                                                {{ filter }} = {{values}}
+                                                <i class="times icon"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+
+                            {% endif %}
+
+
+
+                            <div class="ui basic segment">
+
+                                {% if  event_count < max_event_count %}
+
+                                <a href="#" id="visualize-events-btn" class="small ui icon right floated green button">
+                                    Visualize Events
+                                    <i class="map marked alternate icon"></i>
+                                </a>
+
+                                <a href="#" id="download-events-btn" class="small ui icon right floated primary button">
+                                    Download Events
+                                    <i class="arrow alternate circle down icon"></i>
+                                </a>
+
+                                {%  endif %}
+                            </div>
+
+
+
+
+
+                            <table class="ui very compact celled table tablesorter" style="font-size: 0.9em" id="annual-totals-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Year</th>
+                                        <th scope="col">Lake</th>
+                                        <th scope="col">Agency</th>
+                                        <th scope="col">State/Prov</th>
+                                        <th scope="col">Events</th>
+                                        <th scope="col">Species Count</th>
+                                        <th scope="col">Fish Stocked</th>
+                                        <th scope="col">Yr.Eq Stocked</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for object in object_list %}
+                                        <tr id="{{ object.year }}-{{ object.lake|slugify }}-{{ object.agency_abbrev|lower }}-{{ object.stateprov|slugify }}">
+                                            <td> {{ object.year }}</td>
+                                            <td> {{ object.lake }}</td>
+                                            <td> {{ object.agency_abbrev }}</td>
+                                            <td> {{ object.stateprov }}</td>
+                                            <td> {{ object.events }}</td>
+                                            <td>{{ object.species }}</td>
+                                            <td> {{ object.num_stocked | intcomma }}</td>
+                                            <td> {{ object.yeeq | intcomma }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+{% endblock %}
+
+{% block extra_js%}
+
+    {% include "_table_sorter.html" %}
+
+    <script >
+
+
+     function getUrlVars() {
+         var vars = {};
+         var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+             vars[key] = value;
+         });
+         return vars;
+     };
+     function getUrlParam(parameter, defaultvalue){
+         var urlparameter = defaultvalue;
+         if(window.location.href.indexOf(parameter) > -1){
+             urlparameter = getUrlVars()[parameter];
+         }
+         return urlparameter;
+     };
+
+
+
+     $(document).ready(function(){
+
+         // reload the page with the updated values.
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+
+         if (urlFirstYear){
+             document.getElementById("first-year").value = urlFirstYear;
+         }
+
+         if (urlLastYear){
+             document.getElementById("last-year").value = urlLastYear;
+         }
+
+     })
+
+
+     const resetYears = function() {
+         let url = window.location.href;
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+         url = url.replace("first_year="+ urlFirstYear, "")
+                  .replace("last_year="+ urlLastYear, "");
+         url = url.replace('&&', '&').replace('?&', '?');
+         url = url.endsWith("?") ? url.replace("?","") : url;
+         window.location.replace(url);
+     }
+
+
+     const updateYearsClick = function() {
+         // get the value of the first year and last inputs
+
+         // if first year is null, strip the first_year parameter from the query list
+         // if last year is null, strip the last_year parameter from the query list
+         let firstYear = document.getElementById("first-year").value;
+         let lastYear = document.getElementById("last-year").value;
+
+
+         // if first_year exists and can be parsed to an integer between 1950 and 2050, update the query string
+         // if last_year exists and can be parsed to an integer between 1950 and 2050, update the query string
+
+         // reload the page with the updated values.
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+
+         let url = window.location.search;
+
+         if (firstYear && urlFirstYear){
+             // replace an existing firstYear filter
+             url = url.replace("first_year="+ urlFirstYear, "first_year=" + firstYear)
+
+         } else if (urlFirstYear) {
+             // delete the existing filter
+             url = url.replace("first_year="+ urlFirstYear, "");
+         } else if (firstYear) {
+             // add a new firstYear filter
+             tmp = url.indexOf("?") >=0 ? "&first_year="+ firstYear :
+                   "?first_year="+ firstYear;
+             url = url + tmp ;
+         }
+
+         if (lastYear && urlLastYear){
+             // replace existing
+             url = url.replace("last_year="+ urlLastYear, "last_year=" + lastYear)
+         } else if (urlLastYear) {
+             // delete the existing filter
+             url = url.replace("last_year="+ urlLastYear, "");
+         } else if (lastYear) {
+             // ad new
+             tmp = url.indexOf("?") >=0 ? "&last_year="+ lastYear :
+                   "?last_year="+ lastYear;
+             url = url + tmp ;
+         }
+
+
+         url = url.replace('&&', '&').replace('?&', '?')
+         window.location.search = url;
+
+
+     };
+
+     const updateLakeClick = () => {
+         updateUrl('lake');
+     };
+
+     const updateAgenciesClick = () => {
+         updateUrl('agency');
+     };
+
+     const updateStateProvClick = () => {
+         updateUrl('stateprov');
+     };
+
+     const updateJurisdictionClick = () => {
+         updateUrl('jurisdiction');
+     };
+
+     const updateSpeciesClick = () => {
+         updateUrl('species');
+     };
+
+     const updateStrainClick = () => {
+         updateUrl('strain', 'strain_name');
+     };
+
+     const updateClipcodeClick = () => {
+         updateUrl('clip_code')
+     };
+
+     const updateFinClipClick = () => {
+         updateUrl('finclips')
+     };
+
+     const updateFishTagsClick = () => {
+         updateUrl('fishtags')
+     };
+
+     const updatePhysChemMarksClick = () => {
+         updateUrl('physchem_marks')
+     };
+
+     const updateYearClassClick = () => {
+         updateUrl('year_class');
+     };
+
+
+     const updateLifestageClick = () => {
+         updateUrl('lifestage');
+     };
+
+     const updateStockingMonthClick = () => {
+         updateUrl('stocking_month');
+     };
+
+
+     const updateStockingMethodClick = () => {
+         updateUrl('stocking_method');
+     };
+
+     const updateHatcheryClick = () => {
+         updateUrl('hatchery');
+     };
+
+
+     const updateUrl = function(name, filter_tag="") {
+         // given the name of the checkbox group, find the checked
+         // checkboxes and update the url based on the filter_tag
+         filter_tag = filter_tag==="" ? name : filter_tag
+
+         let url = window.location.search;
+         let checked = [];
+
+
+         $.each($("input[name='" + name + "']:checked"), function(){
+             let value =  $(this).val() !== "None" ? $(this).val() : 99;
+             checked.push(value);
+         });
+
+         // remove any existing query strings for this parameter
+         // just incase our widget is updated:
+         let regex = new RegExp(filter_tag + "=.+&|"+ filter_tag + "=.+$");
+         url = url.replace(regex, "").replace(/&$/, '')
+
+         // build our query string....
+         if (checked.length){
+             let query_string = filter_tag + '=' + checked.join(',')
+             tmp = url.indexOf("?") >=0 ? "&"+ query_string :
+                   "?"+ query_string;
+             url = url + tmp ;
+         }
+
+         window.location.search = url.replace('?&', "?").replace(/\\?$/, '');
+
+
+     }
+
+
+
+
+
+
+
+     // add the url parameters to our download button so the same filters can be
+     // sent to our download button:
+     let search = window.location.search;
+     let download_url = "{% url 'api:api-stocking-event-list-xlsx' %}";
+     let download_button = document.getElementById("download-events-btn");
+     if (download_button){
+         download_button.href = download_url + search;
+     }
+
+     let visualize_url = "{% url 'stocking:filtered-stocking-events' %}";
+     let visualize_button = document.getElementById("visualize-events-btn");
+     if (visualize_button){
+         visualize_button.href = visualize_url + search;
+     }
+
+
+     //document.getElementById("download-events-button").href();
+
+    </script>
+
+{% endblock %}

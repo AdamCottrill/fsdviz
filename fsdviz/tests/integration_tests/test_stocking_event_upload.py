@@ -469,7 +469,7 @@ def test_agency_coordinator_cannot_upload_events_different_agency(
     for another agency.
 
     our coordinator is currently associated with mdnr so if he tries to upload events
-    by USWFS it should throw an error.
+    by USFWS it should throw an error.
 
     """
     login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
@@ -657,7 +657,7 @@ def test_agency_coordinator_cannot_upload_events_different_agency(
     for another agency.
 
     our coordinator is currently associated with mdnr so if he tries to upload events
-    by USWFS it should throw an error.
+    by USFWS it should throw an error.
 
     """
     login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
