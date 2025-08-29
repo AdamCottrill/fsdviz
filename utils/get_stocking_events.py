@@ -12,7 +12,6 @@ line:
 
 """
 
-
 import datetime
 import logging
 import pyodbc
@@ -149,7 +148,6 @@ disable_trigger = """ALTER TABLE stocking_stockingevent
 # ========================================  YEAR LOOP
 
 for yr in years:
-
     with connection.cursor() as cursor:
         with transaction.atomic():
 
@@ -178,7 +176,6 @@ for yr in years:
             )
 
             for row in rs:
-
                 # convert our row into a dictionary so we can access elements by
                 # column name
                 record = {k: v for k, v in zip(colnames, row)}
@@ -293,7 +290,7 @@ for yr in years:
                 event.save()
 
                 if record["cwt_number"]:
-                    cwt_nums = re.split("[;,\W]+", record["cwt_number"])
+                    cwt_nums = re.split("[;,\\W]+", record["cwt_number"])
                     for cwt_number in cwt_nums:
                         associate_cwt(event, cwt_number)
 

@@ -11,7 +11,6 @@
 =============================================================
 """
 
-
 from openpyxl import load_workbook
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -308,7 +307,8 @@ def get_xls_form_choices():
         ],
         "stocking_mortality": [
             # use value to return (4,4), use description to return (4,"some mortality")
-            x for x in StockingMortality.objects.values_list("value", "value")
+            x
+            for x in StockingMortality.objects.values_list("value", "value")
         ],
         "stocking_method": [
             x for x in StockingMethod.objects.values_list("stk_meth", "description")
@@ -512,7 +512,9 @@ def get_choices(active_only=True):
     ]
     lifestage_choices = toChoices(lifestages)
 
-    stocking_mortalities = [x for x in StockingMortality.objects.values_list("id", "value", "description")]
+    stocking_mortalities = [
+        x for x in StockingMortality.objects.values_list("id", "value", "description")
+    ]
     stocking_mortality_choices = toChoices(stocking_mortalities)
 
     stocking_methods = [

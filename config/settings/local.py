@@ -4,7 +4,7 @@ from config.settings.base import *
 VIRTUAL_ENV = os.environ["VIRTUAL_ENV"]
 OSGEO_VENV = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo")
 GEOS_LIBRARY_PATH = os.path.join(OSGEO_VENV, "geos_c.dll")
-GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal304.dll")
+GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal.dll")
 PROJ_LIB = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo/data/proj")
 
 os.environ["GDAL_DATA"] = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo/data/gdal")

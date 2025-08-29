@@ -18,6 +18,7 @@ class XlsEventForm(forms.Form):
             ("", "---"),
         ]
         self.choices = kwargs.pop("choices", None)
+
         # self.bbox = kwargs.pop("bbox", None)
         self.cache = kwargs.pop("cache", dict())
         super(XlsEventForm, self).__init__(*args, **kwargs)
@@ -32,7 +33,9 @@ class XlsEventForm(forms.Form):
         self.fields["stock_meth"].choices = self.choices.get("stocking_method")
         self.fields["stage"].choices = self.choices.get("lifestage")
 
-        stocking_mortality_choices = OPTIONAL_CHOICE + self.choices.get("stocking_mortality", [])
+        stocking_mortality_choices = OPTIONAL_CHOICE + self.choices.get(
+            "stocking_mortality", []
+        )
         self.fields["stocking_mortality"].choices = stocking_mortality_choices
 
         finclips_choices = OPTIONAL_CHOICE + self.choices.get("finclips", [])
@@ -84,6 +87,7 @@ class XlsEventForm(forms.Form):
                     self.initial[fld] = val
                 else:
                     val = initial
+
                 if val not in [x[0] for x in self.fields[fld].choices]:
                     self.fields[fld].choices.insert(0, ("-999", val))
 

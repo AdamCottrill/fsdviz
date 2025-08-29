@@ -81,7 +81,7 @@ factory-boy==3.3.0
     # via -r local.in
 faker==18.10.1
     # via factory-boy
-gdal @ file:///C:/Users/COTTRILLAD/Downloads/GDAL-3.4.3-cp39-cp39-win32.whl
+#gdal @ file:///C:/Users/COTTRILLAD/Downloads/GDAL-3.4.3-cp39-cp39-win32.whl
     # via -r base.in
 importlib-metadata==7.1.0
     # via
@@ -140,7 +140,7 @@ pylint-plugin-utils===0.8.2
     # via
     #   -r local.in
     #   pylint-django
-pyodbc @ file:///C:/Users/COTTRILLAD/Downloads/pyodbc-4.0.32-cp39-cp39-win32.whl#sha256=9ad0431c04c955b7232007d3f792357ff8836936c94edcda363c6059d7e9b349
+#pyodbc @ file:///C:/Users/COTTRILLAD/Downloads/pyodbc-4.0.32-cp39-cp39-win32.whl#sha256=9ad0431c04c955b7232007d3f792357ff8836936c94edcda363c6059d7e9b349
     # via -r local.in
 pyproject-hooks==1.0.0
     # via

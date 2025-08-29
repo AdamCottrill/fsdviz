@@ -4,7 +4,7 @@ events, stocking methods, ect.
 
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 import pytest
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -110,7 +110,7 @@ def test_stocking_mortality_str():
     stocking_mortality_code = 1
     description = '<1% mortality observed, "excellent"'
 
-    stocking_mortality = StockingMortalityFactory(value=stocking_mortality_code, description=description)
+    stocking_mortality = StockingMortalityFactory()
 
     shouldbe = "{} - {}".format(stocking_mortality_code, description)
     assert str(stocking_mortality) == shouldbe
@@ -263,7 +263,7 @@ def test_datauploadevent_str():
     agency_abbrev = "OMNR"
     lake_abbrev = "HU"
 
-    right_now = datetime.utcnow()
+    right_now = datetime.now(UTC)
     date_string = right_now.strftime("%b %d %Y %H:%M")
 
     expected = "{}-{} ({})".format(lake_abbrev, agency_abbrev, date_string)
@@ -290,7 +290,7 @@ def test_datauploadevent_generate_slug():
     agency_abbrev = "OMNR"
     lake_abbrev = "HU"
 
-    right_now = datetime.utcnow()
+    right_now = datetime.now(UTC)
     date_string = right_now.strftime("%b %d %Y %H:%M")
 
     expected = (

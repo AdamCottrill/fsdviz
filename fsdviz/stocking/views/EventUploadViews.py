@@ -182,9 +182,10 @@ def xls_events(request):
         "abbrev", "name"
     )
     choices["stateprov"] = list(stateprov)
+
     # filter the choices for the spatial attributes to those assoicated with this lake:
-    choices["stat_dist"] = choices.get("stat_dist", {}).get(lake.abbrev, "")
-    choices["grids"] = choices.get("grids", {}).get(lake.abbrev, "")
+    choices["stat_dist"] = choices.get("stat_dist", {}).get(lake.abbrev, [])
+    choices["grids"] = choices.get("grids", {}).get(lake.abbrev, [])
 
     choices["strain"] = [
         [x.strain_alias, x.strain_alias]
@@ -281,7 +282,6 @@ def xls_events(request):
 
             species = Species.objects.filter(active=True).values_list("id", "abbrev")
             species_id_lookup = toLookup(species)
-
 
             stocking_methods = StockingMethod.objects.values_list("id", "stk_meth")
             stocking_method_id_lookup = toLookup(stocking_methods)
@@ -556,7 +556,11 @@ class DataUploadEventDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailV
         context["events"] = StockingEvent.objects.filter(
             upload_event=self.get_object()
         ).select_related(
-            "species", "lifestage", "strain_alias__strain", "stocking_method", "clip_code"
+            "species",
+            "lifestage",
+            "strain_alias__strain",
+            "stocking_method",
+            "clip_code",
         )
 
         return context
@@ -605,7 +609,6 @@ class DataUploadEventListView(LoginRequiredMixin, ListView):
         return filtered.qs.order_by("-timestamp")
 
     def get_context_data(self, **kwargs):
-
         context = super(DataUploadEventListView, self).get_context_data(**kwargs)
 
         filters = self.request.GET.copy()

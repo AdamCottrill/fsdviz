@@ -171,7 +171,6 @@ problem_events = {}
 
 # RIGHT HERE!!
 for yr in years:
-
     sql = "exec [get_stocking_data] @yr={}".format(yr)
     mdbcur.execute(sql)
     rs = mdbcur.fetchall()
@@ -181,7 +180,6 @@ for yr in years:
     print("Getting records for {:d}: {:4d} records found".format(int(yr), len(rs)))
 
     for row in rs:
-
         # convert our row into a dictionary so we can access elements by
         # column name
         record = {k: v for k, v in zip(colnames, row)}
@@ -286,7 +284,7 @@ for yr in years:
 
         # TODO - replace old tags with new tags:
         if record["tag_no"]:
-            cwt_nums = re.split("[;,\W]+", record["tag_no"])
+            cwt_nums = re.split("[;,\\W]+", record["tag_no"])
             for cwt_number in cwt_nums:
                 associate_cwt(my_event, cwt_number)
 

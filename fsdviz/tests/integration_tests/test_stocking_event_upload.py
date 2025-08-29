@@ -80,13 +80,13 @@ def test_file_upload_invalid_spreadsheet(client, glsc, huron, mnrf, xlsfile, mes
     login = client.login(email=glsc.email, password="Abcd1234")
     assert login is True
 
-    #if a comment in included in the form, it should still be there
+    # if a comment in included in the form, it should still be there
     # when the invalid form is returned:
-    comment  = "Comment that should be kept"
+    comment = "Comment that should be kept"
 
     url = reverse("stocking:upload-stocking-events")
     with open(xlsfile, "rb") as fp:
-        payload = {"data_file": fp, "upload_comment":comment}
+        payload = {"data_file": fp, "upload_comment": comment}
         response = client.post(url, payload, follow=True)
         assert response.status_code == 200
         assertTemplateUsed("stocking/upload_stocking_events.html")
@@ -110,21 +110,22 @@ def test_not_xls_or_xlsx_files(client, glsc, fname):
     login = client.login(email=glsc.email, password="Abcd1234")
     assert login is True
 
-    #if a comment in included in the form, it should still be there
+    # if a comment in included in the form, it should still be there
     # when the invalid form is returned:
-    comment  = "Comment that should be kept"
+    comment = "Comment that should be kept"
 
     url = reverse("stocking:upload-stocking-events")
     # simulate a file with a bytes io object
     myfile = BytesIO(b"mybinarydata")
     myfile.name = fname
-    payload = {"data_file": myfile, "upload_comment":comment}
+    payload = {"data_file": myfile, "upload_comment": comment}
     response = client.post(url, payload, follow=True)
     assert response.status_code == 200
     assertTemplateUsed("stocking/upload_stocking_events.html")
     msg = "Choosen file is not an Excel (*.xls or *.xlsx) file!"
     assertContains(response, msg)
     assertContains(response, comment, html=False)
+
 
 xls_file_names = ["myfile.xls", "myfile.xlsx"]
 
@@ -144,20 +145,21 @@ def test_xls_or_xlsx_files(client, glsc, fname):
     login = client.login(email=glsc.email, password="Abcd1234")
     assert login is True
 
-    #if a comment in included in the form, it should still be there
+    # if a comment in included in the form, it should still be there
     # when the invalid form is returned:
-    comment  = "Comment that should be kept"
+    comment = "Comment that should be kept"
 
     url = reverse("stocking:upload-stocking-events")
     # simulate a file with a bytes io object
     myfile = BytesIO(b"mybinarydata")
     myfile.name = fname
 
-    payload = {"data_file": myfile, "upload_comment":comment}
+    payload = {"data_file": myfile, "upload_comment": comment}
     response = client.post(url, payload, follow=True)
     assert response.status_code == 200
     assertTemplateUsed("stocking/upload_stocking_events.html")
     assertContains(response, comment, html=False)
+
 
 @pytest.mark.django_db
 def test_unauthorized_users_redirected(client):
@@ -260,7 +262,6 @@ def test_upload_form_contains_some_instructions(client, user):
 
 @pytest.fixture()
 def choices_setup():
-
     lake = LakeFactory(abbrev="HU", lake_name="Lake Huron")
     LakeFactory(abbrev="SU", lake_name="Superior")
     ManagementUnitFactory(label="NC2", lake=lake, primary=True)
@@ -316,6 +317,9 @@ def test_get_xls_choices(choices_setup):
 
     expected = [("ON", "ON")]
     assert xls_choices["state_prov"] == expected
+
+    expected = {"HU": [("NC2", "NC2")]}
+    assert xls_choices["stat_dist"] == expected
 
     expected = [("LAT", "Lake Trout")]
     assert xls_choices["species"] == expected

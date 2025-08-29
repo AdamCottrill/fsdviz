@@ -8,7 +8,7 @@ from config.settings.base import *
 VIRTUAL_ENV = os.environ["VIRTUAL_ENV"]
 OSGEO_VENV = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo")
 GEOS_LIBRARY_PATH = os.path.join(OSGEO_VENV, "geos_c.dll")
-GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal304.dll")
+GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal.dll")
 os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
 
 SECRET_KEY = "testing"
@@ -32,6 +32,7 @@ COVERAGE_MODULE_EXCLUDES += THIRD_PARTY_APPS + DJANGO_APPS
 # COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(__file__, '../../../coverage')
 #
 
+
 # simple spreadsheet attributes for tests:
 MAX_UPLOAD_EVENT_COUNT = 15
 DATA_WORKSHEET_NAME = "DATA_TEMPLATE"
@@ -40,4 +41,4 @@ UPLOAD_FIRST_DATA_ROW = 10
 
 
 # use the default static file storage for tests:
-#STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+# STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"

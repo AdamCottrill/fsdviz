@@ -172,7 +172,7 @@ def humanize_error_label(label, zero_index=True):
 
     """
 
-    regex = re.compile("id_form-(\d{1,3})")
+    regex = re.compile(r"id_form-(\d{1,3})")
     match = regex.search(label)
     if match:
         value = int(match.group(1))
