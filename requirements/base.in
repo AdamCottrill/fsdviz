@@ -2,6 +2,7 @@ bookmark-it @ file:///c:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/boo
 
 #gdal==3.4.3
 #GDAL @ file:///C:/Users/COTTRILLAD/Downloads/GDAL-3.4.3-cp39-cp39-win32.whl
+GDAL @ file:///C:/Users/COTTRILLAD/Downloads/GDAL-3.9.2-cp312-cp312-win_amd64.whl
 
 ticket-tracker @ file:///C:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/tickettracker2/dist/ticket-tracker-2024.4.3.tar.gz#sha256=c0c804f3cba97171a3804412ed66d1c36c97cf37537a512c83098c51fae8c880
 

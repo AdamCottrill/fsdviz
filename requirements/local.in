@@ -1,25 +1,29 @@
 
 # LOCAL REQUIREMENTS
-black==24.3.0
-coverage==7.4.4
 
-django-debug-toolbar==4.3.0
-django-extensions==3.2.3
+black==25.1.0
+coverage==7.10.5
 
-factory-boy==3.3.0
-isort==5.13.2
+django-debug-toolbar==6.0.0
+django-extensions==4.1
 
-pip-tools==7.4.1
 
-pylint==3.1.0
-pylint-django==2.5.5
-pylint-plugin-utils===0.8.2
+factory-boy>=3.3.0
+isort==6.0.1
 
-pyodbc @ file:///C:/Users/COTTRILLAD/Downloads/pyodbc-4.0.32-cp39-cp39-win32.whl#sha256=9ad0431c04c955b7232007d3f792357ff8836936c94edcda363c6059d7e9b349
+pip-tools==7.5.0
 
-pytest==8.1.1
-pytest-cov==5.0.0
-pytest-django==4.8.0
-pytest-xdist==3.5.0
 
-whitenoise==6.6.0
+pylint==3.3.8
+pylint-django==2.6.1
+pylint-plugin-utils==0.9.0
+
+#pyodbc @ file:///C:/Users/COTTRILLAD/Downloads/pyodbc-4.0.32-cp39-cp39-win32.whl#sha256=9ad0431c04c955b7232007d3f792357ff8836936c94edcda363c6059d7e9b349
+
+
+
+pytest==8.4.1
+pytest-cov==6.2.1
+pytest-django==4.11.1
+pytest-xdist==3.8.0
+whitenoise==6.9.0
