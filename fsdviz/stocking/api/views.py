@@ -191,7 +191,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "location_secondary": F("st_site"),
             "latitude": F("dd_lat"),
             "longitude": F("dd_lon"),
-            #"stock_method": F("stocking_method__stk_meth"),
+            # "stock_method": F("stocking_method__stk_meth"),
             "_stock_method": Concat(
                 "stocking_method__stk_meth",
                 V(" - "),
@@ -226,7 +226,7 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "phys_chem_mark": StringAgg(
                 "physchem_marks__mark_code",
                 delimiter=";",
-                ordering="physchem_marks__mark_code",
+                order_by="physchem_marks__mark_code",
                 default="",
             ),
             "cwt_number": F("tag_no"),
@@ -529,13 +529,13 @@ class StockingEventListAPIView(APIView):
             "_tags": StringAgg(
                 "fish_tags__tag_code",
                 delimiter=";",
-                ordering="fish_tags__tag_code",
+                order_by="fish_tags__tag_code",
                 default="",
             ),
             "_marks": StringAgg(
                 "physchem_marks__mark_code",
                 delimiter=";",
-                ordering="physchem_marks__mark_code",
+                order_by="physchem_marks__mark_code",
                 default="",
             ),
         }

@@ -173,8 +173,9 @@ STORAGES = {
 
 # Use ManifestStaticFilesStorage when not in debug mode
 if not DEBUG:
-    STORAGES['staticfiles'] = {"BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"}
-
+    STORAGES["staticfiles"] = {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+    }
 
 
 AUTH_USER_MODEL = "myusers.CustomUser"
@@ -222,6 +223,8 @@ SWAGGER_SETTINGS = {
     "LOGIN_URL": "rest_framework:login",
     "LOGOUT_URL": "rest_framework:logout",
 }
+
+SWAGGER_USE_COMPAT_RENDERERS = False
 
 # ticket tracker:
 LINK_PATTERNS = [

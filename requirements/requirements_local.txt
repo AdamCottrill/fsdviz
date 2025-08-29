@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file=requirements_local.txt base.in local.in
 #
-asgiref==3.8.1
+asgiref==3.9.1
     # via
     #   django
     #   django-cors-headers
@@ -14,9 +14,9 @@ black==25.1.0
     # via -r local.in
 bookmark-it @ file:///c:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/bookmark_it/dist/bookmark-it-2022.4.1.tar.gz#sha256=217e38a329dc2a1a0436a39b23a917e283b448c7e818268a9eb9b2640cf4bf22
     # via -r base.in
-build==1.2.1
+build==1.3.0
     # via pip-tools
-click==8.1.3
+click==8.2.1
     # via
     #   black
     #   pip-tools
@@ -30,7 +30,7 @@ coverage[toml]==7.10.5
     # via
     #   -r local.in
     #   pytest-cov
-dill==0.3.8
+dill==0.4.0
     # via pylint
 django==5.2.5
     # via
@@ -62,25 +62,25 @@ djangorestframework==3.16.1
     #   -r base.in
     #   drf-excel
     #   drf-yasg
-drf-excel==2.4.0
+drf-excel==2.5.3
     # via drf-renderer-xlsx
 drf-renderer-xlsx==1.0.0
     # via -r base.in
 drf-yasg==1.21.10
     # via -r base.in
-et-xmlfile==1.1.0
+et-xmlfile==2.0.0
     # via openpyxl
 execnet==2.1.1
     # via pytest-xdist
-factory-boy==3.3.0
+factory-boy==3.3.3
     # via -r local.in
-faker==18.10.1
+faker==37.6.0
     # via factory-boy
 gdal @ file:///C:/Users/COTTRILLAD/Downloads/GDAL-3.9.2-cp312-cp312-win_amd64.whl
     # via -r base.in
 inflection==0.5.1
     # via drf-yasg
-iniconfig==2.0.0
+iniconfig==2.1.0
     # via pytest
 isort==6.0.1
     # via
@@ -90,21 +90,21 @@ markdown==3.8.2
     # via -r base.in
 markdown2==2.5.4
     # via -r base.in
-mccabe==0.6.1
+mccabe==0.7.0
     # via pylint
-mypy-extensions==1.0.0
+mypy-extensions==1.1.0
     # via black
 openpyxl==3.1.5
     # via
     #   -r base.in
     #   drf-excel
-packaging==23.1
+packaging==25.0
     # via
     #   black
     #   build
     #   drf-yasg
     #   pytest
-pathspec==0.11.1
+pathspec==0.12.1
     # via black
 pillow==11.3.0
     # via
@@ -112,7 +112,7 @@ pillow==11.3.0
     #   django-colorfield
 pip-tools==7.5.0
     # via -r local.in
-platformdirs==3.5.1
+platformdirs==4.4.0
     # via
     #   black
     #   pylint
@@ -135,7 +135,7 @@ pylint-plugin-utils==0.9.0
     # via
     #   -r local.in
     #   pylint-django
-pyproject-hooks==1.0.0
+pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
@@ -151,29 +151,27 @@ pytest-django==4.11.1
     # via -r local.in
 pytest-xdist==3.8.0
     # via -r local.in
-python-dateutil==2.8.2
-    # via faker
-pytz==2023.3
+pytz==2025.2
     # via drf-yasg
-pyyaml==6.0.1
+pyyaml==6.0.2
     # via drf-yasg
 resource-library @ file:///c:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/resource_library/dist/resource-library-2022.6.29.tar.gz#sha256=9ae13190bf377fb49438767053aba2227d4058b1e5f21a631106bf9262e6dfd2
     # via -r base.in
-six==1.16.0
-    # via python-dateutil
-sqlparse==0.4.4
+sqlparse==0.5.3
     # via
     #   django
     #   django-debug-toolbar
 ticket-tracker @ file:///C:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/tickettracker2/dist/ticket-tracker-2024.4.3.tar.gz#sha256=c0c804f3cba97171a3804412ed66d1c36c97cf37537a512c83098c51fae8c880
     # via -r base.in
-tomlkit==0.12.4
+tomlkit==0.13.3
     # via pylint
 tzdata==2025.2
-    # via django
-uritemplate==4.1.1
+    # via
+    #   django
+    #   faker
+uritemplate==4.2.0
     # via drf-yasg
-wheel==0.40.0
+wheel==0.45.1
     # via pip-tools
 whitenoise==6.9.0
     # via -r local.in
