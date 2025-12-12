@@ -8,18 +8,20 @@ from django.contrib.gis.db import models
 
 from django.contrib.gis.geos import Point
 
-from fsdviz.common.models import (Species, Strain, StrainRaw, Agency,
+from fsdviz.common.models import (BaseModel, Species, Strain, Agency,
                                   Lake, StateProvince,
                                   Grid10, LatLonFlag, Mark)
 
 
-class RecoveryEvent(models.Model):
+class RecoveryEvent(BaseModel):
     '''
     A model to hold all of the information assocaited with the
     events/fishing efforts that lead to the recovery of one or more
     tags.  Derived directly from the GLFC table [GEAR]
 
     '''
+
+
 
     NET_MATERIAL_CHOICES = [
         ('M', 'Monofilament'),
@@ -118,7 +120,7 @@ class RecoveryEvent(models.Model):
 
 
 
-class Recovery(models.Model):
+class Recovery(BaseModel):
     '''
     A model to hold all of the information associated with a cwt
     recovery event including attributes of the fish associated with

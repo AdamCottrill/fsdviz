@@ -11,11 +11,12 @@ from .models import (
     Agency,
     CompositeFinClip,
     FishTag,
+    LookupDescription,
     Jurisdiction,
     Lake,
     PhysChemMark,
     Species,
-    StrainRaw,
+    StrainAlias,
 )
 
 
@@ -39,14 +40,18 @@ def lookup_tables(request):
     # NOTE - defer spatial fields!
 
     # Management Units
-    # Strains and Raw Strains
+    # Strains and Strain Aliases
+
+    table_descriptions = {
+        x.slug: x.description_html for x in LookupDescription.objects.all()
+    }
 
     agencies = Agency.objects.all()
     lakes = Lake.objects.all()
     jurisdictions = Jurisdiction.objects.all()
     species = Species.objects.all()
     strains = (
-        StrainRaw.objects.select_related("species")
+        StrainAlias.objects.select_related("species")
         .prefetch_related("strain", "strain__species")
         .all()
     )
@@ -66,6 +71,7 @@ def lookup_tables(request):
         request,
         "common/lookup_tables.html",
         {
+            "table_descriptions": table_descriptions,
             "agencies": agencies,
             "lakes": lakes,
             "jurisdictions": jurisdictions,

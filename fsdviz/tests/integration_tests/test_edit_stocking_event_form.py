@@ -35,7 +35,7 @@ from django.urls import reverse
 
 from fsdviz.tests.pytest_fixtures import user, glsc
 
-from fsdviz.tests.stocking_factories import StockingEventFactory
+from fsdviz.tests.factories.stocking_factories import StockingEventFactory
 
 
 @pytest.mark.django_db

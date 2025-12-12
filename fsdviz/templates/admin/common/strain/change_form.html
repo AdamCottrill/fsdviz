@@ -1,0 +1,42 @@
+{% extends "admin/change_form.html" %}
+
+{% load admin_urls %}
+
+{% block after_related_objects %}
+    <h2>Current Alias-Strains included in "{{original}}" Strain:</h2>
+    {% if original.strain_aliases.count %}
+        <table>
+            <thead>
+                <th>Alias Strain Code</th>
+                <th>Description</th>
+                <th>Events</th>
+                <th>Active</th>
+            </thead>
+            <tbody>
+                {% for item in original.strain_aliases.all %}
+                    <tr>
+                        <td><a href="{% url 'admin:common_strainalias_change'  item.pk %}">
+                            {{item.strain_alias}}
+                        </a>
+                        </td>
+                        <td>{{item.description}}</td>
+                        <td>{{item.stocking_events.count}}</td>
+                        <td>{{item.active|yesno}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+    {% else %}
+
+    There are current no Strain Alias  entries associated with this Strain.
+
+    {% endif %}
+
+
+    <br/>
+
+
+
+{% endblock %}

@@ -22,8 +22,8 @@ from datetime import datetime
 from ...stocking.utils import get_event_model_form_choices
 from ...stocking.forms import StockingEventForm
 
-from ..stocking_factories import StockingEventFactory
-from ..common_factories import FishTagFactory, FinClipFactory
+from ..factories.stocking_factories import StockingEventFactory
+from ..factories.common_factories import FishTagFactory, FinClipFactory
 
 from ..pytest_fixtures import glsc, huron, mdnr
 from ..pytest_fixtures import huron_mdnr_sc as agency_sc
@@ -83,10 +83,10 @@ choice_fields = [
     ("state_prov_id", "state_provs"),
     ("species_id", "species"),
     ("lifestage_id", "lifestages"),
-    ("condition_id", "conditions"),
+    ("stocking_mortality_id", "stocking_mortalities"),
     ("stocking_method_id", "stocking_methods"),
     ("grid_10_id", "grids"),
-    ("strain_raw_id", "strains"),
+    ("strain_alias_id", "strains"),
     ("management_unit_id", "managementUnits"),
 ]
 
@@ -126,7 +126,7 @@ def test_invalid_choices(event, field, glsc):
 required_fields = [
     "agency_id",
     "species_id",
-    "strain_raw_id",
+    "strain_alias_id",
     "year",
     "lake_id",
     "state_prov_id",
@@ -179,7 +179,7 @@ optional_fields = [
     "tag_ret",
     "length",
     "weight",
-    "condition",
+    "stocking_mortality",
     "validation",
 ]
 

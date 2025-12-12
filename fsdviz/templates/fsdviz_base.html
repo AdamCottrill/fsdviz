@@ -46,7 +46,6 @@
         {% endblock extra_head%}
 
         <title>{% block title %} GLFS DataViz {% endblock title %} </title>
-        <link rel="shortcut icon" type="image/jpg" href="{% static "favicon.ico" %}" >
 
 
         {% if not debug %}
@@ -81,6 +80,10 @@
                             <div class="item">
                                 <a href="{% url 'stocking:find-stocking-events' %}">Find Events</a>
                             </div>
+                            <div class="item">
+                                <a href="{% url 'stocking:annual-totals-list' %}">Annual Totals</a>
+                            </div>
+
                         </div>
                     </div>
                     <div class="ui dropdown icon item">

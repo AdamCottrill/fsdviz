@@ -451,9 +451,9 @@ def list2dict(values_list):
 def make_strain_id_lookup(object_list):
     """a function that lakes of list of strain objects and returns a
     dictionary of dictionaries that are keyed first by species, and
-    then raw strain value.
+    then strain alias value.
 
-    strains = StrainRaw.objects.values_list("id", "species__abbrev", "strain__strain_code")
+    strains = StrainAlias.objects.values_list("id", "species__abbrev", "strain__strain_code")
 
     This:
 

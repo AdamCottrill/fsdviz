@@ -7,8 +7,8 @@ species, ect.
 import pytest
 from django.core.exceptions import ValidationError
 
-from ...common.models import CWTsequence
-from ..common_factories import (
+from ...common.models import CWTsequence, LookupDescription
+from ..factories.common_factories import (
     AgencyFactory,
     CompositeFinClipFactory,
     CWTFactory,
@@ -25,7 +25,7 @@ from ..common_factories import (
     SpeciesFactory,
     StateProvinceFactory,
     StrainFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
 )
 
 
@@ -232,9 +232,9 @@ def test_strain_str():
 
 
 @pytest.mark.django_db
-def test_strainraw_str():
+def test_strain_alias_str():
     """
-    Verify that the string representation of a raw object
+    Verify that the string representation of a strain alias object
     is the strain code followed by the description in brackets.
 
     'My Special Strain (MSS)'
@@ -246,19 +246,19 @@ def test_strainraw_str():
     species = SpeciesFactory()
     strain = StrainFactory(strain_species=species)
 
-    rawstrain = StrainRawFactory(
-        strain=strain, species=species, raw_strain=strain_code, description=description
+    strain_alias = StrainAliasFactory(
+        strain=strain, species=species, strain_alias=strain_code, description=description
     )
 
     shouldbe = "{} ({})".format(description, strain_code)
-    assert str(rawstrain) == shouldbe
+    assert str(strain_alias) == shouldbe
 
 
 @pytest.mark.django_db
-def test_strainraw_clean():
-    """The strainraw model has a clean method that ensures that the
+def test_strain_alias_clean():
+    """The strain_alias model has a clean method that ensures that the
     species associated with strain matches the species of the current
-    raw strain.
+    strain alias.
 
     """
     strain_code = "MSS"
@@ -270,10 +270,10 @@ def test_strainraw_clean():
     walleye = SpeciesFactory(abbrev="WAL", common_name="Walleye")
 
     with pytest.raises(ValidationError) as excinfo:
-        rawstrain = StrainRawFactory(
+        strain_alias = StrainAliasFactory(
             strain=lat_strain,
             species=walleye,
-            raw_strain=strain_code,
+            strain_alias=strain_code,
             description=description,
         )
 
@@ -518,3 +518,48 @@ def test_fishtag_str():
 
     obj = FishTagFactory(tag_code=tag_code, description=description)
     assert str(obj) == "{} ({})".format(description, tag_code)
+
+
+
+
+@pytest.mark.django_db
+def test_lookup_description_str():
+    """Verify that the string representation of a Lookup Description object is
+    simply the model name.
+
+    """
+
+    model_name = "Agency Strain"
+    description = "A fake description for a fake field"
+
+    lookupDescription = LookupDescription(model_name=model_name, description=description)
+
+    assert str(lookupDescription) == model_name
+
+
+
+
+@pytest.mark.django_db
+def test_lookup_description_save():
+    """Verify that the save method of a Lookup Description object is
+    convertes the markdown in the description to html and creates a
+    slug (which should be the lower case model name with spaces
+    replaced by dashes.).
+
+    """
+
+    model_name = "Agency Strain"
+    description = "A fake description for a fake field"
+
+    lookupDescription = LookupDescription(model_name=model_name, description=description)
+
+    should_be = f"<p>{description}</p>"
+
+    lookupDescription.save()
+
+    assert lookupDescription.description == description
+    assert lookupDescription.description_html == should_be
+
+    slug_should_be = model_name.lower().replace(' ', "_")
+
+    assert lookupDescription.slug == slug_should_be

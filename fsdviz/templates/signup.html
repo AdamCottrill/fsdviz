@@ -130,12 +130,12 @@
                                     <i class="dropdown icon"></i>
                                 </div>
                                 <div class="content">
-                                    <p class="transition visible" style="display: block !important;">
+                                    <div class="transition visible" style="display: block !important;">
 
                                         <div class="ui segment">
-                                            <small>{{ form.password1.help_text }}</small>
+                                            {{ form.password1.help_text }}
                                         </div>
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -155,7 +155,7 @@
                         <div class="field {% if form.password2.errors %} error{% endif %}">
                             {{ form.password2.label_tag }}
                             {{ form.password2 }}
-                            <small>{{ form.password2.help_text}}</small>
+                            {{ form.password2.help_text}}
                         </div>
 
                         {% if form.password2.errors %}
@@ -176,7 +176,7 @@
             </div>
         </div>
     </div>
-    </div>
+
 
 {% endblock %}
 

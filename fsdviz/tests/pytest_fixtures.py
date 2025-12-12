@@ -20,10 +20,10 @@ import pytest
 from django.contrib.gis.geos import GEOSGeometry
 from fsdviz.common.choices import LATLON_FLAGS
 
-# from .user_factory import UserFactory
+
 from fsdviz.myusers.tests.factories import UserFactory
 
-from .common_factories import (
+from .factories.common_factories import (
     AgencyFactory,
     CWTFactory,
     CWTsequenceFactory,
@@ -36,9 +36,9 @@ from .common_factories import (
     SpeciesFactory,
     StateProvinceFactory,
     StrainFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
 )
-from .stocking_factories import (
+from .factories.stocking_factories import (
     DataUploadEventFactory,
     HatcheryFactory,
     LifeStageFactory,
@@ -99,7 +99,7 @@ def mnrf(db):
 @pytest.fixture(scope=SCOPE)
 def usfws(db):
     """a fixture for the US Fish and Wildlife Servce"""
-    usfws = AgencyFactory(abbrev="USWFS", agency_name="U.S. Fish and Wildlife Servce")
+    usfws = AgencyFactory(abbrev="USFWS", agency_name="U.S. Fish and Wildlife Servce")
     return usfws
 
 
@@ -130,9 +130,9 @@ def huron_mdnr_sc(mdnr, huron):
         password="Abcd1234",
         role="asc",
         agency=mdnr,
-        lakes=[huron],
+        lakes=(huron,),
     )
-    huron_mdnr_sc.save()
+
     return huron_mdnr_sc
 
 
@@ -164,18 +164,26 @@ def stocking_events(usfws, mdnr, superior, huron):
         description="The State of Michigan",
         country="US",
     )
+    wisc = StateProvinceFactory(
+        abbrev="WI",
+        name="Wisconsin",
+        description="The State of Wisconsin",
+        country="US",
+    )
+
+    su_wi = JurisdictionFactory(stateprov=wisc, lake=superior, slug="su_wi")
     su_mi = JurisdictionFactory(stateprov=mich, lake=superior, slug="su_mi")
     hu_mi = JurisdictionFactory(stateprov=mich, lake=huron, slug="hu_mi")
 
     ox_mark = PhysChemMarkFactory(mark_code="OX")
     ca_mark = PhysChemMarkFactory(mark_code="CA")
 
-    event1 = StockingEventFactory(agency=mdnr, jurisdiction=hu_mi)
+    event1 = StockingEventFactory(agency=mdnr, year=2010, jurisdiction=hu_mi)
     event1.physchem_marks.set([ox_mark, ca_mark])
 
-    event2 = StockingEventFactory(agency=usfws, jurisdiction=hu_mi)
-    event3 = StockingEventFactory(agency=mdnr, jurisdiction=su_mi)
-    event4 = StockingEventFactory(agency=usfws, jurisdiction=su_mi)
+    event2 = StockingEventFactory(agency=usfws,year=2012,  jurisdiction=hu_mi)
+    event3 = StockingEventFactory(agency=mdnr, year=2012, jurisdiction=su_mi)
+    event4 = StockingEventFactory(agency=usfws, year=2018, jurisdiction=su_wi)
 
     return [event1, event2, event3, event4]
 
@@ -272,7 +280,7 @@ def stocking_event_dict(db):
         "tag_ret": 99,
         "length": 107.44,
         "weight": 563.8153159,
-        "condition": 1,
+        "stocking_mortality": 1,
         "lot_code": "LAT-SLW-13",
         "stock_meth": "b",
         "agency": "MNRF",
@@ -409,10 +417,10 @@ def cwt_stocking_events(db):
         strain_code="WILD", strain_label="Wild", strain_species=cos
     )
 
-    raw_cos = StrainRawFactory(species=cos, strain=cos_strain, raw_strain="COS-1")
-    raw_rbt = StrainRawFactory(species=rbt, strain=rbt_strain, raw_strain="RBT-1")
+    cos_alias = StrainAliasFactory(species=cos, strain=cos_strain, strain_alias="COS-1")
+    rbt_alias = StrainAliasFactory(species=rbt, strain=rbt_strain, strain_alias="RBT-1")
 
-    raw_lat1 = StrainRawFactory(species=lat, strain=lat_strain1, raw_strain="BS-1")
+    lat1_alias = StrainAliasFactory(species=lat, strain=lat_strain1, strain_alias="BS-1")
 
     fry = LifeStageFactory(abbrev="fry", description="fry")
     fingerlings = LifeStageFactory(abbrev="f", description="fingerlings")
@@ -451,7 +459,7 @@ def cwt_stocking_events(db):
         month=4,
         day=15,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
         lifestage=yearlings,
         stocking_method=plane,
         hatchery=mnrf_hatcheryA,
@@ -479,7 +487,7 @@ def cwt_stocking_events(db):
         month=6,
         day=15,
         species=cos,
-        strain_raw=raw_cos,
+        strain_alias=cos_alias,
         lifestage=fingerlings,
         stocking_method=boat,
         hatchery=mdnr_hatchery,
@@ -508,7 +516,7 @@ def cwt_stocking_events(db):
         month=None,
         day=None,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
         lifestage=yearlings,
         stocking_method=boat,
         hatchery=mnrf_hatcheryB,
@@ -536,7 +544,7 @@ def cwt_stocking_events(db):
         month=8,
         day=15,
         species=rbt,
-        strain_raw=raw_rbt,
+        strain_alias=rbt_alias,
         lifestage=fry,
         stocking_method=truck,
         hatchery=odnr_hatchery,
@@ -566,7 +574,7 @@ def cwt_stocking_events(db):
         month=6,
         day=15,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
         lifestage=yearlings,
         stocking_method=plane,
         hatchery=mnrf_hatcheryB,
@@ -595,7 +603,7 @@ def cwt_stocking_events(db):
         month=8,
         day=15,
         species=rbt,
-        strain_raw=raw_rbt,
+        strain_alias=rbt_alias,
         lifestage=fry,
         stocking_method=truck,
         hatchery=mnrf_hatcheryB,
@@ -954,12 +962,12 @@ def reused_cwt_stocking_events(db):
         strain_code="WILD", strain_label="Wild", strain_species=cos
     )
 
-    raw_cos = StrainRawFactory(species=cos, strain=cos_strain, raw_strain="COS-1")
-    raw_rbt = StrainRawFactory(species=rbt, strain=rbt_strain, raw_strain="RBT-1")
+    cos_alias = StrainAliasFactory(species=cos, strain=cos_strain, strain_alias="COS-1")
+    rbt_alias = StrainAliasFactory(species=rbt, strain=rbt_strain, strain_alias="RBT-1")
 
-    raw_lat1 = StrainRawFactory(species=lat, strain=lat_strain1, raw_strain="BS-1")
+    lat1_alias = StrainAliasFactory(species=lat, strain=lat_strain1, strain_alias="BS-1")
 
-    raw_lat2 = StrainRawFactory(species=lat, strain=lat_strain2, raw_strain="SN-1")
+    lat2_alias = StrainAliasFactory(species=lat, strain=lat_strain2, strain_alias="SN-1")
 
     fry = LifeStageFactory(abbrev="fry", description="fry")
     fingerlings = LifeStageFactory(abbrev="f", description="fingerlings")
@@ -1002,7 +1010,7 @@ def reused_cwt_stocking_events(db):
         month=4,
         day=15,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
         lifestage=yearlings,
         stocking_method=plane,
         hatchery=mnrf_hatcheryA,
@@ -1026,7 +1034,7 @@ def reused_cwt_stocking_events(db):
         month=6,
         day=15,
         species=cos,
-        strain_raw=raw_cos,
+        strain_alias=cos_alias,
         lifestage=fingerlings,
         stocking_method=boat,
         hatchery=mdnr_hatchery,
@@ -1058,7 +1066,7 @@ def reused_cwt_stocking_events(db):
         month=None,
         day=None,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
         lifestage=yearlings,
         stocking_method=boat,
         hatchery=mnrf_hatcheryB,
@@ -1084,7 +1092,7 @@ def reused_cwt_stocking_events(db):
         month=None,
         day=None,
         species=lat,
-        strain_raw=raw_lat2,
+        strain_alias=lat2_alias,
         lifestage=yearlings,
         stocking_method=boat,
         hatchery=mnrf_hatcheryB,
@@ -1104,7 +1112,7 @@ def reused_cwt_stocking_events(db):
         month=8,
         day=15,
         species=rbt,
-        strain_raw=raw_rbt,
+        strain_alias=rbt_alias,
         lifestage=fry,
         stocking_method=truck,
         hatchery=odnr_hatchery,
@@ -1139,7 +1147,7 @@ def reused_cwt_stocking_events(db):
         month=6,
         day=15,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
         lifestage=yearlings,
         stocking_method=plane,
         hatchery=mnrf_hatcheryB,
@@ -1163,7 +1171,7 @@ def reused_cwt_stocking_events(db):
         month=6,
         day=15,
         species=lat,
-        strain_raw=raw_lat1,
+        strain_alias=lat1_alias,
         lifestage=yearlings,
         stocking_method=plane,
         hatchery=mnrf_hatcheryB,
@@ -1186,7 +1194,7 @@ def reused_cwt_stocking_events(db):
         month=8,
         day=15,
         species=rbt,
-        strain_raw=raw_rbt,
+        strain_alias=rbt_alias,
         lifestage=fry,
         stocking_method=truck,
         hatchery=mnrf_hatcheryB,
@@ -1208,7 +1216,7 @@ def reused_cwt_stocking_events(db):
         month=9,
         day=15,
         species=rbt,
-        strain_raw=raw_rbt,
+        strain_alias=rbt_alias,
         lifestage=fry,
         stocking_method=truck,
         hatchery=mnrf_hatcheryB,

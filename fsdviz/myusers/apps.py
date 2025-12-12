@@ -2,4 +2,5 @@ from django.apps import AppConfig
 
 
 class MyusersConfig(AppConfig):
-    name = 'myusers'
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'fsdviz.myusers'

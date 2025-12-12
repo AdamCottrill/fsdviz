@@ -3,7 +3,7 @@ from datetime import datetime
 from django import forms
 
 from fsdviz.common.constants import MONTHS
-from fsdviz.common.models import StrainRaw
+from fsdviz.common.models import StrainAlias
 from fsdviz.common.utils import int_or_none
 from fsdviz.common.validators import validate_cwt
 from fsdviz.common.widgets import MySelect
@@ -18,6 +18,7 @@ class XlsEventForm(forms.Form):
             ("", "---"),
         ]
         self.choices = kwargs.pop("choices", None)
+
         # self.bbox = kwargs.pop("bbox", None)
         self.cache = kwargs.pop("cache", dict())
         super(XlsEventForm, self).__init__(*args, **kwargs)
@@ -32,8 +33,10 @@ class XlsEventForm(forms.Form):
         self.fields["stock_meth"].choices = self.choices.get("stocking_method")
         self.fields["stage"].choices = self.choices.get("lifestage")
 
-        condition_choices = OPTIONAL_CHOICE + self.choices.get("condition", [])
-        self.fields["condition"].choices = condition_choices
+        stocking_mortality_choices = OPTIONAL_CHOICE + self.choices.get(
+            "stocking_mortality", []
+        )
+        self.fields["stocking_mortality"].choices = stocking_mortality_choices
 
         finclips_choices = OPTIONAL_CHOICE + self.choices.get("finclips", [])
         self.fields["finclip"].choices = finclips_choices
@@ -55,7 +58,7 @@ class XlsEventForm(forms.Form):
             "strain",
             "stock_meth",
             "stage",
-            "condition",
+            "stocking_mortality",
             "finclip",
             "physchem_mark",
             "tag_type",
@@ -84,6 +87,7 @@ class XlsEventForm(forms.Form):
                     self.initial[fld] = val
                 else:
                     val = initial
+
                 if val not in [x[0] for x in self.fields[fld].choices]:
                     self.fields[fld].choices.insert(0, ("-999", val))
 
@@ -122,7 +126,7 @@ class XlsEventForm(forms.Form):
     length = forms.FloatField(min_value=1, required=False, widget=forms.TextInput)
     weight = forms.FloatField(min_value=0.1, required=False, widget=forms.TextInput)
 
-    condition = forms.ChoiceField(choices=[], required=False, widget=MySelect)
+    stocking_mortality = forms.ChoiceField(choices=[], required=False, widget=MySelect)
     stock_meth = forms.ChoiceField(choices=[], required=True, widget=MySelect)
     no_stocked = forms.IntegerField(required=True, min_value=1)
     lot_code = forms.CharField(required=False)
@@ -271,7 +275,7 @@ class XlsEventForm(forms.Form):
         return grid
 
     def clean_strain(self):
-        """The strain values passed in the xls form will be 'raw' strain
+        """The strain values passed in the xls form will be strain alias
         values. They must be one of the raw strains associated with the
         species, and must be mapped to an existing strain object.
 

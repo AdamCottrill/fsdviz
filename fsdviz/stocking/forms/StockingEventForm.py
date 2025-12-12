@@ -31,10 +31,10 @@ class StockingEventForm(forms.Form):
         self.fields["grid_10_id"].choices = self.choices.get("grids")
 
         self.fields["species_id"].choices = self.choices.get("species")
-        self.fields["strain_raw_id"].choices = self.choices.get("strains")
+        self.fields["strain_alias_id"].choices = self.choices.get("strains")
         self.fields["stocking_method_id"].choices = self.choices.get("stocking_methods")
         self.fields["lifestage_id"].choices = self.choices.get("lifestages")
-        self.fields["condition_id"].choices = self.choices.get("conditions")
+        self.fields["stocking_mortality_id"].choices = self.choices.get("stocking_mortalities")
 
         # new spring 2020:
         self.fields["hatchery_id"].choices = [("", "-------")] + self.choices.get(
@@ -109,7 +109,7 @@ class StockingEventForm(forms.Form):
     species_id = forms.ChoiceField(
         label="Species", choices=[], required=True, widget=MySelect
     )
-    strain_raw_id = forms.ChoiceField(
+    strain_alias_id = forms.ChoiceField(
         label="Strain", choices=[], required=True, widget=MySelect
     )
     # strain = forms.CharField(required=True)
@@ -194,8 +194,8 @@ class StockingEventForm(forms.Form):
         min_value=0.01,
         required=False,
     )
-    condition_id = forms.ChoiceField(
-        label="General Condition", choices=[], required=False, widget=MySelect
+    stocking_mortality_id = forms.ChoiceField(
+        label="Stocking Mortality", choices=[], required=False, widget=MySelect
     )
     # validation = forms.ChoiceField(
     #     label="Data Entry Validation",

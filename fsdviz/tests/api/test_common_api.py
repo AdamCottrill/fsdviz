@@ -18,7 +18,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from ..common_factories import (
+from ..factories.common_factories import (
     AgencyFactory,
     CompositeFinClipFactory,
     CWTFactory,
@@ -32,7 +32,7 @@ from ..common_factories import (
     SpeciesFactory,
     StateProvinceFactory,
     StrainFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
 )
 
 # from fsdviz.common.models import Lake
@@ -697,40 +697,40 @@ class TestStrainAPI(APITestCase):
         }
         self.strain3 = StrainFactory(**self.strain_dict3)
 
-        # create 3 raw strain objects - all are associated with the
+        # create 3 strain alias objects - all are associated with the
         # same strain and species.  The first one will be used in the
         # list view and detail view, the remaining two will be uses in
         # just the test of the list view.
 
-        # a raw strain:
-        self.strainraw_dict = {
-            "raw_strain": "SEN",
+        # a strain alias:
+        self.strain_alias_dict = {
+            "strain_alias": "SEN",
             "description": "Seneca",
             "species": self.species,
             "strain": self.strain,
         }
 
-        self.strainraw = StrainRawFactory(**self.strainraw_dict)
+        self.strain_alias = StrainAliasFactory(**self.strain_alias_dict)
 
-        # a raw strain:
-        self.strainraw_dict2 = {
-            "raw_strain": "SEN-2",
+        # another strain alias:
+        self.strain_alias_dict2 = {
+            "strain_alias": "SEN-2",
             "description": "Seneca-2",
             "species": self.species,
             "strain": self.strain,
         }
 
-        self.strainraw2 = StrainRawFactory(**self.strainraw_dict2)
+        self.strain_alias2 = StrainAliasFactory(**self.strain_alias_dict2)
 
-        # a raw strain:
-        self.strainraw_dict3 = {
-            "raw_strain": "SEN-3",
+        # a third strain alias:
+        self.strain_alias_dict3 = {
+            "strain_alias": "SEN-3",
             "description": "Seneca-3",
             "species": self.species,
             "strain": self.strain,
         }
 
-        self.strainraw3 = StrainRawFactory(**self.strainraw_dict3)
+        self.strain_alias3 = StrainAliasFactory(**self.strain_alias_dict3)
 
     def test_strain_api_get_list(self):
         """The strain api list view should return a list of nested objects,
@@ -779,40 +779,42 @@ class TestStrainAPI(APITestCase):
 
         assert expected == response.data
 
-    def test_strainraw_api_get_list(self):
-        """The rawstrain api list view should return a list of nested objects,
-        each corresponding to a rawstrain object."""
+    def test_strain_alias_api_get_list(self):
+        """The strain alias api list view should return a list of
+        nested objects, each corresponding to a strain alias object.
 
-        url = reverse("common_api:strainraw-list")
+        """
+
+        url = reverse("common_api:strainalias-list")
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
         assert len(response.data) == 3
 
-        raw_strains = [x.get("raw_strain") for x in response.data]
+        strain_aliases = [x.get("strain_alias") for x in response.data]
         for strain in ["SEN", "SEN-2", "SEN-3"]:
-            assert strain in raw_strains
+            assert strain in strain_aliases
 
         descriptions = [x.get("description") for x in response.data]
         for desc in ["Seneca", "Seneca-2", "Seneca-3"]:
             assert desc in descriptions
 
-    def test_strain_raw_api_get_detail(self):
-        """The strainraw api for a single strain raw object should return a
-        nested json object. the top level keys include the key raw_strain and
+    def test_strain_alias_api_get_detail(self):
+        """The strain_alias api for a single strain alias object should return a
+        nested json object. The top level keys include the key strain_alias and
         description, as well as nested dictionaries for the related species
         and strain.
 
         """
 
-        url = reverse("common_api:strainraw-detail", kwargs={"pk": self.strainraw.pk})
+        url = reverse("common_api:strainalias-detail", kwargs={"pk": self.strain_alias.pk})
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
         # verify that we have the keys we think we have:
-        keys = set(["id", "raw_strain", "description", "species", "strain"])
+        keys = set(["id", "strain_alias", "description", "species", "strain"])
         assert keys == set(response.data.keys())
 
         obs = dict(response.data)
@@ -828,8 +830,8 @@ class TestStrainAPI(APITestCase):
 
         # add the nested dictionaries (after remvoving the nested
         # species dict from the strain).
-        expected = self.strainraw_dict.copy()
-        expected["id"] = self.strainraw.id
+        expected = self.strain_alias_dict.copy()
+        expected["id"] = self.strain_alias.id
         expected["species"] = species_dict
         expected["strain"] = strain_dict
 

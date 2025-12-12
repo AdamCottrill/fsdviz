@@ -1,23 +1,9 @@
 import factory
-from django.contrib.auth import get_user_model
+#from django.contrib.auth import get_user_model
 
 from bookmark_it.models import Bookmark, BookmarkTag
 
-
-# Create your models here.
-
-User = get_user_model()
-
-
-class UserFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = User
-        django_get_or_create = ["username"]
-
-    first_name = "Homer"
-    last_name = "Simpson"
-    username = "simpsonho"
-    email = "homer@simpson.com"
+from fsdviz.myusers.tests.factories import UserFactory
 
 
 class BookmarkTagFactory(factory.django.DjangoModelFactory):
@@ -33,6 +19,7 @@ class BookmarkFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Bookmark
         django_get_or_create = ("user", "url")
+        skip_postgeneration_save = True
 
     title = "My Fake Bookmark"
     url = factory.Sequence(lambda n: "http://www.example.com/%04d" % n)

@@ -18,7 +18,7 @@ from .views import (
     PhysChemMarkViewSet,
     SpeciesViewSet,
     StateProvinceViewSet,
-    StrainRawViewSet,
+    StrainAliasViewSet,
     StrainSpeciesViewSet,
     get_grid10_from_pt,
     get_jurisdiction_from_pt,
@@ -45,7 +45,7 @@ router.register("mark", MarkViewSet)
 router.register("fishtag", FishTagViewSet)
 router.register("species", SpeciesViewSet)
 router.register("strain", StrainSpeciesViewSet)
-router.register("strainraw", StrainRawViewSet)
+router.register("strain_alias", StrainAliasViewSet)
 router.register("cwt", CwtViewSet)
 
 urlpatterns = router.urls

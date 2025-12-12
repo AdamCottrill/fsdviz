@@ -11,7 +11,6 @@
 =============================================================
 """
 
-
 from openpyxl import load_workbook
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -21,7 +20,7 @@ from django.db.models import F
 
 from ..common.models import (
     Lake,
-    StrainRaw,
+    StrainAlias,
     Species,
     StateProvince,
     ManagementUnit,
@@ -33,7 +32,7 @@ from ..common.models import (
     CWT,
     CWTsequence,
 )
-from .models import StockingMethod, LifeStage, Condition, Hatchery
+from .models import StockingMethod, LifeStage, StockingMortality, Hatchery
 
 from ..common.utils import to_lake_dict, toChoices
 
@@ -67,7 +66,7 @@ REQUIRED_FIELDS = [
     "tag_ret",
     "length",
     "weight",
-    "condition",
+    "stocking_mortality",
     "lot_code",
     "stock_meth",
     "agency",
@@ -107,11 +106,10 @@ xlsFields2Fdviz = {
     "TAG_RETENTION": "tag_ret",
     "MEAN_LENGTH_MM": "length",
     "TOTAL_WEIGHT_KG": "weight",
-    "STOCKING_MORTALITY": "condition",
+    "STOCKING_MORTALITY": "stocking_mortality",
     "LOT_CODE": "lot_code",
     "NUMBER_STOCKED": "no_stocked",
     "NOTES": "notes",
-    # New Spring 2020:
     "Your_Agency_Stock_ID": "agency_stock_id",
     "HATCHERY": "hatchery",
     "CLIP": "finclip",
@@ -307,8 +305,10 @@ def get_xls_form_choices():
         "lifestage": [
             x for x in LifeStage.objects.values_list("abbrev", "description")
         ],
-        "condition": [
-            (x, x) for x in Condition.objects.values_list("condition", flat=True)
+        "stocking_mortality": [
+            # use value to return (4,4), use description to return (4,"some mortality")
+            x
+            for x in StockingMortality.objects.values_list("value", "value")
         ],
         "stocking_method": [
             x for x in StockingMethod.objects.values_list("stk_meth", "description")
@@ -371,8 +371,8 @@ def get_event_model_form_choices(event):
     ]
 
     # filterd by the species associated with this strain:
-    strains = StrainRaw.objects.filter(species=event.species).values_list(
-        "id", "description", "raw_strain"
+    strains = StrainAlias.objects.filter(species=event.species).values_list(
+        "id", "description", "strain_alias"
     )
     strains = sorted(strains, key=lambda x: x[2])
     strain_choices = [(x[0], "{} ({})".format(x[2], x[1])) for x in strains]
@@ -387,9 +387,9 @@ def get_event_model_form_choices(event):
         for x in LifeStage.objects.values_list("id", "abbrev", "description")
     ]
 
-    conditions = [
+    stocking_mortalities = [
         (x[0], "{} ({})".format(x[2], x[1]))
-        for x in Condition.objects.values_list("id", "condition", "description")
+        for x in StockingMortality.objects.values_list("id", "value", "description")
     ]
 
     fin_clips = [
@@ -419,7 +419,7 @@ def get_event_model_form_choices(event):
         "state_provs": state_provs,
         "species": species,
         "lifestages": lifestages,
-        "conditions": conditions,
+        "stocking_mortalities": stocking_mortalities,
         "stocking_methods": stocking_methods,
         "grids": grids,
         "hatcheries": hatcheries,
@@ -512,8 +512,10 @@ def get_choices(active_only=True):
     ]
     lifestage_choices = toChoices(lifestages)
 
-    conditions = [x for x in Condition.objects.values_list("id", "condition")]
-    condition_choices = toChoices(conditions)
+    stocking_mortalities = [
+        x for x in StockingMortality.objects.values_list("id", "value", "description")
+    ]
+    stocking_mortality_choices = toChoices(stocking_mortalities)
 
     stocking_methods = [
         x for x in StockingMethod.objects.values_list("id", "stk_meth", "description")
@@ -529,7 +531,7 @@ def get_choices(active_only=True):
         "state_prov": stateProv_choices,
         "species": species_choices,
         "lifestage": lifestage_choices,
-        "condition": condition_choices,
+        "stocking_mortality": stocking_mortality_choices,
         "stocking_method": stocking_method_choices,
     }
 

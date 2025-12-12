@@ -3,11 +3,12 @@ Views associated with our stocking application.
 """
 
 import json
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.db.models.aggregates import Extent
-from django.db.models import Count, F, Max, Min, Q
+from django.db.models import Count, F, Max, Min, Q, Sum
 from django.forms import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
@@ -57,7 +58,7 @@ def find_events(request):
     field_aliases = {
         "agency_code": F("agency__abbrev"),
         "spc": F("species__abbrev"),
-        "strain": F("strain_raw__strain"),
+        "strain": F("strain_alias__strain"),
         "stage": F("lifestage__abbrev"),
         "method": F("stocking_method__stk_meth"),
         "manUnit": F("management_unit__slug"),
@@ -112,7 +113,7 @@ def find_events(request):
     jurisdictions = Jurisdiction.objects.values_list("slug", "name")
     agencies = Agency.objects.all().values_list("abbrev", "agency_name")
 
-    bbox =  Lake.objects.all().aggregate(extent=Extent("geom"))
+    bbox = Lake.objects.all().aggregate(extent=Extent("geom"))
 
     # manunits
     # managementUnits = list(
@@ -197,7 +198,7 @@ def find_events(request):
             "strains": json.dumps(strains),
             "lifestages": json.dumps(lifestages),
             "stocking_methods": json.dumps(stocking_methods),
-            "bbox": bbox["extent"]
+            "bbox": bbox["extent"],
         },
     )
 
@@ -217,34 +218,25 @@ def filtered_events(request):
     )
 
 
-def StockingEventListLatestYear(request):
-    """Get the most recent year of stockin and
-    pass the information onto our annual_events view.
-    """
+def PieChartMapViewLastYear(request):
+    """Get the most recent complete year of stockind and pass the
+    information onto our pie chart map view.  At one time, this view
+    rendered the most recent year where data was available, but this
+    led to confusion when a small number of agencies with a small
+    number of spring events would report in April or May - the default
+    view was mostly empty for most of the year.  This view now returns
+    all of the data from the last calendar year (which in most cases
+    is almost awasy completely populated)."""
 
-    latest_year = StockingEvent.objects.all().aggregate(Max("year"))
-    url = reverse(
-        "stocking:stocking-event-list-year",
-        kwargs={"year": latest_year.get("year__max")},
-    )
+    last_year = datetime.now().year - 1
 
-    return redirect(url)
-
-
-def PieChartMapViewLatestYear(request):
-    """Get the most recent year of stockind and
-    pass the information onto our pie chart map view.
-    """
-    latest_year = StockingEvent.objects.all().aggregate(Max("year"))
-    url = reverse(
-        "stocking:stocking-events-year", kwargs={"year": latest_year.get("year__max")}
-    )
+    url = reverse("stocking:stocking-events-year", kwargs={"year": last_year})
 
     return redirect(url)
 
 
 class PieChartMapView(TemplateView):
-    """This is going to be the ront page of out application.  Most of the
+    """This is going to be the front page of out application.  Most of the
      work will done by the javascript libraries, but we will need to pass
      in serveral variables to set things up:
 
@@ -331,8 +323,7 @@ class PieChartMapView(TemplateView):
 
 
 class StockingEventListView(ListView):
-    """
-    A generic list view that is used to display a list of stocking
+    """A generic list view that is used to display a list of stocking
     events.  StockingEventFilter is used to filter the seleted
     records.
 
@@ -385,32 +376,28 @@ class StockingEventListView(ListView):
     paginate_by = 200
     template_name = "stocking/stocking_event_list.html"
 
-
     def get_context_data(self, **kwargs):
         context = super(StockingEventListView, self).get_context_data(**kwargs)
-
-        filters = self.request.GET.copy()
-        context["filters"] = filters
-        search_q = filters.get("q")
-        if search_q:
-            filters.pop("q")
-            filters["stock_id__contains"] = search_q
-            filters["agency_stock_id__contains"] = search_q
-
-        self.request.GET = filters
-
-        context["stock_id__contains"] = search_q
-        context["agency_stock_id__contains"] = search_q
 
         basequery = StockingEventFilter(
             self.request.GET, StockingEvent.objects.all()
         ).qs
 
-        # add the contains filter to make sure our tallies are right
+        filters = self.request.GET.copy()
+        context["filters"] = filters
+        search_q = filters.get("q")
+
         if search_q:
+            filters.pop("q")
+            filters["stock_id__contains"] = search_q
+            filters["agency_stock_id__contains"] = search_q
+            context["stock_id__contains"] = search_q
+            context["agency_stock_id__contains"] = search_q
+            # # add the contains filter to make sure our tallies are right
             basequery = basequery.filter(
                 Q(stock_id__icontains=search_q) | Q(agency_stock_id__icontains=search_q)
             )
+        self.request.GET = filters
 
         lake_list = (
             basequery.values_list(
@@ -463,10 +450,11 @@ class StockingEventListView(ListView):
 
         strain_list = (
             basequery.values_list(
-                "strain_raw__strain__strain_code", "strain_raw__strain__strain_label"
+                "strain_alias__strain__strain_code",
+                "strain_alias__strain__strain_label",
             )
             .annotate(n=Count("id"))
-            .order_by("strain_raw__strain__strain_label")
+            .order_by("strain_alias__strain__strain_label")
         )
 
         context["strain_list"] = add_is_checked(strain_list, filters.get("strain_name"))
@@ -589,13 +577,13 @@ class StockingEventListView(ListView):
             "jurisdiction__lake",
             "species",
             "lifestage",
-            "strain_raw__strain",
+            "strain_alias__strain",
             "stocking_method",
         )
 
         if search_q:
             queryset = queryset.filter(
-                Q(stock_id__icontains=search_q) | Q(notes__icontains=search_q)
+                Q(stock_id__icontains=search_q) | Q(agency_stock_id__icontains=search_q)
             )
 
         filtered_list = StockingEventFilter(self.request.GET, queryset=queryset)
@@ -607,7 +595,7 @@ class StockingEventListView(ListView):
             "site",
             "date",
             "species__common_name",
-            "strain_raw__strain__strain_label",
+            "strain_alias__strain__strain_label",
             "year_class",
             "lifestage__description",
             "stocking_method__description",
@@ -651,7 +639,7 @@ class StockingEventDetailView(DetailView):
             "species",
             "agency",
             "hatchery",
-            "strain_raw",
+            "strain_alias",
             "grid_10",
             "grid_10__lake",
             "management_unit",
@@ -659,7 +647,7 @@ class StockingEventDetailView(DetailView):
             "jurisdiction__stateprov",
             "stocking_method",
             "lifestage",
-            "condition",
+            "stocking_mortality",
         )
 
         event = get_object_or_404(qs, stock_id=stock_id)
@@ -754,3 +742,121 @@ def edit_stocking_event(request, stock_id):
             "has_cwts": has_cwts,
         },
     )
+
+
+class StockingAnnualTotalsListView(ListView):
+    """A generic list view that is used to display a list of annual
+    totals by agency, lake and state/province.
+    **Context**
+
+    ``object_list``
+        An list of :model:`stocking.StockingEvent` instances that
+        satifity the lake and year parameters from the url and the
+        current filter as speficied in query string (e.g. ?species=LAT).
+
+    ``year_list``
+        A list of unique years available in the database - used to
+        populate hyperlinks to pages presenting data for the specified
+        year.
+
+    ``agency_list``
+        A list of the unique agencies in the currently selected
+        queryest. Used to further refined the seleted result. The
+        list consists of 2-element tuples that include the agency
+        abbreviation and number of records for each.
+
+    **Template:**
+
+    :template:`stocking/annual_totals.html`
+
+    """
+
+    model = StockingEvent
+    template_name = "stocking/annual_totals.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(StockingAnnualTotalsListView, self).get_context_data(**kwargs)
+
+        basequery = StockingEventFilter(
+            self.request.GET, StockingEvent.objects.all()
+        ).qs
+
+        filters = self.request.GET.copy()
+        context["filters"] = filters
+
+        self.request.GET = filters
+
+        lake_list = (
+            basequery.values_list(
+                "jurisdiction__lake__abbrev", "jurisdiction__lake__lake_name"
+            )
+            .annotate(n=Count("id"))
+            .order_by("jurisdiction__lake__lake_name")
+        )
+
+        context["lake_list"] = add_is_checked(lake_list, filters.get("lake"))
+
+        stateprov_list = (
+            basequery.values_list(
+                "jurisdiction__stateprov__abbrev",
+                "jurisdiction__stateprov__name",
+            )
+            .annotate(n=Count("id"))
+            .order_by("jurisdiction__stateprov__abbrev")
+        )
+
+        context["stateprov_list"] = add_is_checked(
+            stateprov_list, filters.get("stateprov")
+        )
+
+        agency_list = (
+            basequery.values_list("agency__abbrev", "agency__agency_name")
+            .annotate(n=Count("id"))
+            .order_by("agency__abbrev")
+        )
+
+        context["agency_list"] = add_is_checked(agency_list, filters.get("agency"))
+
+
+        context["event_count"] = basequery.count()
+        context["max_event_count"] = settings.MAX_FILTERED_EVENT_COUNT
+
+        return context
+
+    def get_queryset(self):
+
+        # get the value of q from the request kwargs
+        search_q = self.request.GET.get("q")
+
+        queryset = StockingEvent.objects.all()
+
+        queryset = queryset.select_related(
+            "agency",
+            "jurisdiction",
+            "jurisdiction__stateprov",
+            "jurisdiction__lake",
+            "species",
+        )
+
+        filtered_list = StockingEventFilter(self.request.GET, queryset=queryset)
+
+        qs = (
+            filtered_list.qs.order_by(
+                "-year",
+                "jurisdiction__lake__lake_name",
+                "agency__abbrev",
+            )
+            .values(
+                "year",
+            )
+            .annotate(
+                agency_abbrev=F("agency__abbrev"),
+                lake=F("jurisdiction__lake__lake_name"),
+                stateprov=F("jurisdiction__stateprov__name"),
+                events=Count("id"),
+                species=Count("species", distinct=True),
+                yeeq=Sum("yreq_stocked"),
+                num_stocked=Sum("no_stocked"),
+            )
+        )
+        return qs

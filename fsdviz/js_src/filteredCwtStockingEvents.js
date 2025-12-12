@@ -38,6 +38,9 @@ import {
 
 const filters = {};
 
+const pointSize = 6;
+const selectedPointSize = 9;
+
 const colourScale = scaleOrdinal();
 
 // intial values of global variabls that control the state of our page:
@@ -496,11 +499,11 @@ Promise.all([
       .enter()
       .append("circle")
       .attr("class", "point")
-      .attr("id", (d) => d.key)
+      .attr("id", (d) => `pt-${d.key}`)
       .style("stroke", "black")
       .attr("stroke-width", 0.5)
       .style("opacity", 0.6)
-      .attr("r", 5)
+      .attr("r", pointSize)
       .attr("pointer-events", "visible")
       .on("mouseover", function (d) {
         select(this).classed("hover", true);
@@ -508,20 +511,7 @@ Promise.all([
       .on("mouseout", function (d) {
         select(this).classed("hover", false);
       })
-      .on("click", function (d) {
-        select(`tr[id="${selectedEvent}"]`).classed("blue", false);
-        select(`circle[id="${selectedEvent}"]`)
-          .classed("selected-event", false)
-          .attr("r", 5);
-        if (d.key === selectedEvent) {
-          selectedEvent = "";
-        } else {
-          selectedEvent = d.key;
-          select(this).attr("r", 8).classed("selected-event", true);
-          select(`tr[id="${d.key}"]`).classed("blue", true);
-        }
-        updateUrlParams("selected-event", selectedEvent);
-      });
+      .on("click", (d) => setSelectedEvent(d.key));
 
     points
       .merge(pointsEnter)
@@ -556,11 +546,34 @@ Promise.all([
   if (selectedEvent) {
     select(`circle[id="${selectedEvent}"]`)
       .classed("selected-event", true)
-      .attr("r", 8);
+      .attr("r", selectedPointSize);
     select(`tr[id="${selectedEvent}"]`).classed("blue", true);
   }
 
-  selectAll("tr");
+  const tableRows = selectAll("tr");
+  tableRows.on("click", function (d) {
+    setSelectedEvent(this.id);
+  });
+
+  const setSelectedEvent = (id) => {
+    // clear all of the old ones,
+    select(`tr[id="${selectedEvent}"]`).classed("blue", false);
+    select(`circle[id="pt-${selectedEvent}"]`)
+      .classed("selected-event", false)
+      .attr("r", pointSize);
+    // if id=existing slected value, set to to null and and return
+    if (id === selectedEvent) {
+      selectedEvent = "";
+    } else {
+      // set the new one if it exists:
+      selectedEvent = id;
+      select(`circle[id="pt-${id}"]`)
+        .attr("r", selectedPointSize)
+        .classed("selected-event", true);
+      select(`tr[id="${id}"]`).classed("blue", true);
+    }
+    updateUrlParams("selected-event", selectedEvent);
+  };
 
   // = ==============================================
 

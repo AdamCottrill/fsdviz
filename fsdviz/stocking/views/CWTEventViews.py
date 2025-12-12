@@ -153,11 +153,11 @@ class CWTListView(ListView):
 
         strain_list = (
             basequery.values_list(
-                "strain_raw__strain__strain_code",
-                "strain_raw__strain__strain_label",
+                "strain_alias__strain__strain_code",
+                "strain_alias__strain__strain_label",
             )
             .annotate(n=Count("stock_id"))
-            .order_by("strain_raw__strain__strain_label")
+            .order_by("strain_alias__strain__strain_label")
         )
 
         context["strain_list"] = add_is_checked(strain_list, filters.get("strain_name"))
@@ -285,7 +285,7 @@ class CWTListView(ListView):
             # "mark": F("mark"),
             "agency_code": F("agency__abbrev"),
             "spc": F("species__abbrev"),
-            "strain": F("strain_raw__strain__strain_label"),
+            "strain": F("strain_alias__strain__strain_label"),
             "stage": F("lifestage__description"),
             "method": F("stocking_method__description"),
             "jurisd": F("jurisdiction__slug"),
@@ -393,8 +393,8 @@ class CWTSequenceDetail(ListView):
             "events",
             "events__agency",
             "events__species",
-            "events__strain_raw",
-            "events__strain_raw__strain",
+            "events__strain_alias",
+            "events__strain_alias__strain",
             "events__lifestage",
             "events__stocking_method",
             "events__jurisdiction",
@@ -431,7 +431,7 @@ def find_cwt_events(request):
     field_aliases = {
         "agency_code": F("agency__abbrev"),
         "spc": F("species__abbrev"),
-        "strain": F("strain_raw__strain"),
+        "strain": F("strain_alias__strain"),
         "stage": F("lifestage__abbrev"),
         "method": F("stocking_method__stk_meth"),
         "manUnit": F("management_unit__slug"),
@@ -593,7 +593,7 @@ def filtered_cwt_events(request):
         "clipcode": F("clip_code__clip_code"),
         "agency_code": F("agency__abbrev"),
         "spc": F("species__abbrev"),
-        "strain": F("strain_raw__strain__strain_label"),
+        "strain": F("strain_alias__strain__strain_label"),
         "stage": F("lifestage__description"),
         "method": F("stocking_method__description"),
         "jurisd": F("jurisdiction__slug"),

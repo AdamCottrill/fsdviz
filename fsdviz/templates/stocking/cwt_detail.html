@@ -126,7 +126,7 @@
                             <td title="{{ event.site }}"> {{ event.site }}</td>
                             <td> {{ event.date|date:"M-d-y" }}</td>
                             <td> {{ event.species.common_name | title }}</td>
-                            <td> {{ event.strain_raw.strain.strain_label }}</td>
+                            <td> {{ event.strain_alias.strain.strain_label }}</td>
                             <td>{{ event.year_class }}</td>
                             <td> {{ event.lifestage.description | title }}</td>
                             <td> {{ event.stocking_method.description | title }}</td>
@@ -138,11 +138,6 @@
                     {% endfor %}
                 </tbody>
             </table>
-
-
-
-
-
 
         {% empty %}
             <h3>Oops! It doesn't look like there are any cwts with number {{cwt_number | format_cwt }}</h3>

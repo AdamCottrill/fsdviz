@@ -19,45 +19,40 @@ Tests to verify that the file upload views work as expected.
 =============================================================
 """
 
-import pytest
-from pytest_django.asserts import assertContains, assertTemplateUsed
-
-from django.urls import reverse
-
 from io import BytesIO
 
-from fsdviz.tests.pytest_fixtures import (
-    user,
-    glsc,
-    mdnr,
-    mnrf,
-    huron,
-    superior,
-    huron_mdnr_sc,
-    invalid_xlsfiles,
-)
-from fsdviz.tests.common_factories import (
-    LakeFactory,
-    StateProvinceFactory,
-    AgencyFactory,
-    ManagementUnitFactory,
-    Grid10Factory,
-    SpeciesFactory,
-    StrainFactory,
-    FinClipFactory,
-    CompositeFinClipFactory,
-)
-
-
-from fsdviz.tests.stocking_factories import (
-    LifeStageFactory,
-    ConditionFactory,
-    StockingMethodFactory,
-)
-
+import pytest
+from django.urls import reverse
 
 # testing here for now - should be somewhere else:
 from fsdviz.stocking.utils import get_xls_form_choices
+from fsdviz.tests.factories.common_factories import (
+    AgencyFactory,
+    CompositeFinClipFactory,
+    FinClipFactory,
+    Grid10Factory,
+    LakeFactory,
+    ManagementUnitFactory,
+    SpeciesFactory,
+    StateProvinceFactory,
+    StrainFactory,
+)
+from fsdviz.tests.factories.stocking_factories import (
+    StockingMortalityFactory,
+    LifeStageFactory,
+    StockingMethodFactory,
+)
+from fsdviz.tests.pytest_fixtures import (
+    glsc,
+    huron,
+    huron_mdnr_sc,
+    invalid_xlsfiles,
+    mdnr,
+    mnrf,
+    superior,
+    user,
+)
+from pytest_django.asserts import assertContains, assertTemplateUsed
 
 
 @pytest.mark.parametrize("xlsfile, message", invalid_xlsfiles)
@@ -85,12 +80,18 @@ def test_file_upload_invalid_spreadsheet(client, glsc, huron, mnrf, xlsfile, mes
     login = client.login(email=glsc.email, password="Abcd1234")
     assert login is True
 
+    # if a comment in included in the form, it should still be there
+    # when the invalid form is returned:
+    comment = "Comment that should be kept"
+
     url = reverse("stocking:upload-stocking-events")
     with open(xlsfile, "rb") as fp:
-        response = client.post(url, {"data_file": fp}, follow=True)
+        payload = {"data_file": fp, "upload_comment": comment}
+        response = client.post(url, payload, follow=True)
         assert response.status_code == 200
         assertTemplateUsed("stocking/upload_stocking_events.html")
         assertContains(response, message, html=True)
+        assertContains(response, comment, html=False)
 
 
 wrong_files = ["myfile.jpg", "myfile.txt", "myfile.doc"]
@@ -109,16 +110,21 @@ def test_not_xls_or_xlsx_files(client, glsc, fname):
     login = client.login(email=glsc.email, password="Abcd1234")
     assert login is True
 
+    # if a comment in included in the form, it should still be there
+    # when the invalid form is returned:
+    comment = "Comment that should be kept"
+
     url = reverse("stocking:upload-stocking-events")
     # simulate a file with a bytes io object
     myfile = BytesIO(b"mybinarydata")
     myfile.name = fname
-
-    response = client.post(url, {"data_file": myfile}, follow=True)
+    payload = {"data_file": myfile, "upload_comment": comment}
+    response = client.post(url, payload, follow=True)
     assert response.status_code == 200
     assertTemplateUsed("stocking/upload_stocking_events.html")
     msg = "Choosen file is not an Excel (*.xls or *.xlsx) file!"
     assertContains(response, msg)
+    assertContains(response, comment, html=False)
 
 
 xls_file_names = ["myfile.xls", "myfile.xlsx"]
@@ -139,14 +145,20 @@ def test_xls_or_xlsx_files(client, glsc, fname):
     login = client.login(email=glsc.email, password="Abcd1234")
     assert login is True
 
+    # if a comment in included in the form, it should still be there
+    # when the invalid form is returned:
+    comment = "Comment that should be kept"
+
     url = reverse("stocking:upload-stocking-events")
     # simulate a file with a bytes io object
     myfile = BytesIO(b"mybinarydata")
     myfile.name = fname
 
-    response = client.post(url, {"data_file": myfile}, follow=True)
+    payload = {"data_file": myfile, "upload_comment": comment}
+    response = client.post(url, payload, follow=True)
     assert response.status_code == 200
     assertTemplateUsed("stocking/upload_stocking_events.html")
+    assertContains(response, comment, html=False)
 
 
 @pytest.mark.django_db
@@ -248,243 +260,448 @@ def test_upload_form_contains_some_instructions(client, user):
         assertContains(response, msg)
 
 
-class TestFileUpload:
-    """tests in this class use the database values created in the setup."""
+@pytest.fixture()
+def choices_setup():
+    lake = LakeFactory(abbrev="HU", lake_name="Lake Huron")
+    LakeFactory(abbrev="SU", lake_name="Superior")
+    ManagementUnitFactory(label="NC2", lake=lake, primary=True)
+    StateProvinceFactory(abbrev="ON")
+    AgencyFactory(abbrev="MNRF")
+    AgencyFactory(abbrev="MDNR")
+    AgencyFactory(abbrev="USFWS")
 
-    @pytest.mark.django_db
-    def setup(self):
+    Grid10Factory(lake=lake, grid="214")
+    SpeciesFactory(abbrev="LAT", common_name="Lake Trout")
+    StrainFactory()
+    LifeStageFactory(abbrev="y", description="yearling")
+    StockingMortalityFactory(value=4)
+    StockingMortalityFactory(value=99)
 
-        lake = LakeFactory(abbrev="HU", lake_name="Lake Huron")
-        LakeFactory(abbrev="SU", lake_name="Superior")
-        ManagementUnitFactory(label="NC2", lake=lake, primary=True)
-        StateProvinceFactory(abbrev="ON")
-        AgencyFactory.create(abbrev="MNRF")
-        AgencyFactory.create(abbrev="MDNR")
-        AgencyFactory.create(abbrev="USFWS")
+    StockingMethodFactory(stk_meth="b", description="boat")
 
-        Grid10Factory.create(lake=lake, grid="214")
-        SpeciesFactory(abbrev="LAT", common_name="Lake Trout")
-        StrainFactory.create()
-        LifeStageFactory(abbrev="y", description="yearling")
-        ConditionFactory(condition="4")
-        StockingMethodFactory(stk_meth="b", description="boat")
+    FinClipFactory(abbrev="LV", description="Left Ventral")
+    FinClipFactory(abbrev="RP", description="Right Pectoral")
+    FinClipFactory(abbrev="AD", description="Adipose")
 
-        FinClipFactory(abbrev="LV", description="Left Ventral")
-        FinClipFactory(abbrev="RP", description="Right Pectoral")
-        FinClipFactory(abbrev="AD", description="Adipose")
+    CompositeFinClipFactory(clip_code="AD", description="Adipose")
+    CompositeFinClipFactory(
+        clip_code="LVRP", description="Left Ventral, Right Pectoral"
+    )
 
-        CompositeFinClipFactory(clip_code="AD", description="Adipose")
-        CompositeFinClipFactory(
-            clip_code="LVRP", description="Left Ventral, Right Pectoral"
+
+@pytest.mark.django_db
+def test_get_xls_choices(choices_setup):
+    """verify that the get_xls_form_choices returns a dictionary the
+    expected keyes and values.
+
+    """
+    xls_choices = get_xls_form_choices()
+    expected = [
+        "lakes",
+        "agencies",
+        "state_prov",
+        "stat_dist",
+        "species",
+        "lifestage",
+        "stocking_mortality",
+        "stocking_method",
+        "grids",
+    ]
+    assert list(xls_choices.keys()) == expected
+
+    expected = [("HU", "HU"), ("SU", "SU")]
+    assert set(xls_choices["lakes"]) == set(expected)
+
+    expected = [("MNRF", "MNRF"), ("USFWS", "USFWS"), ("MDNR", "MDNR")]
+    assert set(xls_choices["agencies"]) == set(expected)
+
+    expected = [("ON", "ON")]
+    assert xls_choices["state_prov"] == expected
+
+    expected = {"HU": [("NC2", "NC2")]}
+    assert xls_choices["stat_dist"] == expected
+
+    expected = [("LAT", "Lake Trout")]
+    assert xls_choices["species"] == expected
+
+    expected = [("y", "yearling")]
+    assert xls_choices["lifestage"] == expected
+
+    expected = [("b", "boat")]
+    assert xls_choices["stocking_method"] == expected
+
+    expected = [(4, 4), (99, 99)]
+    assert xls_choices["stocking_mortality"] == expected
+
+    # statdist and grids are dictionaries keyed by lake:
+    expected = {"HU": [("NC2", "NC2")]}
+    assert xls_choices["stat_dist"] == expected
+
+    expected = {"HU": [("214", "214")]}
+    assert xls_choices["grids"] == expected
+
+
+@pytest.mark.django_db
+def test_file_upload_good_data(choices_setup, client, glsc):
+    """If the uploaded form is a valid stocking event template with all of
+    the correct fields, a suitable number of rows, a single year
+    and lake, then we it should be passed to the data xls_events_form
+
+    """
+
+    login = client.login(email=glsc.email, password="Abcd1234")
+    assert login is True
+
+    url = reverse("stocking:upload-stocking-events")
+    with open("fsdviz/tests/xls_files/good_one_record.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/xls_events_form.html")
+
+
+@pytest.mark.django_db
+def test_file_upload_unknown_lake(choices_setup, client, glsc):
+    """If the uploaded file has an unknown_lake, the user is returned to
+    the upload file form with a message that the uploaded file has an
+    agency or lake that they are not currently affiliated with.
+
+    """
+
+    login = client.login(email=glsc.email, password="Abcd1234")
+    assert login is True
+
+    url = reverse("stocking:upload-stocking-events")
+
+    with open("fsdviz/tests/xls_files/unknown_lake.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+
+        assert response.status_code == 200
+        templates = [x.name for x in response.templates]
+        assert "stocking/upload_stocking_events.html" in templates
+
+        # the unknown value of Lake should be presented, but it
+        # will be disabled.
+        content = str(response.content)
+        msg = "The uploaded file appears to contain events for an unknown Lake: Simcoe."
+
+        assert msg in content
+
+
+@pytest.mark.django_db
+def test_gl_coordinator_not_limited_to_their_lake(
+    choices_setup, client, superior, glsc
+):
+    """A great Lakes stocking coordinator should be able to upload
+    stocking events for any lake and for any agency.
+
+    """
+    login = client.login(email=glsc.email, password="Abcd1234")
+    assert login is True
+
+    url = reverse("stocking:upload-stocking-events")
+
+    with open("fsdviz/tests/xls_files/mdnr_superior.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/xls_events_form.html")
+
+
+@pytest.mark.django_db
+def test_agency_and_lake_appear_in_upload_form_heading(choices_setup, client, glsc):
+    """When the upload form renders, it should clearly indictate which
+    lake and agency the events will be associated with.
+
+    "MNRF stocking events in Lake Huron"
+
+    """
+    login = client.login(email=glsc.email, password="Abcd1234")
+    assert login is True
+
+    url = reverse("stocking:upload-stocking-events")
+
+    with open("fsdviz/tests/xls_files/mnrf_huron.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+
+        assertTemplateUsed("stocking/xls_events_form.html")
+        heading = "<h1>1 Uploaded MNRF Stocking Event for Lake Huron</h1>"
+        assertContains(response, heading, html=True)
+
+
+@pytest.mark.django_db
+def test_gl_coordinator_not_limited_to_their_agency(choices_setup, client, glsc):
+    """A great Lakes stocking coordinator should be able to upload
+    stocking events for any lake and for any agency.
+
+    """
+    login = client.login(email=glsc.email, password="Abcd1234")
+    assert login is True
+
+    url = reverse("stocking:upload-stocking-events")
+
+    with open("fsdviz/tests/xls_files/usfws_huron.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/xls_events_form.html")
+
+
+@pytest.mark.django_db
+def test_agency_coordinator_can_upload_events_for_their_lake_and_agency(
+    choices_setup, client, huron_mdnr_sc
+):
+    """An agency stocking coordinator should only be able to upload data
+    associated with their agency and lake(s) they have permission to
+    modify.
+
+    """
+    login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
+    assert login is True
+
+    url = reverse("stocking:upload-stocking-events")
+
+    with open("fsdviz/tests/xls_files/mdnr_huron.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/xls_events_form.html")
+
+
+@pytest.mark.django_db
+def test_agency_coordinator_cannot_upload_events_different_agency(
+    choices_setup, client, huron_mdnr_sc
+):
+    """An agency stocking coordinator should not be able to upload events
+    for another agency.
+
+    our coordinator is currently associated with mdnr so if he tries to upload events
+    by USFWS it should throw an error.
+
+    """
+    login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
+    assert login is True
+
+    url = reverse("stocking:upload-stocking-events")
+
+    with open("fsdviz/tests/xls_files/usfws_huron.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/upload_stocking_events.html")
+        msg = (
+            "The uploaded file appears to have data from a lake or agency"
+            " that you are not currently affiliated with."
         )
+        assertContains(response, msg)
 
-    @pytest.mark.django_db
-    def test_get_xls_choices(self):
-        """verify that the get_xls_form_choices returns a dictionary the
-        expected keyes and values.
 
-        """
-        xls_choices = get_xls_form_choices()
-        expected = [
-            "lakes",
-            "agencies",
-            "state_prov",
-            "stat_dist",
-            "species",
-            "lifestage",
-            "condition",
-            "stocking_method",
-            "grids",
-        ]
-        assert list(xls_choices.keys()) == expected
+@pytest.mark.django_db
+def test_agency_coordinator_cannot_upload_events_different_lake(
+    choices_setup, client, huron_mdnr_sc
+):
+    """An agency stocking coordinator should not be able to upload events
+    on a lake that they are not associated with.
 
-        expected = [("HU", "HU"), ("SU", "SU")]
-        assert set(xls_choices["lakes"]) == set(expected)
+    our coordinator is currently associated with lake huron so events
+    on lake superior should throw an error.
 
-        expected = [("MNRF", "MNRF"), ("USFWS", "USFWS"), ("MDNR", "MDNR")]
-        assert set(xls_choices["agencies"]) == set(expected)
+    """
+    login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
+    assert login is True
 
-        expected = [("ON", "ON")]
-        assert xls_choices["state_prov"] == expected
+    url = reverse("stocking:upload-stocking-events")
 
-        expected = [("LAT", "Lake Trout")]
-        assert xls_choices["species"] == expected
+    with open("fsdviz/tests/xls_files/mdnr_superior.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/upload_stocking_events.html")
+        msg = (
+            "The uploaded file appears to have data from a lake or agency"
+            " that you are not currently affiliated with."
+        )
+        assertContains(response, msg)
 
-        expected = [("y", "yearling")]
-        assert xls_choices["lifestage"] == expected
+    expected = [(4, 4), (99, 99)]
+    assert xls_choices["stocking_mortality"] == expected
 
-        expected = [("b", "boat")]
-        assert xls_choices["stocking_method"] == expected
+    # statdist and grids are dictionaries keyed by lake:
+    expected = {"HU": [("NC2", "NC2")]}
+    assert xls_choices["stat_dist"] == expected
 
-        # condition has a default value (99 - not reported) that is
-        # created if it does not exist.
-        expected = [(4, 4), (99, 99)]
-        assert xls_choices["condition"] == expected
+    expected = {"HU": [("214", "214")]}
+    assert xls_choices["grids"] == expected
 
-        # statdist and grids are dictionaries keyed by lake:
-        expected = {"HU": [("NC2", "NC2")]}
-        assert xls_choices["stat_dist"] == expected
 
-        expected = {"HU": [("214", "214")]}
-        assert xls_choices["grids"] == expected
+@pytest.mark.django_db
+def test_file_upload_good_data(choices_setup, client, glsc):
+    """If the uploaded form is a valid stocking event template with all of
+    the correct fields, a suitable number of rows, a single year
+    and lake, then we it should be passed to the data xls_events_form
 
-    @pytest.mark.django_db
-    def test_file_upload_good_data(self, client, glsc):
-        """If the uploaded form is a valid stocking event template with all of
-        the correct fields, a suitable number of rows, a single year
-        and lake, then we it should be passed to the data xls_events_form
+    """
 
-        """
+    login = client.login(email=glsc.email, password="Abcd1234")
+    assert login is True
 
-        login = client.login(email=glsc.email, password="Abcd1234")
-        assert login is True
+    url = reverse("stocking:upload-stocking-events")
+    with open("fsdviz/tests/xls_files/good_one_record.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/xls_events_form.html")
 
-        url = reverse("stocking:upload-stocking-events")
-        with open("fsdviz/tests/xls_files/good_one_record.xlsx", "rb") as fp:
-            response = client.post(url, {"data_file": fp}, follow=True)
-            assert response.status_code == 200
-            assertTemplateUsed("stocking/xls_events_form.html")
 
-    @pytest.mark.django_db
-    def test_file_upload_unknown_lake(self, client, glsc):
-        """If the uploaded file has an unknown_lake, the user is returned to
-        the upload file form with a message that the uploaded file has an
-        agency or lake that they are not currently affiliated with.
+@pytest.mark.django_db
+def test_file_upload_unknown_lake(choices_setup, client, glsc):
+    """If the uploaded file has an unknown_lake, the user is returned to
+    the upload file form with a message that the uploaded file has an
+    agency or lake that they are not currently affiliated with.
 
-        """
+    """
 
-        login = client.login(email=glsc.email, password="Abcd1234")
-        assert login is True
+    login = client.login(email=glsc.email, password="Abcd1234")
+    assert login is True
 
-        url = reverse("stocking:upload-stocking-events")
+    url = reverse("stocking:upload-stocking-events")
 
-        with open("fsdviz/tests/xls_files/unknown_lake.xlsx", "rb") as fp:
-            response = client.post(url, {"data_file": fp}, follow=True)
+    with open("fsdviz/tests/xls_files/unknown_lake.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
 
-            assert response.status_code == 200
-            templates = [x.name for x in response.templates]
-            assert "stocking/upload_stocking_events.html" in templates
+        assert response.status_code == 200
+        templates = [x.name for x in response.templates]
+        assert "stocking/upload_stocking_events.html" in templates
 
-            # the unknown value of Lake should be presented, but it
-            # will be disabled.
-            content = str(response.content)
-            msg = "The uploaded file appears to contain events for an unknown Lake: Simcoe."
+        # the unknown value of Lake should be presented, but it
+        # will be disabled.
+        content = str(response.content)
+        msg = "The uploaded file appears to contain events for an unknown Lake: Simcoe."
 
-            assert msg in content
+        assert msg in content
 
-    def test_gl_coordinator_not_limited_to_their_lake(self, client, superior, glsc):
-        """A great Lakes stocking coordinator should be able to upload
-        stocking events for any lake and for any agency.
 
-        """
-        login = client.login(email=glsc.email, password="Abcd1234")
-        assert login is True
+@pytest.mark.django_db
+def test_gl_coordinator_not_limited_to_their_lake(
+    choices_setup, client, superior, glsc
+):
+    """A great Lakes stocking coordinator should be able to upload
+    stocking events for any lake and for any agency.
 
-        url = reverse("stocking:upload-stocking-events")
+    """
+    login = client.login(email=glsc.email, password="Abcd1234")
+    assert login is True
 
-        with open("fsdviz/tests/xls_files/mdnr_superior.xlsx", "rb") as fp:
-            response = client.post(url, {"data_file": fp}, follow=True)
-            assert response.status_code == 200
-            assertTemplateUsed("stocking/xls_events_form.html")
+    url = reverse("stocking:upload-stocking-events")
 
-    def test_agency_and_lake_appear_in_upload_form_heading(self, client, glsc):
-        """When the upload form renders, it should clearly indictate which
-        lake and agency the events will be associated with.
+    with open("fsdviz/tests/xls_files/mdnr_superior.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/xls_events_form.html")
 
-        "MNRF stocking events in Lake Huron"
 
-        """
-        login = client.login(email=glsc.email, password="Abcd1234")
-        assert login is True
+@pytest.mark.django_db
+def test_agency_and_lake_appear_in_upload_form_heading(choices_setup, client, glsc):
+    """When the upload form renders, it should clearly indictate which
+    lake and agency the events will be associated with.
 
-        url = reverse("stocking:upload-stocking-events")
+    "MNRF stocking events in Lake Huron"
 
-        with open("fsdviz/tests/xls_files/mnrf_huron.xlsx", "rb") as fp:
-            response = client.post(url, {"data_file": fp}, follow=True)
-            assert response.status_code == 200
-            assertTemplateUsed("stocking/xls_events_form.html")
-            heading = "<h1>1 Uploaded MNRF Stocking Event for Lake Huron</h1>"
-            assertContains(response, heading, html=True)
+    """
+    login = client.login(email=glsc.email, password="Abcd1234")
+    assert login is True
 
-    def test_gl_coordinator_not_limited_to_their_agency(self, client, glsc):
-        """A great Lakes stocking coordinator should be able to upload
-        stocking events for any lake and for any agency.
+    url = reverse("stocking:upload-stocking-events")
 
-        """
-        login = client.login(email=glsc.email, password="Abcd1234")
-        assert login is True
+    with open("fsdviz/tests/xls_files/mnrf_huron.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
 
-        url = reverse("stocking:upload-stocking-events")
+        assertTemplateUsed("stocking/xls_events_form.html")
+        heading = "<h1>1 Uploaded MNRF Stocking Event for Lake Huron</h1>"
+        assertContains(response, heading, html=True)
 
-        with open("fsdviz/tests/xls_files/usfws_huron.xlsx", "rb") as fp:
-            response = client.post(url, {"data_file": fp}, follow=True)
-            assert response.status_code == 200
-            assertTemplateUsed("stocking/xls_events_form.html")
 
-    def test_agency_coordinator_can_upload_events_for_their_lake_and_agency(
-        self, client, huron_mdnr_sc
-    ):
-        """An agency stocking coordinator should only be able to upload data
-        associated with their agency and lake(s) they have permission to
-        modify.
+@pytest.mark.django_db
+def test_gl_coordinator_not_limited_to_their_agency(choices_setup, client, glsc):
+    """A great Lakes stocking coordinator should be able to upload
+    stocking events for any lake and for any agency.
 
-        """
-        login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
-        assert login is True
+    """
+    login = client.login(email=glsc.email, password="Abcd1234")
+    assert login is True
 
-        url = reverse("stocking:upload-stocking-events")
+    url = reverse("stocking:upload-stocking-events")
 
-        with open("fsdviz/tests/xls_files/mdnr_huron.xlsx", "rb") as fp:
-            response = client.post(url, {"data_file": fp}, follow=True)
-            assert response.status_code == 200
-            assertTemplateUsed("stocking/xls_events_form.html")
+    with open("fsdviz/tests/xls_files/usfws_huron.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/xls_events_form.html")
 
-    def test_agency_coordinator_cannot_upload_events_different_agency(
-        self, client, huron_mdnr_sc
-    ):
-        """An agency stocking coordinator should not be able to upload events
-        for another agency.
 
-        our coordinator is currently associated with mdnr so if he tries to upload events
-        by USWFS it should throw an error.
+@pytest.mark.django_db
+def test_agency_coordinator_can_upload_events_for_their_lake_and_agency(
+    choices_setup, client, huron_mdnr_sc
+):
+    """An agency stocking coordinator should only be able to upload data
+    associated with their agency and lake(s) they have permission to
+    modify.
 
-        """
-        login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
-        assert login is True
+    """
+    login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
+    assert login is True
 
-        url = reverse("stocking:upload-stocking-events")
+    url = reverse("stocking:upload-stocking-events")
 
-        with open("fsdviz/tests/xls_files/usfws_huron.xlsx", "rb") as fp:
-            response = client.post(url, {"data_file": fp}, follow=True)
-            assert response.status_code == 200
-            assertTemplateUsed("stocking/upload_stocking_events.html")
-            msg = (
-                "The uploaded file appears to have data from a lake or agency"
-                " that you are not currently affiliated with."
-            )
-            assertContains(response, msg)
+    with open("fsdviz/tests/xls_files/mdnr_huron.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/xls_events_form.html")
 
-    def test_agency_coordinator_cannot_upload_events_different_lake(
-        self, client, huron_mdnr_sc
-    ):
-        """An agency stocking coordinator should not be able to upload events
-        on a lake that they are not associated with.
 
-        our coordinator is currently associated with lake huron so events
-        on lake superior should throw an error.
+@pytest.mark.django_db
+def test_agency_coordinator_cannot_upload_events_different_agency(
+    choices_setup, client, huron_mdnr_sc
+):
+    """An agency stocking coordinator should not be able to upload events
+    for another agency.
 
-        """
-        login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
-        assert login is True
+    our coordinator is currently associated with mdnr so if he tries to upload events
+    by USFWS it should throw an error.
 
-        url = reverse("stocking:upload-stocking-events")
+    """
+    login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
+    assert login is True
 
-        with open("fsdviz/tests/xls_files/mdnr_superior.xlsx", "rb") as fp:
-            response = client.post(url, {"data_file": fp}, follow=True)
-            assert response.status_code == 200
-            assertTemplateUsed("stocking/upload_stocking_events.html")
-            msg = (
-                "The uploaded file appears to have data from a lake or agency"
-                " that you are not currently affiliated with."
-            )
-            assertContains(response, msg)
+    url = reverse("stocking:upload-stocking-events")
+
+    with open("fsdviz/tests/xls_files/usfws_huron.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/upload_stocking_events.html")
+        msg = (
+            "The uploaded file appears to have data from a lake or agency"
+            " that you are not currently affiliated with."
+        )
+        assertContains(response, msg)
+
+
+@pytest.mark.django_db
+def test_agency_coordinator_cannot_upload_events_different_lake(
+    choices_setup, client, huron_mdnr_sc
+):
+    """An agency stocking coordinator should not be able to upload events
+    on a lake that they are not associated with.
+
+    our coordinator is currently associated with lake huron so events
+    on lake superior should throw an error.
+
+    """
+    login = client.login(email=huron_mdnr_sc.email, password="Abcd1234")
+    assert login is True
+
+    url = reverse("stocking:upload-stocking-events")
+
+    with open("fsdviz/tests/xls_files/mdnr_superior.xlsx", "rb") as fp:
+        response = client.post(url, {"data_file": fp}, follow=True)
+        assert response.status_code == 200
+        assertTemplateUsed("stocking/upload_stocking_events.html")
+        msg = (
+            "The uploaded file appears to have data from a lake or agency"
+            " that you are not currently affiliated with."
+        )
+        assertContains(response, msg)

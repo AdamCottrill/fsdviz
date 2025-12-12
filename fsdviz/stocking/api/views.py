@@ -3,12 +3,18 @@
 The veiws in this file should all be publicly available as readonly.
 
 """
+
 from datetime import datetime
+
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Count, F, Sum
-from drf_renderer_xlsx.mixins import XLSXFileMixin
-from drf_renderer_xlsx.renderers import XLSXRenderer
+
+from django.db.models import CharField, Value as V
+from django.db.models.functions import Concat, Coalesce
+
+from drf_excel.mixins import XLSXFileMixin
+from drf_excel.renderers import XLSXRenderer
 from rest_framework import generics, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -17,11 +23,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from .xls_render import MetaXLSXRenderer
-
 from ..filters import StockingEventFilter, YearlingEquivalentFilter
 from ..models import (
-    Condition,
+    StockingMortality,
     Hatchery,
     LifeStage,
     StockingEvent,
@@ -29,7 +33,7 @@ from ..models import (
     YearlingEquivalent,
 )
 from .serializers import (
-    ConditionSerializer,
+    StockingMortalitySerializer,
     CWTEventXlsxSerializer,
     HatcherySerializer,
     LifeStageSerializer,
@@ -39,6 +43,7 @@ from .serializers import (
     StockingMethodSerializer,
     YearlingEquivalentSerializer,
 )
+from .xls_render import MetaXLSXRenderer
 
 
 class SmallResultsSetPagination(PageNumberPagination):
@@ -98,17 +103,17 @@ class HatcheryViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class ConditionViewSet(viewsets.ReadOnlyModelViewSet):
-    """List of condition values and their descriptions reported by
+class StockingMortalityViewSet(viewsets.ReadOnlyModelViewSet):
+    """List of stocking_mortality values and their descriptions reported by
     contributing agencies for each stocking event to indicicate how
     healthy the fish were at time of stocking.
 
     """
 
-    queryset = Condition.objects.all()
-    serializer_class = ConditionSerializer
+    queryset = StockingMortality.objects.all()
+    serializer_class = StockingMortalitySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    lookup_field = "condition"
+    lookup_field = "value"
 
 
 class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
@@ -186,27 +191,64 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "location_secondary": F("st_site"),
             "latitude": F("dd_lat"),
             "longitude": F("dd_lon"),
-            "stock_method": F("stocking_method__stk_meth"),
+            # "stock_method": F("stocking_method__stk_meth"),
+            "_stock_method": Concat(
+                "stocking_method__stk_meth",
+                V(" - "),
+                "stocking_method__description",
+                output_field=CharField(),
+            ),
             "species_code": F("species__abbrev"),
-            "_strain": F("strain_raw__strain__strain_code"),
+            "_strain": Concat(
+                "strain_alias__strain__strain_label",
+                V(" ("),
+                "strain_alias__strain__strain_code",
+                V(")"),
+                output_field=CharField(),
+            ),
+            "_strain_alias": Concat(
+                "strain_alias__description",
+                V(" ("),
+                "strain_alias__strain_alias",
+                V(")"),
+                output_field=CharField(),
+            ),
             "yearclass": F("year_class"),
-            "life_stage": F("lifestage__abbrev"),
+            # "life_stage": F("lifestage__abbrev"),
+            "_life_stage": Concat(
+                "lifestage__abbrev",
+                V(" - "),
+                "lifestage__description",
+                output_field=CharField(),
+            ),
             "age_months": F("agemonth"),
-            "_clip": F("clip_code__clip_code"),
+            "_clip": Coalesce(F("clip_code__clip_code"), V("UN")),
             "phys_chem_mark": StringAgg(
                 "physchem_marks__mark_code",
                 delimiter=";",
-                ordering="physchem_marks__mark_code",
+                order_by="physchem_marks__mark_code",
+                default="",
             ),
             "cwt_number": F("tag_no"),
             "tag_retention": F("tag_ret"),
             "mean_length_mm": F("length"),
             "total_weight_kg": F("weight"),
-            "stocking_mortality": F("condition__description"),
+            "_stocking_mortality": Concat(
+                "stocking_mortality__value",
+                V(" - "),
+                "stocking_mortality__description",
+                output_field=CharField(),
+            ),
             "lot_code": F("lotcode"),
-            "hatchery_abbrev": F("hatchery__abbrev"),
+            "_hatchery": Concat(
+                "hatchery__hatchery_name",
+                V(" ["),
+                "hatchery__abbrev",
+                V("]"),
+                output_field=CharField(),
+            ),
             "number_stocked": F("no_stocked"),
-            "tag_type": StringAgg("fish_tags__tag_code", ""),
+            "tag_type": StringAgg("fish_tags__tag_code", delimiter="", default=""),
         }
 
         fields = [
@@ -224,11 +266,12 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "year",
             "month",
             "day",
-            "stock_method",
+            "_stock_method",
             "species_code",
             "_strain",
+            "_strain_alias",
             "yearclass",
-            "life_stage",
+            "_life_stage",
             "age_months",
             "_clip",
             "clip_efficiency",
@@ -238,9 +281,9 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
             "tag_retention",
             "mean_length_mm",
             "total_weight_kg",
-            "stocking_mortality",
+            "_stocking_mortality",
             "lot_code",
-            "hatchery_abbrev",
+            "_hatchery",
             "number_stocked",
             "notes",
         ]
@@ -250,9 +293,10 @@ class StockingEvent2xlsxViewSet(XLSXFileMixin, ReadOnlyModelViewSet):
                 "jurisdiction",
                 "agency",
                 "species",
-                "strain_raw__strain",
+                "strain_alias",
+                "strain_alias__strain",
                 "lifestage",
-                "condition",
+                "stocking_mortality",
                 "grid_10",
                 "stocking_method",
                 "hatchery",
@@ -305,7 +349,7 @@ class StockingEventViewSet(viewsets.ReadOnlyModelViewSet):
             "grid_10",
             "grid_10__lake",
             "latlong_flag",
-            "strain_raw__strain",
+            "strain_alias__strain",
             "stocking_method",
         ).defer(
             "jurisdiction__geom",
@@ -362,7 +406,7 @@ class StockingEventMapListView(generics.ListAPIView):
             "_mark": F("physchem_marks__mark_code"),
             "agency_abbrev": F("agency__abbrev"),
             "species_name": F("species__abbrev"),
-            "strain": F("strain_raw__strain__strain_label"),
+            "strain": F("strain_alias__strain__strain_label"),
             "latitude": F("geom_lat"),
             "longitude": F("geom_lon"),
         }
@@ -390,7 +434,7 @@ class StockingEventMapListView(generics.ListAPIView):
                 "grid_10",
                 "management_unit",
                 "agency",
-                "strain_raw__strain",
+                "strain_alias__strain",
                 "stocking_method",
             )
             .prefetch_related(
@@ -404,7 +448,7 @@ class StockingEventMapListView(generics.ListAPIView):
                 "agency",
                 "clip_code",
                 "physchem_mark",
-                "strain_raw__strain",
+                "strain_alias__strain",
                 "stocking_method",
             )
         )
@@ -471,7 +515,7 @@ class StockingEventListAPIView(APIView):
         field_aliases = {
             "agency_code": F("agency__abbrev"),
             "species_code": F("species__abbrev"),
-            "strain": F("strain_raw__strain__strain_code"),
+            "strain": F("strain_alias__strain__strain_code"),
             "grid10": F("grid_10__slug"),
             "lifestage_code": F("lifestage__abbrev"),
             "stockingMethod": F("stocking_method__stk_meth"),
@@ -483,12 +527,16 @@ class StockingEventListAPIView(APIView):
             "longitude": F("geom_lon"),
             "clip": F("clip_code__clip_code"),
             "_tags": StringAgg(
-                "fish_tags__tag_code", delimiter=";", ordering="fish_tags__tag_code"
+                "fish_tags__tag_code",
+                delimiter=";",
+                order_by="fish_tags__tag_code",
+                default="",
             ),
             "_marks": StringAgg(
                 "physchem_marks__mark_code",
                 delimiter=";",
-                ordering="physchem_marks__mark_code",
+                order_by="physchem_marks__mark_code",
+                default="",
             ),
         }
 
@@ -621,7 +669,7 @@ class CWTEventListAPIView(generics.ListAPIView):
             "primary_location": F("site"),
             "secondary_location": F("st_site"),
             "spc": F("species__abbrev"),
-            "strain": F("strain_raw__strain__strain_label"),
+            "strain": F("strain_alias__strain__strain_label"),
             "clipcode": F("clip_code__clip_code"),
             "stage": F("lifestage__description"),
             "method": F("stocking_method__description"),
@@ -680,8 +728,8 @@ class CWTEventListAPIView(generics.ListAPIView):
             "cwt_series",
             "agency",
             "species",
-            "strain_raw",
-            "strain_raw__strain",
+            "strain_alias",
+            "strain_alias__strain",
             "lifestage",
             "stocking_method",
             "jurisdiction__lake",
@@ -740,7 +788,7 @@ class CWTEventMapAPIView(APIView):
             "latitude": F("geom_lat"),
             "longitude": F("geom_lon"),
             "spc": F("species__abbrev"),
-            "strain": F("strain_raw__strain__slug"),
+            "strain": F("strain_alias__strain__slug"),
             "clipcode": F("clip_code__clip_code"),
             "stage": F("lifestage__abbrev"),
             "method": F("stocking_method__stk_meth"),
@@ -776,8 +824,8 @@ class CWTEventMapAPIView(APIView):
             "cwt_series",
             "agency",
             "species",
-            "strain_raw",
-            "strain_raw__strain",
+            "strain_alias",
+            "strain_alias__strain",
             "lifestage",
             "stocking_method",
             "jurisdiction__lake",
@@ -843,6 +891,15 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
         "height": 15,
     }
 
+    def get_serializer(self, *args, **kwargs):
+        """
+        Return the serializer instance that should be used for validating and
+        deserializing input, and for serializing output.
+        """
+        serializer_class = self.serializer_class
+
+        return serializer_class(*args, **kwargs)
+
     def get_serializer_context(self):
         """Add the request to the serializre context so we can include the url
         and queryparameters in the spreadsheet."""
@@ -876,8 +933,8 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
             "primary_location": F("site"),
             "secondary_location": F("st_site"),
             "spc": F("species__abbrev"),
-            "strain": F("strain_raw__strain__strain_label"),
-            "clipcode": F("clip_code__clip_code"),
+            "strain": F("strain_alias__strain__strain_label"),
+            "clipcode": Coalesce(F("clip_code__clip_code"), V("UN")),
             "stage": F("lifestage__description"),
             "method": F("stocking_method__description"),
             "event_tag_numbers": F("tag_no"),
@@ -927,8 +984,8 @@ class CWTEvent2xlsxViewSet(XLSXFileMixin, APIView):
             "cwt_series",
             "agency",
             "species",
-            "strain_raw",
-            "strain_raw__strain",
+            "strain_alias",
+            "strain_alias__strain",
             "lifestage",
             "stocking_method",
             "jurisdiction__lake",

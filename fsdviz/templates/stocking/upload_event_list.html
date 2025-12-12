@@ -63,7 +63,7 @@
                                             <th>Lake</th>
                                             <th>Agency</th>
                                             <th>Uploaded By</th>
-                                            <th id="timestamp">Timestamp</th>
+                                            <th class="sorter-timestamp">Timestamp</th>
                                             <th>Events (N)</th>
                                             <th>Total Stocked</th>
                                         </tr>
@@ -77,7 +77,9 @@
                                                 <td>{{ object.lake }} </td>
                                                 <td>{{ object.agency }} </td>
                                                 <td>{{object.uploaded_by }} </td>
-                                                <td>{{object.timestamp |timezone:"America/Detroit"}} (EST)</td>
+                                                <td
+                                                    data-text="{{object.timestamp|date:"U" }}"
+                                                >{{object.timestamp |timezone:"America/Detroit"}} (EST)</td>
                                                 <td>{{ object.event_count }}</td>
                                                 <td>{{ object.total_stocked | intcomma  }}</td>
                                             </tr>
@@ -122,75 +124,55 @@
 
 {% block extra_js%}
 
-
     {% include "_table_sorter.html" %}
-
 
     <script>
 
+     const updateUrl = function (name, filter_tag = "") {
+         // given the name of the checkbox group, find the checked
+         // checkboxes and update the url based on the filter_tag
+         filter_tag = filter_tag === "" ? name : filter_tag;
 
-  const updateUrl = function (name, filter_tag = "") {
-    // given the name of the checkbox group, find the checked
-    // checkboxes and update the url based on the filter_tag
-    filter_tag = filter_tag === "" ? name : filter_tag;
+         let url = window.location.search;
+         let checked = [];
 
-    let url = window.location.search;
-    let checked = [];
+         $.each($("input[name='" + name + "']:checked"), function () {
+             let value = $(this).val() !== "None" ? $(this).val() : 99;
+             checked.push(value);
+         });
 
-    $.each($("input[name='" + name + "']:checked"), function () {
-      let value = $(this).val() !== "None" ? $(this).val() : 99;
-      checked.push(value);
-    });
+         // remove any existing query strings for this parameter
+         // just incase our widget is updated:
+         let regex = new RegExp(filter_tag + "=.+&|" + filter_tag + "=.+$");
+         url = url.replace(regex, "").replace(/&$/, "");
 
-    // remove any existing query strings for this parameter
-    // just incase our widget is updated:
-    let regex = new RegExp(filter_tag + "=.+&|" + filter_tag + "=.+$");
-    url = url.replace(regex, "").replace(/&$/, "");
+         // build our query string....
+         if (checked.length) {
+             let query_string = filter_tag + "=" + checked.join(",");
+             tmp = url.indexOf("?") >= 0 ? "&" + query_string : "?" + query_string;
+             url = url + tmp;
+         }
 
-    // build our query string....
-    if (checked.length) {
-      let query_string = filter_tag + "=" + checked.join(",");
-      tmp = url.indexOf("?") >= 0 ? "&" + query_string : "?" + query_string;
-      url = url + tmp;
-    }
-
-    window.location.search = url.replace("?&", "?").replace(/\\?$/, "");
+         window.location.search = url.replace("?&", "?").replace(/\\?$/, "");
      };
 
 
 
-  const updateLakeClick = () => {
-    updateUrl("lake");
-  };
+     const updateLakeClick = () => {
+         updateUrl("lake");
+     };
 
-  const updateAgenciesClick = () => {
-    updateUrl("agency");
+     const updateAgenciesClick = () => {
+         updateUrl("agency");
      };
 
 
-  const updateYearsClick = () => {
-    updateUrl("year");
+     const updateYearsClick = () => {
+         updateUrl("year");
      };
-
-
-
-
-     $.tablesorter.addParser({
-         id: 'timestamp',
-         is: function(s) {
-             return false;
-         },
-         format: function(s) {
-         // regular expression must match timestamp format "Oct. 27, 2022, 11:25 a.m.":
-         const dateParts = s.match(/([A-Za-z]+)\.? (\d+), (\d+), (\d+):(\d+) ([a|p])/);
-         const month = new Date(dateParts[1] + " 1, 2022").getMonth()
-         const hour = dateParts[6]==='a' ? parseInt(dateParts[4]) : parseInt(dateParts[4]) + 12
-         const date = new Date(dateParts[3], month, dateParts[2], hour, dateParts[5]);
-             return date.getTime();
-         },
-         type: 'numeric'
-     });
 
     </script>
+
+
 
 {% endblock %}

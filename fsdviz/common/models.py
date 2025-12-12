@@ -4,9 +4,10 @@ be shared across both the stocking and cwt recovery applications.
 
 """
 
-
 from colorfield.fields import ColorField
 from django.contrib.gis.db import models
+
+from markdown import markdown
 
 # consider add range field and constraint to CWTSequence when we upgrade to Django 3.0+
 # from django.contrib.postgres.constraints import ExclusionConstraint
@@ -25,11 +26,60 @@ class BaseModel(models.Model):
     modified
     """
 
+    id = models.AutoField(primary_key=True)
     created_timestamp = models.DateTimeField(auto_now_add=True)
     modified_timestamp = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
+
+
+class LookupDescription(BaseModel):
+    """A model to hold the descriptions for each Lookup table.  The
+    paragraphs contained in the description field will be displayed on
+    the lookup tables html page and be editable in the django admin.
+    The description field will support markdown, and will be converted
+    to html when the model is saved."""
+
+    slug = models.CharField(
+        max_length=255,
+        unique=True,
+        editable=False,
+        help_text="This is the string referenced in the template for this model.",
+    )
+    model_name = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text=(
+            "Plural Name of Model Instances (e.g. - Lakes). This usually "
+            "matches the heading in the Lookup Tables html template."
+        ),
+    )
+    description = models.TextField(
+        default="Coming Soon....", help_text="Lookup Table Description (markdown)."
+    )
+    description_html = models.TextField(
+        editable=False, help_text="Lookup Table Description (html)."
+    )
+
+    class Meta:
+        ordering = ["model_name"]
+
+    def __str__(self):
+        """"""
+
+        "String representation for a LookupDescription." ""
+        return self.model_name
+
+    def save(self, *args, **kwargs):
+        """Update the slug and html when we save the model. The slug
+        uses underscores rather than dashes so we can access them as
+        dict keys in the template."""
+
+        self.slug = slugify(self.model_name).replace("-", "_")
+        self.description_html = markdown(self.description)
+
+        super(LookupDescription, self).save(*args, **kwargs)
 
 
 class Image(models.Model):
@@ -48,35 +98,6 @@ class Image(models.Model):
 
     def get_absolute_url(self):
         return (self.file and self.file.url) or ""
-
-
-class BuildDate(BaseModel):
-    """
-    A database to hold the date that the database was last refreshed.
-    """
-
-    build_date = models.DateField(editable=False)
-
-    def __str__(self):
-        return self.build_date.strftime("%d-%b-%Y")
-
-
-class Readme(BaseModel):
-    """
-    a table to hold all of the information regarding last FSIS
-    download and FS_Master rebuild (it appear as a footer on every
-    page)
-    """
-
-    date = models.DateField(editable=False)
-    comment = models.TextField()
-    initials = models.CharField(max_length=4)
-
-    class Meta:
-        ordering = ["-date"]
-
-    def __str__(self):
-        return self.comment
 
 
 class Agency(BaseModel):
@@ -410,7 +431,7 @@ class Species(BaseModel):
     color = ColorField(default="#FF0000")
 
     strains = models.ManyToManyField(
-        "Strain", through="StrainRaw", related_name="species"
+        "Strain", through="StrainAlias", related_name="species"
     )
 
     active = models.BooleanField(default=True, db_index=True)
@@ -438,7 +459,7 @@ class Strain(BaseModel):
     """
 
     strain_code = models.CharField(
-        "Nominal Strain Code for groups of raw strain values", max_length=10
+        "Nominal Strain Code for groups of strain alias values", max_length=10
     )
     strain_label = models.CharField(max_length=100)
     description = models.CharField(max_length=500, blank=True, null=True)
@@ -471,45 +492,46 @@ class Strain(BaseModel):
         )
 
 
-class StrainRaw(BaseModel):
-    """
-    The raw strain codes will represent the information returned in the
-    GLFC look-up table where strain has too much information - eg -
-    origins and rearing hatchery.  Essentially, this is an association
-    table between the :model:`common.Species` and
-    the :model:`common.Strain` tables. This table is rarely used
+class StrainAlias(BaseModel):
+    """The strain alias codes will represent the information returned
+    by the agencies. In many cases, these values have too much
+    information - eg - origins and rearing hatchery.  Essentially,
+    this is an association table between the :model:`common.Species`
+    and the :model:`common.Strain` tables. This table is rarely used
     directly. Generally :model:`common.Strain` is the table you want.
 
     """
 
     species = models.ForeignKey(
-        Species, on_delete=models.CASCADE, related_name="rawstrain"
+        Species, on_delete=models.CASCADE, related_name="strain_aliases"
     )
     strain = models.ForeignKey(
-        Strain, on_delete=models.CASCADE, related_name="rawstrain"
+        Strain, on_delete=models.CASCADE, related_name="strain_aliases"
     )
 
-    # raw_strain_code = models.CharField(max_length=10)
-    raw_strain = models.CharField("Submitted (raw) strain code", max_length=100)
+    strain_alias = models.CharField("Submitted strain alias code", max_length=100)
     description = models.CharField(max_length=500)
     color = ColorField(default="#FF0000")
 
     active = models.BooleanField(default=True, db_index=True)
 
     class Meta:
-        ordering = ["species__abbrev", "raw_strain"]
-        unique_together = ("species", "strain", "raw_strain")
+        ordering = ["species__abbrev", "strain_alias"]
+        unique_together = ("species", "strain", "strain_alias")
+        verbose_name_plural = "Strain Aliases"
 
     def __str__(self):
-        return "{} ({})".format(self.description, self.raw_strain)
+        return "{} ({})".format(self.description, self.strain_alias)
 
     def full_clean(self, *args, **kwargs):
-        """make sure that the species and strain are consistent."""
+        ""
+
+        "make sure that the species and strain are consistent."""
 
         if hasattr(self, "species") is False or self.species is None:
             self.species = self.strain.strain_species
 
-        super(StrainRaw, self).full_clean(*args, **kwargs)
+        super(StrainAlias, self).full_clean(*args, **kwargs)
 
         if self.species != self.strain.strain_species:
             raise ValidationError(
@@ -518,7 +540,7 @@ class StrainRaw(BaseModel):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        super(StrainRaw, self).save()
+        super(StrainAlias, self).save()
 
 
 class Mark(BaseModel):
@@ -529,8 +551,8 @@ class Mark(BaseModel):
     be applied to a single fish.  Combinations of marks most often
     serve to indicate year-class.
 
-    (this model is obsolete and will be removed shortly.)
 
+    (this model is obsolete and will be removed shortly.)
     """
 
     MARK_TYPE_CHOICES = [

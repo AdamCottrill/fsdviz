@@ -84,7 +84,7 @@
                     </div>
                     <div class="three fields">
                         {% include "stocking/_form_field.html" with field_obj=form.species_id %}
-                        {% include "stocking/_form_field.html" with field_obj=form.strain_raw_id %}
+                        {% include "stocking/_form_field.html" with field_obj=form.strain_alias_id %}
                         {% include "stocking/_form_field.html" with field_obj=form.hatchery_id %}
                     </div>
                 </div>
@@ -170,7 +170,7 @@
                         {% include "stocking/_form_field.html" with  field_obj=form.stocking_method_id %}
                         {% include "stocking/_form_field.html" with  field_obj=form.lifestage_id %}
                         {% include "stocking/_form_field.html" with  field_obj=form.agemonth %}
-                        {% include "stocking/_form_field.html" with  field_obj=form.condition_id %}
+                        {% include "stocking/_form_field.html" with  field_obj=form.stocking_mortality_id %}
                     </div>
 
                     <div class="three fields">
@@ -312,7 +312,7 @@
      const jurisdictionURL = "{% url 'common_api:jurisdiction-list' %}";
      const manUnitURL = "{% url 'common_api:managementunit-list' %}";
      const grid10URL = "{% url 'common_api:grid10-list' %}";
-     const strainURL = "{% url 'common_api:strainraw-list' %}";
+     const strainURL = "{% url 'common_api:strainalias-list' %}";
 
      const spatialAttrURL = "{% url 'common_api:api-lookup-spatial-attrs' %}";
      const csrf_token = "{{ csrf_token }}";

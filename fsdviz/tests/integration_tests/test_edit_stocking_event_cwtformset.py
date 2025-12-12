@@ -48,8 +48,8 @@ from fsdviz.common.models import CWT
 # use our glsc super user for these tests:
 from fsdviz.tests.pytest_fixtures import glsc as user
 
-from fsdviz.tests.stocking_factories import StockingEventFactory
-from fsdviz.tests.common_factories import (
+from fsdviz.tests.factories.stocking_factories import StockingEventFactory
+from fsdviz.tests.factories.common_factories import (
     FishTagFactory,
     CWTFactory,
     CWTsequenceFactory,

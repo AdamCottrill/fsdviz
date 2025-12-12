@@ -1,4 +1,5 @@
 from django.contrib.gis import admin
+from django.db.models import Count
 from .utils import fill_color_widget
 from ..models import Strain
 
@@ -14,6 +15,7 @@ class StrainModelAdmin(admin.ModelAdmin):
         "active",
         "fill_color",
         "modified_timestamp",
+        "event_count"
     )
     # list_select_related = ('strain_species',)
     list_filter = ("active", "strain_species", "strain_code")
@@ -25,8 +27,15 @@ class StrainModelAdmin(admin.ModelAdmin):
         "modified_timestamp",
     )
 
+    def event_count(self, obj):
+        return obj._event_count
+
+
     def get_queryset(self, request):
         qs = super(StrainModelAdmin, self).get_queryset(request)
+        qs = qs.annotate(
+            _event_count=Count("strain_aliases__stocking_events", distinct=True),
+          )
         return qs.distinct()
 
     def fill_color(self, obj):

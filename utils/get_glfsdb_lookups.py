@@ -53,7 +53,7 @@ from fsdviz.common.models import (
     CWTsequence,
 )
 
-from fsdviz.stocking.models import LifeStage, Condition, StockingEvent, StockingMethod
+from fsdviz.stocking.models import LifeStage, StockingMortality, StockingEvent, StockingMethod
 
 from utils.lwdb_utils import (
     int_or_None,
@@ -218,9 +218,9 @@ print("\tDone adding {} records (n={:,})".format(what, len(my_list)))
 
 # CONDITION
 
-what = "Condition"
+what = "StockingMortality"
 for item in stocking.CONDITION:
-    obj = Condition(condition=item[0], description=item[1])
+    obj = StockingMortality(condition=item[0], description=item[1])
     obj.save()
 n = len(stocking.CONDITION)
 print("\tDone adding {} records (n={:,})".format(what, n))

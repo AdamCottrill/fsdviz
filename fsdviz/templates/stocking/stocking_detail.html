@@ -60,13 +60,13 @@
 
                                     <tr>
                                         <td><strong>Strain:</strong></td>
-                                        <td class="capitalize">{{ object.strain_raw.strain.strain_label}}
-                                            ({{ object.strain_raw.strain.strain_code}})</td>
+                                        <td class="capitalize">{{ object.strain_alias.strain.strain_label}}
+                                            ({{ object.strain_alias.strain.strain_code}})</td>
                                     </tr>
 
                                     <tr class="extra-detail">
                                         <td><strong>Reported Strain:</strong></td>
-                                        <td id="strain-raw">{{ object.strain_raw.description}}({{ object.strain_raw.raw_strain}})</td>
+                                        <td id="strain-alias">{{ object.strain_alias.description}}({{ object.strain_alias.strain_alias}})</td>
                                     </tr>
 
 
@@ -139,12 +139,12 @@
                                     </tr>
 
                                     <tr class="extra-detail">
-                                        <td><strong>Length(mm):</strong></td>
+                                        <td><strong>Mean Length(mm):</strong></td>
                                         <td id="length">{{ object.length|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
                                     <tr class="extra-detail">
-                                        <td><strong>Weight(g):</strong></td>
+                                        <td><strong>Total Weight(kg):</strong></td>
                                         <td id="weight">{{ object.weight|default_if_none:'Not Reported' }}</td>
                                     </tr>
 
@@ -194,8 +194,8 @@
                                     </tr>
 
                                     <tr>
-                                        <td><strong>Condition:</strong></td>
-                                        <td class="capitalize">{{ object.condition }}</td>
+                                        <td><strong>Stocking Mortality:</strong></td>
+                                        <td class="capitalize">{{ object.stocking_mortality }}</td>
                                     </tr>
 
                                     <tr>

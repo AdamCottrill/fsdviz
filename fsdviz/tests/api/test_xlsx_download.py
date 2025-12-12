@@ -32,7 +32,7 @@ FIELD_NAMES = [
     "glfsd_stock_id",
     "agency_stock_id",
     "agency_code",
-    "_lake",
+    "lake",
     "state_prov",
     "manUnit",
     "grid_10min",
@@ -45,11 +45,12 @@ FIELD_NAMES = [
     "day",
     "stock_method",
     "species_code",
-    "_strain",
+    "strain_group",
+    "strain_alias",
     "yearclass",
     "life_stage",
     "age_months",
-    "_clip",
+    "clip",
     "clip_efficiency",
     "phys_chem_mark",
     "tag_type",
@@ -59,7 +60,7 @@ FIELD_NAMES = [
     "total_weight_kg",
     "stocking_mortality",
     "lot_code",
-    "hatchery_abbrev",
+    "hatchery",
     "number_stocked",
     "notes",
 ]
@@ -76,7 +77,10 @@ def test_xlsx_download_events_xlsx(client, stocking_events):
 
     response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
-    assert response.accepted_media_type == "application/xlsx"
+    media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    assert response.accepted_media_type == media_type
+
+
     assert len(response.data) == 4
     expected_fields = set(FIELD_NAMES)
     observed_fields = set(response.data[0].keys())
@@ -97,7 +101,10 @@ def test_xlsx_download_events_xlsx_event_filters(client, stocking_events):
 
     response = client.get(url, {"lake": "SU"})
     assert response.status_code == status.HTTP_200_OK
-    assert response.accepted_media_type == "application/xlsx"
+
+    media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    assert response.accepted_media_type == media_type
+
     assert len(response.data) == 2
     expected_fields = set(FIELD_NAMES)
     observed_fields = set(response.data[0].keys())
@@ -106,7 +113,7 @@ def test_xlsx_download_events_xlsx_event_filters(client, stocking_events):
 
     # we filtered for one lake, so make sure that our response includes
     # events from just that lake:
-    lakes = set([x["_lake"] for x in response.data])
+    lakes = set([x["lake"] for x in response.data])
     assert lakes == set(
         [
             "SU",
@@ -174,7 +181,7 @@ def test_xlsx_download_events_json_event_filters(client, stocking_events):
 
     # we filtered for one lake, so make sure that our response includes
     # events from just that lake:
-    lakes = set([x["_lake"] for x in response.data])
+    lakes = set([x["lake"] for x in response.data])
     assert lakes == set(
         [
             "SU",

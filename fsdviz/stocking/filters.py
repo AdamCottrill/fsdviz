@@ -5,9 +5,10 @@ The will be used in both views and api serializers.
 
 import django_filters
 from django.contrib.gis.geos import GEOSGeometry
-from .models import StockingEvent, YearlingEquivalent, DataUploadEvent
+from django.db.models import Q
 
-from ..common.utils import ValueInFilter, NumberInFilter, NumberInOrNullFilter
+from ..common.utils import NumberInFilter, NumberInOrNullFilter, ValueInFilter
+from .models import DataUploadEvent, StockingEvent, YearlingEquivalent
 
 
 class GeomFilter(django_filters.CharFilter):
@@ -103,16 +104,15 @@ class StockingEventFilter(django_filters.FilterSet):
     # and aliase for stocking_month - to keep existing book marks working
     months = NumberInOrNullFilter(field_name="month", lookup_expr="in")
 
-
     species = ValueInFilter(field_name="species__abbrev", lookup_expr="in")
 
     # strain abbrev (human friendly)
     strain_name = ValueInFilter(
-        field_name="strain_raw__strain__strain_code", lookup_expr="in"
+        field_name="strain_alias__strain__strain_code", lookup_expr="in"
     )
 
     # by strain id (form)
-    strain = NumberInFilter(field_name="strain_raw__strain__id", lookup_expr="in")
+    strain = NumberInFilter(field_name="strain_alias__strain__id", lookup_expr="in")
 
     stocking_method = ValueInFilter(
         field_name="stocking_method__stk_meth", lookup_expr="in"
@@ -136,6 +136,15 @@ class StockingEventFilter(django_filters.FilterSet):
 
     roi = GeomFilter(field_name="geom", method="filter_geom_in_roi")
 
+    q = django_filters.CharFilter(method="quick_search", label="quick_search")
+
+    def quick_search(self, queryset, name, value):
+        """return any records that have partial matches on their
+        stock_id or agency stock_id"""
+        return queryset.filter(
+            Q(stock_id__icontains=value) | Q(agency_stock_id__icontains=value)
+        )
+
     class Meta:
         model = StockingEvent
         fields = [
@@ -143,7 +152,7 @@ class StockingEventFilter(django_filters.FilterSet):
             "year",
             "month",
             "species__abbrev",
-            "strain_raw__strain__strain_label",
+            "strain_alias__strain__strain_label",
             "lifestage__abbrev",
             "hatchery__abbrev",
             # "clip_code__clipcode",
@@ -155,14 +164,13 @@ class StockingEventFilter(django_filters.FilterSet):
         ]
 
 
-
 class DataUploadEventFilter(django_filters.FilterSet):
     """A filter for our data upload events so we can filter by lake,
     agency, and upload year."""
 
     lake = ValueInFilter(field_name="lake__abbrev", lookup_expr="in")
     agency = ValueInFilter(field_name="agency__abbrev", lookup_expr="in")
-    year  = ValueInFilter(field_name="timestamp__year", lookup_expr="in")
+    year = ValueInFilter(field_name="timestamp__year", lookup_expr="in")
 
     class Meta:
         model = DataUploadEvent

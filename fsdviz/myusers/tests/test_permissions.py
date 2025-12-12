@@ -82,17 +82,19 @@ stocking.xls_events
 """
 
 import pytest
-
 from fsdviz.myusers.permissions import user_can_create_edit_delete
-from .factories import UserFactory
-from fsdviz.tests.common_factories import (
-    LakeFactory,
+from fsdviz.tests.factories.common_factories import (
     AgencyFactory,
-    StateProvinceFactory,
     JurisdictionFactory,
+    LakeFactory,
+    StateProvinceFactory,
+)
+from fsdviz.tests.factories.stocking_factories import (
+    DataUploadEventFactory,
+    StockingEventFactory,
 )
 
-from fsdviz.tests.stocking_factories import StockingEventFactory, DataUploadEventFactory
+from .factories import UserFactory
 
 
 @pytest.fixture
@@ -142,7 +144,7 @@ def glsc():
 def huron_mdnr_sc(mdnr, huron):
     """A user who is an agency stocking coordinator"""
 
-    huron_mdnr_sc = UserFactory.create(
+    huron_mdnr_sc = UserFactory(
         username="bsimpson",
         first_name="bart",
         last_name="Simpson",
@@ -159,7 +161,7 @@ def huron_mdnr_sc(mdnr, huron):
 def huron_mdnr_user(mdnr, huron):
     """A user who is an agency user"""
 
-    huron_mdnr_user = UserFactory.create(
+    huron_mdnr_user = UserFactory(
         username="lsimpson",
         first_name="lisa",
         last_name="Simpson",

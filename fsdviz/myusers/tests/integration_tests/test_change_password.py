@@ -19,13 +19,12 @@ Tests in this file include:
 + password too common
 
 """
+
 import pytest
-
 from django.urls import reverse
-
 from fsdviz.myusers.models import CustomUser
-
 from fsdviz.myusers.tests.fixtures import joe_user
+from pytest_django.asserts import assertContains
 
 
 @pytest.mark.django_db
@@ -241,8 +240,9 @@ def test_change_new_password_mismatch(client, joe_user):
     content = response.content.decode("utf-8")
 
     assert "Please fix the errors in the form below." in content
-    msg = "The two password fields didn&#39;t match."
-    assert msg in content
+
+    msg = '<li class="error">The two password fields didn’t match.</li>'
+    assertContains(response, msg, html=True)
 
     # verify that the password for our user has *NOT* been updated:
     user = CustomUser.objects.get(email=email)

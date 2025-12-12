@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.gis import admin, geos
+from django.db.models import Count
 
 from .utils import fill_color_widget
 from ..models import Lake
@@ -53,7 +54,7 @@ class LakeCreationForm(forms.ModelForm):
 
 
 @admin.register(Lake)
-class LakeModelAdmin(admin.GeoModelAdmin):
+class LakeModelAdmin(admin.GISModelAdmin):
     form = LakeChangeForm
     add_form = LakeCreationForm
     readonly_fields = (
@@ -66,18 +67,25 @@ class LakeModelAdmin(admin.GeoModelAdmin):
         "abbrev",
         "fill_color",
         "modified_timestamp",
+        "event_count",
     )
 
     def fill_color(self, obj):
         return fill_color_widget(obj.color)
+
+    def event_count(self, obj):
+        return obj._event_count
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
 
         queryset = queryset.defer(
             "geom",
+        ).annotate(
+            _event_count=Count("jurisdiction__stocking_events", distinct=True),
         )
-        return queryset
+
+        return queryset.distinct()
 
     def save_model(self, request, obj, form, change):
         """When we save the admin object, check to see if there is a

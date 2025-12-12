@@ -32,5 +32,8 @@ class CustomUserAdmin(UserAdmin):
         ),
     )
 
+    list_select_related = ["agency",]
+
+
 
 admin.site.register(CustomUser, CustomUserAdmin)

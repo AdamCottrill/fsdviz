@@ -34,7 +34,7 @@ import pytest
 from django.contrib.gis.geos import GEOSGeometry
 from django.urls import reverse
 from rest_framework import status
-from ..common_factories import (
+from ..factories.common_factories import (
     LakeFactory,
     StateProvinceFactory,
     JurisdictionFactory,

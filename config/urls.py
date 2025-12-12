@@ -11,7 +11,7 @@ from drf_yasg.views import get_schema_view
 from fsdviz.myusers.views import account_redirect
 
 # our homepage:  TEMP!!
-from fsdviz.stocking.views import PieChartMapViewLatestYear
+from fsdviz.stocking.views import PieChartMapViewLastYear
 from rest_framework.documentation import include_docs_urls
 from rest_framework.permissions import AllowAny
 
@@ -24,7 +24,7 @@ from fsdviz.common.api.views import (
     LakeViewSet,
     ManagementUnitViewSet,
     StrainSpeciesViewSet,
-    StrainRawViewSet,
+    StrainAliasViewSet,
     Grid10ViewSet,
     LatLonFlagViewSet,
     MarkViewSet,
@@ -33,7 +33,7 @@ from fsdviz.common.api.views import (
 from fsdviz.stocking.api.views import (
     LifeStageViewSet,
     YearlingEquivalentViewSet,
-    ConditionViewSet,
+    StockingMortalityViewSet,
     StockingMethodViewSet,
     StockingEventViewSet,
     CWTEventListAPIView,
@@ -57,13 +57,13 @@ public_urls = [
     path("api/v1/common/mark", MarkViewSet.as_view({"get": "list"})),
     path("api/v1/common/species", SpeciesViewSet.as_view({"get": "list"})),
     path("api/v1/common/strain", StrainSpeciesViewSet.as_view({"get": "list"})),
-    path("api/v1/common/strainraw", StrainRawViewSet.as_view({"get": "list"})),
+    path("api/v1/common/strain_alias", StrainAliasViewSet.as_view({"get": "list"})),
     path("api/v1/stocking/lifestage", LifeStageViewSet.as_view({"get": "list"})),
     path(
         "api/v1/stocking/yearling_equivalent",
         YearlingEquivalentViewSet.as_view({"get": "list"}),
     ),
-    path("api/v1/stocking/condition", ConditionViewSet.as_view({"get": "list"})),
+    path("api/v1/stocking/stocking_mortality", StockingMortalityViewSet.as_view({"get": "list"})),
     path(
         "api/v1/stocking/stocking_method",
         StockingMethodViewSet.as_view({"get": "list"}),
@@ -109,7 +109,7 @@ urlpatterns = [
     # API's
     path("tickets/", include(("tickets.urls", "tickets"), namespace="tickets")),
     path("api-auth/", include("rest_framework.urls")),
-    path("api/v1/rest-auth/", include("rest_auth.urls")),
+
     path("api/v1/common/", include("fsdviz.common.api.urls", namespace="common_api")),
     path(
         "api/v1/stocking/",
@@ -134,7 +134,7 @@ urlpatterns = [
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    path("", PieChartMapViewLatestYear, name="home"),
+    path("", PieChartMapViewLastYear, name="home"),
 ]
 
 

@@ -18,7 +18,7 @@ from fsdviz.common.api.serializers import (
 from rest_framework import serializers
 
 from ..models import (
-    Condition,
+    StockingMortality,
     Hatchery,
     LifeStage,
     StockingEvent,
@@ -50,10 +50,10 @@ class YearlingEquivalentSerializer(serializers.ModelSerializer):
         fields = ("species", "lifestage", "yreq_factor")
 
 
-class ConditionSerializer(serializers.ModelSerializer):
+class StockingMortalitySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Condition
-        fields = ("condition", "description")
+        model = StockingMortality
+        fields = ("value", "description")
 
 
 class StockingMethodSerializer(ModelColorSerializer):
@@ -100,11 +100,11 @@ class StockingEventSerializer(serializers.ModelSerializer):
 
     """
 
-    # could add other serializers here for lifestage, condition,
+    # could add other serializers here for lifestage, stocking_mortality,
     # agency, species, etc.
 
     lifestage = LifeStageSerializer()
-    condition = ConditionSerializer()
+    stocking_mortality = StockingMortalitySerializer()
     stocking_method = StockingMethodSerializer()
     agency = AgencySerializer()
 
@@ -121,7 +121,7 @@ class StockingEventSerializer(serializers.ModelSerializer):
         queryset = queryset.prefetch_related(
             "species",
             "agency",
-            "condition",
+            "stocking_mortality",
             "stocking_method",
             "grid_10",
             "grid_10__lake",
@@ -150,7 +150,7 @@ class StockingEventSerializer(serializers.ModelSerializer):
             # "clipa",
             "mark",
             "agency",
-            "condition",
+            "stocking_mortality",
             "grid_10",
             "latlong_flag",
             "lifestage",
@@ -210,7 +210,7 @@ class StockingEventXlsxSerializer(serializers.Serializer):
     glfsd_stock_id = serializers.CharField()
     agency_stock_id = serializers.CharField()
     agency_code = serializers.CharField()
-    _lake = serializers.CharField()
+    lake = serializers.CharField(source="_lake")
     state_prov = serializers.CharField()
     manUnit = serializers.CharField()
     # ls_mgmt= serializers.CharField(),
@@ -222,13 +222,14 @@ class StockingEventXlsxSerializer(serializers.Serializer):
     year = serializers.IntegerField()
     month = serializers.IntegerField()
     day = serializers.IntegerField()
-    stock_method = serializers.CharField()
+    stock_method = serializers.CharField(source="_stock_method")
     species_code = serializers.CharField()
-    _strain = serializers.CharField()
+    strain_group = serializers.CharField(source="_strain")
+    strain_alias = serializers.CharField(source="_strain_alias")
     yearclass = serializers.IntegerField()
-    life_stage = serializers.CharField()
+    life_stage = serializers.CharField(source="_life_stage")
     age_months = serializers.IntegerField()
-    _clip = serializers.CharField()
+    clip = serializers.CharField(source="_clip")
     clip_efficiency = serializers.FloatField()
     phys_chem_mark = serializers.CharField()
 
@@ -237,9 +238,9 @@ class StockingEventXlsxSerializer(serializers.Serializer):
     tag_retention = serializers.FloatField()
     mean_length_mm = serializers.FloatField()
     total_weight_kg = serializers.FloatField()
-    stocking_mortality = serializers.CharField()
+    stocking_mortality = serializers.CharField(source="_stocking_mortality")
     lot_code = serializers.CharField()
-    hatchery_abbrev = serializers.CharField()
+    hatchery = serializers.CharField(source="_hatchery")
     number_stocked = serializers.IntegerField()
     notes = serializers.CharField()
 

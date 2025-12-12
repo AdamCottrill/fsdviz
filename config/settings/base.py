@@ -73,11 +73,9 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "corsheaders",
     "rest_framework.authtoken",
-    "rest_auth",
     "drf_yasg",
     "leaflet",
     "colorfield",
-    "crispy_forms",  # ticket tracker
     "taggit",
     "tickets",
     "bookmark_it",
@@ -146,8 +144,6 @@ TIME_ZONE = "UTC"
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 
@@ -164,6 +160,23 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [os.path.join(PROJECT_ROOT, "fsdviz/static")]
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, "static/")
+
+
+# Storages
+
+# Default STORAGES from Django documentation
+# See: https://docs.djangoproject.com/en/4.2/ref/settings/#std-setting-STORAGES
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
+
+# Use ManifestStaticFilesStorage when not in debug mode
+if not DEBUG:
+    STORAGES["staticfiles"] = {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+    }
+
 
 AUTH_USER_MODEL = "myusers.CustomUser"
 
@@ -199,9 +212,8 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
-        "drf_renderer_xlsx.renderers.XLSXRenderer",
+        "drf_excel.renderers.XLSXRenderer",
     ),
-    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
 }
 
 
@@ -211,6 +223,8 @@ SWAGGER_SETTINGS = {
     "LOGIN_URL": "rest_framework:login",
     "LOGOUT_URL": "rest_framework:logout",
 }
+
+SWAGGER_USE_COMPAT_RENDERERS = False
 
 # ticket tracker:
 LINK_PATTERNS = [

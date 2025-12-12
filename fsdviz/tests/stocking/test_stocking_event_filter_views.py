@@ -5,6 +5,7 @@ apply, and the expected response content.  This test uses the same
 fixture as the unit test of the filter, but verify the content of the response.
 
 """
+
 import pytest
 from pytest_django.asserts import assertContains, assertNotContains
 
@@ -130,6 +131,26 @@ class TestStockingEventFilterView:
             ["2222", "3333", "4444"],
         ),
         ({"hatchery": "mdnrA,odnrA"}, ["2222", "4444"], ["1111", "3333"]),
+        # q - quick search on stocking_id and agency_stock_id:
+        (
+            {"q": "foo"},
+            ["1111", "2222"],
+            ["3333", "4444"],
+        ),
+        (
+            {"q": "baz"},
+            [
+                "1111",
+            ],
+            ["2222", "3333", "4444"],
+        ),
+        (
+            {"q": "111"},
+            [
+                "1111",
+            ],
+            ["2222", "3333", "4444"],
+        ),
     ]
 
     @pytest.mark.django_db

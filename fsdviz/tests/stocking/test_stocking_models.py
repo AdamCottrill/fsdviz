@@ -4,7 +4,7 @@ events, stocking methods, ect.
 
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 import pytest
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -16,7 +16,7 @@ from ...stocking.models import StockingEvent
 
 from ..pytest_fixtures import latlon_flags, finclips
 
-from ..common_factories import (
+from ..factories.common_factories import (
     AgencyFactory,
     SpeciesFactory,
     LakeFactory,
@@ -28,11 +28,12 @@ from ..common_factories import (
     CWTFactory,
     CWTsequenceFactory,
 )
-from ..user_factory import UserFactory
 
-from ..stocking_factories import (
+from fsdviz.myusers.tests.factories import UserFactory
+
+from ..factories.stocking_factories import (
     LifeStageFactory,
-    ConditionFactory,
+    StockingMortalityFactory,
     StockingMethodFactory,
     HatcheryFactory,
     StockingEventFactory,
@@ -97,22 +98,22 @@ def test_yearing_equivalent_str():
 
 
 @pytest.mark.django_db
-def test_condition_str():
+def test_stocking_mortality_str():
     """
-    Verify that the string representation of a condition object is the
-    value followed by the condition description:
+    Verify that the string representation of a stocking_mortality object is the
+    value followed by the stocking_mortality description:
 
     1 - <1% mortality observed, "excellent"
 
     """
 
-    condition_code = 1
+    stocking_mortality_code = 1
     description = '<1% mortality observed, "excellent"'
 
-    condition = ConditionFactory(condition=condition_code, description=description)
+    stocking_mortality = StockingMortalityFactory()
 
-    shouldbe = "{} - {}".format(condition_code, description)
-    assert str(condition) == shouldbe
+    shouldbe = "{} - {}".format(stocking_mortality_code, description)
+    assert str(stocking_mortality) == shouldbe
 
 
 @pytest.mark.django_db
@@ -262,7 +263,7 @@ def test_datauploadevent_str():
     agency_abbrev = "OMNR"
     lake_abbrev = "HU"
 
-    right_now = datetime.utcnow()
+    right_now = datetime.now(UTC)
     date_string = right_now.strftime("%b %d %Y %H:%M")
 
     expected = "{}-{} ({})".format(lake_abbrev, agency_abbrev, date_string)
@@ -289,7 +290,7 @@ def test_datauploadevent_generate_slug():
     agency_abbrev = "OMNR"
     lake_abbrev = "HU"
 
-    right_now = datetime.utcnow()
+    right_now = datetime.now(UTC)
     date_string = right_now.strftime("%b %d %Y %H:%M")
 
     expected = (

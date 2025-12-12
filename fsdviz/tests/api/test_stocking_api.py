@@ -17,8 +17,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from ..stocking_factories import (
-    ConditionFactory,
+from ..factories.stocking_factories import (
+    StockingMortalityFactory,
     HatcheryFactory,
     LifeStageFactory,
     StockingMethodFactory,
@@ -177,43 +177,41 @@ class TestStockingMethodAPI(APITestCase):
         assert obj == response.data
 
 
-class TestConditionAPI(APITestCase):
-    def test_condition_api_get_list(self):
+class TestStockingMortalityAPI(APITestCase):
+    def test_stocking_mortality_api_get_list(self):
 
         objects = [
-            {"condition": 0, "description": "unknown condition at stocking"},
-            {"condition": 2, "description": "1-2% mortality observed"},
+            {"value": 0, "description": "unknown stocking_mortality at stocking"},
+            {"value": 2, "description": "1-2% mortality observed"},
             {
-                "condition": 4,
+                "value": 4,
                 "description": "5-25% mortality observed",
             },
         ]
 
         for obj in objects:
-            ConditionFactory(**obj)
+            StockingMortalityFactory(**obj)
 
-        url = reverse("stocking_api:condition-list")
+        url = reverse("stocking_api:stockingmortality-list")
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
-        # there is a placeholder condition comming from somehere (99-'')
-        # no idea why this is happending.  This should be 3 rather than 4:
-        assert len(response.data) == 4
+        assert len(response.data) == 3
 
         for obj in objects:
             assert obj in response.data
 
-    def test_condition_api_get_detail(self):
-        """We should be able to get the details of a single condition
+    def test_stocking_mortality_api_get_detail(self):
+        """We should be able to get the details of a single stocking_mortality
         object by passing it's abbrev to the url."""
 
-        condition = 1
-        obj = {"condition": condition, "description": "unknown condition at stocking"}
+        stocking_mortality = 1
+        obj = {"value": stocking_mortality, "description": "unknown stocking_mortality at stocking"}
 
-        ConditionFactory(**obj)
+        StockingMortalityFactory(**obj)
 
-        url = reverse("stocking_api:condition-detail", kwargs={"condition": condition})
+        url = reverse("stocking_api:stockingmortality-detail", kwargs={"value": stocking_mortality})
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK

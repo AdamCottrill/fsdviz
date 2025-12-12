@@ -68,7 +68,7 @@ from fsdviz.common.models import (
     FinClip,
 )
 
-from fsdviz.stocking.models import LifeStage, Condition, Mark, StockingMethod, Hatchery
+from fsdviz.stocking.models import LifeStage, StockingMortality, Mark, StockingMethod, Hatchery
 
 from utils.lwdb_utils import recode_mark, get_mark_codes, check_null_records
 from utils.common_lookups import MARK_SHOULDBE, CLIP2MARK
@@ -520,7 +520,7 @@ else:
 # ====================================================
 #                  CONDITION
 
-# Condition codes are maintained in a look-up table. Make sure that all of
+# StockingMortality codes are maintained in a look-up table. Make sure that all of
 # the condition codes in the source data have a corresponding value in
 # our lookup tables.
 
@@ -529,18 +529,18 @@ mdbcur.execute(sql.format(TABLE_NAME))
 rs = mdbcur.fetchall()
 source = set([x[0] for x in rs])
 
-lookup = set([x.condition for x in Condition.objects.all()])
+lookup = set([x.stocking_mortality for x in StockingMortality.objects.all()])
 
 
 missing = list(source - lookup)
 missing = ["<empty>" if x == "" else x for x in missing]
 missing = ["<empty>" if x is None else x for x in missing]
 if missing:
-    msg = "Oh-oh! Condition missing from lookup table(n={}):\n"
+    msg = "Oh-oh! StockingMortality missing from lookup table(n={}):\n"
     msg = msg.format(len(missing)) + ",\n\t".join([str(x) for x in missing])
     print(msg)
 else:
-    msg = "Checking Condition"
+    msg = "Checking StockingMortality"
     print("{msg:.<{width}}OK".format(width=REPORT_WIDTH, msg=msg))
 
 

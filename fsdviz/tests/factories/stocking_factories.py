@@ -1,5 +1,5 @@
 """
-Factories for the models in the stocking application - lifestage, condition,
+Factories for the models in the stocking application - lifestage, stocking_mortality,
 stocking event, etc.
 
 """
@@ -10,9 +10,9 @@ import factory
 from django.contrib.gis.geos import GEOSGeometry
 
 # import common.models as common
-from ..stocking.models import (
+from ...stocking.models import (
     LifeStage,
-    Condition,
+    StockingMortality,
     Hatchery,
     StockingMethod,
     StockingEvent,
@@ -27,13 +27,13 @@ from .common_factories import (
     AgencyFactory,
     SpeciesFactory,
     ManagementUnitFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
     StateProvinceFactory,
     Grid10Factory,
     LatLonFlagFactory,
 )
 
-from .user_factory import UserFactory
+from fsdviz.myusers.tests.factories import UserFactory
 
 
 class LifeStageFactory(factory.django.DjangoModelFactory):
@@ -64,16 +64,16 @@ class YearlingEquivalentFactory(factory.django.DjangoModelFactory):
     yreq_factor = 1.0
 
 
-class ConditionFactory(factory.django.DjangoModelFactory):
+class StockingMortalityFactory(factory.django.DjangoModelFactory):
     """
-    A factory for Condition objects.
+    A factory for StockingMortality objects.
     """
 
     class Meta:
-        model = Condition
-        django_get_or_create = ("condition",)
+        model = StockingMortality
+        django_get_or_create = ("value",)
 
-    condition = 1
+    value = 1
     description = '<1% mortality observed, "excellent"'
 
 
@@ -115,7 +115,7 @@ class StockingEventFactory(factory.django.DjangoModelFactory):
 
     # foreign keys:
     species = factory.SubFactory(SpeciesFactory)
-    strain_raw = factory.SubFactory(StrainRawFactory)
+    strain_alias = factory.SubFactory(StrainAliasFactory)
     agency = factory.SubFactory(AgencyFactory)
     hatchery = factory.SubFactory(HatcheryFactory)
     jurisdiction = factory.SubFactory(JurisdictionFactory)
@@ -125,7 +125,7 @@ class StockingEventFactory(factory.django.DjangoModelFactory):
     # stateprov = factory.SubFactory(StateProvinceFactory)
     stocking_method = factory.SubFactory(StockingMethodFactory)
     lifestage = factory.SubFactory(LifeStageFactory)
-    condition = factory.SubFactory(ConditionFactory)
+    stocking_mortality = factory.SubFactory(StockingMortalityFactory)
 
     latlong_flag = factory.SubFactory(LatLonFlagFactory)
 

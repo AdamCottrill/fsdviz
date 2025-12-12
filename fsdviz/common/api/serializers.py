@@ -20,7 +20,7 @@ from fsdviz.common.models import (
     Species,
     StateProvince,
     Strain,
-    StrainRaw,
+    StrainAlias,
 )
 from rest_framework import serializers
 
@@ -156,9 +156,9 @@ class StrainSpeciesSerializer(ModelColorSerializer):
 
 
 class StrainSerializer(ModelColorSerializer):
-    """A simplified serializer for strain objects - used in the strainRaw
+    """A simplified serializer for strain objects - used in the StrainAlias
     Serializers.  This version does *not* include the species serializer as
-    it is already included in the StrainRawSerializer.
+    it is already included in the StrainAliasSerializer.
     """
 
     class Meta:
@@ -166,20 +166,20 @@ class StrainSerializer(ModelColorSerializer):
         fields = ("id", "strain_code", "strain_label", "slug", "color")
 
 
-class StrainRawSerializer(ModelColorSerializer):
-    """A serializer for Strain Raw objects. Includes nested serializers
+class StrainAliasSerializer(ModelColorSerializer):
+    """A serializer for StrainAlias objects. Includes nested serializers
     for both species and strain objects.  Uses the simplified strain
-    serializer that does not include species.  StrainRaw is
+    serializer that does not include species.  StrainAlias is
     effectively an association table between species and strain -
-    there can only be one species and one strain fro each record.
+    there can only be one species and one strain for each record.
     """
 
     species = SpeciesSerializer(many=False)
     strain = StrainSerializer(many=False)
 
     class Meta:
-        model = StrainRaw
-        fields = ("id", "raw_strain", "description", "species", "strain", "color")
+        model = StrainAlias
+        fields = ("id", "strain_alias", "description", "species", "strain", "color")
 
     @staticmethod
     def setup_eager_loading(queryset):

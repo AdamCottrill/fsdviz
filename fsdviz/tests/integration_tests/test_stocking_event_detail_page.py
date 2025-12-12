@@ -12,7 +12,7 @@
     + agency stock_id (if known)
     + species
     + strain
-    + raw strain
+    + strain alias
     + agency
     + lake
     + state/province
@@ -31,7 +31,7 @@
     + tag retention
     + marks  (if any)
     + marking efficency
-    + condition
+    + stocking_mortality
     + number stocked
     + yearing equivalents
     + lot code
@@ -58,15 +58,15 @@ from pytest_django.asserts import assertTemplateUsed, assertContains, assertNotC
 
 from ..pytest_fixtures import glsc as user
 
-from ..stocking_factories import (
+from ..factories.stocking_factories import (
     StockingEventFactory,
     LifeStageFactory,
-    ConditionFactory,
+    StockingMortalityFactory,
     HatcheryFactory,
     StockingMethodFactory,
 )
 
-from ..common_factories import (
+from ..factories.common_factories import (
     LakeFactory,
     SpeciesFactory,
     AgencyFactory,
@@ -75,7 +75,7 @@ from ..common_factories import (
     ManagementUnitFactory,
     Grid10Factory,
     StrainFactory,
-    StrainRawFactory,
+    StrainAliasFactory,
     MarkFactory,
     LatLonFlagFactory,
     CWTFactory,
@@ -110,10 +110,10 @@ def base_event():
     species = SpeciesFactory(common_name="Lake Trout", abbrev="LAT")
     strain = StrainFactory(strain_code="SEN", strain_label="Seneca")
 
-    strain_raw = StrainRawFactory(
+    strain_alias = StrainAliasFactory(
         species=species,
         strain=strain,
-        raw_strain="Sp. Strain",
+        strain_alias="Sp. Strain",
         description="Special Strain",
     )
 
@@ -122,20 +122,20 @@ def base_event():
     )
 
     lifestage = LifeStageFactory(abbrev="y", description="Yearling")
-    condition = ConditionFactory(
-        condition="0", description="unknown condition at stocking"
+    stocking_mortality = StockingMortalityFactory(
+        value=0, description="unknown stocking mortality at stocking"
     )
 
     event = StockingEventFactory(
         species=species,
-        strain_raw=strain_raw,
+        strain_alias=strain_alias,
         agency=agency,
         jurisdiction=jurisdiction,
         grid_10=grid_10,
         latlong_flag=latlong_flag,
         stocking_method=stocking_method,
         lifestage=lifestage,
-        condition=condition,
+        stocking_mortality=stocking_mortality,
         stock_id=stock_id,
         year_class=2018,
         agemonth=15,
@@ -215,7 +215,7 @@ required_elements = [
     ("stock_id", "2019_12345"),
     ("species", "Lake Trout (LAT)"),
     ("strain", "Seneca (SEN)"),
-    ("raw strain", '<td id="strain-raw">Special Strain(Sp. Strain)</td>'),
+    ("strain alias", '<td id="strain-alias">Special Strain(Sp. Strain)</td>'),
     ("agency ", "Ontario Ministry of Natural Resources and Forestry (OMNRF)"),
     ("lake", '<td class="capitalize">Huron (HU)</td>'),
     ("state/province", '<td class="capitalize">Ontario (ON)</td>'),
@@ -227,6 +227,8 @@ required_elements = [
     ("lifestage", "Yearling (y)"),
     ("age of stocked fish", '<td class="capitalize">15</td>'),
     ("year class", '<td class="capitalize">2018</td>'),
+    ("weight", "<td><strong>Total Weight(kg):</strong></td>"),
+    ("length", "<td><strong>Mean Length(mm):</strong></td>"),
 ]
 
 
