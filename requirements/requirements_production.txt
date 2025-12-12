@@ -10,7 +10,7 @@ asgiref==3.9.1
     #   django-cors-headers
 bookmark-it @ file:///C:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/bookmark_it/dist/bookmark-it-2024.3.8.tar.gz#sha256=413ca50567ec6d9a353a9e93d9c0755ad77134653ae7a5e7704b897779d41bb9
     # via -r base.in
-django==5.2.5
+django==5.2.9
     # via
     #   -r base.in
     #   django-cors-headers
@@ -23,9 +23,9 @@ django-colorfield==0.14.0
     # via -r base.in
 django-cors-headers==4.7.0
     # via -r base.in
-django-filter==25.1
+django-filter==25.2
     # via -r base.in
-django-leaflet==0.32.0
+django-leaflet==0.33.0
     # via -r base.in
 django-taggit==6.1.0
     # via -r base.in
@@ -38,7 +38,7 @@ drf-excel==2.5.3
     # via drf-renderer-xlsx
 drf-renderer-xlsx==1.0.0
     # via -r base.in
-drf-yasg==1.21.10
+drf-yasg==1.21.11
     # via -r base.in
 et-xmlfile==2.0.0
     # via openpyxl
@@ -46,7 +46,7 @@ gdal @ file:///C:/Users/COTTRILLAD/Downloads/GDAL-3.9.2-cp312-cp312-win_amd64.wh
     # via -r base.in
 inflection==0.5.1
     # via drf-yasg
-markdown==3.8.2
+markdown==3.10
     # via -r base.in
 markdown2==2.5.4
     # via -r base.in
@@ -56,7 +56,7 @@ openpyxl==3.1.5
     #   drf-excel
 packaging==25.0
     # via drf-yasg
-pillow==11.3.0
+pillow==12.0.0
     # via
     #   -r base.in
     #   django-colorfield

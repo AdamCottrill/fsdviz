@@ -10,7 +10,7 @@ asgiref==3.9.1
     #   django-cors-headers
 astroid==3.3.11
     # via pylint
-black==25.1.0
+black==25.12.0
     # via -r local.in
 bookmark-it @ file:///C:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/bookmark_it/dist/bookmark-it-2024.3.8.tar.gz#sha256=413ca50567ec6d9a353a9e93d9c0755ad77134653ae7a5e7704b897779d41bb9
     # via -r base.in
@@ -26,13 +26,13 @@ colorama==0.4.6
     #   click
     #   pylint
     #   pytest
-coverage[toml]==7.10.5
+coverage[toml]==7.13.0
     # via
     #   -r local.in
     #   pytest-cov
 dill==0.4.0
     # via pylint
-django==5.2.5
+django==5.2.9
     # via
     #   -r base.in
     #   django-cors-headers
@@ -47,13 +47,13 @@ django-colorfield==0.14.0
     # via -r base.in
 django-cors-headers==4.7.0
     # via -r base.in
-django-debug-toolbar==6.0.0
+django-debug-toolbar==6.1.0
     # via -r local.in
 django-extensions==4.1
     # via -r local.in
-django-filter==25.1
+django-filter==25.2
     # via -r base.in
-django-leaflet==0.32.0
+django-leaflet==0.33.0
     # via -r base.in
 django-taggit==6.1.0
     # via -r base.in
@@ -66,13 +66,13 @@ drf-excel==2.5.3
     # via drf-renderer-xlsx
 drf-renderer-xlsx==1.0.0
     # via -r base.in
-drf-yasg==1.21.10
+drf-yasg==1.21.11
     # via -r base.in
 et-xmlfile==2.0.0
     # via openpyxl
 execnet==2.1.1
     # via pytest-xdist
-factory-boy==3.3.3
+factory-boy==3.3.0
     # via -r local.in
 faker==37.6.0
     # via factory-boy
@@ -82,11 +82,11 @@ inflection==0.5.1
     # via drf-yasg
 iniconfig==2.1.0
     # via pytest
-isort==6.0.1
+isort==6.1.0
     # via
     #   -r local.in
     #   pylint
-markdown==3.8.2
+markdown==3.10
     # via -r base.in
 markdown2==2.5.4
     # via -r base.in
@@ -106,7 +106,7 @@ packaging==25.0
     #   pytest
 pathspec==0.12.1
     # via black
-pillow==11.3.0
+pillow==12.0.0
     # via
     #   -r base.in
     #   django-colorfield
@@ -124,7 +124,7 @@ psycopg2-binary==2.9.10
     # via -r base.in
 pygments==2.19.2
     # via pytest
-pylint==3.3.8
+pylint==3.3.9
     # via
     #   -r local.in
     #   pylint-django
@@ -139,18 +139,20 @@ pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pytest==8.4.1
+pytest==9.0.2
     # via
     #   -r local.in
     #   pytest-cov
     #   pytest-django
     #   pytest-xdist
-pytest-cov==6.2.1
+pytest-cov==7.0.0
     # via -r local.in
 pytest-django==4.11.1
     # via -r local.in
 pytest-xdist==3.8.0
     # via -r local.in
+pytokens==0.3.0
+    # via black
 pytz==2025.2
     # via drf-yasg
 pyyaml==6.0.2
@@ -173,7 +175,7 @@ uritemplate==4.2.0
     # via drf-yasg
 wheel==0.45.1
     # via pip-tools
-whitenoise==6.9.0
+whitenoise==6.11.0
     # via -r local.in
 
 # The following packages are considered to be unsafe in a requirements file:

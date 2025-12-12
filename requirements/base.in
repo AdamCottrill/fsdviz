@@ -8,19 +8,19 @@ ticket-tracker @ file:///C:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/
 
 resource-library @ file:///c:/Users/COTTRILLAD/Documents/1work/Python/djcode/apps/resource_library/dist/resource-library-2022.6.29.tar.gz#sha256=9ae13190bf377fb49438767053aba2227d4058b1e5f21a631106bf9262e6dfd2
 
-Django==5.2.5
-django-filter==25.1
+Django==5.2.9
+django-filter==25.2
 djangorestframework==3.16.1
 django-cors-headers==4.7.0
 
 
 django-taggit==6.1.0
-django-leaflet==0.32.0
+django-leaflet==0.33.0
 django-colorfield==0.14.0
 drf-renderer-xlsx==1.0.0
-drf-yasg==1.21.10
-Markdown==3.8.2
+drf-yasg==1.21.11
+Markdown==3.10.0
 markdown2==2.5.4
 psycopg2-binary==2.9.10
-pillow==11.3.0
+pillow==12.0.0
 openpyxl==3.1.5
