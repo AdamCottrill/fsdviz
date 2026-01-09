@@ -188,6 +188,37 @@ class StrainAliasSerializer(ModelColorSerializer):
         return queryset
 
 
+class StrainRawSerializer(serializers.ModelSerializer):
+    """An obsolete serializer that returns StrainAlias objects as StrainRaw
+    objects. This serializer is used exclusively to maintain continuity with existing
+    spreadsheets and R-packages. It has been superceded by StrainAlias which should be
+    used instead.
+
+    """
+
+    id = serializers.IntegerField(read_only=True)
+    raw_strain = serializers.CharField(read_only=True)
+    description = serializers.CharField(read_only=True)
+    species = SpeciesSerializer(read_only=True, many=False)
+    strain = StrainSerializer(read_only=True, many=False)
+
+    class Meta:
+        model = StrainAlias
+        fields = (
+            "id",
+            "raw_strain",
+            "description",
+            "species",
+            "strain",
+        )
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """Perform necessary eager loading of data."""
+        queryset = queryset.select_related("species", "strain")
+        return queryset
+
+
 class CWTSerializer(serializers.ModelSerializer):
     class Meta:
         model = CWT
