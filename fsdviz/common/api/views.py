@@ -3,7 +3,6 @@
 The veiws in this file should all be publicly available as readonly.
 """
 
-
 from django.contrib.gis.db.models.functions import Distance
 from django.db.models import F
 from fsdviz.common.filters import (
@@ -33,7 +32,7 @@ from fsdviz.common.models import (
     StrainAlias,
 )
 from fsdviz.common.utils import get_polygons, parse_geom
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -54,6 +53,7 @@ from .serializers import (
     SpeciesSerializer,
     StateProvinceSerializer,
     StrainAliasSerializer,
+    StrainRawSerializer,
     StrainSpeciesSerializer,
 )
 
@@ -679,3 +679,38 @@ class CommonLookUpsAPIView(APIView):
         }
 
         return Response(lookups)
+
+
+class StrainRawListView(generics.ListAPIView):
+    """A read-only endpoint to return Raw Strain objects.  This endpoint has been
+    superceded by StrainAlias and should not be used by new client applications.  It
+    will be removed in future version of the Fish Stocking API.  The endpoint accepts query parameter
+    filters.  By default only active StrainRaw objects are returned.  Include a query
+    parameter all=True to retrieve all StrainRaw objects.
+
+    """
+
+    serializer_class = StrainRawSerializer
+    filterset_class = StrainAliasFilter
+
+    def get_queryset(self):
+        """"""
+
+        "unless the user askes for all strains, we should only return the active ones." ""
+
+        """by default, we only want to return active users unless the request
+        includes an argument for all users (e.g. - for historical
+        projects).
+
+        """
+
+        active = self.request.query_params.get("active")
+        queryset = (
+            StrainAlias.objects.select_related("species", "strain")
+            .annotate(raw_strain=F("strain_alias"))
+            .distinct()
+        )
+        if active:
+            queryset = queryset.filter(active=True)
+
+        return queryset

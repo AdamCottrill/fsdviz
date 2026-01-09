@@ -36,8 +36,6 @@ COVERAGE_MODULE_EXCLUDES += THIRD_PARTY_APPS + DJANGO_APPS
 # simple spreadsheet attributes for tests:
 MAX_UPLOAD_EVENT_COUNT = 15
 DATA_WORKSHEET_NAME = "DATA_TEMPLATE"
-UPLOAD_KEY_FIELD_ROW = 4
-UPLOAD_FIRST_DATA_ROW = 10
 
 
 # use the default static file storage for tests:

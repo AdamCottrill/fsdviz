@@ -20,6 +20,7 @@ from .views import (
     StateProvinceViewSet,
     StrainAliasViewSet,
     StrainSpeciesViewSet,
+    StrainRawListView,
     get_grid10_from_pt,
     get_jurisdiction_from_pt,
     get_lake_from_pt,
@@ -68,6 +69,9 @@ urlpatterns += [
     ),
     path("spatial_lookup/", pt_spatial_attrs, name="api-lookup-spatial-attrs"),
     path("spatial_lookup_roi/", roi_spatial_attrs, name="api-lookup-roi-attrs"),
+    #  obsolete!  Keep for compatibiliy with existing spreadsheets and R-packages
+    # replaced by strain_alias
+    path("strainraw/", StrainRawListView.as_view(), name="strain-raw-list"),
 ]
 
 # urlpatterns = [
