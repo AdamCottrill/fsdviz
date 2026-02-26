@@ -158,11 +158,15 @@ Promise.all([
   strain_choices = make_choices(
     // object keyed by species with array of 2 element arrays
     // strain code (strain label)
-    common.raw_strains
+    common.strain_aliases
       .filter((d) => d.active === true)
       .map((x) => {
         // const label = `${x.raw_strain} (${x.description})`;
-        return [x.species__abbrev, { value: x.raw_strain, text: x.raw_strain }];
+
+        return [
+          x.species__abbrev,
+          { value: x.strain_alias, text: x.strain_alias },
+        ];
       })
   );
 

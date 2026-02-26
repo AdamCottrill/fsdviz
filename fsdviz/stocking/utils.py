@@ -119,6 +119,30 @@ xlsFields2Fdviz = {
 }
 
 
+def find_header_row(data_file, worksheet_name="DATA_TEMPLATE"):
+    """Iterate over our uploaded spreadsheet - find the index of the row that contains
+    the field names:
+
+    """
+
+    if hasattr(data_file, "open"):
+        wb = load_workbook(filename=data_file.open(), data_only=True)
+    else:
+        wb = load_workbook(filename=data_file, data_only=True)
+    ws = wb[worksheet_name]
+
+    required_fields = {x.upper() for x in REQUIRED_FIELDS}
+
+    for i, row in enumerate(ws.iter_rows(min_row=0, max_row=20, values_only=True)):
+        vals = {x for x in row}
+        shared = vals.intersection(required_fields)
+        # assume that temmplate must have at least 10 fields in common
+        # just incase the documentation or examples have some matching contents:
+        if len(shared) > 10:
+            return i + 1
+    return -9
+
+
 def xls2dicts(data_file):
     """A helper function to read our excel file and return a list of
     dictionaries for each row in the spreadsheet.  The keys of the
@@ -131,9 +155,9 @@ def xls2dicts(data_file):
     # add to max count - one for the header row, and one to trip the
     # too many rows flag
     maxrows = settings.MAX_UPLOAD_EVENT_COUNT + 2
-    key_row = settings.UPLOAD_KEY_FIELD_ROW - 1
-    first_data_row = settings.UPLOAD_FIRST_DATA_ROW - 1
+
     data_sheet_name = settings.DATA_WORKSHEET_NAME
+    key_row = find_header_row(data_file, data_sheet_name)
 
     if hasattr(data_file, "open"):
         wb = load_workbook(filename=data_file.open(), data_only=True)
@@ -144,19 +168,21 @@ def xls2dicts(data_file):
     data = []
 
     for i, row in enumerate(
-        ws.iter_rows(min_row=0, max_row=(maxrows + first_data_row), values_only=True)
+        ws.iter_rows(min_row=key_row, max_row=(maxrows + key_row), values_only=True)
     ):
-        if i == key_row:
+
+        if i == 0:
             # map the values from the spread sheet to our fields
             # if it can't be found in our map - just use the value
             keys = [xlsFields2Fdviz.get(x, x) for x in row]
-        elif i >= first_data_row:
+        else:
             vals = [x for x in row]
             # if we have a blank row - stop
             if all(v is None for v in vals):
                 break
-            tmp = {k: v for k, v in zip(keys, vals)}
-            data.append(tmp)
+            else:
+                tmp = {k: v for k, v in zip(keys, vals)}
+                data.append(tmp)
 
     return data
 
