@@ -51,6 +51,7 @@ packaging==25.0
     #   black
     #   build
     #   pytest
+    #   wheel
 pathspec==0.12.1
     # via black
 pip-tools==7.5.0
@@ -102,7 +103,7 @@ tomlkit==0.13.3
     # via pylint
 tzdata==2025.2
     # via faker
-wheel==0.45.1
+wheel==0.46.2
     # via pip-tools
 whitenoise==6.11.0
     # via -r local.in
