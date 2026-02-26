@@ -67,7 +67,7 @@
                     <div class="row">
                         <div class="ui column">
 
-                            <h1>Coded Wire Tag Stocking Events</h1>
+                            <h1>Coded Wire Tag Stocking Event Attributes</h1>
 
                             {% if filters %}
                                 <div class="row">
@@ -130,6 +130,7 @@
                   <th scope="col">Year</th>
                   <th scope="col">Species</th>
                   <th scope="col">Strain</th>
+                  <th scope="col">Event Count</th>
                   <th scope="col">Year Class</th>
                   <th scope="col">Life Stage</th>
                   <th scope="col">Stocking Method</th>
@@ -140,7 +141,7 @@
               <tbody>
                 {% for object in object_list %}
 
-                <tr id="{{object.stock_id}}-{{object.cwt_number}}">
+                <tr>
                   <td>
                     <a
                       href="{% url 'stocking:cwt-detail' cwt_number=object.cwt_number%}"
@@ -154,6 +155,7 @@
                   <td>{{ object.year}}</td>
                   <td>{{ object.spc}}</td>
                   <td>{{ object.strain}}</td>
+                  <td>{{ object.events}}</td>
                   <td>{{ object.year_class}}</td>
                   <td>{{ object.stage}}</td>
                   <td>{{ object.method}}</td>

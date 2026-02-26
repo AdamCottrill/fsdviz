@@ -295,7 +295,7 @@ class CWTListView(ListView):
 
         # use our shorter field names in the list of fields to select:
         fields = [
-            "stock_id",
+            # "stock_id",
             "cwt_number",
             "tag_type",
             "manufacturer",
@@ -326,7 +326,7 @@ class CWTListView(ListView):
             "jurisdiction__stateprov",
         ]
 
-        counts = {"events": Count("stock_id")}
+        counts = {"events": Count("stock_id", distinct=True)}
 
         queryset = StockingEvent.objects.filter(
             cwt_series__cwt__cwt_number__isnull=False
@@ -344,6 +344,7 @@ class CWTListView(ListView):
             .values(*fields)
             .order_by()
             .annotate(**counts)
+            .distinct()
         )
 
         return values
@@ -487,7 +488,7 @@ def find_cwt_events(request):
     jurisdictions = Jurisdiction.objects.values_list("slug", "name")
     agencies = Agency.objects.all().values_list("abbrev", "agency_name")
 
-    bbox =  Lake.objects.all().aggregate(extent=Extent("geom"))
+    bbox = Lake.objects.all().aggregate(extent=Extent("geom"))
 
     # manunits
     # managementUnits = list(
@@ -572,9 +573,8 @@ def find_cwt_events(request):
             "strains": json.dumps(strains),
             "lifestages": json.dumps(lifestages),
             "stocking_methods": json.dumps(stocking_methods),
-            "bbox": bbox["extent"]
+            "bbox": bbox["extent"],
         },
-
     )
 
 

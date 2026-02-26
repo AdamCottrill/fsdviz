@@ -53,6 +53,7 @@ class TestCWTListView:
             '<th scope="col">Year</th>',
             '<th scope="col">Species</th>',
             '<th scope="col">Strain</th>',
+            '<th scope="col">Event Count</th>',
             '<th scope="col">Year Class</th>',
             '<th scope="col">Life Stage</th>',
             '<th scope="col">Stocking Method</th>',
@@ -154,12 +155,9 @@ def test_cwt_list_filters(
             html = button_html.format(key, val, colour)
             assertContains(response, html, html=True)
 
-    html = '<tr id="{}-{}">'
+    html = '<td> <a href="{0}">{1}</a></td>'
 
-    # verify that the correct stock ID numbers are returned - can't
-    # use cwt because they are confounded if cwts are re-used.
-    for value in expected:
-        assertContains(response, html.format(*value))
-
-    for value in excluded:
-        assertNotContains(response, html.format(*value))
+    expected_cwts = {x[1] for x in expected}
+    for value in list(expected_cwts):
+        url = reverse("stocking:cwt-detail", kwargs={"cwt_number": value})
+        assertContains(response, html.format(url, format_cwt(value)), html=True)
