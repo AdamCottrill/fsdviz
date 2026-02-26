@@ -5,6 +5,7 @@ from fsdviz.stocking.models import (
     LifeStage,
     StockingMethod,
     YearlingEquivalent,
+    StockingMortality,
 )
 
 from .models import (
@@ -67,6 +68,8 @@ def lookup_tables(request):
     )
     stocking_methods = StockingMethod.objects.all()
 
+    stocking_mortality = StockingMortality.objects.all()
+
     return render(
         request,
         "common/lookup_tables.html",
@@ -84,5 +87,6 @@ def lookup_tables(request):
             "lifestages": lifestages,
             "yreq": yreq,
             "stocking_methods": stocking_methods,
+            "stocking_mortality": stocking_mortality,
         },
     )

@@ -29,6 +29,7 @@
           <li><a href="#lifestages">Life Stages </a></li>
           <li><a href="#yreq">Yearling Equivalents</a></li>
           <li><a href="#stocking-method">Stocking Method</a></li>
+          <li><a href="#stocking-mortality">Stocking Mortality</a></li>
         </ul>
       </div>
     </div>
@@ -645,6 +646,57 @@
           {% endfor %}
         </tbody>
       </table>
+
+
+
+      <h3 id="stocking-mortality">Stocking Mortality</h3>
+
+      {% with description=table_descriptions.stocking_mortality %}
+            {% if description %}
+                <p>{{ description|safe  }} </p>
+            {% else %}
+                <p>
+                    <em>Sorry. A description of the "Stocking Mortality" table has not been provided.</em>
+                </p>
+            {% endif %}
+      {% endwith %}
+
+      <div class="ui grid">
+        <div class="four column row">
+          <div class="right floated column">
+            <div class="ui search">
+              <div class="ui icon input">
+                <input
+                  id="stocking-mortalitys-filter"
+                  class="prompt table-filter-input"
+                  type="text"
+                  placeholder="Filter Stocking Mortality..."
+                />
+                <i class="search icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table id="stocking-mortalitys-table" class="ui celled table tablesorter">
+        <thead>
+          <tr>
+            <th>Abbreviation</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in stocking_mortality %}
+          <tr>
+            <td>{{ item.value}}</td>
+            <td class="title">{{ item.description}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+
     </div>
   </div>
 </div>

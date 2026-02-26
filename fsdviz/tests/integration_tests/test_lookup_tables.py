@@ -11,75 +11,79 @@ from fsdviz.common.models import LookupDescription
 
 
 lookup_tables = [
-        {
-            "model_name": "Agencies",
-            "slug": "agencies",
-            "description": "the agency lookup table",
-            "missing_message": 'Sorry. A description of the "Agencies" table has not been provided.',
-        },
-        {
-            "model_name": "Fin Clips",
-            "slug": "fin_clips",
-            "description": "The fin clip lookup table",
-            "missing_message": 'Sorry. A description of the "Fin Clips" table has not been provided.',
-        },
-        {
-            "model_name": "Fish Tags",
-            "slug": "fish_tags",
-            "description": "the fish tag lookup table",
-            "missing_message": 'Sorry. A description of the "Fish Tags" table has not been provided.',
-        },
-        {
-            "model_name": "Hatcheries",
-            "slug": "hatcheries",
-            "description": "the hatchery lookup table",
-            "missing_message": 'Sorry. A description of the "Hatcheries" table has not been provided.',
-        },
-        {
-            "model_name": "Jurisdictions",
-            "slug": "jurisdictions",
-            "description": "The jurisdiction lookup table",
-            "missing_message": 'Sorry. A description of the "Jurisdictions" table has not been provided.',
-        },
-        {
-            "model_name": "Lakes",
-            "slug": "lakes",
-            "description": "the lakes lookup table",
-            "missing_message": 'Sorry. A description of the "Lakes" table has not been provided.',
-        },
-        {
-            "model_name": "Lifestages",
-            "slug": "lifestages",
-            "description": "The life stage lookup table",
-            "missing_message": 'Sorry. A description of the "Lifestages" table has not been provided.',
-        },
-        {
-            "model_name": "Physical or Chemical Marks",
-            "slug": "physical_or_chemical_marks",
-            "description": "Physical or Chemical Marks",
-            "missing_message": 'Sorry. A description of the "Physical or Chemical Marks" table has not been provided.',
-        },
-        {
-            "model_name": "Species",
-            "slug": "species",
-            "description": "the Species lookup table",
-            "missing_message": 'Sorry. A description of the "Species" table has not been provided.',
-        },
-        {
-            "model_name": "Stocking Methods",
-            "slug": "stocking_methods",
-            "description": "the stocking methods lookup table",
-            "missing_message": 'Sorry. A description of the "Stocking Methods" table has not been provided.',
-        },
-        {
-            "model_name": "Strains",
-            "slug": "strains",
-            "description": "The strains lookup table",
-            "missing_message": 'Sorry. A description of the "Strains" table has not been provided.',
-        },
-    ]
-
-
+    {
+        "model_name": "Agencies",
+        "slug": "agencies",
+        "description": "the agency lookup table",
+        "missing_message": 'Sorry. A description of the "Agencies" table has not been provided.',
+    },
+    {
+        "model_name": "Fin Clips",
+        "slug": "fin_clips",
+        "description": "The fin clip lookup table",
+        "missing_message": 'Sorry. A description of the "Fin Clips" table has not been provided.',
+    },
+    {
+        "model_name": "Fish Tags",
+        "slug": "fish_tags",
+        "description": "the fish tag lookup table",
+        "missing_message": 'Sorry. A description of the "Fish Tags" table has not been provided.',
+    },
+    {
+        "model_name": "Hatcheries",
+        "slug": "hatcheries",
+        "description": "the hatchery lookup table",
+        "missing_message": 'Sorry. A description of the "Hatcheries" table has not been provided.',
+    },
+    {
+        "model_name": "Jurisdictions",
+        "slug": "jurisdictions",
+        "description": "The jurisdiction lookup table",
+        "missing_message": 'Sorry. A description of the "Jurisdictions" table has not been provided.',
+    },
+    {
+        "model_name": "Lakes",
+        "slug": "lakes",
+        "description": "the lakes lookup table",
+        "missing_message": 'Sorry. A description of the "Lakes" table has not been provided.',
+    },
+    {
+        "model_name": "Lifestages",
+        "slug": "lifestages",
+        "description": "The life stage lookup table",
+        "missing_message": 'Sorry. A description of the "Lifestages" table has not been provided.',
+    },
+    {
+        "model_name": "Physical or Chemical Marks",
+        "slug": "physical_or_chemical_marks",
+        "description": "Physical or Chemical Marks",
+        "missing_message": 'Sorry. A description of the "Physical or Chemical Marks" table has not been provided.',
+    },
+    {
+        "model_name": "Species",
+        "slug": "species",
+        "description": "the Species lookup table",
+        "missing_message": 'Sorry. A description of the "Species" table has not been provided.',
+    },
+    {
+        "model_name": "Stocking Methods",
+        "slug": "stocking_methods",
+        "description": "the stocking methods lookup table",
+        "missing_message": 'Sorry. A description of the "Stocking Methods" table has not been provided.',
+    },
+    {
+        "model_name": "Strains",
+        "slug": "strains",
+        "description": "The strains lookup table",
+        "missing_message": 'Sorry. A description of the "Strains" table has not been provided.',
+    },
+    {
+        "model_name": "Stocking Mortality",
+        "slug": "stocking_mortality",
+        "description": "The stocking mortality lookup table",
+        "missing_message": 'Sorry. A description of the "Stocking Mortality" table has not been provided.',
+    },
+]
 
 
 # populated the database with out lookup table descriptions
@@ -87,10 +91,11 @@ lookup_tables = [
 def setup():
 
     for item in lookup_tables:
-        lookup = LookupDescription(model_name=item['model_name'],
-                                   slug=item['slug'],
-                                   description=item['description']
-                                   )
+        lookup = LookupDescription(
+            model_name=item["model_name"],
+            slug=item["slug"],
+            description=item["description"],
+        )
         lookup.save()
 
 
@@ -119,17 +124,13 @@ def test_lookup_descriptions_render(client, setup):
 def test_lookup_description_missing_message(client, setup, lookup):
 
     # delete the current lookup table
-    LookupDescription.objects.get(slug=lookup['slug']).delete()
+    LookupDescription.objects.get(slug=lookup["slug"]).delete()
 
     url = reverse("common:lookup-tables")
     response = client.get(url)
 
     assertTemplateUsed(response, "common/lookup_tables.html")
-    assert response.status_code==200
-
-    fname = "c:/Users/COTTRILLAD/Documents/1work/scrapbook/wtf.html"
-    with open(fname, "wb") as f:
-        f.write(response.content)
+    assert response.status_code == 200
 
     expected = lookup["missing_message"]
     assertContains(response, expected)
