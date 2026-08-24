@@ -11,7 +11,6 @@ that test authenticated users.
 
 """
 
-
 import pytest
 from django.urls import reverse
 from rest_framework import status
@@ -207,13 +206,46 @@ class TestStockingMortalityAPI(APITestCase):
         object by passing it's abbrev to the url."""
 
         stocking_mortality = 1
-        obj = {"value": stocking_mortality, "description": "unknown stocking_mortality at stocking"}
+        obj = {
+            "value": stocking_mortality,
+            "description": "unknown stocking_mortality at stocking",
+        }
 
         StockingMortalityFactory(**obj)
 
-        url = reverse("stocking_api:stockingmortality-detail", kwargs={"value": stocking_mortality})
+        url = reverse(
+            "stocking_api:stockingmortality-detail",
+            kwargs={"value": stocking_mortality},
+        )
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
         assert obj == response.data
+
+    def test_condition_api_get_list(self):
+        """the condition api is an aliase for stocking mortality - it
+        will be maintained until January 2028 to ensure backwards
+        compatitlty with older upload tempaltes.  The response should
+        be identical to the stocking_mortality endpoint."""
+        objects = [
+            {"value": 0, "description": "unknown stocking_mortality at stocking"},
+            {"value": 2, "description": "1-2% mortality observed"},
+            {
+                "value": 4,
+                "description": "5-25% mortality observed",
+            },
+        ]
+
+        for obj in objects:
+            StockingMortalityFactory(**obj)
+
+        url = reverse("stocking_api:stocking-condition-list")
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        assert len(response.data) == 3
+
+        for obj in objects:
+            assert obj in response.data

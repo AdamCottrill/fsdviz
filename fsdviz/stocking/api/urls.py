@@ -17,6 +17,7 @@ from .views import (
     StockingEventViewSet,
     StockingMethodViewSet,
     YearlingEquivalentViewSet,
+    StockingConditionListView,
 )
 
 app_name = "api"
@@ -28,6 +29,7 @@ router.register("lifestage", LifeStageViewSet)
 router.register("yearling_equivalent", YearlingEquivalentViewSet)
 router.register("stocking_mortality", StockingMortalityViewSet)
 router.register("stocking_method", StockingMethodViewSet)
+
 
 urlpatterns = router.urls
 
@@ -91,5 +93,11 @@ urlpatterns += [
         "mapdata/events/upload_event/<upload_event_slug>/",
         StockingEventMapListView.as_view(),
         name="api-stocking-event-upload-map",
+    ),
+    # this is an aliase for stocking_mortality - delete after Jan. 2028.
+    path(
+        "condition",
+        StockingConditionListView.as_view(),
+        name="stocking-condition-list",
     ),
 ]
