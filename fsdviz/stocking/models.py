@@ -152,6 +152,7 @@ class StockingMortality(models.Model):
      corrupted tests (- migrations during database creation.)
 
     """
+
     id = models.AutoField(primary_key=True)
     value = models.IntegerField(unique=True)
     description = models.CharField(max_length=100)
@@ -162,7 +163,6 @@ class StockingMortality(models.Model):
     class Meta:
         ordering = ["value"]
         verbose_name_plural = "Stocking mortalities"
-
 
     def __str__(self):
         return "{} - {}".format(self.value, self.description)
@@ -383,7 +383,9 @@ class StockingEvent(BaseModel):
         "age of stocked fish in months", blank=True, null=True
     )
     length = models.IntegerField("length of stocked fish in mm", blank=True, null=True)
-    weight = models.FloatField("total weight of stocked fish in kgs", blank=True, null=True)
+    weight = models.FloatField(
+        "total weight of stocked fish in kgs", blank=True, null=True
+    )
 
     lotcode = models.CharField(
         "Hatchery Lot code indicating source of stocked fish",

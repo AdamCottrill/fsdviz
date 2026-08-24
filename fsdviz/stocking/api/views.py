@@ -116,6 +116,17 @@ class StockingMortalityViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = "value"
 
 
+class StockingConditionListView(generics.ListAPIView):
+    """this is an aliase for stocking_mortality - delete after
+    Jan. 2028.  Please update use
+    '/api/v1/stocking/stocking_mortality/' instead."""
+
+    queryset = StockingMortality.objects.all()
+    serializer_class = StockingMortalitySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_field = "value"
+
+
 class StockingMethodViewSet(viewsets.ReadOnlyModelViewSet):
     """List of available stocking methods and abbreviations."""
 
