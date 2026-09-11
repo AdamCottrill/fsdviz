@@ -235,6 +235,16 @@ LEAFLET_CONFIG = {
     "SPATIAL_EXTENT": (-94.0, 40.0, -74.0, 50.0),
     # "RESET_VIEW": True,
     "DEFAULT_PRECISION": 5,
+    "TILES": [
+        (
+            "OpenStreetMap",
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                "attribution": '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+                "referrerPolicy": "strict-origin-when-cross-origin",
+            },
+        ),
+    ],
 }
 
 

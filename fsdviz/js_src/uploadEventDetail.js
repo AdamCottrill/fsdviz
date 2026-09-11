@@ -24,12 +24,13 @@ const mymap = Leaflet.map("mapid", {
     [bbox[1], bbox[0]],
     [bbox[3], bbox[2]],
   ],
-  { padding: [50, 50] }
+  { padding: [50, 50] },
 );
 
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+  referrerPolicy: "strict-origin-when-cross-origin",
   maxZoom: 18,
 }).addTo(mymap);
 
@@ -104,7 +105,7 @@ Promise.all([json(dataURL), json("/api/v1/common/lookups")]).then(
     const uniqueSpecies = [...new Set(data.map((x) => x.species_name))];
 
     const speciesList = label_lookup.filter((x) =>
-      uniqueSpecies.includes(x.slug)
+      uniqueSpecies.includes(x.slug),
     );
 
     update_category_legend(colourScale, speciesList, "");
@@ -119,5 +120,5 @@ Promise.all([json(dataURL), json("/api/v1/common/lookups")]).then(
         [bbox[3], bbox[2]],
       ]);
     }
-  }
+  },
 );

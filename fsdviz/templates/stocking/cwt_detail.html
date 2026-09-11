@@ -164,11 +164,14 @@
          zoomSnap: 0
      }).fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], {padding: [20,20]});
 
+
      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
          attribution:
      '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+         referrerPolicy: 'strict-origin-when-cross-origin',
          maxZoom: 18
      }).addTo(mymap);
+
 
 
      pts.forEach(function(pt){

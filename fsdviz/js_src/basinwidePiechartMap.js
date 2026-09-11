@@ -125,6 +125,7 @@ const mymap = Leaflet.map("mapid", {
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+  referrerPolicy: "strict-origin-when-cross-origin",
   maxZoom: 18,
 }).addTo(mymap);
 

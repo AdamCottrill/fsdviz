@@ -88,6 +88,7 @@ const mymap = Leaflet.map("mapid", {
 Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+  referrerPolicy: "strict-origin-when-cross-origin",
   maxZoom: 18,
 }).addTo(mymap);
 
@@ -202,6 +203,12 @@ Promise.all([
       .domain(Object.entries(colors).map((x) => x[0]))
       .range(Object.entries(colors).map((x) => x[1]));
   };
+
+  console.log(sharedColourScale);
+  console.log(pieLabels[spatialUnit]);
+  // pielabels - array of objects with attribute slug and label - each object corresponds to a pie charts
+  console.log(sliceLabels[sliceVar]);
+  // slice label - slug and label associated with current slice/catgory var.
 
   updateColorScale(sliceVar);
   piecharts.fillScale(sharedColourScale);
@@ -1238,6 +1245,7 @@ Promise.all([
     piecharts.sliceLabelLookup(sliceLabels[sliceVar]);
 
     const pts = get_pts(spatialUnit, centroids, ptAccessor);
+    console.log("pts = ", pts);
     pieg.data([pts]).call(piecharts);
 
     update_stats_panel(all, {
